@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0}
+body{background:transparent;font-family:Inter,system-ui,sans-serif;color:#1B2430;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+input,textarea,button{font-family:inherit}
+a{color:#E8551E;text-decoration:none}
+a:hover{color:#FF6B35}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.18);border-radius:6px}
+@keyframes sfspin{to{transform:rotate(360deg)}}
+@keyframes sfpulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes sfup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="display:flex;align-items:flex-start;justify-content:center;padding:0;position:relative;background:transparent">
+      <sc-if value="{{ isCliente }}" hint-placeholder-val="{{ true }}">
+      <div style="width:390px;flex-shrink:0;background:#0B0F1A;border-radius:46px;padding:10px;box-shadow:0 30px 60px -18px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07)">
+        <div style="background:#FFF6EC;border-radius:36px;overflow:hidden;height:766px;display:flex;flex-direction:column;position:relative">
+          <div style="{{ sbStyle }}"><span>9:41</span><svg viewBox="0 0 52 12" width="52" height="12" fill="currentColor" style="display:block"><rect x="0" y="7" width="2.6" height="5" rx="1"></rect><rect x="4.4" y="5" width="2.6" height="7" rx="1"></rect><rect x="8.8" y="2.8" width="2.6" height="9.2" rx="1"></rect><rect x="13.2" y="0" width="2.6" height="12" rx="1"></rect><path d="M22 4.4a7 7 0 0 1 8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><path d="M24.3 7.2a4 4 0 0 1 3.4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="26" cy="9.8" r="1.1"></circle><rect x="36" y="1.6" width="14" height="8.8" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.5"></rect><rect x="37.6" y="3.2" width="9" height="5.6" rx="1.4"></rect><rect x="50.6" y="4.4" width="1.4" height="3.2" rx="0.7"></rect></svg></div>
+
+          <sc-if value="{{ showHeader }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#FF6B35;color:#fff;padding:15px 18px;display:flex;align-items:center;gap:12px;font:700 16px 'Baloo 2',sans-serif;box-shadow:0 4px 14px -6px rgba(255,107,53,.7)">
+              <sc-if value="{{ hdrBack }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ onBack }}" style="cursor:pointer;font-size:18px;line-height:1;opacity:.9">←</span>
+              </sc-if>
+              <span>{{ hdrTitle }}</span>
+            </div>
+          </sc-if>
+
+          <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
+
+            <sc-if value="{{ is_login }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;background:linear-gradient(165deg,#142850 0%,#1F3B6B 34%,#FF6B35 100%);display:flex;flex-direction:column">
+                <div style="text-align:center;color:#fff;padding:26px 22px 20px">
+                  <div style="display:flex;align-items:center;justify-content:center;gap:9px"><svg viewBox="0 0 48 48" width="23" height="23" fill="none" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg><span style="font:800 24px 'Baloo 2',sans-serif">SUNFOOD</span></div>
+                  <div style="font:500 12px Inter,sans-serif;color:rgba(255,255,255,.75);margin-top:5px">Peça direto do seu guarda-sol</div>
+                </div>
+                <div style="background:#fff;border-radius:26px 26px 0 0;flex:1;padding:24px 22px 20px;display:flex;flex-direction:column;gap:13px">
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">E-mail</span>
+                    <input value="{{ email }}" onChange="{{ setEmail }}" placeholder="voce@email.com" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;color:#1B2430;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Senha</span>
+                    <input type="password" value="{{ pass }}" onChange="{{ setPass }}" placeholder="••••••••" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;color:#1B2430;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <sc-if value="{{ hasLoginErr }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ loginErr }}</div>
+                  </sc-if>
+                  <div onClick="{{ goForgot }}" style="text-align:right;font:600 12px Inter,sans-serif;color:#E8551E;cursor:pointer">Esqueci minha senha</div>
+                  <div onClick="{{ doLogin }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65);transition:transform .12s" style-hover="transform:translateY(-1px)">Entrar</div>
+                  <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px Inter,sans-serif">
+                    <span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>ou<span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>
+                  </div>
+                  <div onClick="{{ goMenu }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">
+                    <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
+                  </div>
+                  <div style="text-align:center;font:500 12px Inter,sans-serif;color:#6B7280;margin-top:auto">Não tem conta? <b onClick="{{ goSignup }}" style="color:#E8551E;cursor:pointer">Cadastre-se</b></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_signup }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;background:linear-gradient(165deg,#142850 0%,#1F3B6B 34%,#FF6B35 100%);display:flex;flex-direction:column">
+                <div style="text-align:center;color:#fff;padding:24px 22px 18px">
+                  <div style="font:800 22px 'Baloo 2',sans-serif">Criar conta</div>
+                  <div style="font:500 12px Inter,sans-serif;color:rgba(255,255,255,.75);margin-top:4px">Leva menos de um minuto</div>
+                </div>
+                <div style="background:#fff;border-radius:26px 26px 0 0;flex:1;padding:24px 22px 20px;display:flex;flex-direction:column;gap:12px">
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Nome completo</span>
+                    <input value="{{ suName }}" onChange="{{ setSuName }}" placeholder="Ana Souza" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">E-mail</span>
+                    <input value="{{ suEmail }}" onChange="{{ setSuEmail }}" placeholder="voce@email.com" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Senha</span>
+                    <input type="password" value="{{ suPass }}" onChange="{{ setSuPass }}" placeholder="Mínimo 6 caracteres" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ suErr }}</div>
+                  </sc-if>
+                  <div onClick="{{ doSignup }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Criar minha conta</div>
+                  <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px Inter,sans-serif">
+                    <span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>ou<span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>
+                  </div>
+                  <div onClick="{{ goMenu }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">
+                    <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
+                  </div>
+                  <div style="font:500 11px/1.5 Inter,sans-serif;color:#9A9384;text-align:center">Ao continuar você aceita os termos de uso e a política de privacidade do Sunfood.</div>
+                  <div style="text-align:center;font:500 12px Inter,sans-serif;color:#6B7280;margin-top:auto">Já tem conta? <b onClick="{{ goLogin }}" style="color:#E8551E;cursor:pointer">Entrar</b></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_forgot }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;background:linear-gradient(165deg,#142850 0%,#1F3B6B 34%,#FF6B35 100%);display:flex;flex-direction:column">
+                <div style="text-align:center;color:#fff;padding:26px 22px 20px">
+                  <div style="font:800 22px 'Baloo 2',sans-serif">Recuperar senha</div>
+                </div>
+                <div style="background:#fff;border-radius:26px 26px 0 0;flex:1;padding:24px 22px 20px;display:flex;flex-direction:column;gap:14px">
+                  <sc-if value="{{ fpNotSent }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;flex-direction:column;gap:14px">
+                      <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Informe o e-mail da sua conta. Enviaremos um link de redefinição válido por 30 minutos.</p>
+                      <input value="{{ fpEmail }}" onChange="{{ setFp }}" placeholder="voce@email.com" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                      <div onClick="{{ sendFp }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)">Enviar link</div>
+                      <div onClick="{{ goLogin }}" style="text-align:center;font:600 12px Inter,sans-serif;color:#E8551E;cursor:pointer">Voltar ao login</div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ fpSent }}" hint-placeholder-val="{{ false }}">
+                    <div style="text-align:center;padding:16px 4px;animation:sfup .3s ease">
+                      <div style="width:64px;height:64px;border-radius:50%;background:#E7F7ED;color:#16A34A;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">✓</div>
+                      <div style="font:700 17px 'Baloo 2',sans-serif;margin-bottom:6px">Link enviado</div>
+                      <p style="font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Confira a caixa de entrada de <b>{{ fpEmail }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
+                      <div onClick="{{ goLogin }}" style="margin-top:18px;background:#FF6B35;color:#fff;border-radius:12px;padding:13px;text-align:center;font:700 14px 'Baloo 2',sans-serif;cursor:pointer">Voltar ao login</div>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_menu }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px 16px 12px;display:flex;flex-direction:column;gap:12px">
+                <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:12px;padding:11px 13px;font:600 12px/1.45 Inter,sans-serif;color:#E74C3C;display:flex;gap:9px;align-items:flex-start"><svg viewBox="0 0 48 48" width="18" height="18" fill="none" stroke="#E74C3C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0;margin-top:1px"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M20 18v12 M28 18v12"></path></svg><span>Quiosque pausado pelo Admin. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
+                </sc-if>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:12px;padding:11px 13px;font:500 13px Inter,sans-serif;color:#9A9384;display:flex;align-items:center;gap:9px"><svg viewBox="0 0 48 48" width="16" height="16" fill="none" stroke="#B7AFA2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M11 22a11 11 0 1 0 22 0a11 11 0 1 0-22 0 M30 30l9 9"></path></svg>Buscar no cardápio</div>
+                <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:2px">
+                  <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
+                    <div onClick="{{ c.go }}" style="{{ c.style }}">{{ c.c }}</div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ menuItems }}" as="p" hint-placeholder-count="6">
+                    <div onClick="{{ p.open }}" style="{{ p.rowStyle }}" style-hover="box-shadow:0 8px 18px -12px rgba(20,40,80,.4);transform:translateY(-1px)">
+                      <span style="width:48px;height:48px;border-radius:13px;background:linear-gradient(140deg,#FFE9D2,#FFC79E);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(232,85,30,.12)">
+                        <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ p.photoStyle }}"></span></sc-if>
+                        <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="#E8551E" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ p.markPath }}"></path></svg></sc-if>
+                      </span>
+                      <div style="flex:1;min-width:0">
+                        <div style="font:700 13.5px Inter,sans-serif">{{ p.name }}</div>
+                        <div style="font:400 11px Inter,sans-serif;color:#6B7280;margin:1px 0 2px">{{ p.desc }}</div>
+                        <div style="font:700 12.5px Inter,sans-serif;color:#E8551E">{{ p.priceStr }}</div>
+                      </div>
+                      <sc-if value="{{ p.avail }}" hint-placeholder-val="{{ true }}">
+                        <div onClick="{{ p.add }}" style="width:30px;height:30px;border-radius:50%;background:#FF6B35;color:#fff;display:flex;align-items:center;justify-content:center;font:700 16px Inter,sans-serif;cursor:pointer;flex-shrink:0;transition:transform .15s" style-hover="transform:scale(1.12)">+</div>
+                      </sc-if>
+                      <sc-if value="{{ p.soldOut }}" hint-placeholder-val="{{ false }}">
+                        <span style="font:700 9.5px Inter,sans-serif;color:#E74C3C;background:#FDEBEA;padding:4px 8px;border-radius:100px;flex-shrink:0">Esgotado</span>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ goCart }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;font:700 14px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 22px -10px rgba(255,107,53,.8);position:sticky;bottom:0">
+                    <span>{{ cartCountStr }}</span><span>{{ subtotalStr }}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_product }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;display:flex;flex-direction:column">
+                <div style="height:186px;background:linear-gradient(140deg,#FFE9D2 0%,#FFC79E 55%,#FFB182 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                  <sc-if value="{{ pHasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ pPhotoStyle }}"></span></sc-if>
+                  <sc-if value="{{ pNoPhoto }}" hint-placeholder-val="{{ false }}">
+                    <span style="position:absolute;width:210px;height:210px;border-radius:50%;border:1.5px solid rgba(232,85,30,.14);display:block"></span>
+                    <span style="position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.34);display:block"></span>
+                    <svg viewBox="0 0 48 48" width="104" height="104" fill="none" stroke="#C2410C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;position:relative"><path d="{{ pMarkPath }}"></path></svg>
+                  </sc-if>
+                </div>
+                <div style="flex:1;padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px">
+                  <div>
+                    <div style="font:500 10.5px JetBrains Mono,monospace;color:#FF6B35;text-transform:uppercase;letter-spacing:.1em">{{ pCat }}</div>
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:3px">
+                      <div style="font:700 20px 'Baloo 2',sans-serif">{{ pName }}</div>
+                      <div style="font:800 18px 'Baloo 2',sans-serif;color:#E8551E;white-space:nowrap">{{ pPriceStr }}</div>
+                    </div>
+                    <div style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin-top:5px;text-wrap:pretty">{{ pLong }}</div>
+                  </div>
+                  <div style="display:flex;gap:7px;flex-wrap:wrap">
+                    <sc-for list="{{ pTags }}" as="tg" hint-placeholder-count="3">
+                      <span style="{{ tg.style }}">{{ tg.t }}</span>
+                    </sc-for>
+                  </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Ingredientes</span>
+                    <div style="font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280;text-wrap:pretty">{{ pIngredientes }}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #E9E1D6;border-radius:12px;padding:10px 14px">
+                    <div onClick="{{ dec }}" style="width:30px;height:30px;border-radius:50%;background:#FFF6EC;display:flex;align-items:center;justify-content:center;font:700 16px Inter,sans-serif;cursor:pointer">−</div>
+                    <span style="font:700 16px Inter,sans-serif">{{ qty }}</span>
+                    <div onClick="{{ inc }}" style="width:30px;height:30px;border-radius:50%;background:#FFF6EC;display:flex;align-items:center;justify-content:center;font:700 16px Inter,sans-serif;cursor:pointer">+</div>
+                  </div>
+                  <div onClick="{{ addSel }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">{{ addLabel }}</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_cart }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ cartRows }}" as="c" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E9E1D6;border-radius:13px;padding:11px 12px">
+                    <span style="width:40px;height:40px;border-radius:11px;background:linear-gradient(140deg,#FFE9D2,#FFC79E);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+                      <sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ c.photoStyle }}"></span></sc-if>
+                      <sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="#E8551E" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ c.markPath }}"></path></svg></sc-if>
+                    </span>
+                    <div style="flex:1;min-width:0">
+                      <div style="font:700 13px Inter,sans-serif">{{ c.name }}</div>
+                      <div style="font:400 10.5px Inter,sans-serif;color:#6B7280">{{ c.sub }}</div>
+                      <div style="font:700 12px Inter,sans-serif;color:#E8551E;margin-top:2px">{{ c.lineStr }}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                      <div onClick="{{ c.dec }}" style="width:26px;height:26px;border-radius:50%;background:#FFF6EC;border:1px solid #E9E1D6;display:flex;align-items:center;justify-content:center;font:700 14px Inter,sans-serif;cursor:pointer">−</div>
+                      <span style="font:700 13px Inter,sans-serif;min-width:12px;text-align:center">{{ c.qty }}</span>
+                      <div onClick="{{ c.inc }}" style="width:26px;height:26px;border-radius:50%;background:#FF6B35;color:#fff;display:flex;align-items:center;justify-content:center;font:700 14px Inter,sans-serif;cursor:pointer">+</div>
+                    </div>
+                  </div>
+                </sc-for>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:13px 15px">
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:3px 0"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:3px 0"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;color:#1B2430;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>Total a pagar</span><span>{{ totalStr }}</span></div>
+                </div>
+                <sc-if value="{{ minWarn }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FFF3DE;color:#B0791A;font:600 11.5px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ Pedido mínimo de R$ 10,00 (RN01).</div>
+                </sc-if>
+                <div onClick="{{ goTable }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Ir para pagamento</div>
+                <div onClick="{{ goSplit }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">Dividir a conta com amigos</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_cartEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 34px;gap:5px">
+                <div style="width:82px;height:82px;border-radius:26px;background:#fff;border:1.5px dashed #E9E1D6;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="#D9B99A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M8 10h5l5 20h18 M14 16h26l-4 12 M17.4 38a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0-5.2 0 M31.4 38a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0-5.2 0"></path></svg></div>
+                <div style="font:700 18px 'Baloo 2',sans-serif">Seu carrinho está vazio</div>
+                <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Escolha alguma coisa gelada no cardápio e nós levamos até o seu guarda-sol.</p>
+                <div onClick="{{ goMenu }}" style="margin-top:16px;background:#FF6B35;color:#fff;border-radius:12px;padding:12px 26px;font:700 14px 'Baloo 2',sans-serif;cursor:pointer">Ver o cardápio</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_table }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:13px">
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:13px 15px">
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:3px 0"><span>{{ cartCountStr }}</span><span>{{ subtotalStr }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>Total</span><span>{{ totalStr }}</span></div>
+                </div>
+                <div style="background:#fff;border-radius:18px;padding:20px 18px;text-align:center;border:1.5px dashed #FF9166">
+                  <span style="font:600 11px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.06em">Nº da mesa ou guarda-sol</span>
+                  <input value="{{ tableInput }}" onChange="{{ setTable }}" placeholder="00" style="display:block;width:100%;border:none;outline:none;text-align:center;font:800 46px 'Baloo 2',sans-serif;color:#E8551E;background:transparent;margin:6px 0 4px">
+                  <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#9A9384">O número está na plaquinha de madeira do guarda-sol. Mesas ativas: 1 a 12, exceto 7 e 11.</div>
+                </div>
+                <sc-if value="{{ hasTableErr }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FDEBEA;color:#E74C3C;font:600 12px/1.45 Inter,sans-serif;padding:10px 12px;border-radius:11px;animation:sfup .25s ease">⚠ {{ tableErr }}</div>
+                </sc-if>
+                <div>
+                  <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Observação para a cozinha</span>
+                  <input value="{{ orderNote }}" onChange="{{ setOrderNote }}" placeholder="Ex: entregar tudo junto, sem talher de plástico..." style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:13.5px;outline:none;background:#fff" style-focus="border-color:#FF6B35">
+                  <div style="font:400 11px/1.5 Inter,sans-serif;color:#9A9384;margin-top:5px">A cozinha vê esta observação junto com o pedido, somada às observações de cada item.</div>
+                </div>
+                <div onClick="{{ confirmTable }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Confirmar mesa</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_payment }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:11px">
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:15px;text-align:center">
+                  <span style="font:500 11.5px Inter,sans-serif;color:#6B7280">Total do pedido · Mesa {{ tableStr }}</span>
+                  <div style="font:800 24px 'Baloo 2',sans-serif;color:#E8551E;margin-top:2px">{{ totalStr }}</div>
+                </div>
+                <sc-for list="{{ payOpts }}" as="o" hint-placeholder-count="3">
+                  <div onClick="{{ o.pick }}" style="{{ o.style }}">
+                    <span style="{{ o.iconWrapStyle }}"><svg viewBox="0 0 48 48" width="20" height="20" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ o.icPath }}"></path></svg></span>
+                    <div><div style="font:700 13.5px Inter,sans-serif">{{ o.nm }}</div><div style="font:400 11px Inter,sans-serif;color:#6B7280">{{ o.sub }}</div></div>
+                    <span style="{{ o.radioStyle }}"></span>
+                  </div>
+                </sc-for>
+                <div onClick="{{ goPay }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">{{ payLabel }}</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_pix }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="background:#fff;border-radius:18px;padding:20px;text-align:center;border:1px solid #E9E1D6">
+                  <div style="width:164px;height:164px;margin:0 auto 12px;padding:7px;background:#fff;border-radius:12px;box-shadow:0 0 0 1px #E9E1D6,0 6px 16px -10px rgba(20,40,80,.4)"><svg viewBox="0 0 100 100" width="150" height="150" fill="#101826" shape-rendering="crispEdges" style="display:block"><rect width="100" height="100" fill="#fff"></rect><rect x="28" y="0" width="4" height="4"></rect><rect x="48" y="0" width="4" height="4"></rect><rect x="56" y="0" width="4" height="4"></rect><rect x="60" y="0" width="4" height="4"></rect><rect x="68" y="0" width="4" height="4"></rect><rect x="28" y="4" width="4" height="4"></rect><rect x="32" y="4" width="4" height="4"></rect><rect x="36" y="4" width="4" height="4"></rect><rect x="40" y="4" width="4" height="4"></rect><rect x="44" y="4" width="4" height="4"></rect><rect x="52" y="4" width="4" height="4"></rect><rect x="60" y="4" width="4" height="4"></rect><rect x="68" y="4" width="4" height="4"></rect><rect x="28" y="8" width="4" height="4"></rect><rect x="36" y="8" width="4" height="4"></rect><rect x="40" y="8" width="4" height="4"></rect><rect x="52" y="8" width="4" height="4"></rect><rect x="60" y="8" width="4" height="4"></rect><rect x="28" y="12" width="4" height="4"></rect><rect x="32" y="12" width="4" height="4"></rect><rect x="36" y="12" width="4" height="4"></rect><rect x="44" y="12" width="4" height="4"></rect><rect x="48" y="12" width="4" height="4"></rect><rect x="64" y="12" width="4" height="4"></rect><rect x="68" y="12" width="4" height="4"></rect><rect x="28" y="16" width="4" height="4"></rect><rect x="40" y="16" width="4" height="4"></rect><rect x="48" y="16" width="4" height="4"></rect><rect x="52" y="16" width="4" height="4"></rect><rect x="60" y="16" width="4" height="4"></rect><rect x="28" y="20" width="4" height="4"></rect><rect x="32" y="20" width="4" height="4"></rect><rect x="36" y="20" width="4" height="4"></rect><rect x="52" y="20" width="4" height="4"></rect><rect x="68" y="20" width="4" height="4"></rect><rect x="28" y="24" width="4" height="4"></rect><rect x="32" y="24" width="4" height="4"></rect><rect x="44" y="24" width="4" height="4"></rect><rect x="48" y="24" width="4" height="4"></rect><rect x="52" y="24" width="4" height="4"></rect><rect x="56" y="24" width="4" height="4"></rect><rect x="64" y="24" width="4" height="4"></rect><rect x="68" y="24" width="4" height="4"></rect><rect x="4" y="28" width="4" height="4"></rect><rect x="16" y="28" width="4" height="4"></rect><rect x="20" y="28" width="4" height="4"></rect><rect x="44" y="28" width="4" height="4"></rect><rect x="52" y="28" width="4" height="4"></rect><rect x="60" y="28" width="4" height="4"></rect><rect x="76" y="28" width="4" height="4"></rect><rect x="80" y="28" width="4" height="4"></rect><rect x="92" y="28" width="4" height="4"></rect><rect x="96" y="28" width="4" height="4"></rect><rect x="0" y="32" width="4" height="4"></rect><rect x="4" y="32" width="4" height="4"></rect><rect x="20" y="32" width="4" height="4"></rect><rect x="28" y="32" width="4" height="4"></rect><rect x="36" y="32" width="4" height="4"></rect><rect x="52" y="32" width="4" height="4"></rect><rect x="56" y="32" width="4" height="4"></rect><rect x="60" y="32" width="4" height="4"></rect><rect x="80" y="32" width="4" height="4"></rect><rect x="92" y="32" width="4" height="4"></rect><rect x="0" y="36" width="4" height="4"></rect><rect x="16" y="36" width="4" height="4"></rect><rect x="28" y="36" width="4" height="4"></rect><rect x="36" y="36" width="4" height="4"></rect><rect x="40" y="36" width="4" height="4"></rect><rect x="44" y="36" width="4" height="4"></rect><rect x="52" y="36" width="4" height="4"></rect><rect x="56" y="36" width="4" height="4"></rect><rect x="60" y="36" width="4" height="4"></rect><rect x="80" y="36" width="4" height="4"></rect><rect x="84" y="36" width="4" height="4"></rect><rect x="88" y="36" width="4" height="4"></rect><rect x="92" y="36" width="4" height="4"></rect><rect x="8" y="40" width="4" height="4"></rect><rect x="20" y="40" width="4" height="4"></rect><rect x="28" y="40" width="4" height="4"></rect><rect x="40" y="40" width="4" height="4"></rect><rect x="44" y="40" width="4" height="4"></rect><rect x="48" y="40" width="4" height="4"></rect><rect x="52" y="40" width="4" height="4"></rect><rect x="68" y="40" width="4" height="4"></rect><rect x="72" y="40" width="4" height="4"></rect><rect x="76" y="40" width="4" height="4"></rect><rect x="92" y="40" width="4" height="4"></rect><rect x="0" y="44" width="4" height="4"></rect><rect x="4" y="44" width="4" height="4"></rect><rect x="8" y="44" width="4" height="4"></rect><rect x="12" y="44" width="4" height="4"></rect><rect x="32" y="44" width="4" height="4"></rect><rect x="40" y="44" width="4" height="4"></rect><rect x="44" y="44" width="4" height="4"></rect><rect x="56" y="44" width="4" height="4"></rect><rect x="68" y="44" width="4" height="4"></rect><rect x="72" y="44" width="4" height="4"></rect><rect x="80" y="44" width="4" height="4"></rect><rect x="92" y="44" width="4" height="4"></rect><rect x="4" y="48" width="4" height="4"></rect><rect x="16" y="48" width="4" height="4"></rect><rect x="20" y="48" width="4" height="4"></rect><rect x="24" y="48" width="4" height="4"></rect><rect x="32" y="48" width="4" height="4"></rect><rect x="36" y="48" width="4" height="4"></rect><rect x="44" y="48" width="4" height="4"></rect><rect x="52" y="48" width="4" height="4"></rect><rect x="56" y="48" width="4" height="4"></rect><rect x="60" y="48" width="4" height="4"></rect><rect x="64" y="48" width="4" height="4"></rect><rect x="76" y="48" width="4" height="4"></rect><rect x="84" y="48" width="4" height="4"></rect><rect x="92" y="48" width="4" height="4"></rect><rect x="96" y="48" width="4" height="4"></rect><rect x="4" y="52" width="4" height="4"></rect><rect x="8" y="52" width="4" height="4"></rect><rect x="12" y="52" width="4" height="4"></rect><rect x="16" y="52" width="4" height="4"></rect><rect x="20" y="52" width="4" height="4"></rect><rect x="32" y="52" width="4" height="4"></rect><rect x="40" y="52" width="4" height="4"></rect><rect x="44" y="52" width="4" height="4"></rect><rect x="56" y="52" width="4" height="4"></rect><rect x="60" y="52" width="4" height="4"></rect><rect x="64" y="52" width="4" height="4"></rect><rect x="68" y="52" width="4" height="4"></rect><rect x="80" y="52" width="4" height="4"></rect><rect x="84" y="52" width="4" height="4"></rect><rect x="88" y="52" width="4" height="4"></rect><rect x="92" y="52" width="4" height="4"></rect><rect x="96" y="52" width="4" height="4"></rect><rect x="8" y="56" width="4" height="4"></rect><rect x="16" y="56" width="4" height="4"></rect><rect x="28" y="56" width="4" height="4"></rect><rect x="32" y="56" width="4" height="4"></rect><rect x="36" y="56" width="4" height="4"></rect><rect x="40" y="56" width="4" height="4"></rect><rect x="44" y="56" width="4" height="4"></rect><rect x="60" y="56" width="4" height="4"></rect><rect x="72" y="56" width="4" height="4"></rect><rect x="76" y="56" width="4" height="4"></rect><rect x="80" y="56" width="4" height="4"></rect><rect x="88" y="56" width="4" height="4"></rect><rect x="92" y="56" width="4" height="4"></rect><rect x="96" y="56" width="4" height="4"></rect><rect x="4" y="60" width="4" height="4"></rect><rect x="36" y="60" width="4" height="4"></rect><rect x="48" y="60" width="4" height="4"></rect><rect x="52" y="60" width="4" height="4"></rect><rect x="56" y="60" width="4" height="4"></rect><rect x="60" y="60" width="4" height="4"></rect><rect x="64" y="60" width="4" height="4"></rect><rect x="72" y="60" width="4" height="4"></rect><rect x="76" y="60" width="4" height="4"></rect><rect x="96" y="60" width="4" height="4"></rect><rect x="0" y="64" width="4" height="4"></rect><rect x="4" y="64" width="4" height="4"></rect><rect x="20" y="64" width="4" height="4"></rect><rect x="28" y="64" width="4" height="4"></rect><rect x="36" y="64" width="4" height="4"></rect><rect x="40" y="64" width="4" height="4"></rect><rect x="44" y="64" width="4" height="4"></rect><rect x="48" y="64" width="4" height="4"></rect><rect x="56" y="64" width="4" height="4"></rect><rect x="60" y="64" width="4" height="4"></rect><rect x="64" y="64" width="4" height="4"></rect><rect x="68" y="64" width="4" height="4"></rect><rect x="72" y="64" width="4" height="4"></rect><rect x="80" y="64" width="4" height="4"></rect><rect x="92" y="64" width="4" height="4"></rect><rect x="0" y="68" width="4" height="4"></rect><rect x="4" y="68" width="4" height="4"></rect><rect x="12" y="68" width="4" height="4"></rect><rect x="16" y="68" width="4" height="4"></rect><rect x="28" y="68" width="4" height="4"></rect><rect x="32" y="68" width="4" height="4"></rect><rect x="36" y="68" width="4" height="4"></rect><rect x="44" y="68" width="4" height="4"></rect><rect x="52" y="68" width="4" height="4"></rect><rect x="76" y="68" width="4" height="4"></rect><rect x="88" y="68" width="4" height="4"></rect><rect x="96" y="68" width="4" height="4"></rect><rect x="28" y="72" width="4" height="4"></rect><rect x="32" y="72" width="4" height="4"></rect><rect x="64" y="72" width="4" height="4"></rect><rect x="72" y="72" width="4" height="4"></rect><rect x="76" y="72" width="4" height="4"></rect><rect x="84" y="72" width="4" height="4"></rect><rect x="88" y="72" width="4" height="4"></rect><rect x="32" y="76" width="4" height="4"></rect><rect x="36" y="76" width="4" height="4"></rect><rect x="40" y="76" width="4" height="4"></rect><rect x="44" y="76" width="4" height="4"></rect><rect x="64" y="76" width="4" height="4"></rect><rect x="28" y="80" width="4" height="4"></rect><rect x="32" y="80" width="4" height="4"></rect><rect x="40" y="80" width="4" height="4"></rect><rect x="44" y="80" width="4" height="4"></rect><rect x="60" y="80" width="4" height="4"></rect><rect x="64" y="80" width="4" height="4"></rect><rect x="76" y="80" width="4" height="4"></rect><rect x="88" y="80" width="4" height="4"></rect><rect x="40" y="84" width="4" height="4"></rect><rect x="68" y="84" width="4" height="4"></rect><rect x="72" y="84" width="4" height="4"></rect><rect x="80" y="84" width="4" height="4"></rect><rect x="84" y="84" width="4" height="4"></rect><rect x="88" y="84" width="4" height="4"></rect><rect x="92" y="84" width="4" height="4"></rect><rect x="96" y="84" width="4" height="4"></rect><rect x="28" y="88" width="4" height="4"></rect><rect x="32" y="88" width="4" height="4"></rect><rect x="44" y="88" width="4" height="4"></rect><rect x="48" y="88" width="4" height="4"></rect><rect x="68" y="88" width="4" height="4"></rect><rect x="76" y="88" width="4" height="4"></rect><rect x="92" y="88" width="4" height="4"></rect><rect x="28" y="92" width="4" height="4"></rect><rect x="56" y="92" width="4" height="4"></rect><rect x="60" y="92" width="4" height="4"></rect><rect x="80" y="92" width="4" height="4"></rect><rect x="84" y="92" width="4" height="4"></rect><rect x="88" y="92" width="4" height="4"></rect><rect x="92" y="92" width="4" height="4"></rect><rect x="96" y="92" width="4" height="4"></rect><rect x="36" y="96" width="4" height="4"></rect><rect x="40" y="96" width="4" height="4"></rect><rect x="44" y="96" width="4" height="4"></rect><rect x="48" y="96" width="4" height="4"></rect><rect x="52" y="96" width="4" height="4"></rect><rect x="56" y="96" width="4" height="4"></rect><rect x="68" y="96" width="4" height="4"></rect><rect x="88" y="96" width="4" height="4"></rect><rect x="92" y="96" width="4" height="4"></rect><rect x="96" y="96" width="4" height="4"></rect><rect x="0" y="0" width="28" height="28"></rect><rect x="4" y="4" width="20" height="20" fill="#fff"></rect><rect x="8" y="8" width="12" height="12"></rect><rect x="72" y="0" width="28" height="28"></rect><rect x="76" y="4" width="20" height="20" fill="#fff"></rect><rect x="80" y="8" width="12" height="12"></rect><rect x="0" y="72" width="28" height="28"></rect><rect x="4" y="76" width="20" height="20" fill="#fff"></rect><rect x="8" y="80" width="12" height="12"></rect></svg></div>
+                  <div style="font:500 11.5px Inter,sans-serif;color:#6B7280">Valor a pagar</div>
+                  <div style="font:800 22px 'Baloo 2',sans-serif">{{ totalStr }}</div>
+                  <div style="font:600 11.5px Inter,sans-serif;color:#E74C3C;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px"><svg viewBox="0 0 48 48" width="14" height="14" fill="none" stroke="#E74C3C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M24 15v9l6 4"></path></svg>Expira em 14:32</div>
+                </div>
+                <div style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">Copiar código PIX</div>
+                <div style="font:400 11.5px/1.6 Inter,sans-serif;color:#9A9384;text-align:center">Abra o app do seu banco, escaneie o QR e confirme. A cozinha recebe o pedido automaticamente.</div>
+                <div onClick="{{ payPix }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Já paguei — confirmar</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_card }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:11px">
+                <div>
+                  <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Número do cartão</span>
+                  <input value="{{ cardNum }}" onChange="{{ setCardNum }}" placeholder="0000 0000 0000 0000" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                </div>
+                <div style="display:flex;gap:9px">
+                  <div style="flex:1">
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Validade</span>
+                    <input value="{{ cardExp }}" onChange="{{ setCardExp }}" placeholder="MM/AA" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div style="flex:1">
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">CVV</span>
+                    <input value="{{ cardCvv }}" onChange="{{ setCardCvv }}" placeholder="123" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                </div>
+                <div>
+                  <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Nome no cartão</span>
+                  <input value="{{ cardName }}" onChange="{{ setCardName }}" placeholder="Como está impresso" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                </div>
+                <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E9E1D6;border-radius:12px;padding:11px 13px">
+                  <div style="flex:1">
+                    <div style="font:700 12px Inter,sans-serif">Simular recusa do emissor</div>
+                    <div style="font:400 10.5px Inter,sans-serif;color:#6B7280">Leva para a tela de falha no pagamento</div>
+                  </div>
+                  <div onClick="{{ toggleFail }}" style="{{ failStyle }}"><span style="{{ knobStyle }}"></span></div>
+                </div>
+                <sc-if value="{{ cardBlocked }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:auto;background:#E9E1D6;color:#9A9384;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:not-allowed">{{ payLabel }}</div>
+                </sc-if>
+                <sc-if value="{{ cardOk }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ payCard }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">{{ payLabel }}</div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_confirm }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:22px 18px;display:flex;flex-direction:column;gap:14px;animation:sfup .3s ease">
+                <div style="text-align:center">
+                  <div style="width:74px;height:74px;border-radius:50%;background:#E7F7ED;color:#16A34A;display:flex;align-items:center;justify-content:center;font-size:32px;margin:6px auto 10px">✓</div>
+                  <div style="font:700 20px 'Baloo 2',sans-serif">Pedido confirmado</div>
+                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">A cozinha já recebeu seu pedido. Fique à vontade no guarda-sol — levamos até você.</p>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px">
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Pedido</span><span style="color:#1B2430;font-weight:700">{{ orderId }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Mesa</span><span style="color:#1B2430;font-weight:700">{{ orderTable }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Tempo estimado</span><span style="color:#1B2430;font-weight:700">{{ etaStr }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>Total pago</span><span>{{ orderTotalStr }}</span></div>
+                </div>
+                <div onClick="{{ goStatus }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Acompanhar pedido</div>
+                <div onClick="{{ goMenu }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer">Pedir mais alguma coisa</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_payFail }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:22px 18px;display:flex;flex-direction:column;gap:14px">
+                <div style="text-align:center">
+                  <div style="width:74px;height:74px;border-radius:50%;background:#FDEBEA;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-size:30px;margin:6px auto 10px">✕</div>
+                  <div style="font:700 20px 'Baloo 2',sans-serif">Pagamento não aprovado</div>
+                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">O emissor do cartão recusou a transação. Nada foi cobrado e seu carrinho continua salvo.</p>
+                </div>
+                <div style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:12px;padding:12px 14px;font:600 11.5px/1.5 Inter,sans-serif;color:#B5453A">Código do gateway: <b>51 — saldo insuficiente</b></div>
+                <div onClick="{{ retryPay }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)">Tentar outro pagamento</div>
+                <div onClick="{{ goCart }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer">Voltar ao carrinho</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_split }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:11px">
+                <div style="background:#FF6B35;border-radius:16px;padding:15px;text-align:center;color:#fff">
+                  <span style="font:500 11px Inter,sans-serif;color:rgba(255,255,255,.85)">Total da mesa · 3 pessoas</span>
+                  <div style="font:800 24px 'Baloo 2',sans-serif;margin-top:2px">{{ splitTotalStr }}</div>
+                </div>
+                <sc-for list="{{ people }}" as="p" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E9E1D6;border-radius:13px;padding:11px 12px">
+                    <span style="{{ p.avStyle }}">{{ p.ini }}</span>
+                    <div><div style="font:700 13px Inter,sans-serif">{{ p.nm }}</div><div style="font:400 10.5px Inter,sans-serif;color:#6B7280">{{ p.amt }}</div></div>
+                    <span style="{{ p.stStyle }}">{{ p.st }}</span>
+                  </div>
+                </sc-for>
+                <div style="border:1.5px dashed #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13px Inter,sans-serif;color:#6B7280;cursor:pointer" style-hover="border-color:#FF9166;color:#E8551E">+ Convidar mais alguém pelo link</div>
+                <div onClick="{{ goPayment }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)">Pagar minha parte</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_status }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+                  <div>
+                    <div style="font:700 17px 'Baloo 2',sans-serif">{{ orderId }} · Mesa {{ orderTable }}</div>
+                    <div style="font:400 11.5px Inter,sans-serif;color:#6B7280;margin-top:2px">Estimativa: {{ etaStr }}</div>
+                  </div>
+                  <span style="{{ statusPillStyle }}">{{ orderStatus }}</span>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:16px;padding:16px">
+                  <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+                    <div style="display:flex;gap:12px;padding:9px 0">
+                      <span style="{{ st.dotStyle }}">{{ st.mark }}</span>
+                      <div><div style="{{ st.txtStyle }}">{{ st.t }}</div><div style="font:400 11px Inter,sans-serif;color:#6B7280;margin-top:1px">{{ st.d }}</div></div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:16px;padding:14px 15px">
+                  <div style="font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">Itens</div>
+                  <sc-for list="{{ orderItems }}" as="it" hint-placeholder-count="3">
+                    <div style="display:flex;justify-content:space-between;font:500 12.5px Inter,sans-serif;color:#6B7280;padding:3px 0"><span>{{ it.n }}</span><span>{{ it.v }}</span></div>
+                  </sc-for>
+                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>Total pago</span><span>{{ orderTotalStr }}</span></div>
+                </div>
+                <sc-if value="{{ hasOrderObs }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FFF3DE;border:1px solid #F3DFB8;border-radius:14px;padding:12px 14px">
+                    <div style="font:700 9.5px Inter,sans-serif;color:#B0791A;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Observações enviadas</div>
+                    <div style="font:500 12px/1.55 Inter,sans-serif;color:#8A6015">{{ orderObs }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ askCancel }}" style="margin-top:auto;border:1.5px solid #F5C6C2;background:#fff;color:#E74C3C;border-radius:12px;padding:13px;text-align:center;font:700 13.5px Inter,sans-serif;cursor:pointer" style-hover="background:#FDEBEA">Cancelar pedido</div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_cancelAsk }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:22px 18px;display:flex;flex-direction:column;gap:14px">
+                <div style="background:#E7F7ED;border:1px solid #CBE9D6;border-radius:12px;padding:12px 14px;font:600 11.5px/1.5 Inter,sans-serif;color:#15803D">✓ Cancelamento permitido — o pedido ainda está <b>Na Fila</b> e não entrou em preparo.</div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px">
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Pedido</span><span style="color:#1B2430;font-weight:700">{{ orderId }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Estorno</span><span style="color:#1B2430;font-weight:700">{{ orderTotalStr }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Prazo</span><span style="color:#1B2430;font-weight:700">até 2 dias úteis</span></div>
+                </div>
+                <p style="font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Ao confirmar, o pedido sai da fila da cozinha e o valor é estornado no mesmo meio de pagamento.</p>
+                <div onClick="{{ doCancel }}" style="margin-top:auto;background:#E74C3C;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(231,76,60,.6)">Confirmar cancelamento</div>
+                <div onClick="{{ goStatus }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer">Manter meu pedido</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_cancelDone }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 30px;gap:5px;animation:sfup .3s ease">
+                <div style="width:74px;height:74px;border-radius:50%;background:#FDEBEA;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:10px">↺</div>
+                <div style="font:700 19px 'Baloo 2',sans-serif">Pedido cancelado</div>
+                <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">{{ orderId }} saiu da fila da cozinha. O estorno de {{ orderTotalStr }} já foi solicitado.</p>
+                <div onClick="{{ goMenu }}" style="margin-top:18px;background:#FF6B35;color:#fff;border-radius:12px;padding:12px 26px;font:700 14px 'Baloo 2',sans-serif;cursor:pointer">Voltar ao cardápio</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_cancelBlocked }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:22px 18px;display:flex;flex-direction:column;gap:14px">
+                <div style="text-align:center">
+                  <div style="width:74px;height:74px;border-radius:50%;background:#FFF3DE;display:flex;align-items:center;justify-content:center;margin:6px auto 10px"><svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="#F5A623" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M16 21h16a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4v-9a4 4 0 0 1 4-4Z M18 21v-5a6 6 0 0 1 12 0v5 M24 27v4"></path></svg></div>
+                  <div style="font:700 19px 'Baloo 2',sans-serif">Não é mais possível cancelar</div>
+                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">O status do pedido é <b>{{ orderStatus }}</b>. Depois que a cozinha começa o preparo, o cancelamento pelo app é bloqueado (RN04).</p>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px;font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280">Precisa de ajuda? Chame um atendente na mesa <b>{{ orderTable }}</b> ou fale com o balcão do quiosque.</div>
+                <div onClick="{{ goStatus }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer">Voltar ao acompanhamento</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_history }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="2">
+                  <div onClick="{{ h.open }}" style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:13px 14px;cursor:pointer;transition:box-shadow .18s" style-hover="box-shadow:0 8px 18px -12px rgba(20,40,80,.4)">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                      <span style="font:700 14px 'Baloo 2',sans-serif">{{ h.id }}</span>
+                      <span style="font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:#E7F7ED;color:#16A34A">{{ h.status }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font:400 11.5px Inter,sans-serif;color:#6B7280"><span>{{ h.when }}</span><span style="font-weight:700;color:#E8551E">{{ h.totalStr }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_historyEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 34px;gap:5px">
+                <div style="width:82px;height:82px;border-radius:26px;background:#fff;border:1.5px dashed #E9E1D6;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="#D9B99A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M13 8h22v32l-5-3-6 3-6-3-5 3V8Z M19 18h10 M19 25h10"></path></svg></div>
+                <div style="font:700 18px 'Baloo 2',sans-serif">Nenhum pedido ainda</div>
+                <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Quando você fizer o primeiro pedido, ele aparece aqui com os itens e o valor.</p>
+                <div onClick="{{ goMenu }}" style="margin-top:16px;background:#FF6B35;color:#fff;border-radius:12px;padding:12px 26px;font:700 14px 'Baloo 2',sans-serif;cursor:pointer">Ver o cardápio</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_orderDetail }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:11px">
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px">
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Quando</span><span style="color:#1B2430;font-weight:700">{{ hdWhen }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Mesa</span><span style="color:#1B2430;font-weight:700">{{ hdTable }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Pagamento</span><span style="color:#1B2430;font-weight:700">PIX</span></div>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px">
+                  <div style="font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">Itens</div>
+                  <sc-for list="{{ hdItems }}" as="it" hint-placeholder-count="3">
+                    <div style="display:flex;justify-content:space-between;font:500 12.5px Inter,sans-serif;color:#6B7280;padding:3px 0"><span>{{ it.n }}</span><span>{{ it.v }}</span></div>
+                  </sc-for>
+                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>Total</span><span>{{ hdTotal }}</span></div>
+                </div>
+                <div onClick="{{ goMenu }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)">Pedir novamente</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_profile }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;gap:13px;padding:4px 2px 16px;border-bottom:1px solid #E9E1D6">
+                  <span style="{{ avatarStyle }}"></span>
+                  <div><div style="font:700 16px 'Baloo 2',sans-serif">Ana Souza</div><div style="font:400 11.5px Inter,sans-serif;color:#6B7280">ana@email.com</div></div>
+                </div>
+                <div onClick="{{ goLocation }}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="color:#E8551E">Localização do quiosque<span style="color:#C7BFB2">›</span></div>
+                <div onClick="{{ goHistory }}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="color:#E8551E">Meus pedidos<span style="color:#C7BFB2">›</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="color:#E8551E">Formas de pagamento<span style="color:#C7BFB2">›</span></div>
+                <div onClick="{{ goOffline }}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="color:#E8551E">Simular modo sem conexão<span style="color:#C7BFB2">›</span></div>
+                <div onClick="{{ goDelete }}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;color:#E74C3C;cursor:pointer">Excluir minha conta<span style="color:#F5C6C2">›</span></div>
+                <div onClick="{{ goLogin }}" style="margin-top:auto;border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer">Sair da conta</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_deleteAccount }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;position:relative;background:#FFF6EC">
+                <div style="position:absolute;inset:0;background:rgba(20,40,80,.55);display:flex;align-items:center;justify-content:center;padding:22px">
+                  <div style="background:#fff;border-radius:18px;padding:22px 20px;width:100%;text-align:center;box-shadow:0 24px 48px -16px rgba(0,0,0,.5);animation:sfup .25s ease">
+                    <div style="width:58px;height:58px;border-radius:50%;background:#FDEBEA;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px">⚠</div>
+                    <div style="font:700 17px 'Baloo 2',sans-serif;margin-bottom:7px">Excluir sua conta?</div>
+                    <p style="font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0 0 16px">Seu histórico de pedidos e formas de pagamento serão apagados. Esta ação não pode ser desfeita.</p>
+                    <div onClick="{{ goLogin }}" style="background:#E74C3C;color:#fff;border-radius:12px;padding:13px;text-align:center;font:700 14px 'Baloo 2',sans-serif;cursor:pointer;margin-bottom:9px">Sim, excluir conta</div>
+                    <div onClick="{{ goProfile }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;text-align:center;font:600 13px Inter,sans-serif;cursor:pointer">Manter minha conta</div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_location }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="height:190px;border-radius:16px;position:relative;overflow:hidden;background-image:linear-gradient(0deg,rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(135deg,#CDEBD6,#A9D9C2);background-size:20px 20px,20px 20px,100% 100%">
+                  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-100%)">
+                    <div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#FF6B35;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(0,0,0,.28)"><svg viewBox="0 0 48 48" width="17" height="17" fill="none" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:block;transform:rotate(45deg)"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg></div>
+                  </div>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:15px">
+                  <div style="font:700 16px 'Baloo 2',sans-serif">Quiosque Sunfood · Praia do Forte</div>
+                  <div style="font:400 12px/1.6 Inter,sans-serif;color:#6B7280;margin-top:4px">Av. Beira-Mar, s/n — em frente ao posto 4. Aberto todos os dias, 9h às 18h.</div>
+                </div>
+                <div style="display:flex;gap:9px">
+                  <div style="flex:1;background:#FF6B35;color:#fff;border-radius:12px;padding:13px;text-align:center;font:700 13.5px 'Baloo 2',sans-serif;cursor:pointer">Abrir no mapa</div>
+                  <div style="flex:1;border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13px Inter,sans-serif;cursor:pointer">Ligar</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_offline }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;display:flex;flex-direction:column">
+                <div style="background:#1B2430;color:#fff;font:700 11px Inter,sans-serif;text-align:center;padding:8px">Sem conexão · tentando reconectar…</div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 34px;gap:5px">
+                  <div style="width:82px;height:82px;border-radius:26px;background:#fff;border:1.5px dashed #E9E1D6;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="#D9B99A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M9 20c9-8 21-8 30 0 M15 27c6-5 12-5 18 0 M21 34c2-2 4-2 6 0 M22.6 39.5a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0"></path></svg></div>
+                  <div style="font:700 18px 'Baloo 2',sans-serif">Você está offline</div>
+                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">O sinal na praia oscila. Seu carrinho ficou salvo no aparelho e será enviado quando a conexão voltar.</p>
+                  <div onClick="{{ goMenu }}" style="margin-top:16px;background:#FF6B35;color:#fff;border-radius:12px;padding:12px 26px;font:700 14px 'Baloo 2',sans-serif;cursor:pointer">Tentar novamente</div>
+                </div>
+              </div>
+            </sc-if>
+
+          </div>
+
+          <sc-if value="{{ showNav }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;justify-content:space-around;padding:11px 0 14px;background:#fff;border-top:1px solid #E9E1D6">
+              <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="4">
+                <div onClick="{{ n.go }}" style="{{ n.style }}"><svg viewBox="0 0 48 48" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ n.icPath }}"></path></svg>{{ n.label }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+
+      
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;bottom:26px;left:50%;transform:translateX(-50%);background:#1B2430;color:#fff;font:600 12.5px Inter,sans-serif;padding:12px 20px;border-radius:100px;box-shadow:0 12px 28px -10px rgba(0,0,0,.6);animation:sfup .25s ease;z-index:40">{{ toast }}</div>
+    </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:412,&quot;height&quot;:800}}">
+const MARK = {
+  coco:'M11 27a13 13 0 1 0 26 0a13 13 0 1 0-26 0 M17.5 22.5c3.2 2.6 10 2.6 13.2 0 M20 25.6a1 1 0 1 0 2 0a1 1 0 1 0-2 0 M26 25.6a1 1 0 1 0 2 0a1 1 0 1 0-2 0 M23 30a1 1 0 1 0 2 0a1 1 0 1 0-2 0 M31.5 20.5 38.5 9.5 M38.5 9.5l-4.2.8 M38.5 9.5l.6 4.2',
+  caipirinha:'M13 13h22l-9 12v13 M19 38h14 M17.5 19h13 M27 9.5a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+  cerveja:'M21 8h6v4.5c0 2.5 3 4.5 3 8.5v14a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V21c0-4 3-6 3-8.5V8 M18 25h12',
+  wrap:'M17 15v18a7 3.4 0 0 0 14 0V15 M17 15a7 3.4 0 1 0 14 0a7 3.4 0 1 0-14 0 M19.6 15.8c1.2 1.6 3 1.6 4.2 0 M25 16.2c1.1 1.3 2.6 1.3 3.6.2 M31 24.5 17 28.5',
+  batata:'M14 22h20l-2 16H16L14 22Z M18 22V11 M24 22V8 M30 22v-9',
+  camarao:'M34 15c-9-3-19 3-19 12 0 6 5 10 11 10 5 0 9-3 9-8 M15 27c-4 0-7 3-7 7 M30 18.4a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0 M34 15l5-4',
+  peixe:'M8 24c6-8 16-11 24-8 5 2 8 5 8 8-4 6-14 10-22 8-5-1-8-4-10-8Z M8 24l-4-6v12l4-6 M30 20.9a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0 M20 20c3 3 3 6 0 9',
+  acai:'M10 22h28c0 9-6 16-14 16s-14-7-14-16Z M18 22c0-5 3-8 6-8s6 3 6 8 M30 16.5c2-3.5 6.5-3.5 8 0'
+};
+
+const RES = (typeof window !== 'undefined' && window.__resources) || {};
+const PHOTO = {
+  coco: RES.ph_coco || 'assets/coco.jpg',
+  wrap: RES.ph_wrap || 'assets/wrap.jpg',
+  batata: RES.ph_batata || 'assets/batata.jpg',
+  caipirinha: RES.ph_caipirinha || 'assets/caipirinha.jpg',
+  cerveja: RES.ph_cerveja || 'assets/cerveja.jpg',
+  camarao: RES.ph_camarao || 'assets/camarao.jpg',
+  peixe: RES.ph_peixe || 'assets/peixe.jpg',
+  acai: RES.ph_acai || 'assets/acai.jpg'
+};
+
+const AVATAR = RES.ph_avatar || 'assets/avatar-ana.jpg';
+
+const photoBg = (mark, base) => (base || 'width:100%;height:100%;') +
+  'background-image:url(' + PHOTO[mark] + ');background-size:cover;background-position:center;display:block';
+
+const PRODUCTS = [
+  {id:'p1',cat:'Bebidas',name:'Água de Coco Gelada',desc:'Fresquinha, direto do coco',price:8,mark:'coco',soldOut:false,
+   long:'Coco verde aberto na hora, servido no próprio casco com canudo de bambu. Sem açúcar adicionado.',
+   porcao:'≈ 400 ml', tempo:'2 min', kcal:'80 kcal', nota:'4,9', avaliacoes:'214',
+   ingredientes:'Água de coco natural.',
+   tags:[['Natural','#E7F7ED','#16A34A'],['Sem açúcar','#E7F7ED','#16A34A'],['Vegano','#EFEBFF','#7C5CFF']]},
+
+  {id:'p2',cat:'Bebidas',name:'Caipirinha de Limão',desc:'Cachaça, limão e gelo',price:22,mark:'caipirinha',soldOut:false,
+   long:'Limão taiti macerado na hora com açúcar e cachaça artesanal, servido com gelo picado.',
+   porcao:'300 ml', tempo:'4 min', kcal:'210 kcal', nota:'4,8', avaliacoes:'126',
+   ingredientes:'Cachaça, limão taiti, açúcar, gelo.',
+   tags:[['Alcoólico','#FDEBEA','#E74C3C'],['Feito na hora','#EFEBFF','#7C5CFF'],['+18','#FFF3DE','#B0791A']]},
+
+  {id:'p3',cat:'Bebidas',name:'Cerveja Zero Long Neck',desc:'Sem álcool, gelada, 355 ml',price:12,mark:'cerveja',soldOut:false,
+   long:'Cerveja não alcoólica de malte puro, servida direto do freezer com a garrafa suada.',
+   porcao:'355 ml', tempo:'1 min', kcal:'95 kcal', nota:'4,6', avaliacoes:'88',
+   ingredientes:'Água, malte de cevada, lúpulo.',
+   tags:[['Sem álcool','#E7F7ED','#16A34A'],['Gelada','#EFEBFF','#7C5CFF']]},
+
+  {id:'p4',cat:'Lanches',name:'Wrap de Frango Grelhado',desc:'Frango, alface e molho da casa',price:28,mark:'wrap',soldOut:false,
+   long:'Tortilla grelhada na chapa com frango temperado, alface, tomate, cebola roxa, abacate e molho da casa.',
+   porcao:'2 metades · 280 g', tempo:'12 min', kcal:'520 kcal', nota:'4,7', avaliacoes:'163',
+   ingredientes:'Tortilla de trigo, frango, alface, tomate, cebola roxa, abacate, maionese temperada.',
+   tags:[['Contém glúten','#FFF3DE','#B0791A'],['Feito na hora','#EFEBFF','#7C5CFF']]},
+
+  {id:'p5',cat:'Lanches',name:'Batata Rústica c/ Cheddar',desc:'Porção com bacon crocante',price:24,mark:'batata',soldOut:false,
+   long:'Batata rústica frita, coberta com cheddar derretido e lascas de bacon crocante. Serve duas pessoas.',
+   porcao:'400 g · serve 2', tempo:'15 min', kcal:'780 kcal', nota:'4,9', avaliacoes:'201',
+   ingredientes:'Batata, queijo cheddar, bacon, sal, azeite.',
+   tags:[['Contém lactose','#FFF3DE','#B0791A'],['Serve 2','#EFEBFF','#7C5CFF']]},
+
+  {id:'p6',cat:'Pratos',name:'Porção de Camarão',desc:'Camarão empanado, 300 g',price:58,mark:'camarao',soldOut:false,
+   long:'Camarão rosa empanado em panko, frito na hora e servido com molho rosé da casa.',
+   porcao:'300 g · 8 unidades', tempo:'18 min', kcal:'610 kcal', nota:'4,8', avaliacoes:'147',
+   ingredientes:'Camarão, farinha panko, ovo, molho rosé, salsinha.',
+   tags:[['Frutos do mar','#FFF3DE','#B0791A'],['Contém glúten','#FFF3DE','#B0791A'],['Feito na hora','#EFEBFF','#7C5CFF']]},
+
+  {id:'p7',cat:'Pratos',name:'Peixe Frito com Pirão',desc:'Serve 2 pessoas',price:72,mark:'peixe',soldOut:true,
+   long:'Peixe inteiro frito na hora, com pirão cremoso, limão e farofa. Prato para dividir.',
+   porcao:'≈ 900 g · serve 2', tempo:'28 min', kcal:'890 kcal', nota:'4,9', avaliacoes:'96',
+   ingredientes:'Peixe branco, farinha de mandioca, limão, cebola roxa, coentro, azeite.',
+   tags:[['Frutos do mar','#FFF3DE','#B0791A'],['Sem glúten','#E7F7ED','#16A34A'],['Serve 2','#EFEBFF','#7C5CFF']]},
+
+  {id:'p8',cat:'Sobremesas',name:'Açaí na Tigela',desc:'Banana, granola e mel',price:19,mark:'acai',soldOut:false,
+   long:'Açaí batido na hora, servido na tigela com banana fatiada, granola, coco em lascas e fio de mel.',
+   porcao:'400 ml', tempo:'6 min', kcal:'430 kcal', nota:'4,8', avaliacoes:'188',
+   ingredientes:'Polpa de açaí, banana, granola, coco ralado, mel.',
+   tags:[['Vegetariano','#E7F7ED','#16A34A'],['Contém glúten','#FFF3DE','#B0791A'],['Gelado','#EFEBFF','#7C5CFF']]}
+];
+
+const UI = {
+  menu:'M8 34h32 M14 34c0-8 5-14 10-14s10 6 10 14 M24 20v-6 M21 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+  clock:'M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M24 15v9l6 4',
+  receipt:'M13 8h22v32l-5-3-6 3-6-3-5 3V8Z M19 18h10 M19 25h10',
+  user:'M17 18a7 7 0 1 0 14 0a7 7 0 1 0-14 0 M11 39c2-7 7-11 13-11s11 4 13 11',
+  pix:'M24 6 42 24 24 42 6 24 24 6Z M17 24h14 M24 17v14',
+  card:'M11 13h26a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4Z M7 21h34 M14 29h7',
+  wallet:'M13 12h22a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H13a5 5 0 0 1-5-5V17a5 5 0 0 1 5-5Z M30 24h6 M8 19h32'
+};
+
+const SCREENS = {
+  cliente:[
+    ['login','Login'],['signup','Cadastro'],['forgot','Recuperar Senha'],
+    ['menu','Cardápio'],['product','Detalhe do Produto'],['cart','Carrinho'],['cartEmpty','Carrinho Vazio'],
+    ['table','Informar Mesa'],['payment','Escolha de Pagamento'],['pix','Pagamento via PIX'],['card','Pagamento via Cartão'],
+    ['confirm','Confirmação do Pedido'],['payFail','Falha no Pagamento'],['split','Dividir Conta'],
+    ['status','Status em Tempo Real'],['cancelAsk','Cancelar Pedido — Permitido'],['cancelDone','Cancelamento Confirmado'],
+    ['cancelBlocked','Cancelamento Bloqueado'],['history','Histórico de Pedidos'],['historyEmpty','Histórico Vazio'],
+    ['orderDetail','Detalhe de Pedido'],['profile','Perfil'],['deleteAccount','Excluir Conta'],
+    ['location','Localização do Quiosque'],['offline','Sem Conexão']
+  ],
+  admin:[
+    ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Dashboard Geral'],
+    ['orders','Lista de Pedidos'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
+    ['pause','Pausar Quiosque'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
+    ['closeDay','Encerrar Dia / Relatório']
+  ],
+  cozinha:[
+    ['kanban','Kanban de Pedidos'],['unavailable','Sinalizar Item Indisponível'],['queueEmpty','Fila Vazia']
+  ]
+};
+
+const META = {
+  menu:{t:'Cardápio',back:null,nav:'menu',sb:'dark'},
+  product:{t:'Detalhe do Produto',back:'menu',sb:'light'},
+  cart:{t:'Meu Carrinho',back:'menu',sb:'dark'},
+  cartEmpty:{t:'Meu Carrinho',back:'menu',sb:'dark'},
+  table:{t:'Confirmar Pedido',back:'cart',sb:'dark'},
+  payment:{t:'Pagamento',back:'table',sb:'dark'},
+  pix:{t:'Pagamento via PIX',back:'payment',sb:'dark'},
+  card:{t:'Cartão de Crédito',back:'payment',sb:'dark'},
+  confirm:{t:'Pedido Confirmado',back:null,sb:'dark'},
+  payFail:{t:'Pagamento',back:'payment',sb:'dark'},
+  split:{t:'Dividir a Conta',back:'cart',sb:'dark'},
+  status:{t:'Meu Pedido',back:null,nav:'status',sb:'dark'},
+  cancelAsk:{t:'Cancelar Pedido',back:'status',sb:'dark'},
+  cancelDone:{t:'Cancelar Pedido',back:null,sb:'dark'},
+  cancelBlocked:{t:'Cancelar Pedido',back:'status',sb:'dark'},
+  history:{t:'Histórico',back:null,nav:'history',sb:'dark'},
+  historyEmpty:{t:'Histórico',back:null,nav:'history',sb:'dark'},
+  orderDetail:{t:'Pedido #1038',back:'history',sb:'dark'},
+  profile:{t:'Meu Perfil',back:null,nav:'profile',sb:'dark'},
+  deleteAccount:{t:'Excluir Conta',back:'profile',sb:'dark'},
+  location:{t:'Onde Estamos',back:'profile',sb:'dark'},
+  offline:{t:'Sem Conexão',back:null,sb:'dark'}
+};
+
+class Component extends DCLogic {
+  state = {
+    module:'cliente', screen:'login',
+    email:'ana@email.com', pass:'praia2026', loginErr:'',
+    suName:'', suEmail:'', suPass:'', suErr:'', 
+    fpEmail:'', fpSent:false,
+    cat:'Todos', products:PRODUCTS.map(p => Object.assign({}, p)),
+    cart:[], selId:'p4', qty:1, note:'',
+    tableInput:'', table:null, tableErr:'', orderNote:'',
+    payMethod:'pix', cardNum:'', cardName:'', cardExp:'', cardCvv:'', forceFail:false,
+    order:null, elapsed:0,
+    history:[
+      {id:'#1038', when:'Ontem · 14:20', table:9, total:64, status:'Entregue',
+       items:[{n:'2x Água de Coco Gelada', v:16},{n:'1x Batata Rústica c/ Cheddar', v:24},{n:'1x Porção de Camarão', v:58}]},
+      {id:'#1031', when:'12 fev · 12:05', table:4, total:41.8, status:'Entregue',
+       items:[{n:'1x Wrap de Frango Grelhado', v:28},{n:'1x Cerveja Long Neck', v:12}]}
+    ],
+    tables:[1,2,3,4,5,6,7,8,9,10,11,12].map(n => ({n, active:!(n===7||n===11), seats:n%3===0?6:4})),
+    paused:false,
+    kitchen:[
+      {id:'#1042', table:9, items:'2x Caipirinha · 1x Wrap de Frango', status:'Na Fila', min:2, flag:'', obs:'Sem cebola no wrap, entregar tudo junto'},
+      {id:'#1041', table:3, items:'1x Peixe Frito com Pirão', status:'Em Preparo', min:9, flag:'Atrasado', obs:'Peixe bem passado, sem coentro'},
+      {id:'#1040', table:12, items:'1x Açaí na Tigela · 1x Água de Coco', status:'Pronto', min:14, flag:''}
+    ],
+    adminEmail:'gerente@sunfood.com.br', adminPass:'', adminRole:'Admin', adminErr:'',
+    adminTab:'vendas', dayClosed:false,
+    pf:{name:'Porção de Camarão', price:'58,00', cat:'Pratos', desc:'Camarão empanado, 300 g', active:true},
+    toast:''
+  };
+
+  componentDidMount(){
+    this.timer = setInterval(() => {
+      const o = this.state.order;
+      if(!o || o.status === 'Cancelado' || o.status === 'Entregue') return;
+      const e = this.state.elapsed + 1;
+      let st = o.status;
+      if(e === 8 && st === 'Na Fila') st = 'Em Preparo';
+      if(e === 18 && st === 'Em Preparo') st = 'Pronto';
+      this.setState({elapsed:e});
+      if(st !== o.status) this.setOrderStatus(st);
+    }, 1000);
+  }
+  componentWillUnmount(){ clearInterval(this.timer); }
+
+  fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
+  go(screen, module){ this.setState(s => ({screen, module: module || s.module, toast:''})); }
+  flash(msg){ this.setState({toast:msg}); clearTimeout(this._t); this._t = setTimeout(() => this.setState({toast:''}), 2600); }
+
+  subtotal(){ return this.state.cart.reduce((a,c) => a + c.price * c.qty, 0); }
+
+  setOrderStatus(st){
+    this.setState(s => ({
+      order: Object.assign({}, s.order, {status:st}),
+      kitchen: s.kitchen.map(k => k.id === (s.order && s.order.id) ? Object.assign({}, k, {status:st}) : k)
+    }));
+  }
+
+  addToCart(p, qty, note){
+    if(p.soldOut) return this.flash('Item indisponível — sinalizado pela cozinha.');
+    this.setState(s => {
+      const i = s.cart.findIndex(c => c.id === p.id && c.note === (note || ''));
+      const cart = s.cart.slice();
+      if(i >= 0) cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty + qty});
+      else cart.push({id:p.id, name:p.name, price:p.price, mark:p.mark, qty, note:note || ''});
+      return {cart};
+    });
+    this.flash(p.name + ' adicionado ao carrinho');
+  }
+
+  placeOrder(){
+    const total = this.subtotal() * 1.1;
+    const id = '#10' + (43 + this.state.history.length);
+    const itemNotes = this.state.cart.filter(c => c.note).map(c => c.name + ': ' + c.note);
+    if(this.state.orderNote) itemNotes.push('Pedido: ' + this.state.orderNote);
+    const obs = itemNotes.join(' · ');
+    const order = {id, table:this.state.table, total, status:'Na Fila', obs,
+      items:this.state.cart.map(c => ({n:c.qty + 'x ' + c.name, v:c.price * c.qty, note:c.note || ''}))};
+    this.setState(s => ({
+      order, elapsed:0, screen:'confirm', cart:[],
+      orderNote:'',
+      kitchen:[{id, table:s.table, items:s.cart.map(c => c.qty + 'x ' + c.name).join(' · '), status:'Na Fila', min:0, flag:'', obs}].concat(s.kitchen)
+    }));
+  }
+
+  renderVals(){
+    const s = this.state, f = n => this.fmt(n);
+    const v = {};
+    Object.keys(SCREENS).forEach(m => SCREENS[m].forEach(([k]) => { v['is_' + k] = s.screen === k; }));
+    v.isCliente = s.module === 'cliente';
+    v.isAdmin = s.module === 'admin';
+    v.isCozinha = s.module === 'cozinha';
+
+    const navFor = m => SCREENS[m].map(([k, label], i) => ({
+      key:k, label, num:('0' + (i + 1)).slice(-2),
+      go:() => this.go(k, m),
+      style:'display:flex;gap:9px;align-items:center;padding:7px 10px;border-radius:8px;cursor:pointer;font:600 12px/1.3 Inter,sans-serif;transition:background .15s,color .15s;' +
+        (s.screen === k ? 'background:#FF6B35;color:#fff' : 'color:rgba(255,255,255,.62)'),
+      numStyle:'font:500 10px JetBrains Mono,monospace;opacity:.7;flex-shrink:0;' + (s.screen === k ? 'color:#fff' : 'color:#FF9166')
+    }));
+    v.navCliente = navFor('cliente'); v.navAdmin = navFor('admin'); v.navCozinha = navFor('cozinha');
+    v.modTabs = [['cliente','Cliente','PWA mobile'],['admin','Admin','Web'],['cozinha','Cozinha','Web']].map(([k, label, sub]) => ({
+      key:k, label, sub, go:() => this.setState({module:k, screen:SCREENS[k][k === 'cliente' ? 3 : 0][0]}),
+      style:'display:flex;flex-direction:column;gap:1px;padding:8px 16px;border-radius:10px;cursor:pointer;border:1px solid ' +
+        (s.module === k ? '#FF6B35;background:rgba(255,107,53,.16)' : 'rgba(255,255,255,.12);background:transparent'),
+      lblStyle:"font:700 13px/1.2 'Baloo 2',sans-serif;color:" + (s.module === k ? '#FFC9AE' : 'rgba(255,255,255,.75)'),
+      subStyle:'font:500 9.5px Inter,sans-serif;color:rgba(255,255,255,.4)'
+    }));
+
+    const meta = META[s.screen] || {};
+    v.hdrTitle = meta.t || ''; v.showHeader = !!meta.t;
+    v.hdrBack = !!meta.back; v.onBack = () => meta.back && this.go(meta.back);
+    v.showNav = !!meta.nav;
+    v.sbStyle = 'display:flex;justify-content:space-between;align-items:center;padding:14px 20px 6px;font:600 12px Inter,sans-serif;color:' +
+      (['login','signup','forgot'].indexOf(s.screen) >= 0 ? '#fff' : '#1B2430');
+    v.navItems = [['menu','Cardápio','menu'],['status','Pedido','clock'],['history','Histórico','receipt'],['profile','Perfil','user']].map(([k, label, ic]) => ({
+      key:k, label,
+      icPath:UI[ic],
+      go:() => this.go(k === 'history' && !s.history.length ? 'historyEmpty' : (k === 'status' && !s.order ? 'menu' : k)),
+      style:'display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font:600 9.5px Inter,sans-serif;color:' +
+        (meta.nav === k ? '#FF6B35' : '#6B7280')
+    }));
+
+    // menu
+    v.cats = ['Todos','Bebidas','Lanches','Pratos','Sobremesas'].map(c => ({
+      c, go:() => this.setState({cat:c}),
+      style:'font:700 12px Inter,sans-serif;padding:7px 14px;border-radius:100px;white-space:nowrap;cursor:pointer;border:1px solid ' +
+        (s.cat === c ? '#FF6B35;background:#FF6B35;color:#fff' : '#E9E1D6;background:#fff;color:#6B7280')
+    }));
+    v.menuItems = s.products.filter(p => s.cat === 'Todos' || p.cat === s.cat).map(p => ({
+      name:p.name, desc:p.desc, markPath:MARK[p.mark], priceStr:f(p.price), soldOut:p.soldOut, avail:!p.soldOut,
+      photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
+      open:() => this.setState({selId:p.id, qty:1, note:'', screen:'product'}),
+      add:e => { e.stopPropagation(); this.addToCart(p, 1, ''); },
+      rowStyle:'display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:10px;cursor:pointer;transition:box-shadow .18s,transform .18s;' + (p.soldOut ? 'opacity:.55' : '')
+    }));
+    v.paused = s.paused;
+    v.cartCount = s.cart.reduce((a, c) => a + c.qty, 0);
+    v.hasCart = v.cartCount > 0;
+    v.cartCountStr = v.cartCount + (v.cartCount === 1 ? ' item no carrinho' : ' itens no carrinho');
+    v.subtotalStr = f(this.subtotal());
+    v.feeStr = f(this.subtotal() * 0.1);
+    v.totalStr = f(this.subtotal() * 1.1);
+    v.goCart = () => this.go(v.hasCart ? 'cart' : 'cartEmpty');
+
+    // product detail
+    const sel = s.products.find(p => p.id === s.selId) || s.products[3];
+    v.pName = sel.name; v.pDesc = sel.desc; v.pCat = sel.cat;
+    v.pMarkPath = MARK[sel.mark];
+    v.pLong = sel.long; v.pIngredientes = sel.ingredientes;
+    v.pNota = sel.nota; v.pAvaliacoes = sel.avaliacoes + ' avaliações';
+    v.pFacts = [{k:'Porção', v:sel.porcao},{k:'Preparo', v:sel.tempo},{k:'Energia', v:sel.kcal}];
+    v.pTags = sel.tags.map(([t, bg, fg]) => ({
+      t, style:'font:700 10px Inter,sans-serif;padding:5px 11px;border-radius:100px;background:' + bg + ';color:' + fg
+    }));
+    v.pPhotoStyle = photoBg(sel.mark); v.pHasPhoto = !!PHOTO[sel.mark]; v.pNoPhoto = !PHOTO[sel.mark];
+    v.pPriceStr = f(sel.price); v.qty = s.qty; v.note = s.note;
+    v.setNote = e => this.setState({note:e.target.value});
+    v.inc = () => this.setState(x => ({qty:x.qty + 1}));
+    v.dec = () => this.setState(x => ({qty:Math.max(1, x.qty - 1)}));
+    v.addLabel = 'Adicionar — ' + f(sel.price * s.qty);
+    v.addSel = () => { this.addToCart(sel, s.qty, ''); this.go('menu'); };
+
+    // cart
+    v.cartRows = s.cart.map((c, i) => ({
+      name:c.name, markPath:MARK[c.mark], photoStyle:photoBg(c.mark), hasPhoto:!!PHOTO[c.mark], noPhoto:!PHOTO[c.mark], qty:c.qty,
+      sub:(c.note ? c.note + ' · ' : '') + f(c.price) + '/un',
+      lineStr:f(c.price * c.qty),
+      inc:() => this.setState(x => { const cart = x.cart.slice(); cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty + 1}); return {cart}; }),
+      dec:() => this.setState(x => { const cart = x.cart.slice(); if(cart[i].qty === 1) cart.splice(i, 1); else cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty - 1}); return {cart, screen:cart.length ? x.screen : 'cartEmpty'}; })
+    }));
+    v.minOk = this.subtotal() >= 10;
+    v.minWarn = !v.minOk && v.hasCart;
+    v.goTable = () => { if(s.paused) return this.flash('Quiosque pausado no Admin — não é possível fechar o pedido.'); if(!v.minOk) return this.flash('Pedido mínimo de R$ 10,00 (RN01).'); this.go('table'); };
+
+    // table
+    v.tableInput = s.tableInput; v.tableErr = s.tableErr; v.hasTableErr = !!s.tableErr;
+    v.setTable = e => this.setState({tableInput:e.target.value.replace(/\D/g, '').slice(0, 2), tableErr:''});
+    v.tableFilled = s.tableInput.length > 0;
+    v.confirmTable = () => {
+      const n = parseInt(s.tableInput, 10);
+      const t = s.tables.find(x => x.n === n);
+      if(!t) return this.setState({tableErr:'Mesa ' + s.tableInput + ' não existe. Confira a plaquinha do guarda-sol.'});
+      if(!t.active) return this.setState({tableErr:'Mesa ' + n + ' está inativa no Admin. Procure um atendente.'});
+      this.setState({table:n, tableErr:'', screen:'payment'});
+    };
+    v.tableStr = s.table ? String(s.table) : '—';
+    v.orderNote = s.orderNote;
+    v.setOrderNote = e => this.setState({orderNote:e.target.value});
+
+    // payment
+    v.payOpts = [['pix','PIX','Confirmação em segundos','pix','#16A34A'],
+                 ['card','Cartão de Crédito','Visa, Mastercard, Elo','card','#1F3B6B'],
+                 ['wallet','Apple / Google Pay','Aprovação biométrica','wallet','#1B2430']].map(([k, nm, sub, ic, bg]) => ({
+      nm, sub, icPath:UI[ic],
+      iconWrapStyle:'width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + bg,
+      pick:() => this.setState({payMethod:k}),
+      style:'display:flex;align-items:center;gap:12px;border-radius:14px;padding:13px 14px;cursor:pointer;transition:border-color .15s,background .15s;border:1.5px solid ' +
+        (s.payMethod === k ? '#FF6B35;background:#FFF4EE' : '#E9E1D6;background:#fff'),
+      radioStyle:'width:18px;height:18px;border-radius:50%;margin-left:auto;flex-shrink:0;border:2px solid ' +
+        (s.payMethod === k ? '#FF6B35;background:radial-gradient(circle,#FF6B35 40%,transparent 44%)' : '#E9E1D6')
+    }));
+    v.payLabel = 'Pagar ' + v.totalStr;
+    v.goPay = () => this.go(s.payMethod === 'card' ? 'card' : 'pix');
+
+    // card form
+    v.cardNum = s.cardNum; v.cardName = s.cardName; v.cardExp = s.cardExp; v.cardCvv = s.cardCvv;
+    v.setCardNum = e => this.setState({cardNum:e.target.value.replace(/[^\d ]/g, '').slice(0, 19)});
+    v.setCardName = e => this.setState({cardName:e.target.value});
+    v.setCardExp = e => this.setState({cardExp:e.target.value.slice(0, 5)});
+    v.setCardCvv = e => this.setState({cardCvv:e.target.value.replace(/\D/g, '').slice(0, 3)});
+    const cardOk = s.cardNum.replace(/\s/g, '').length >= 16 && s.cardName.trim().length > 2 && s.cardExp.length === 5 && s.cardCvv.length === 3;
+    v.cardOk = cardOk; v.cardBlocked = !cardOk;
+    v.forceFail = s.forceFail;
+    v.toggleFail = () => this.setState(x => ({forceFail:!x.forceFail}));
+    v.failStyle = 'width:40px;height:22px;border-radius:100px;position:relative;flex-shrink:0;cursor:pointer;transition:background .2s;background:' + (s.forceFail ? '#E74C3C' : '#E9E1D6');
+    v.knobStyle = 'position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;left:' + (s.forceFail ? '20px' : '2px');
+    v.payCard = () => { if(!cardOk) return; if(s.forceFail) return this.go('payFail'); this.placeOrder(); };
+    v.payPix = () => { if(s.forceFail) return this.go('payFail'); this.placeOrder(); };
+
+    // order / status
+    const o = s.order;
+    v.hasOrder = !!o;
+    v.orderId = o ? o.id : '#—';
+    v.orderTotalStr = o ? f(o.total) : v.totalStr;
+    v.orderTable = o ? String(o.table) : v.tableStr;
+    v.orderStatus = o ? o.status : 'Na Fila';
+    v.orderItems = o ? o.items.map(it => ({n:it.n, v:f(it.v)})) : [];
+    v.orderObs = o && o.obs ? o.obs : '';
+    v.hasOrderObs = !!(o && o.obs);
+    v.canCancel = !!o && o.status === 'Na Fila';
+    v.etaStr = o ? (o.status === 'Pronto' ? 'Pronto para retirada' : o.status === 'Em Preparo' ? '~7 min' : '~15 min') : '~15 min';
+    const stages = ['Na Fila','Em Preparo','Pronto'];
+    const ci = o ? stages.indexOf(o.status) : 0;
+    v.steps = [
+      {t:'Pagamento aprovado', d:'PIX confirmado', i:0},
+      {t:'Na fila da cozinha', d:'Pedido recebido pelo quiosque', i:1},
+      {t:'Em preparo', d:'A cozinha está montando seu pedido', i:2},
+      {t:'Pronto — entrega na mesa ' + v.orderTable, d:'Um atendente já está indo até você', i:3}
+    ].map(st => {
+      const done = st.i <= ci, active = st.i === ci + 1;
+      return {t:st.t, d:st.d, mark:done ? '✓' : active ? '●' : '',
+        dotStyle:'width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 11px Inter,sans-serif;color:#fff;flex-shrink:0;background:' +
+          (done ? '#16A34A' : active ? '#FF6B35' : '#D8D2C7'),
+        txtStyle:"font:700 13px/1.3 'Baloo 2',sans-serif;color:" + (done || active ? '#1B2430' : '#9A9384')};
+    });
+    v.statusPillStyle = 'display:inline-block;font:700 11px Inter,sans-serif;padding:5px 12px;border-radius:100px;background:' +
+      (v.orderStatus === 'Pronto' ? '#E7F7ED;color:#16A34A' : v.orderStatus === 'Cancelado' ? '#FDEBEA;color:#E74C3C' : '#FFF3DE;color:#F5A623');
+    v.askCancel = () => this.go(v.canCancel ? 'cancelAsk' : 'cancelBlocked');
+    v.doCancel = () => { this.setState(x => ({order:Object.assign({}, x.order, {status:'Cancelado'}), kitchen:x.kitchen.filter(k => k.id !== x.order.id), screen:'cancelDone'})); };
+
+    // split bill
+    v.splitTotalStr = o ? f(o.total) : v.totalStr;
+    const per = (o ? o.total : this.subtotal() * 1.1) / 3;
+    v.people = [['Ana Souza','A','#FF6B35','Pago'],['Bruno Lima','B','#1F3B6B','Pendente'],['Carla Dias','C','#7C5CFF','Pendente']].map(([nm, ini, bg, st]) => ({
+      nm, ini:ini === 'A' ? '' : ini, amt:f(per) + ' · 1/3 da conta',
+      avStyle:'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font:700 12px Inter,sans-serif;flex-shrink:0;' +
+        (ini === 'A' ? 'background-image:url(' + AVATAR + ');background-size:cover;background-position:center' : 'background:' + bg),
+      st, stStyle:'margin-left:auto;font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' + (st === 'Pago' ? '#E7F7ED;color:#16A34A' : '#FFF3DE;color:#F5A623')
+    }));
+
+    // history
+    v.historyRows = s.history.map(h => ({
+      id:h.id, when:h.when + ' · Mesa ' + h.table, totalStr:f(h.total), status:h.status,
+      open:() => this.go('orderDetail')
+    }));
+    v.hasHistory = s.history.length > 0;
+    const hd = s.history[0];
+    v.hdItems = hd.items.map(it => ({n:it.n, v:f(it.v)}));
+    v.hdTotal = f(hd.total); v.hdWhen = hd.when; v.hdTable = String(hd.table);
+
+    // auth
+    v.email = s.email; v.pass = s.pass; v.loginErr = s.loginErr; v.hasLoginErr = !!s.loginErr;
+    v.setEmail = e => this.setState({email:e.target.value, loginErr:''});
+    v.setPass = e => this.setState({pass:e.target.value, loginErr:''});
+    v.doLogin = () => { if(!/@/.test(s.email) || s.pass.length < 4) return this.setState({loginErr:'E-mail ou senha inválidos.'}); this.go('menu'); };
+    v.suName = s.suName; v.suEmail = s.suEmail; v.suPass = s.suPass; v.suErr = s.suErr; v.hasSuErr = !!s.suErr;
+    v.setSuName = e => this.setState({suName:e.target.value, suErr:''});
+    v.setSuEmail = e => this.setState({suEmail:e.target.value, suErr:''});
+    v.setSuPass = e => this.setState({suPass:e.target.value, suErr:''});
+    v.suOk = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6;
+    v.suBlocked = !v.suOk;
+    v.doSignup = () => { if(!v.suOk) return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'}); this.go('menu'); };
+    v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
+    v.setFp = e => this.setState({fpEmail:e.target.value});
+    v.fpOk = /@/.test(s.fpEmail);
+    v.fpBlocked = !v.fpOk;
+    v.sendFp = () => v.fpOk && this.setState({fpSent:true});
+
+    // admin
+    v.adminEmail = s.adminEmail; v.adminPass = s.adminPass; v.adminErr = s.adminErr; v.hasAdminErr = !!s.adminErr;
+    v.setAdminEmail = e => this.setState({adminEmail:e.target.value, adminErr:''});
+    v.setAdminPass = e => this.setState({adminPass:e.target.value, adminErr:''});
+    v.roleTabs = [['Admin','admin','dashboard'],['Cozinha','cozinha','kanban']].map(([label, mod, scr]) => ({
+      label, pick:() => this.setState({adminRole:label}),
+      style:'flex:1;text-align:center;font:700 12px Inter,sans-serif;padding:8px 0;border-radius:8px;cursor:pointer;' +
+        (s.adminRole === label ? 'background:#fff;color:#E8551E;box-shadow:0 2px 6px rgba(0,0,0,.1)' : 'color:#6B7280')
+    }));
+    v.adminLogin = () => {
+      if(!/@/.test(s.adminEmail) || s.adminPass.length < 4) return this.setState({adminErr:'Credenciais inválidas para o painel.'});
+      if(s.adminRole === 'Cozinha') this.go('kanban', 'cozinha'); else this.go('dashboard', 'admin');
+    };
+    v.adminSide = SCREENS.admin.slice(2).map(([k, label]) => ({
+      label, go:() => this.go(k, 'admin'),
+      style:'padding:9px 11px;border-radius:9px;font:600 12px Inter,sans-serif;cursor:pointer;transition:background .15s;' +
+        (s.screen === k ? 'background:#FF6B35;color:#fff' : 'color:rgba(255,255,255,.6)')
+    }));
+    v.kpis = [
+      {lbl:'Faturamento hoje', val:'R$ 4.812,40', delta:'+12% vs. ontem'},
+      {lbl:'Pedidos', val:'86', delta:'+9 na última hora'},
+      {lbl:'Ticket médio', val:'R$ 55,96', delta:'+3,1%'},
+      {lbl:'Tempo médio', val:'12 min', delta:'−2 min'}
+    ];
+    v.adminOrders = [{id:v.orderId, table:v.orderTable, st:v.orderStatus, tot:v.orderTotalStr, hora:'agora'}]
+      .filter(() => !!o)
+      .concat(s.kitchen.filter(k => !o || k.id !== o.id).map(k => ({id:k.id, table:String(k.table), st:k.status, tot:this.fmt(78.4), hora:k.min + ' min'})))
+      .concat(s.history.map(h => ({id:h.id, table:String(h.table), st:h.status, tot:this.fmt(h.total), hora:h.when})))
+      .map(r => Object.assign({}, r, {
+        stStyle:'font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' +
+          (r.st === 'Pronto' || r.st === 'Entregue' ? '#E7F7ED;color:#16A34A' : r.st === 'Cancelado' ? '#FDEBEA;color:#E74C3C' : '#FFF3DE;color:#F5A623')
+      }));
+    v.tableTiles = s.tables.map(t => ({
+      n:('0' + t.n).slice(-2), seats:t.seats + ' lugares',
+      toggle:() => this.setState(x => ({tables:x.tables.map(y => y.n === t.n ? Object.assign({}, y, {active:!y.active}) : y)})),
+      pill:t.active ? 'Ativa' : 'Inativa',
+      pillStyle:'font:700 9.5px Inter,sans-serif;padding:3px 9px;border-radius:100px;background:' + (t.active ? '#E7F7ED;color:#16A34A' : '#EEE;color:#999'),
+      tileStyle:'background:#fff;border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:1px solid ' + (t.active ? '#E9E1D6' : '#F0D6D2')
+    }));
+    v.activeTables = s.tables.filter(t => t.active).length + ' de 12 ativas';
+    v.togglePause = () => this.setState(x => ({paused:!x.paused}));
+    v.pauseLabel = s.paused ? 'Quiosque pausado' : 'Quiosque aberto';
+    v.pauseSub = s.paused ? 'O cardápio do cliente exibe aviso e o checkout está bloqueado.' : 'Novos pedidos estão sendo aceitos normalmente.';
+    v.pauseSwitchStyle = 'width:48px;height:26px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (s.paused ? '#E74C3C' : '#16A34A');
+    v.pauseKnobStyle = 'position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;left:' + (s.paused ? '25px' : '3px');
+    v.pauseBannerStyle = 'display:flex;align-items:center;justify-content:space-between;gap:16px;border-radius:14px;padding:16px 18px;border:1px solid ' +
+      (s.paused ? '#F5C6C2;background:#FDEBEA' : '#CBE9D6;background:#E7F7ED');
+    v.salesBars = [42,58,36,71,88,64,95,78,52,66,84,70].map((h, i) => ({
+      style:'flex:1;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#FF6B35,#FF9166);height:' + h + '%',
+      lbl:(10 + i) + 'h'
+    }));
+    v.opsRows = [['Tempo médio na fila','3 min 20 s','Meta: 5 min','ok'],['Tempo médio de preparo','9 min 05 s','Meta: 10 min','ok'],
+                 ['Pedidos atrasados','4 de 86','4,6% do total','warn'],['Itens indisponíveis','1 (Peixe Frito)','Sinalizado pela cozinha','warn'],
+                 ['Cancelamentos','2','Ambos ainda na fila','ok']].map(([k, val, sub, kind]) => ({
+      k, val, sub, valStyle:"font:800 16px 'Baloo 2',sans-serif;color:" + (kind === 'ok' ? '#16A34A' : '#F5A623')
+    }));
+    v.pf = s.pf; v.pfName = s.pf.name; v.pfPrice = s.pf.price; v.pfDesc = s.pf.desc; v.pfCat = s.pf.cat;
+    v.setPf = key => e => this.setState(x => ({pf:Object.assign({}, x.pf, {[key]:e.target.value})}));
+    v.setPfName = v.setPf('name'); v.setPfPrice = v.setPf('price'); v.setPfDesc = v.setPf('desc');
+    v.pfOk = s.pf.name.trim() && s.pf.price.trim();
+    v.pfBlocked = !v.pfOk;
+    v.savePf = () => { if(v.pfOk) this.flash('Produto salvo e publicado no cardápio.'); };
+    v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
+    v.closeDay = () => this.setState({dayClosed:true});
+    v.reopenDay = () => this.setState({dayClosed:false});
+
+    // cozinha
+    const col = st => s.kitchen.filter(k => k.status === st).map(k => ({
+      id:k.id, table:'Mesa ' + k.table, items:k.items, min:k.min + ' min', flag:k.flag, hasFlag:!!k.flag,
+      obs:k.obs || '', hasObs:!!k.obs,
+      btn:st === 'Na Fila' ? 'Iniciar preparo' : 'Marcar como pronto',
+      showBtn:st !== 'Pronto',
+      advance:() => {
+        const next = st === 'Na Fila' ? 'Em Preparo' : 'Pronto';
+        this.setState(x => ({kitchen:x.kitchen.map(y => y.id === k.id ? Object.assign({}, y, {status:next}) : y),
+          order:x.order && x.order.id === k.id ? Object.assign({}, x.order, {status:next}) : x.order}));
+      },
+      deliver:() => this.setState(x => ({kitchen:x.kitchen.filter(y => y.id !== k.id),
+        order:x.order && x.order.id === k.id ? Object.assign({}, x.order, {status:'Entregue'}) : x.order}))
+    }));
+    v.kQueue = col('Na Fila'); v.kPrep = col('Em Preparo'); v.kReady = col('Pronto');
+    v.nQueue = v.kQueue.length; v.nPrep = v.kPrep.length; v.nReady = v.kReady.length;
+    v.kitchenEmpty = s.kitchen.length === 0;
+    v.availRows = s.products.map(p => ({
+      name:p.name, cat:p.cat, markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
+      pill:p.soldOut ? 'Indisponível' : 'Disponível',
+      pillStyle:'font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' + (p.soldOut ? '#FDEBEA;color:#E74C3C' : '#E7F7ED;color:#16A34A'),
+      toggle:() => this.setState(x => ({products:x.products.map(y => y.id === p.id ? Object.assign({}, y, {soldOut:!y.soldOut}) : y)})),
+      swStyle:'width:40px;height:22px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (p.soldOut ? '#E74C3C' : '#16A34A'),
+      knobStyle:'position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;left:' + (p.soldOut ? '20px' : '2px')
+    }));
+    v.soldOutCount = s.products.filter(p => p.soldOut).length + ' item(ns) sinalizado(s)';
+    const nObs = s.kitchen.filter(k => k.obs).length;
+    v.obsCount = nObs === 1 ? '1 pedido com observação' : nObs + ' pedidos com observação';
+    v.hasObsCount = nObs > 0;
+
+    v.topSellers = [['p2', 42], ['p1', 38], ['p4', 27], ['p6', 19]].map(([id, n]) => {
+      const p = s.products.find(x => x.id === id);
+      return {name:p.name, n:String(n), markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark]};
+    });
+    const pfProd = s.products.find(p => p.name === s.pf.name) || {mark:'camarao'};
+    v.pfMarkPath = MARK[pfProd.mark];
+    v.pfPhotoStyle = photoBg(pfProd.mark, 'width:100%;height:112px;border-radius:10px;margin-bottom:11px;'); v.pfHasPhoto = !!PHOTO[pfProd.mark]; v.pfNoPhoto = !PHOTO[pfProd.mark];
+
+    // chrome
+    v.toast = s.toast; v.hasToast = !!s.toast;
+    v.screenLabel = (SCREENS[s.module].find(x => x[0] === s.screen) || ['', ''])[1];
+    v.url = s.module === 'cliente' ? 'app.sunfood.com.br' : s.module === 'admin' ? 'painel.sunfood.com.br' : 'cozinha.sunfood.com.br';
+    v.stateChips = [
+      {k:'Login', v:'ana@email.com'},
+      {k:'Mesa', v:s.table ? String(s.table) : 'não informada'},
+      {k:'Carrinho', v:v.cartCount + ' itens · ' + v.subtotalStr},
+      {k:'Pedido', v:o ? o.id + ' · ' + o.status : 'nenhum'},
+      {k:'Quiosque', v:s.paused ? 'pausado' : 'aberto'}
+    ];
+    v.reset = () => window.location.reload();
+    v.goLogin = () => this.go('login');
+    v.goSignup = () => this.go('signup');
+    v.goForgot = () => this.go('forgot');
+    v.goMenu = () => this.go('menu');
+    v.goStatus = () => this.go('status');
+    v.goHistory = () => this.go(v.hasHistory ? 'history' : 'historyEmpty');
+    v.goProfile = () => this.go('profile');
+    v.avatarStyle = 'width:52px;height:52px;border-radius:50%;flex-shrink:0;display:block;box-shadow:0 0 0 2px #FFF6EC,0 0 0 4px #FF6B35;background-image:url(' + AVATAR + ');background-size:cover;background-position:center';
+    v.goSplit = () => this.go('split');
+    v.goLocation = () => this.go('location');
+    v.goDelete = () => this.go('deleteAccount');
+    v.goPayment = () => this.go('payment');
+    v.goPix = () => this.go('pix');
+    v.goCard = () => this.go('card');
+    v.retryPay = () => this.go('payment');
+    v.goOffline = () => this.go('offline');
+    v.goKanban = () => this.go('kanban', 'cozinha');
+    v.goUnavailable = () => this.go('unavailable', 'cozinha');
+    return v;
+  }
+}
+</script>
+</body>
+</html>
