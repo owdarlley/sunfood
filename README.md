@@ -8,7 +8,7 @@ Site: `index.html` (homepage). O celular no topo roda o app do cliente (`app-cli
 
 **Login de demonstração:** `ana@email.com` / `praia2026`
 
-> Este projeto já está publicado em: https://owdarlley.github.io/sunfood/ clique no link para visualizar no navegador.
+> Este projeto já está publicado em: https://owdarlley.github.io/sunfood/ 
 
 Os arquivos precisam ficar na mesma pasta: a homepage carrega o app e o protótipo por caminho relativo.
 
