@@ -759,6 +759,7 @@ class Component extends DCLogic {
   };
 
   componentDidMount(){
+    this.aplicarRota();
     this.timer = setInterval(() => {
       const o = this.state.order;
       if(!o || o.status === 'Cancelado' || o.status === 'Entregue') return;
@@ -770,6 +771,18 @@ class Component extends DCLogic {
       if(st !== o.status) this.setOrderStatus(st);
     }, 1000);
   }
+  // roteamento pós-login: o site abre o app já no módulo e na tela do perfil
+  aplicarRota(){
+    const q = new URLSearchParams(window.location.search);
+    const mod = q.get('module');
+    if(!mod || !SCREENS[mod]) return;
+    const telas = SCREENS[mod].map(s => s[0]);
+    const pedida = q.get('screen');
+    const screen = pedida && telas.indexOf(pedida) >= 0 ? pedida
+      : SCREENS[mod][mod === 'cliente' ? 3 : 0][0];
+    this.setState({module:mod, screen});
+  }
+
   componentWillUnmount(){ clearInterval(this.timer); }
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }

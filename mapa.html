@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#FFF6EC; -webkit-font-smoothing:antialiased; }
+  a { color:#E8551E; text-decoration:none; }
+  a:hover { color:#FF6B35; }
+  ::selection { background:#FFC9AE; color:#142850; }
+</style>
+</helmet>
+
+<div style="font-family:Inter,sans-serif;color:#1B2430;overflow-x:clip">
+
+  <header style="position:sticky;top:0;z-index:40;background:rgba(15,27,51,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.09)">
+    <div style="max-width:1180px;margin:0 auto;padding:12px clamp(16px,4vw,28px);display:flex;align-items:center;gap:clamp(14px,2.5vw,28px)">
+      <a href="index.html" style="display:flex;align-items:center;gap:8px;margin-right:auto;flex-shrink:0">
+        <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#FF6B35" stroke-width="2.8" stroke-linecap="round" style="display:block;flex-shrink:0"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
+        <span style="font:800 21px/1 'Baloo 2',sans-serif;letter-spacing:.02em;color:#fff">SUNFOOD</span>
+      </a>
+      <nav style="display:flex;align-items:center;column-gap:clamp(12px,1.6vw,22px);row-gap:8px;flex-wrap:wrap;justify-content:flex-end;min-width:0">
+        <a href="funcionalidades.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Funcionalidades</a>
+        <a href="como-funciona.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Como funciona</a>
+        <a href="perfis.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Perfis de acesso</a>
+        <a href="prototipo.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Protótipo completo</a>
+        <a href="sobre.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Sobre nós</a>
+        <a href="contato.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Fale conosco</a>
+      </nav>
+      <a href="#" style="background:#FF6B35;color:#fff;font:700 14px 'Baloo 2',sans-serif;padding:10px 20px;border-radius:12px;white-space:nowrap;flex-shrink:0;box-shadow:0 6px 18px -8px rgba(255,107,53,.9)" style-hover="background:#E8551E;color:#fff">Entrar</a>
+    </div>
+  </header>
+
+  <section style="background:#0F1B33;background-image:radial-gradient(circle at 8% 0%,rgba(255,107,53,.20),transparent 46%),radial-gradient(circle at 94% 100%,rgba(255,107,53,.12),transparent 44%);color:#fff;padding:clamp(44px,6vh,76px) clamp(18px,4vw,28px) clamp(48px,7vh,84px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#FFC9AE;border:1px solid rgba(255,201,174,.32);border-radius:999px;padding:6px 12px">Semana 06 · Mapa e navegação</div>
+      <h1 style="font:800 clamp(34px,4vw,54px)/1.08 'Baloo 2',sans-serif;margin:20px 0 0;max-width:840px;text-wrap:pretty">Mapa do sistema e caminho do usuário</h1>
+      <p style="font:400 clamp(15px,1.3vw,18px)/1.65 Inter,sans-serif;color:rgba(255,255,255,.74);margin:16px 0 0;max-width:720px;text-wrap:pretty">O Sunfood tem duas camadas. Em cima, o site institucional: páginas públicas onde o visitante entende a proposta e faz o primeiro contato. Embaixo, a área restrita: o sistema em si, com login e três perfis, somando as 38 telas do protótipo. Este mapa mostra as duas e o percurso que liga uma à outra.</p>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:clamp(46px,7vw,84px) clamp(18px,4vw,28px) clamp(24px,3vw,32px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">Camada pública</div>
+      <h2 style="font:800 clamp(28px,3vw,40px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0;max-width:620px;text-wrap:pretty">Site institucional</h2>
+      <p style="font:400 15.5px/1.65 Inter,sans-serif;color:#5C636E;margin:12px 0 0;max-width:680px;text-wrap:pretty">Todas as páginas compartilham o mesmo menu fixo e o mesmo rodapé, então qualquer uma alcança qualquer outra em um clique. Nenhuma exige autenticação.</p>
+
+      <div style="background:#fff;border:1.5px solid #E4D6C0;border-radius:22px;padding:clamp(24px,3vw,36px);margin-top:clamp(24px,3vw,32px);box-shadow:0 18px 34px -28px rgba(20,40,80,.5)">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div style="background:#142850;color:#fff;border-radius:14px;padding:16px 28px;text-align:center;min-width:220px">
+            <div style="font:700 18px 'Baloo 2',sans-serif">Home</div>
+            <div style="font:400 12.5px Inter,sans-serif;color:rgba(255,255,255,.66);margin-top:4px">index.html · Semana 03</div>
+          </div>
+          <div style="width:2px;height:24px;background:#E4D6C0"></div>
+          <div style="font:600 11px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8F98">Menu principal</div>
+          <div style="width:2px;height:24px;background:#E4D6C0"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+          <sc-for list="{{ paginas }}" as="p" hint-placeholder-count="6">
+            <div style="border:1.5px solid #E9E1D6;border-top:3px solid #FF6B35;border-radius:14px;padding:16px;background:#FFFDFA">
+              <div style="font:700 15.5px/1.25 'Baloo 2',sans-serif;color:#1B2430;text-wrap:pretty">{{ p.t }}</div>
+              <div style="font:400 12px Inter,sans-serif;color:#8A8F98;margin-top:4px">{{ p.f }}</div>
+              <div style="font:400 12.5px/1.5 Inter,sans-serif;color:#5C636E;margin-top:8px;text-wrap:pretty">{{ p.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:0 clamp(18px,4vw,28px) clamp(46px,7vw,84px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 0 clamp(24px,3vw,32px)">
+        <div style="width:2px;height:28px;background:#E4D6C0"></div>
+        <div style="background:#FF6B35;color:#fff;border-radius:14px;padding:16px 28px;text-align:center;box-shadow:0 14px 30px -12px rgba(255,107,53,.6)">
+          <div style="font:700 18px 'Baloo 2',sans-serif">Entrar · Área restrita</div>
+          <div style="font:400 12.5px Inter,sans-serif;color:rgba(255,255,255,.86);margin-top:4px">Login no site ou QR Code da mesa</div>
+        </div>
+        <div style="width:2px;height:28px;background:#E4D6C0"></div>
+      </div>
+
+      <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">Camada autenticada</div>
+      <h2 style="font:800 clamp(28px,3vw,40px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0;max-width:620px;text-wrap:pretty">O sistema: três perfis, 38 telas</h2>
+      <p style="font:400 15.5px/1.65 Inter,sans-serif;color:#5C636E;margin:12px 0 0;max-width:680px;text-wrap:pretty">O login identifica o perfil e leva a um dos três painéis. Cada painel tem a própria navegação interna, listada aqui por grupo de telas.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:clamp(24px,3vw,32px)">
+        <sc-for list="{{ perfis }}" as="a" hint-placeholder-count="3">
+          <div style="background:#fff;border:1.5px solid #E4D6C0;border-radius:20px;padding:24px 22px;box-shadow:0 18px 34px -28px rgba(20,40,80,.5);display:flex;flex-direction:column">
+            <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+              <div style="font:700 19px 'Baloo 2',sans-serif;color:#142850">{{ a.t }}</div>
+              <div style="font:600 10.5px Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#E8551E;border:1px solid #F0D6C4;border-radius:999px;padding:4px 9px">{{ a.plat }}</div>
+            </div>
+            <div style="font:400 13.5px/1.6 Inter,sans-serif;color:#5C636E;margin-top:8px;text-wrap:pretty">{{ a.d }}</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid #F0E7DA">
+              <sc-for list="{{ a.grupos }}" as="g" hint-placeholder-count="4">
+                <div style="display:flex;gap:12px;align-items:baseline">
+                  <div style="font:600 13.5px Inter,sans-serif;color:#1B2430;flex:1;text-wrap:pretty">{{ g.t }}</div>
+                  <div style="font:500 12px Inter,sans-serif;color:#8A8F98;white-space:nowrap">{{ g.n }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font:600 12.5px Inter,sans-serif;color:#E8551E;margin-top:16px;padding-top:14px;border-top:1px solid #F0E7DA">{{ a.total }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font:400 13px/1.6 Inter,sans-serif;color:#8A8F98;margin-top:16px;text-wrap:pretty">As 38 telas podem ser percorridas uma a uma na página <a href="prototipo.html">Protótipo completo</a>.</div>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:0 clamp(18px,4vw,28px) clamp(46px,7vw,84px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">User flow</div>
+      <h2 style="font:800 clamp(28px,3vw,40px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0;max-width:640px;text-wrap:pretty">O caminho típico</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-top:clamp(24px,3vw,32px)">
+        <sc-for list="{{ fluxo }}" as="f" hint-placeholder-count="5">
+          <div style="background:#fff;border:1.5px solid #E4D6C0;border-radius:16px;padding:20px 18px;box-shadow:0 18px 34px -28px rgba(20,40,80,.5)">
+            <div style="font:800 12.5px 'Baloo 2',sans-serif;color:#E8551E;letter-spacing:.1em">{{ f.n }}</div>
+            <div style="font:700 16.5px/1.3 'Baloo 2',sans-serif;margin-top:8px;text-wrap:pretty">{{ f.t }}</div>
+            <div style="font:400 13px/1.6 Inter,sans-serif;color:#5C636E;margin-top:8px;text-wrap:pretty">{{ f.d }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #E4D6C0;border-radius:16px;padding:20px 22px;margin-top:16px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 18px 34px -28px rgba(20,40,80,.5)">
+        <div style="font:800 12.5px 'Baloo 2',sans-serif;color:#8A8F98;letter-spacing:.1em;padding-top:2px;flex-shrink:0">ATALHO</div>
+        <div style="font:400 13.5px/1.6 Inter,sans-serif;color:#5C636E;text-wrap:pretty">Quem já está na praia pula a camada pública inteira: lê o QR Code do guarda-sol, faz o cadastro na hora e cai direto no cardápio. O site existe para quem chega antes.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:0 clamp(18px,4vw,28px) clamp(46px,7vw,84px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">Nomenclatura</div>
+      <h2 style="font:800 clamp(28px,3vw,40px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0;max-width:640px;text-wrap:pretty">Por que cada item se chama assim</h2>
+      <div style="margin-top:clamp(24px,3vw,32px);background:#fff;border:1.5px solid #E4D6C0;border-radius:20px;overflow:hidden">
+        <sc-for list="{{ nomes }}" as="n" hint-placeholder-count="7">
+          <div style="display:grid;grid-template-columns:minmax(140px,200px) 1fr;gap:20px;padding:16px clamp(18px,2.5vw,26px);border-bottom:1px solid #F0E7DA;align-items:start">
+            <div style="font:700 15px 'Baloo 2',sans-serif;color:#142850">{{ n.t }}</div>
+            <div style="font:400 14px/1.6 Inter,sans-serif;color:#5C636E;text-wrap:pretty">{{ n.d }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:#0F1B33;color:#fff;padding:clamp(46px,7vw,80px) clamp(18px,4vw,28px)">
+    <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+      <div>
+        <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#FFC9AE">Navegação</div>
+        <h2 style="font:800 clamp(26px,2.6vw,36px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0;max-width:480px;text-wrap:pretty">Continue a navegação</h2>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:24px">
+          <a href="contato.html" style="background:#FF6B35;color:#fff;font:700 15px 'Baloo 2',sans-serif;padding:14px 24px;border-radius:12px" style-hover="background:#E8551E;color:#fff">Ir para Fale conosco</a>
+          <a href="index.html" style="border:1.5px solid rgba(255,255,255,.26);color:#fff;font:700 15px 'Baloo 2',sans-serif;padding:14px 24px;border-radius:12px" style-hover="border-color:#FF6B35;color:#fff">Voltar para a home</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background:#0B1425;color:rgba(255,255,255,.6);padding:clamp(34px,5vw,44px) clamp(18px,4vw,28px) 34px;border-top:1px solid rgba(255,255,255,.08)">
+    <div style="max-width:1180px;margin:0 auto;display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;align-items:center;gap:8px;margin-right:auto;flex-shrink:0">
+        <svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="#FF6B35" stroke-width="2.8" stroke-linecap="round" style="display:block"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
+        <span style="font:800 18px 'Baloo 2',sans-serif;color:#fff">SUNFOOD</span>
+      </div>
+      <div style="font:400 13.5px Inter,sans-serif"><a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a></div>
+      <div style="font:400 13.5px Inter,sans-serif">Docente: Cristiano S. Negrão</div>
+      <div style="font:400 13.5px Inter,sans-serif">Semana 06 · Mapa do sistema</div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      paginas: [
+        { t: 'Funcionalidades', f: 'funcionalidades.html · S03', d: 'O que o sistema faz pelo quiosque.' },
+        { t: 'Como funciona', f: 'como-funciona.html · S03', d: 'O fluxo em três passos, do guarda-sol à cozinha.' },
+        { t: 'Perfis de acesso', f: 'perfis.html · S02', d: 'O que cliente, cozinha e administração enxergam.' },
+        { t: 'Protótipo completo', f: 'prototipo.html · S03', d: 'As 38 telas navegáveis do sistema.' },
+        { t: 'Sobre nós', f: 'sobre.html · S04', d: 'Origem do projeto, contexto e problema.' },
+        { t: 'Entrar', f: 'em progresso · S07', d: 'Login e porta de entrada do cardápio, dentro do app.' },
+        { t: 'Fale conosco', f: 'contato.html · S05', d: 'Contato, reserva antecipada e suporte.' }
+      ],
+      perfis: [
+        { t: 'Cliente', plat: 'PWA · celular', d: 'Acessa pelo QR Code da mesa ou do guarda-sol e conduz o pedido sozinho, do cardápio à divisão da conta.', total: '25 telas', grupos: [
+          { t: 'Acesso e cadastro', n: '4 telas' },
+          { t: 'Cardápio e carrinho', n: '7 telas' },
+          { t: 'Pedido e acompanhamento', n: '6 telas' },
+          { t: 'Pagamento e divisão da conta', n: '5 telas' },
+          { t: 'Perfil e histórico', n: '3 telas' }
+        ]},
+        { t: 'Administração', plat: 'Web · balcão', d: 'Acompanha o movimento em tempo real e mantém cardápio, estoque e equipe.', total: '10 telas', grupos: [
+          { t: 'Vendas do dia', n: '3 telas' },
+          { t: 'Cardápio e itens', n: '3 telas' },
+          { t: 'Estoque e esgotados', n: '2 telas' },
+          { t: 'Equipe e fechamento', n: '2 telas' }
+        ]},
+        { t: 'Cozinha', plat: 'Web · tablet', d: 'Recebe os pedidos numa fila kanban e move cada comanda entre as etapas de preparo.', total: '3 telas', grupos: [
+          { t: 'Fila de preparo', n: '1 tela' },
+          { t: 'Detalhe da comanda', n: '1 tela' },
+          { t: 'Fila vazia', n: '1 tela' }
+        ]}
+      ],
+      fluxo: [
+        { n: '01', t: 'Home', d: 'Chega pelo link do projeto e entende a proposta na primeira tela.' },
+        { n: '02', t: 'Sobre nós', d: 'Confere quem faz, de onde vem o problema e o contexto do quiosque.' },
+        { n: '03', t: 'Fale conosco', d: 'Deixa nome, contato e motivo: dúvida ou reserva antecipada.' },
+        { n: '04', t: 'Entrar', d: 'Acessa a área restrita pelo botão do menu, com o login do perfil.' },
+        { n: '05', t: 'Primeiro pedido', d: 'Monta o carrinho no cardápio, paga e divide a conta.' }
+      ],
+      nomes: [
+        { t: 'Home', d: 'Fica no logotipo, à esquerda, como em qualquer site comercial. Um item de texto repetindo essa função só consumiria espaço do menu.' },
+        { t: 'Funcionalidades', d: 'Primeira pergunta depois da chamada principal: o que esse sistema resolve.' },
+        { t: 'Como funciona', d: 'Fala do processo, não da tecnologia. Vem depois do "o quê", porque explica o "como".' },
+        { t: 'Perfis de acesso', d: 'Substitui "atores do sistema", termo de análise que o cliente do quiosque não usa.' },
+        { t: 'Protótipo completo', d: 'Deixa claro que ali está o sistema navegável inteiro, e não uma imagem.' },
+        { t: 'Sobre nós', d: 'Nomenclatura pedida pela disciplina e já esperada pelo visitante nessa posição.' },
+        { t: 'Fale conosco', d: 'Mais convidativo que "Contato" e cobre também reserva e suporte, os três motivos do formulário.' },
+        { t: 'Entrar', d: 'Verbo de ação para a área restrita, destacado em laranja e fora da lista de conteúdo.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

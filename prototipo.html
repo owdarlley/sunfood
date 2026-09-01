@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#FFF6EC; -webkit-font-smoothing:antialiased; }
+  a { color:#E8551E; text-decoration:none; }
+  a:hover { color:#FF6B35; }
+  ::selection { background:#FFC9AE; color:#142850; }
+</style>
+</helmet>
+
+<div style="font-family:Inter,sans-serif;color:#1B2430;overflow-x:clip">
+
+  <header style="position:sticky;top:0;z-index:40;background:rgba(15,27,51,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.09)">
+    <div style="max-width:1180px;margin:0 auto;padding:12px clamp(16px,4vw,28px);display:flex;align-items:center;gap:clamp(14px,2.5vw,28px)">
+      <a href="index.html" style="display:flex;align-items:center;gap:8px;margin-right:auto;flex-shrink:0">
+        <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#FF6B35" stroke-width="2.8" stroke-linecap="round" style="display:block;flex-shrink:0"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
+        <span style="font:800 21px/1 'Baloo 2',sans-serif;letter-spacing:.02em;color:#fff">SUNFOOD</span>
+      </a>
+      <nav style="display:flex;align-items:center;column-gap:clamp(12px,1.6vw,22px);row-gap:8px;flex-wrap:wrap;justify-content:flex-end;min-width:0">
+        <a href="funcionalidades.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Funcionalidades</a>
+        <a href="como-funciona.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Como funciona</a>
+        <a href="perfis.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Perfis de acesso</a>
+        <span style="font:600 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:#fff;border-bottom:2px solid #FF6B35;padding-bottom:2px;white-space:nowrap">Protótipo completo</span>
+        <a href="sobre.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Sobre nós</a>
+        <a href="contato.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Fale conosco</a>
+      </nav>
+      <a href="#" style="background:#FF6B35;color:#fff;font:700 14px 'Baloo 2',sans-serif;padding:10px 20px;border-radius:12px;white-space:nowrap;flex-shrink:0;box-shadow:0 6px 18px -8px rgba(255,107,53,.9)" style-hover="background:#E8551E;color:#fff">Entrar</a>
+    </div>
+  </header>
+
+  <section style="background:#0F1B33;background-image:radial-gradient(circle at 8% 0%,rgba(255,107,53,.20),transparent 46%),radial-gradient(circle at 94% 100%,rgba(255,107,53,.12),transparent 44%);color:#fff;padding:clamp(38px,5vw,62px) clamp(18px,4vw,28px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#FFC9AE;border:1px solid rgba(255,201,174,.32);border-radius:999px;padding:6px 12px">Protótipo navegável</div>
+      <h1 style="font:800 clamp(28px,4vw,44px)/1.12 'Baloo 2',sans-serif;margin:16px 0 0;max-width:760px;text-wrap:pretty">Navegue as 38 telas aqui mesmo</h1>
+      <p style="font:400 clamp(14.5px,1.3vw,16px)/1.6 Inter,sans-serif;color:rgba(255,255,255,.7);margin:16px 0 0;max-width:620px;text-wrap:pretty">Escolha uma tela na lista do protótipo: a descrição dela aparece logo acima do protótipo.</p>
+      <div style="margin-top:22px"><a href="prototipo-completo.html" target="_blank" style="display:inline-block;border:1.5px solid rgba(255,255,255,.26);color:#fff;font:700 15px 'Baloo 2',sans-serif;padding:13px 22px;border-radius:12px" style-hover="border-color:#FF6B35;color:#FFC9AE">Abrir em tela cheia →</a></div>
+    </div>
+  </section>
+
+  <section id="prototipo" style="background:#FFF6EC;padding:0">
+    <div id="proto-col" style="max-width:none;margin:0 auto">
+      <div style="display:flex;flex-direction:column">
+        <div style="max-width:1180px;width:100%;margin:0 auto;box-sizing:border-box;display:flex;gap:16px;align-items:flex-start;padding:24px clamp(18px,4vw,28px)">
+          <div style="font:800 15px/1 'Baloo 2',sans-serif;color:#fff;background:#FF6B35;border-radius:8px;padding:8px 10px;flex-shrink:0">{{ telaNum }}</div>
+          <div style="min-width:0;flex:1">
+            <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
+              <span style="font:700 clamp(17px,1.5vw,20px) 'Baloo 2',sans-serif;color:#142850">{{ telaNome }}</span>
+              <span style="font:600 10px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#E8551E;border:1px solid #F0D6C4;border-radius:99px;padding:4px 9px">{{ telaModulo }}</span>
+            </div>
+            <div style="font:400 13.5px/1.55 Inter,sans-serif;color:#5C636E;margin-top:4px;max-width:74ch;text-wrap:pretty">{{ telaDesc }}</div>
+          </div>
+          <div style="font:500 12px Inter,sans-serif;color:#5C636E;white-space:nowrap;align-self:center;flex-shrink:0">de 38 telas</div>
+        </div>
+        <div id="proto-stage" style="overflow:hidden;background:#0F1B33;border-top:1.5px solid #E4D6C0;width:100%;display:flex;justify-content:center">
+          <div id="proto-shim" style="overflow:hidden">
+            <iframe src="prototipo-completo.html" title="Protótipo navegável do Sunfood" style="display:block;width:1440px;height:900px;border:0;background:#0F1B33;transform-origin:top left"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section style="background:#0F1B33;color:#fff;padding:clamp(40px,6vw,64px) clamp(18px,4vw,28px);text-align:center">
+    <div style="font:400 15px/1.6 Inter,sans-serif;color:rgba(255,255,255,.66);max-width:560px;margin:0 auto;text-wrap:pretty">Quer entender por que o sistema é assim? A página Sobre nós liga cada decisão ao contexto e ao problema levantados no relatório.</div>
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:24px;flex-wrap:wrap">
+      <a href="sobre.html" style="background:#FF6B35;color:#fff;font:700 15px 'Baloo 2',sans-serif;padding:14px 24px;border-radius:12px" style-hover="background:#E8551E;color:#fff">Conhecer o grupo →</a>
+      <a href="index.html" style="border:1.5px solid rgba(255,255,255,.26);color:#fff;font:700 15px 'Baloo 2',sans-serif;padding:14px 24px;border-radius:12px" style-hover="border-color:#FF6B35">Voltar para a home</a>
+    </div>
+  </section>
+
+  <footer style="background:#0B1425;color:rgba(255,255,255,.6);padding:clamp(38px,6vw,52px) clamp(18px,4vw,28px) 40px;border-top:1px solid rgba(255,255,255,.08)">
+    <div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:40px">
+      <div>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="#FF6B35" stroke-width="2.8" stroke-linecap="round" style="display:block;flex-shrink:0"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
+          <span style="font:800 18px 'Baloo 2',sans-serif;color:#fff">SUNFOOD</span>
+        </a>
+        <div style="font:400 13.5px/1.65 Inter,sans-serif;margin-top:16px;max-width:300px">Sistema de pedidos online para quiosques de praia. Projeto Final de Curso — Análise e Projeto de Sistemas II.</div>
+      </div>
+      <div>
+        <div style="font:600 11px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FF9166">Páginas</div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="funcionalidades.html">Funcionalidades</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="como-funciona.html">Como funciona</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="perfis.html">Perfis de acesso</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="prototipo.html">Protótipo completo</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="sobre.html">Sobre nós</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="contato.html">Fale conosco</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="mapa.html">Mapa do sistema</a></div>
+      </div>
+      <div>
+        <div style="font:600 11px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FF9166">Equipe</div>
+        <div style="font:600 13.5px Inter,sans-serif;color:#fff;margin-top:16px">Dárlley Alves de Almeida</div>
+        <div style="font:400 12.5px Inter,sans-serif;margin-top:4px">Full-stack · Product Owner · Requisitos</div>
+        <div style="font:400 12.5px Inter,sans-serif;margin-top:4px">RGM 42298415</div>
+      </div>
+      <div>
+        <div style="font:600 11px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FF9166">Contato</div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:16px"><a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px">Docente: Cristiano S. Negrão</div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px">Semana 04 · Protótipo navegável</div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+const DESCRICOES = {
+  "Login": [
+    "Cliente",
+    "Entrada com e-mail e senha, ou acesso rápido pelo QR Code da mesa."
+  ],
+  "Cadastro": [
+    "Cliente",
+    "Criação de conta com nome, e-mail e telefone."
+  ],
+  "Recuperar Senha": [
+    "Cliente",
+    "Envio do link de redefinição de senha por e-mail."
+  ],
+  "Cardápio": [
+    "Cliente",
+    "Produtos por categoria, com foto, descrição e preço."
+  ],
+  "Detalhe do Produto": [
+    "Cliente",
+    "Quantidade, observações para a cozinha e adição ao carrinho."
+  ],
+  "Carrinho": [
+    "Cliente",
+    "Itens escolhidos, subtotal e ajuste de quantidades."
+  ],
+  "Carrinho Vazio": [
+    "Cliente",
+    "Estado sem itens, com atalho de volta ao cardápio."
+  ],
+  "Informar Mesa": [
+    "Cliente",
+    "Confirmação do número da mesa ou do guarda-sol antes de pagar."
+  ],
+  "Escolha de Pagamento": [
+    "Cliente",
+    "Seleção entre PIX e cartão de crédito."
+  ],
+  "Pagamento via PIX": [
+    "Cliente",
+    "QR Code e código copiável, com confirmação automática do pagamento."
+  ],
+  "Pagamento via Cartão": [
+    "Cliente",
+    "Dados do cartão e escolha do parcelamento."
+  ],
+  "Confirmação do Pedido": [
+    "Cliente",
+    "Número do pedido e tempo estimado de preparo."
+  ],
+  "Falha no Pagamento": [
+    "Cliente",
+    "Erro na cobrança, com opção de tentar outro meio."
+  ],
+  "Dividir Conta": [
+    "Cliente",
+    "Rateio do valor entre as pessoas da mesa, sem cálculo manual."
+  ],
+  "Status em Tempo Real": [
+    "Cliente",
+    "Acompanhamento do pedido entre na fila, em preparo e pronto."
+  ],
+  "Cancelar Pedido — Permitido": [
+    "Cliente",
+    "Cancelamento possível enquanto a cozinha não iniciou o preparo."
+  ],
+  "Cancelamento Confirmado": [
+    "Cliente",
+    "Aviso de cancelamento efetuado e devolução do valor."
+  ],
+  "Cancelamento Bloqueado": [
+    "Cliente",
+    "Recusa do cancelamento porque o preparo já começou."
+  ],
+  "Histórico de Pedidos": [
+    "Cliente",
+    "Pedidos anteriores com data, valor e status."
+  ],
+  "Histórico Vazio": [
+    "Cliente",
+    "Estado para quem ainda não fez nenhum pedido."
+  ],
+  "Detalhe de Pedido": [
+    "Cliente",
+    "Itens, valores e forma de pagamento de um pedido específico."
+  ],
+  "Perfil": [
+    "Cliente",
+    "Dados pessoais, foto e preferências da conta."
+  ],
+  "Excluir Conta": [
+    "Cliente",
+    "Confirmação da exclusão definitiva dos dados do cliente."
+  ],
+  "Localização do Quiosque": [
+    "Cliente",
+    "Endereço e mapa de referência do quiosque na orla."
+  ],
+  "Sem Conexão": [
+    "Cliente",
+    "Aviso de rede indisponível, situação comum na praia."
+  ],
+  "Login Admin / Cozinha": [
+    "Administração",
+    "Entrada dos perfis internos no painel do quiosque."
+  ],
+  "Recuperar Senha (Admin)": [
+    "Administração",
+    "Redefinição de senha dos perfis internos."
+  ],
+  "Dashboard Geral": [
+    "Administração",
+    "Vendas do dia, ticket médio e pedidos em andamento."
+  ],
+  "Lista de Pedidos": [
+    "Administração",
+    "Todos os pedidos, com filtro por status e por mesa."
+  ],
+  "Cadastro / Edição de Produto": [
+    "Administração",
+    "Criação e edição de item, preço, foto e categoria."
+  ],
+  "Gestão de Mesas": [
+    "Administração",
+    "Mesas e guarda-sóis, com o QR Code de cada um."
+  ],
+  "Pausar Quiosque": [
+    "Administração",
+    "Bloqueio temporário da entrada de novos pedidos."
+  ],
+  "Desempenho — Vendas": [
+    "Administração",
+    "Faturamento por período e itens mais vendidos."
+  ],
+  "Desempenho — Operação": [
+    "Administração",
+    "Tempo médio de preparo e gargalos da cozinha."
+  ],
+  "Encerrar Dia / Relatório": [
+    "Administração",
+    "Fechamento de caixa e relatório do movimento do dia."
+  ],
+  "Kanban de Pedidos": [
+    "Cozinha",
+    "Fila em três colunas: na fila, em preparo e pronto."
+  ],
+  "Sinalizar Item Indisponível": [
+    "Cozinha",
+    "Marcação de item esgotado, que sai do cardápio do cliente."
+  ],
+  "Fila Vazia": [
+    "Cozinha",
+    "Estado sem pedidos pendentes na cozinha."
+  ]
+};
+
+const ALIAS = {
+  'Meu Carrinho': 'Carrinho',
+  'Confirmar Pedido': 'Informar Mesa',
+  'Meu Pedido': 'Status em Tempo Real',
+  'Pedido Confirmado': 'Confirmação do Pedido',
+  'Pagamento': 'Escolha de Pagamento',
+  'Cartão de Crédito': 'Pagamento via Cartão',
+  'Dividir a Conta': 'Dividir Conta',
+  'Cancelar Pedido': 'Cancelar Pedido — Permitido'
+};
+
+Object.keys(ALIAS).forEach(function (k) {
+  if (DESCRICOES[ALIAS[k]]) DESCRICOES[k] = DESCRICOES[ALIAS[k]];
+});
+
+class Component extends DCLogic {
+  state = { num: '01', nome: 'Login' };
+
+  // repassa module/screen do site para o protótipo embutido (funciona também em blob:)
+  repassarRota() {
+    const q = new URLSearchParams(window.location.search);
+    const module = q.get('module');
+    if (!module) return;
+    const screen = q.get('screen');
+    const enviar = () => {
+      const f = document.querySelector('#proto-shim iframe');
+      if (f && f.contentWindow) f.contentWindow.postMessage({ sunfoodRota: true, module, screen }, '*');
+    };
+    const f = document.querySelector('#proto-shim iframe');
+    if (f) { f.addEventListener('load', enviar); enviar(); }
+    // o protótipo avisa quando monta: aí a rota vai de novo, sem depender de tempo
+    this._onPedido = e => { if (e.data && e.data.sunfoodRotaPedido) { enviar(); clearInterval(this._rotaTimer); } };
+    window.addEventListener('message', this._onPedido);
+    // no pacote autocontido o protótipo desempacota depois: insiste até ele responder
+    let tentativas = 0;
+    this._rotaTimer = setInterval(() => { enviar(); if (++tentativas > 40) clearInterval(this._rotaTimer); }, 500);
+  }
+
+  componentDidMount() {
+    this.repassarRota();
+    this._onResize = () => this.fitFrame();
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+    this._poll = setInterval(() => { this.fitFrame(); this.lerTela(); }, 300);
+    this.fitFrame();
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._retry);
+    clearInterval(this._poll);
+    window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('orientationchange', this._onResize);
+  }
+
+  fitFrame = () => {
+    const box = document.getElementById('proto-stage');
+    const el = box && box.querySelector('iframe');
+    if (!el) { clearTimeout(this._retry); this._retry = setTimeout(this.fitFrame, 250); return; }
+    // cabe na largura da coluna E na altura da janela do navegador, para a
+    // legenda e o protótipo ficarem visíveis juntos, sem rolagem
+    const alturaLivre = Math.max(window.innerHeight - 96, 480);
+    const colW = (document.getElementById('proto-col') || box.parentElement.parentElement).clientWidth;
+    // escala pela largura: o protótipo preenche toda a faixa, sem vãos laterais
+    const s = Math.max(colW / 1440, 0.2);
+    el.style.transform = 'scale(' + s + ')';
+    const shim = document.getElementById('proto-shim');
+    const w = Math.round(1440 * s), h = Math.round(900 * s);
+    if (shim) { shim.style.width = w + 'px'; shim.style.height = h + 'px'; }
+    box.style.height = h + 'px';
+  };
+
+  // o protótipo mostra o nome da tela atual no cabeçalho do módulo; ler dali
+  // funciona tanto para cliques na lista quanto para navegação dentro do app
+  lerTela() {
+    try {
+      const el = document.querySelector('#prototipo iframe');
+      const d = el && el.contentDocument;
+      const main = d && d.querySelector('main');
+      if (!main) return;
+      const titulo = [...main.querySelectorAll('div')].find(n =>
+        (n.getAttribute('style') || '').indexOf('font: 700 14px') >= 0 ||
+        (n.getAttribute('style') || '').indexOf("font:700 14px 'Baloo 2'") >= 0);
+      const nome = titulo ? (titulo.textContent || '').trim() : '';
+      if (!nome || nome === this.state.nome) return;
+      const linha = [...d.querySelectorAll('aside div')].find(r =>
+        (r.getAttribute('style') || '').indexOf('cursor') >= 0 &&
+        (r.textContent || '').indexOf(ALIAS[nome] || nome) >= 0);
+      const m = linha ? (linha.textContent || '').trim().match(/^(\d+)/) : null;
+      this.setState({ nome: nome, num: m ? m[1] : '' });
+    } catch (e) {}
+  }
+
+  renderVals() {
+    setTimeout(this.fitFrame, 0);
+    const info = DESCRICOES[this.state.nome] || ['', 'Selecione uma tela na lista do protótipo.'];
+    return {
+      telaNum: this.state.num || '—',
+      telaNome: this.state.nome,
+      telaModulo: info[0],
+      telaDesc: info[1]
+    };
+  }
+}
+</script>
+</body>
+</html>

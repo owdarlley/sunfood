@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#FFF6EC; -webkit-font-smoothing:antialiased; }
+  a { color:#E8551E; text-decoration:none; }
+  a:hover { color:#FF6B35; }
+  ::selection { background:#FFC9AE; color:#142850; }
+</style>
+</helmet>
+
+<div style="font-family:Inter,sans-serif;color:#1B2430;overflow-x:clip">
+
+  <header style="position:sticky;top:0;z-index:40;background:rgba(15,27,51,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.09)">
+    <div style="max-width:1180px;margin:0 auto;padding:12px clamp(16px,4vw,28px);display:flex;align-items:center;gap:clamp(14px,2.5vw,28px)">
+      <a href="index.html" style="display:flex;align-items:center;gap:8px;margin-right:auto;flex-shrink:0">
+        <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#FF6B35" stroke-width="2.8" stroke-linecap="round" style="display:block;flex-shrink:0"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
+        <span style="font:800 21px/1 'Baloo 2',sans-serif;letter-spacing:.02em;color:#fff">SUNFOOD</span>
+      </a>
+      <nav style="display:flex;align-items:center;column-gap:clamp(12px,1.6vw,22px);row-gap:8px;flex-wrap:wrap;justify-content:flex-end;min-width:0">
+        <a href="funcionalidades.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Funcionalidades</a>
+        <a href="como-funciona.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Como funciona</a>
+        <a href="perfis.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Perfis de acesso</a>
+        <a href="prototipo.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Protótipo completo</a>
+        <span style="font:600 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:#fff;border-bottom:2px solid #FF6B35;padding-bottom:2px;white-space:nowrap">Sobre nós</span>
+        <a href="contato.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Fale conosco</a>
+      </nav>
+      <a href="#" style="background:#FF6B35;color:#fff;font:700 14px 'Baloo 2',sans-serif;padding:10px 20px;border-radius:12px;white-space:nowrap;flex-shrink:0;box-shadow:0 6px 18px -8px rgba(255,107,53,.9)" style-hover="background:#E8551E;color:#fff">Entrar</a>
+    </div>
+  </header>
+
+  <section style="background:#0F1B33;background-image:radial-gradient(circle at 8% 0%,rgba(255,107,53,.20),transparent 46%),radial-gradient(circle at 94% 100%,rgba(255,107,53,.12),transparent 44%);color:#fff;padding:clamp(44px,6vh,76px) clamp(18px,4vw,28px) clamp(48px,7vh,84px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#FFC9AE;border:1px solid rgba(255,201,174,.32);border-radius:99px;padding:6px 13px">Sobre nós</div>
+      <h1 style="font:800 clamp(34px,4vw,54px)/1.08 'Baloo 2',sans-serif;margin:20px 0 0;max-width:860px;text-wrap:pretty">O professor propôs um sistema de quiosque e fomos procurar o problema na areia.</h1>
+      <p style="font:400 clamp(15px,1.3vw,18px)/1.65 Inter,sans-serif;color:rgba(255,255,255,.74);margin:22px 0 0;max-width:720px;text-wrap:pretty">O Sunfood é um sistema de pedidos online para quiosques de praia, nascido de uma proposta do professor: desenvolver um sistema de quiosque. Em vez de partir de uma tecnologia, escolhemos um negócio real: alta rotatividade de clientes, picos sazonais, atendimento espalhado entre mesas e guarda-sóis — e um processo ainda quase todo analógico, feito de blocos de papel.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:20px;margin-top:clamp(30px,4vh,46px);max-width:900px">
+        <sc-for list="{{ marcos }}" as="m" hint-placeholder-count="3">
+          <div style="border-left:2px solid rgba(255,107,53,.5);padding-left:16px">
+            <div style="font:800 22px 'Baloo 2',sans-serif;color:#FF9166">{{ m.k }}</div>
+            <div style="font:400 13.5px/1.55 Inter,sans-serif;color:rgba(255,255,255,.6);margin-top:5px">{{ m.d }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:clamp(46px,7vw,84px) clamp(18px,4vw,28px)">
+    <div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px">
+      <sc-for list="{{ pilares }}" as="p" hint-placeholder-count="3">
+        <div style="background:#fff;border:1.5px solid #E4D6C0;border-radius:22px;padding:30px 26px 28px;box-shadow:0 18px 34px -28px rgba(20,40,80,.5)">
+          <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">{{ p.tag }}</div>
+          <div style="font:700 clamp(20px,1.7vw,24px)/1.3 'Baloo 2',sans-serif;margin-top:14px;text-wrap:pretty">{{ p.t }}</div>
+          <div style="font:400 15px/1.65 Inter,sans-serif;color:#5C636E;margin-top:11px;text-wrap:pretty">{{ p.d }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:clamp(46px,7vw,84px) clamp(18px,4vw,28px) clamp(30px,4vw,44px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">Nossa história</div>
+      <h2 style="font:800 clamp(28px,3vw,40px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0;max-width:660px;text-wrap:pretty">Como o Sunfood começou</h2>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:clamp(22px,3vw,30px);max-width:72ch">
+        <sc-for list="{{ historia }}" as="h" hint-placeholder-count="3">
+          <p style="font:400 clamp(14.5px,1.3vw,16px)/1.75 Inter,sans-serif;color:#3F4652;margin:0;text-wrap:pretty">{{ h }}</p>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:clamp(46px,7vw,84px) clamp(18px,4vw,28px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">O negócio que atendemos</div>
+      <h2 style="font:800 clamp(28px,3vw,40px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0;max-width:700px;text-wrap:pretty">Um quiosque vive de dois recursos escassos: tempo e mão de obra</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px;margin-top:clamp(30px,4vh,44px)">
+        <div style="border-top:3px solid #FF6B35;padding-top:20px">
+          <div style="font:600 11.5px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8F98">Relatório · seção 1.1 — Contexto</div>
+          <div style="font:700 21px 'Baloo 2',sans-serif;margin-top:9px">Onde e para quem</div>
+          <p style="font:400 15px/1.7 Inter,sans-serif;color:#3F4652;margin:10px 0 0;text-wrap:pretty">Quiosques de praia, com alta rotatividade de clientes, picos sazonais de movimento intenso e atendimento disperso entre mesas e guarda-sóis na areia. O processo é quase todo analógico: garçons anotam pedidos em blocos de papel, o que gera erros de anotação, esquecimentos, demora no fechamento da conta e dificuldade do gestor em acompanhar vendas e estoque em tempo real.</p>
+          <p style="font:400 14px/1.65 Inter,sans-serif;color:#8A8F98;margin:12px 0 0">Atores atendidos: o cliente turista ou veranista, o administrador do quiosque e a equipe da cozinha.</p>
+        </div>
+        <div style="border-top:3px solid #142850;padding-top:20px">
+          <div style="font:600 11.5px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A8F98">Relatório · seção 1.2 — Problema</div>
+          <div style="font:700 21px 'Baloo 2',sans-serif;margin-top:9px">A dor que nos move</div>
+          <p style="font:400 15px/1.7 Inter,sans-serif;color:#3F4652;margin:10px 0 0;text-wrap:pretty">Para o cliente, o longo tempo de espera para fazer o pedido e para pagar a conta, além da dificuldade em dividir valores de forma justa entre um grupo. Para o quiosque, a falta de controle em tempo real do fluxo de pedidos e do estoque, o que sobrecarrega a equipe e gera perda de receita por ineficiência operacional.</p>
+          <p style="font:400 14px/1.65 Inter,sans-serif;color:#8A8F98;margin:12px 0 0">É essa dupla dor que define o que entra e o que fica fora do nosso MVP.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:clamp(46px,7vw,84px) clamp(18px,4vw,28px)">
+    <div style="max-width:1180px;margin:0 auto">
+      <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">Nossos objetivos</div>
+      <h2 style="font:800 clamp(28px,3vw,40px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0">O que consideramos sucesso</h2>
+      <p style="font:400 15.5px/1.65 Inter,sans-serif;color:#5C636E;margin:14px 0 0;max-width:660px">Os resultados esperados do relatório, traduzidos nos indicadores que o grupo acompanha a cada entrega.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-top:clamp(28px,4vh,42px)">
+        <sc-for list="{{ objetivos }}" as="o" hint-placeholder-count="5">
+          <div style="background:#fff;border:1.5px solid #E4D6C0;border-radius:18px;padding:24px 22px;box-shadow:0 18px 34px -28px rgba(20,40,80,.5)">
+            <div style="font:800 14px 'Baloo 2',sans-serif;color:#E8551E;letter-spacing:.1em">{{ o.n }}</div>
+            <div style="font:700 18px/1.3 'Baloo 2',sans-serif;color:#1B2430;margin-top:11px;text-wrap:pretty">{{ o.t }}</div>
+            <div style="font:400 14px/1.6 Inter,sans-serif;color:#5C636E;margin-top:8px;text-wrap:pretty">{{ o.d }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:#FFF6EC;padding:clamp(46px,7vw,84px) clamp(18px,4vw,28px)">
+    <div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:34px;align-items:start">
+      <div>
+        <div style="font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E8551E">Quem faz</div>
+        <h2 style="font:800 clamp(26px,2.6vw,36px)/1.15 'Baloo 2',sans-serif;margin:12px 0 0">O grupo por trás do Sunfood</h2>
+        <p style="font:400 15px/1.7 Inter,sans-serif;color:#5C636E;margin:14px 0 0;text-wrap:pretty">Projeto Final de Curso da disciplina de Análise e Projeto de Sistemas II. O trabalho é organizado em Trello, com comunicação por WhatsApp, e cada semana fecha com um artefato entregue: contexto e problema, histórias de usuário e protótipo, código da homepage e agora esta página institucional.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
+          <a href="index.html" style="background:#FF6B35;color:#fff;font:700 15px 'Baloo 2',sans-serif;padding:13px 24px;border-radius:12px" style-hover="background:#E8551E;color:#fff">Voltar para a home</a>
+          <a href="prototipo.html" style="border:1.5px solid #E9E1D6;color:#142850;font:700 15px 'Baloo 2',sans-serif;padding:13px 24px;border-radius:12px" style-hover="border-color:#FF6B35">Ver o protótipo</a>
+        </div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #E4D6C0;border-radius:22px;padding:28px 26px">
+        <div style="display:flex;align-items:center;gap:13px">
+          <img src="data:image/jpeg;base64,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" alt="Dárlley Alves de Almeida" style="width:46px;height:46px;border-radius:99px;object-fit:cover;object-position:center top;flex-shrink:0;display:block">
+          <div>
+            <div style="font:700 17px 'Baloo 2',sans-serif">Dárlley Alves de Almeida</div>
+            <div style="font:400 13px Inter,sans-serif;color:#8A8F98;margin-top:2px">Full-stack · Product Owner · Requisitos</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px;margin-top:22px;padding-top:20px;border-top:1px solid #F0E7DA">
+          <sc-for list="{{ ficha }}" as="f" hint-placeholder-count="4">
+            <div style="display:flex;gap:12px;font:400 14px Inter,sans-serif">
+              <span style="color:#8A8F98;min-width:96px">{{ f.k }}</span>
+              <span style="color:#1B2430;font-weight:500">{{ f.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background:#0B1425;color:rgba(255,255,255,.6);padding:clamp(34px,5vw,44px) clamp(18px,4vw,28px) 34px;border-top:1px solid rgba(255,255,255,.08)">
+    <div style="max-width:1180px;margin:0 auto;display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;align-items:center;gap:8px;margin-right:auto;flex-shrink:0">
+        <svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="#FF6B35" stroke-width="2.8" stroke-linecap="round" style="display:block"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
+        <span style="font:800 18px 'Baloo 2',sans-serif;color:#fff">SUNFOOD</span>
+      </div>
+      <div style="font:400 13.5px Inter,sans-serif"><a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a></div>
+      <div style="font:400 13.5px Inter,sans-serif"><a href="mapa.html">Mapa do sistema</a></div>
+      <div style="font:400 13.5px Inter,sans-serif">Docente: Cristiano S. Negrão</div>
+      <div style="font:400 13.5px Inter,sans-serif">Semana 04 · Sobre nós</div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      historia: [
+        'O Sunfood começou com uma proposta do professor: um sistema de quiosque. A partir daí fomos procurar um problema que existisse de verdade, e não um exemplo de livro, num lugar que todo mundo do grupo conhecia: o quiosque de praia num fim de semana cheio, com quarenta guarda-sóis ocupados e dois garçons circulando na areia. O cliente levanta a mão, espera para pedir, espera de novo para pagar e no fim divide a conta de cabeça. Do outro lado do balcão, o gestor termina o dia com um bloco de papel na mão e nenhuma ideia precisa de quanto vendeu de cada item.',
+        'Esse é o problema que o negócio enfrenta hoje. O atendimento em quiosque de praia tem alta rotatividade de clientes, picos sazonais e uma equipe que precisa cobrir mesas espalhadas na areia. O processo, porém, continua analógico: pedidos anotados à mão geram erro de anotação, esquecimento de item, demora no fechamento da conta e nenhuma visão do estoque em tempo real. Quanto mais cheia a praia, mais a operação perde dinheiro justamente no momento em que deveria ganhar.',
+        'O sistema está sendo desenvolvido para esse cenário, e não para um restaurante qualquer. Cada mesa e cada guarda-sol têm um QR Code, que serve de porta de entrada para o sistema: ao ler o código, o cliente faz seu cadastro e, a partir daí, acessa o cardápio no próprio celular, pede, paga e divide a conta sem depender do garçom; a cozinha recebe o pedido numa fila organizada; a administração acompanha vendas e itens esgotados enquanto o movimento acontece. É um projeto acadêmico, desenvolvido na disciplina de Análise e Projeto de Sistemas II, com escopo definido a partir de um negócio real.'
+      ],
+      marcos: [
+        { k: '3 atores', d: 'Cliente, administração e cozinha compartilham o mesmo pedido.' },
+        { k: 'Praia', d: 'Mesas, guarda-sóis e areia: o atendimento nunca está num só lugar.' },
+        { k: 'MVP', d: 'Catálogo com carrinho, pagamento em tempo real e painel de gestão.' }
+      ],
+      pilares: [
+        { tag: 'Missão', t: 'Tirar o pedido do bloco de papel', d: 'Dar ao cliente autonomia para pedir, pagar e dividir a conta pelo próprio celular, e ao quiosque a visão do que está acontecendo agora — sem aumentar a equipe.' },
+        { tag: 'Visão', t: 'Ser o padrão de atendimento na orla', d: 'Que escanear o QR Code do guarda-sol seja tão natural quanto pedir a conta, em qualquer quiosque da praia.' },
+        { tag: 'Valores', t: 'Simples para quem está de biquíni', d: 'Interface que funciona com uma mão, sob sol forte e internet instável. Nada que exija instalar aplicativo, criar conta longa ou pedir ajuda ao garçom.' }
+      ],
+      objetivos: [
+        { n: '01', t: 'Menos espera', d: 'Reduzir o tempo do cliente para pedir e pagar, eliminando a fila de atendimento pelo garçom.' },
+        { n: '02', t: 'Menos erro', d: 'Diminuir erros de pedido, já que o próprio cliente monta o carrinho no app.' },
+        { n: '03', t: 'Cozinha no ritmo', d: 'Organizar o fluxo de preparo com visão em tempo real via quadro kanban.' },
+        { n: '04', t: 'Conta justa', d: 'Permitir dividir a conta entre o grupo sem cálculo manual nem intervenção da equipe.' },
+        { n: '05', t: 'Gestor no controle', d: 'Dar visibilidade de vendas e estoque em tempo real para apoiar decisões do negócio.' }
+      ],
+      ficha: [
+        { k: 'RGM', v: '42298415' },
+        { k: 'Domínio', v: 'Food service / E-commerce' },
+        { k: 'Aplicação', v: 'Web progressiva (PWA)' },
+        { k: 'Organização', v: 'Trello + WhatsApp' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
