@@ -15,18 +15,23 @@
   a { color:#E8551E; text-decoration:none; }
   a:hover { color:#FF6B35; }
   ::selection { background:#FFC9AE; color:#142850; }
+  @media (max-width: 680px) {
+    .site-header-inner { flex-wrap: wrap; row-gap: 10px; }
+    .site-entrar { order: 2; }
+    .site-nav { order: 3; flex-basis: 100%; justify-content: center !important; }
+  }
 </style>
 </helmet>
 
 <div style="font-family:Inter,sans-serif;color:#1B2430;overflow-x:clip">
 
   <header style="position:sticky;top:0;z-index:40;background:rgba(15,27,51,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.09)">
-    <div style="max-width:1180px;margin:0 auto;padding:12px clamp(16px,4vw,28px);display:flex;align-items:center;gap:clamp(14px,2.5vw,28px)">
+    <div class="site-header-inner" style="max-width:1180px;margin:0 auto;padding:12px clamp(16px,4vw,28px);display:flex;align-items:center;gap:clamp(14px,2.5vw,28px)">
       <a href="index.html" style="display:flex;align-items:center;gap:8px;margin-right:auto;flex-shrink:0">
         <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#FF6B35" stroke-width="2.8" stroke-linecap="round" style="display:block;flex-shrink:0"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
         <span style="font:800 21px/1 'Baloo 2',sans-serif;letter-spacing:.02em;color:#fff">SUNFOOD</span>
       </a>
-      <nav style="display:flex;align-items:center;column-gap:clamp(12px,1.6vw,22px);row-gap:8px;flex-wrap:wrap;justify-content:flex-end;min-width:0">
+      <nav class="site-nav" style="display:flex;align-items:center;column-gap:clamp(12px,1.6vw,22px);row-gap:8px;flex-wrap:wrap;justify-content:flex-end;min-width:0">
         <a href="funcionalidades.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Funcionalidades</a>
         <a href="como-funciona.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Como funciona</a>
         <span style="font:600 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:#fff;border-bottom:2px solid #FF6B35;padding-bottom:2px;white-space:nowrap">Perfis de acesso</span>
@@ -34,7 +39,7 @@
         <a href="sobre.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Sobre nós</a>
         <a href="contato.html" style="font:500 clamp(12.5px,1.15vw,13.5px) Inter,sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Fale conosco</a>
       </nav>
-      <a href="#" style="background:#FF6B35;color:#fff;font:700 14px 'Baloo 2',sans-serif;padding:10px 20px;border-radius:12px;white-space:nowrap;flex-shrink:0;box-shadow:0 6px 18px -8px rgba(255,107,53,.9)" style-hover="background:#E8551E;color:#fff">Entrar</a>
+      <a href="#" class="site-entrar" style="background:#FF6B35;color:#fff;font:700 14px 'Baloo 2',sans-serif;padding:10px 20px;border-radius:12px;white-space:nowrap;flex-shrink:0;box-shadow:0 6px 18px -8px rgba(255,107,53,.9)" style-hover="background:#E8551E;color:#fff">Entrar</a>
     </div>
   </header>
 
