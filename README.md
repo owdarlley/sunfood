@@ -10,7 +10,13 @@ O site resolve a dor de quiosques com alta rotatividade de clientes e atendiment
 
 O site é publicado direto da branch `main` deste repositório — qualquer alteração enviada para `main` atualiza automaticamente o endereço acima em poucos minutos.
 
-**Login de demonstração:** `ana@email.com` / `praia2026`
+**Contas de demonstração** (botão **Entrar** no menu, abre o modal de login em `index.html`):
+
+| Perfil | E-mail | Senha | Abre |
+| --- | --- | --- | --- |
+| Cliente | `ana@email.com` | `praia2026` | cardápio da mesa |
+| Administração | `admin@sunfood.com` | `admin2026` | dashboard de vendas |
+| Cozinha | `cozinha@sunfood.com` | `cozinha2026` | kanban de pedidos |
 
 ## Como navegar
 
@@ -27,7 +33,7 @@ A home (`index.html`) traz o menu principal, de onde se chega a todas as página
 | Fale conosco | `contato.html` | Formulário de contato e pré-agendamento |
 | Mapa do sistema | `mapa.html` | Mapa completo de páginas e telas, para fins de documentação |
 
-O botão **Entrar**, no menu fixo, leva ao app do cliente navegável (`app-cliente.dc.html`), que já é embutido na home. `prototipo-completo.html` e `support.js` são arquivos de apoio carregados pelas páginas acima.
+O botão **Entrar**, no menu fixo de todas as páginas, abre o login (direto na home, ou via `index.html?login=1` a partir de qualquer outra página). Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração ou cozinha); login incorreto mostra "Credenciais inválidas". `prototipo-completo.html` e `support.js` são arquivos de apoio carregados pelas páginas acima.
 
 ## Rodando localmente
 
