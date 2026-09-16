@@ -243,6 +243,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showDepoimento&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Seções&quot;}}">
 const THUMB = (a, b) => 'width:52px;height:52px;flex-shrink:0;border-radius:12px;background:linear-gradient(140deg,' + a + ',' + b + ')';
+const API_BASE = 'http://localhost:8787';
 
 class Component extends DCLogic {
   state = { loginOpen: false, email: '', pass: '', msg: '', ok: false, dest: '',
@@ -378,18 +379,27 @@ class Component extends DCLogic {
       openLogin: () => this.setState({ loginOpen: true, msg: '', ok: false, dest: '' }),
       closeLogin: () => this.setState({ loginOpen: false }),
       stop: e => e.stopPropagation(),
-      doLogin: () => {
+      doLogin: async () => {
         const { email, pass } = this.state;
         if (!email || !pass) return this.setState({ msg: 'Preencha e-mail e senha.', ok: false });
-        const contas = {
-          'ana@email.com': { senha: 'praia2026', nome: 'Ana', perfil: 'cardápio da Mesa 9', dest: 'app-cliente.dc.html?module=cliente&screen=menu' },
-          'admin@sunfood.com': { senha: 'admin2026', nome: 'Administrador', perfil: 'painel de administração', dest: 'app-cliente.dc.html?module=admin&screen=dashboard' },
-          'cozinha@sunfood.com': { senha: 'cozinha2026', nome: 'Equipe da cozinha', perfil: 'kanban de pedidos', dest: 'app-cliente.dc.html?module=cozinha&screen=kanban' }
-        };
-        const conta = contas[email.trim().toLowerCase()];
-        if (conta && pass === conta.senha)
-          return this.setState({ msg: 'Bem-vindo(a), ' + conta.nome + '! Abrindo o ' + conta.perfil + '…', ok: true, dest: conta.dest });
-        this.setState({ msg: 'Credenciais inválidas.', ok: false, dest: '' });
+        try {
+          const res = await fetch(API_BASE + '/auth/login', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pass })
+          });
+          const data = await res.json();
+          if (!res.ok) return this.setState({ msg: data.error || 'Credenciais inválidas.', ok: false, dest: '' });
+          try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, user: data.user })); } catch (e) {}
+          const ROLE_DEST = {
+            cliente: { perfil: 'cardápio da mesa', dest: 'app-cliente.dc.html?module=cliente&screen=menu' },
+            admin: { perfil: 'painel de administração', dest: 'app-cliente.dc.html?module=admin&screen=dashboard' },
+            cozinha: { perfil: 'kanban de pedidos', dest: 'app-cliente.dc.html?module=cozinha&screen=kanban' }
+          };
+          const info = ROLE_DEST[data.user.role] || ROLE_DEST.cliente;
+          this.setState({ msg: 'Bem-vindo(a), ' + data.user.name + '! Abrindo o ' + info.perfil + '…', ok: true, dest: info.dest });
+        } catch (e) {
+          this.setState({ msg: 'Falha de conexão com o servidor. Confira se a API está rodando.', ok: false, dest: '' });
+        }
       },
       beneficios: [
         { n: '01', t: 'Pedido sem espera', d: 'O cliente escaneia o QR Code da mesa, monta o carrinho e envia o pedido sem depender do garçom.' },

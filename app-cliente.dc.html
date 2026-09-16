@@ -671,6 +671,34 @@ const PRODUCTS = [
    tags:[['Vegetariano','#E7F7ED','#16A34A'],['Contém glúten','#FFF3DE','#B0791A'],['Gelado','#EFEBFF','#7C5CFF']]}
 ];
 
+// API real (Fase 1): o front continua estático, mas agora fala com um backend
+// de verdade (Node/Express + SQLite) rodando localmente durante o desenvolvimento.
+const API_BASE = 'http://localhost:8787';
+const SESSION_KEY = 'sunfood_session';
+
+function apiProductToState(p){
+  return {id:p.id, cat:p.category, name:p.name, desc:p.description, price:p.price, mark:p.imageKey,
+    soldOut:p.soldOut, long:p.longDescription, porcao:p.portion, tempo:p.prepTime, kcal:p.kcal,
+    nota:p.rating, avaliacoes:p.reviewCount, ingredientes:p.ingredients, tags:p.tags};
+}
+
+function orderFromApi(o){
+  return {id:'#' + o.id, _apiId:o.id, table:o.tableNumber, total:o.total, status:o.status, obs:o.note || '',
+    items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
+}
+
+function formatWhen(sqliteDatetime){
+  try {
+    const d = new Date(String(sqliteDatetime).replace(' ', 'T') + 'Z');
+    return d.toLocaleDateString('pt-BR') + ' · ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  } catch(e){ return String(sqliteDatetime); }
+}
+
+function historyEntryFromApi(o){
+  return {id:'#' + o.id, when:formatWhen(o.createdAt), table:o.tableNumber, total:o.total, status:o.status,
+    items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty}))};
+}
+
 const UI = {
   menu:'M8 34h32 M14 34c0-8 5-14 10-14s10 6 10 14 M24 20v-6 M21 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
   clock:'M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M24 15v9l6 4',
@@ -732,19 +760,17 @@ class Component extends DCLogic {
   state = {
     module:'cliente', screen:'login',
     email:'ana@email.com', pass:'praia2026', loginErr:'',
-    suName:'', suEmail:'', suPass:'', suErr:'', 
+    token:null, authUser:null,
+    suName:'', suEmail:'', suPass:'', suErr:'',
     fpEmail:'', fpSent:false,
     cat:'Todos', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
     payMethod:'pix', cardNum:'', cardName:'', cardExp:'', cardCvv:'', forceFail:false,
     order:null, elapsed:0,
-    history:[
-      {id:'#1038', when:'Ontem · 14:20', table:9, total:64, status:'Entregue',
-       items:[{n:'2x Água de Coco Gelada', v:16},{n:'1x Batata Rústica c/ Cheddar', v:24},{n:'1x Porção de Camarão', v:58}]},
-      {id:'#1031', when:'12 fev · 12:05', table:4, total:41.8, status:'Entregue',
-       items:[{n:'1x Wrap de Frango Grelhado', v:28},{n:'1x Cerveja Long Neck', v:12}]}
-    ],
+    // Histórico real vem da API (GET /orders/mine) após o login — carregado em
+    // restoreSession()/submitLogin(), não é mais um mock fixo.
+    history:[],
     tables:[1,2,3,4,5,6,7,8,9,10,11,12].map(n => ({n, active:!(n===7||n===11), seats:n%3===0?6:4})),
     paused:false,
     kitchen:[
@@ -760,16 +786,104 @@ class Component extends DCLogic {
 
   componentDidMount(){
     this.aplicarRota();
+    this.restoreSession();
+    this.loadCatalog();
+    // Enquanto há um pedido em aberto, consulta o status real no servidor a
+    // cada poucos segundos (antes era uma simulação local por tempo decorrido;
+    // agora quem muda o status é a cozinha/administração, do lado do servidor).
     this.timer = setInterval(() => {
       const o = this.state.order;
-      if(!o || o.status === 'Cancelado' || o.status === 'Entregue') return;
-      const e = this.state.elapsed + 1;
-      let st = o.status;
-      if(e === 8 && st === 'Na Fila') st = 'Em Preparo';
-      if(e === 18 && st === 'Em Preparo') st = 'Pronto';
-      this.setState({elapsed:e});
-      if(st !== o.status) this.setOrderStatus(st);
-    }, 1000);
+      if(!o || !o._apiId || o.status === 'Cancelado' || o.status === 'Entregue') return;
+      this.pollOrder(o._apiId);
+    }, 3000);
+  }
+
+  restoreSession(){
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){ saved = null; }
+    if(!saved || !saved.token) return;
+    this.setState({token:saved.token, authUser:saved.user, email:saved.user.email});
+    this.loadHistory(saved.token);
+  }
+
+  async loadCatalog(){
+    try {
+      const [productsRes, tablesRes, kioskRes] = await Promise.all([
+        fetch(API_BASE + '/products'),
+        fetch(API_BASE + '/tables'),
+        fetch(API_BASE + '/kiosk-settings')
+      ]);
+      if(!productsRes.ok || !tablesRes.ok || !kioskRes.ok) return;
+      const [products, tables, kiosk] = await Promise.all([productsRes.json(), tablesRes.json(), kioskRes.json()]);
+      this.setState({
+        products: products.map(apiProductToState),
+        tables: tables.map(t => ({n:t.number, active:t.active, seats:t.seats})),
+        paused: kiosk.paused
+      });
+    } catch(e){
+      // API fora do ar: mantém os dados de exemplo já carregados no estado inicial.
+    }
+  }
+
+  async loadHistory(token){
+    const tok = token || this.state.token;
+    if(!tok) return;
+    try {
+      const res = await fetch(API_BASE + '/orders/mine', {headers:{Authorization:'Bearer ' + tok}});
+      if(!res.ok) return;
+      const data = await res.json();
+      this.setState({history: data.map(historyEntryFromApi)});
+    } catch(e){}
+  }
+
+  async pollOrder(apiId){
+    try {
+      const res = await fetch(API_BASE + '/orders/' + apiId, {headers:{Authorization:'Bearer ' + this.state.token}});
+      if(!res.ok) return;
+      const data = await res.json();
+      this.setState({order: orderFromApi(data)});
+    } catch(e){}
+  }
+
+  async submitLogin(){
+    const email = this.state.email, password = this.state.pass;
+    if(!email || !password) return this.setState({loginErr:'Preencha e-mail e senha.'});
+    this.setState({loginErr:''});
+    try {
+      const res = await fetch(API_BASE + '/auth/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, password})
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({loginErr: data.error || 'E-mail ou senha inválidos.'});
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify({token:data.token, user:data.user})); } catch(e){}
+      this.setState({token:data.token, authUser:data.user, loginErr:''});
+      this.loadHistory(data.token);
+      this.go('menu');
+    } catch(e){
+      this.setState({loginErr:'Falha de conexão com o servidor. Confira se a API está rodando.'});
+    }
+  }
+
+  logout(){
+    try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+    this.setState({token:null, authUser:null, order:null, history:[], cart:[], pass:'', screen:'login'});
+  }
+
+  async cancelOrder(){
+    const o = this.state.order;
+    if(!o || !o._apiId) return;
+    try {
+      const res = await fetch(API_BASE + '/orders/' + o._apiId + '/cancel', {
+        method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
+      });
+      const data = await res.json();
+      // Ordem importa: go() zera o toast, então só chamamos flash() depois de navegar.
+      if(!res.ok){ this.go('status'); this.flash(data.error || 'Não foi possível cancelar o pedido.'); return; }
+      this.setState({order: orderFromApi(data), screen:'cancelDone'});
+    } catch(e){
+      this.flash('Falha de conexão com o servidor.');
+    }
   }
   // roteamento pós-login: o site abre o app já no módulo e na tela do perfil
   aplicarRota(){
@@ -810,19 +924,26 @@ class Component extends DCLogic {
     this.flash(p.name + ' adicionado ao carrinho');
   }
 
-  placeOrder(){
-    const total = this.subtotal() * 1.1;
-    const id = '#10' + (43 + this.state.history.length);
+  async placeOrder(){
     const itemNotes = this.state.cart.filter(c => c.note).map(c => c.name + ': ' + c.note);
     if(this.state.orderNote) itemNotes.push('Pedido: ' + this.state.orderNote);
-    const obs = itemNotes.join(' · ');
-    const order = {id, table:this.state.table, total, status:'Na Fila', obs,
-      items:this.state.cart.map(c => ({n:c.qty + 'x ' + c.name, v:c.price * c.qty, note:c.note || ''}))};
-    this.setState(s => ({
-      order, elapsed:0, screen:'confirm', cart:[],
-      orderNote:'',
-      kitchen:[{id, table:s.table, items:s.cart.map(c => c.qty + 'x ' + c.name).join(' · '), status:'Na Fila', min:0, flag:'', obs}].concat(s.kitchen)
-    }));
+    const note = itemNotes.join(' · ');
+    const items = this.state.cart.map(c => ({productId:c.id, qty:c.qty, note:c.note || ''}));
+    try {
+      const res = await fetch(API_BASE + '/orders', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({tableNumber:this.state.table, items, note})
+      });
+      const data = await res.json();
+      if(!res.ok){
+        this.flash(data.error || 'Não foi possível fechar o pedido.');
+        return;
+      }
+      this.setState({order:orderFromApi(data), screen:'confirm', cart:[], orderNote:''});
+    } catch(e){
+      this.flash('Falha de conexão com o servidor.');
+    }
   }
 
   renderVals(){
@@ -989,7 +1110,7 @@ class Component extends DCLogic {
     v.statusPillStyle = 'display:inline-block;font:700 11px Inter,sans-serif;padding:5px 12px;border-radius:100px;background:' +
       (v.orderStatus === 'Pronto' ? '#E7F7ED;color:#16A34A' : v.orderStatus === 'Cancelado' ? '#FDEBEA;color:#E74C3C' : '#FFF3DE;color:#F5A623');
     v.askCancel = () => this.go(v.canCancel ? 'cancelAsk' : 'cancelBlocked');
-    v.doCancel = () => { this.setState(x => ({order:Object.assign({}, x.order, {status:'Cancelado'}), kitchen:x.kitchen.filter(k => k.id !== x.order.id), screen:'cancelDone'})); };
+    v.doCancel = () => this.cancelOrder();
 
     // split bill
     v.splitTotalStr = o ? f(o.total) : v.totalStr;
@@ -1007,15 +1128,15 @@ class Component extends DCLogic {
       open:() => this.go('orderDetail')
     }));
     v.hasHistory = s.history.length > 0;
-    const hd = s.history[0];
-    v.hdItems = hd.items.map(it => ({n:it.n, v:f(it.v)}));
-    v.hdTotal = f(hd.total); v.hdWhen = hd.when; v.hdTable = String(hd.table);
+    const hd = s.history[0] || null;
+    v.hdItems = hd ? hd.items.map(it => ({n:it.n, v:f(it.v)})) : [];
+    v.hdTotal = hd ? f(hd.total) : f(0); v.hdWhen = hd ? hd.when : ''; v.hdTable = hd ? String(hd.table) : '';
 
     // auth
     v.email = s.email; v.pass = s.pass; v.loginErr = s.loginErr; v.hasLoginErr = !!s.loginErr;
     v.setEmail = e => this.setState({email:e.target.value, loginErr:''});
     v.setPass = e => this.setState({pass:e.target.value, loginErr:''});
-    v.doLogin = () => { if(!/@/.test(s.email) || s.pass.length < 4) return this.setState({loginErr:'E-mail ou senha inválidos.'}); this.go('menu'); };
+    v.doLogin = () => this.submitLogin();
     v.suName = s.suName; v.suEmail = s.suEmail; v.suPass = s.suPass; v.suErr = s.suErr; v.hasSuErr = !!s.suErr;
     v.setSuName = e => this.setState({suName:e.target.value, suErr:''});
     v.setSuEmail = e => this.setState({suEmail:e.target.value, suErr:''});
@@ -1126,7 +1247,10 @@ class Component extends DCLogic {
     v.hasObsCount = nObs > 0;
 
     v.topSellers = [['p2', 42], ['p1', 38], ['p4', 27], ['p6', 19]].map(([id, n]) => {
-      const p = s.products.find(x => x.id === id);
+      // Fallback defensivo: em produção os ids vêm do banco (numéricos), não mais
+      // dos ids mock 'p1'..'p8' — sem isso, o find() abaixo pode não achar nada
+      // (essa tela ainda não tem interface própria, mas o cálculo roda sempre).
+      const p = s.products.find(x => x.id === id) || s.products[0] || {name:'—', mark:'coco'};
       return {name:p.name, n:String(n), markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark]};
     });
     const pfProd = s.products.find(p => p.name === s.pf.name) || {mark:'camarao'};
@@ -1145,7 +1269,7 @@ class Component extends DCLogic {
       {k:'Quiosque', v:s.paused ? 'pausado' : 'aberto'}
     ];
     v.reset = () => window.location.reload();
-    v.goLogin = () => this.go('login');
+    v.goLogin = () => this.logout();
     v.goSignup = () => this.go('signup');
     v.goForgot = () => this.go('forgot');
     v.goMenu = () => this.go('menu');
