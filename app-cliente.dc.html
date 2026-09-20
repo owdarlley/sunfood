@@ -577,7 +577,352 @@ a:hover{color:#FF6B35}
       </div>
       </sc-if>
 
-      
+      <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+      <div style="width:1180px;max-width:96vw;background:#F4EFE7;border-radius:20px;overflow:hidden;box-shadow:0 30px 60px -18px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.07);display:flex;height:760px">
+        <div style="width:220px;flex-shrink:0;background:#142850;display:flex;flex-direction:column;padding:22px 14px 16px;gap:18px">
+          <div style="padding:0 8px">
+            <div style="font:800 18px 'Baloo 2',sans-serif;color:#fff">Sunfood</div>
+            <div style="font:600 11px Inter,sans-serif;color:#FF9166;margin-top:2px">Administração</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1;overflow-y:auto">
+            <sc-for list="{{ adminSide }}" as="it" hint-placeholder-count="8">
+              <div onClick="{{ it.go }}" style="{{ it.style }}">{{ it.label }}</div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px">
+            <div style="font:600 11px Inter,sans-serif;color:rgba(255,255,255,.5);padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div onClick="{{ goLogin }}" style="padding:9px 11px;border-radius:9px;font:600 12px Inter,sans-serif;cursor:pointer;color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.16);text-align:center">Sair</div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <div style="padding:16px 28px;border-bottom:1px solid #E9E1D6;display:flex;align-items:center;justify-content:space-between;background:#fff;flex-shrink:0">
+            <div style="font:700 17px 'Baloo 2',sans-serif">{{ screenLabel }}</div>
+            <div style="font:500 11px JetBrains Mono,monospace;color:#9AA0A6">{{ url }}</div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:26px 28px">
+
+            <sc-if value="{{ is_dashboard }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:18px">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+                  <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+                    <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:16px">
+                      <div style="font:600 11px Inter,sans-serif;color:#6B7280">{{ k.lbl }}</div>
+                      <div style="font:800 22px 'Baloo 2',sans-serif;margin:6px 0 2px">{{ k.val }}</div>
+                      <div style="font:600 11px Inter,sans-serif;color:#16A34A">{{ k.delta }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:18px">
+                  <div style="font:700 13px 'Baloo 2',sans-serif;margin-bottom:14px">Vendas por horário (hoje)</div>
+                  <div style="display:flex;align-items:flex-end;gap:6px;height:110px">
+                    <sc-for list="{{ salesBars }}" as="b" hint-placeholder-count="12">
+                      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                        <div style="{{ b.style }};width:100%"></div>
+                        <div style="font:500 9px Inter,sans-serif;color:#9AA0A6;margin-top:4px">{{ b.lbl }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:18px">
+                  <div style="font:700 13px 'Baloo 2',sans-serif;margin-bottom:12px">Mais vendidos hoje</div>
+                  <sc-if value="{{ hasTopSellers }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:9px">
+                      <sc-for list="{{ topSellers }}" as="ts" hint-placeholder-count="4">
+                        <div style="display:flex;align-items:center;gap:11px">
+                          <span style="width:34px;height:34px;border-radius:10px;background:linear-gradient(140deg,#FFE9D2,#FFC79E);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+                            <sc-if value="{{ ts.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ ts.photoStyle }}"></span></sc-if>
+                            <sc-if value="{{ ts.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="19" height="19" fill="none" stroke="#E8551E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ ts.markPath }}"></path></svg></sc-if>
+                          </span>
+                          <span style="flex:1;font:600 12.5px Inter,sans-serif">{{ ts.name }}</span>
+                          <span style="font:700 12px Inter,sans-serif;color:#E8551E">{{ ts.n }} un.</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ hasTopSellers }}" hint-placeholder-val="{{ true }}">
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_orders }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
+                <sc-if value="{{ hasAdminOrders }}" hint-placeholder-val="{{ true }}">
+                  <sc-for list="{{ adminOrders }}" as="r" hint-placeholder-count="6">
+                    <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid #F0EBE1">
+                      <span style="font:700 13px 'Baloo 2',sans-serif;width:52px;flex-shrink:0">{{ r.id }}</span>
+                      <span style="font:500 12px Inter,sans-serif;color:#6B7280;width:70px;flex-shrink:0">Mesa {{ r.table }}</span>
+                      <span style="flex:1;font:400 12px Inter,sans-serif;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.itemsStr }}</span>
+                      <span style="{{ r.stStyle }}">{{ r.status }}</span>
+                      <span style="font:700 12.5px Inter,sans-serif;width:78px;text-align:right;flex-shrink:0">{{ r.totalStr }}</span>
+                      <span style="font:500 11px Inter,sans-serif;color:#9AA0A6;width:82px;text-align:right;flex-shrink:0">{{ r.hora }}</span>
+                    </div>
+                  </sc-for>
+                </sc-if>
+                <sc-if value="{{ hasAdminOrders }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:40px;text-align:center;font:500 13px Inter,sans-serif;color:#9AA0A6">Nenhum pedido ainda hoje.</div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_productForm }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:20px;align-items:flex-start">
+                <div style="flex:1;background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
+                  <div style="padding:14px 18px;border-bottom:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center">
+                    <span style="font:700 13px 'Baloo 2',sans-serif">Cardápio</span>
+                    <span onClick="{{ newProduct }}" style="font:700 11.5px Inter,sans-serif;color:#E8551E;cursor:pointer">+ Novo produto</span>
+                  </div>
+                  <sc-for list="{{ productRows }}" as="p" hint-placeholder-count="8">
+                    <div onClick="{{ p.edit }}" style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid #F0EBE1;cursor:pointer">
+                      <span style="width:36px;height:36px;border-radius:10px;background:linear-gradient(140deg,#FFE9D2,#FFC79E);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+                        <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ p.photoStyle }}"></span></sc-if>
+                        <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="19" height="19" fill="none" stroke="#E8551E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ p.markPath }}"></path></svg></sc-if>
+                      </span>
+                      <div style="flex:1;min-width:0">
+                        <div style="font:700 12.5px Inter,sans-serif">{{ p.name }}</div>
+                        <div style="font:400 10.5px Inter,sans-serif;color:#9AA0A6">{{ p.cat }}</div>
+                      </div>
+                      <span style="font:700 12px Inter,sans-serif">{{ p.priceStr }}</span>
+                      <span style="{{ p.pillStyle }}">{{ p.pill }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="width:320px;flex-shrink:0;background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:11px">
+                  <div style="font:700 13px 'Baloo 2',sans-serif">{{ pfFormTitle }}</div>
+                  <input value="{{ pfName }}" onChange="{{ setPfName }}" placeholder="Nome do produto" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
+                  <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <sc-for list="{{ pfCategoryOptions }}" as="co" hint-placeholder-count="4">
+                      <span onClick="{{ co.pick }}" style="{{ co.style }}">{{ co.cat }}</span>
+                    </sc-for>
+                  </div>
+                  <input value="{{ pfPrice }}" onChange="{{ setPfPrice }}" placeholder="Preço (ex: 24.90)" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
+                  <input value="{{ pfPortion }}" onChange="{{ setPfPortion }}" placeholder="Porção (ex: 300ml)" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
+                  <input value="{{ pfPrepTime }}" onChange="{{ setPfPrepTime }}" placeholder="Tempo de preparo (ex: 10 min)" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
+                  <textarea value="{{ pfDesc }}" onChange="{{ setPfDesc }}" placeholder="Descrição" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none;min-height:64px;resize:vertical"></textarea>
+                  <sc-if value="{{ hasPfMsg }}" hint-placeholder-val="{{ false }}">
+                    <div style="font:600 11.5px Inter,sans-serif;color:#E8551E">{{ pfMsg }}</div>
+                  </sc-if>
+                  <div onClick="{{ savePf }}" style="background:#FF6B35;color:#fff;border-radius:10px;padding:12px;text-align:center;font:700 13px 'Baloo 2',sans-serif;cursor:pointer">Salvar produto</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_tables }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="font:600 12px Inter,sans-serif;color:#6B7280">{{ activeTables }}</div>
+                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+                  <sc-for list="{{ tableTiles }}" as="t" hint-placeholder-count="12">
+                    <div onClick="{{ t.toggle }}" style="{{ t.tileStyle }}">
+                      <div style="font:800 18px 'Baloo 2',sans-serif">{{ t.n }}</div>
+                      <div style="font:500 10.5px Inter,sans-serif;color:#9AA0A6;margin:2px 0 8px">{{ t.seats }}</div>
+                      <span style="{{ t.pillStyle }}">{{ t.pill }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_pause }}" hint-placeholder-val="{{ false }}">
+              <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
+                <div style="{{ pauseBannerStyle }}">
+                  <div>
+                    <div style="font:700 14px 'Baloo 2',sans-serif">{{ pauseLabel }}</div>
+                    <div style="font:400 12px/1.5 Inter,sans-serif;color:#6B7280;margin-top:2px">{{ pauseSub }}</div>
+                  </div>
+                  <div onClick="{{ togglePause }}" style="{{ pauseSwitchStyle }}">
+                    <div style="{{ pauseKnobStyle }}"></div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_perfSales }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:18px">
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:18px">
+                  <div style="font:700 13px 'Baloo 2',sans-serif;margin-bottom:14px">Vendas por horário (hoje)</div>
+                  <div style="display:flex;align-items:flex-end;gap:6px;height:130px">
+                    <sc-for list="{{ salesBars }}" as="b" hint-placeholder-count="12">
+                      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                        <div style="{{ b.style }};width:100%"></div>
+                        <div style="font:500 9px Inter,sans-serif;color:#9AA0A6;margin-top:4px">{{ b.lbl }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+                  <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
+                    <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:16px">
+                      <div style="font:600 11px Inter,sans-serif;color:#6B7280">{{ k.lbl }}</div>
+                      <div style="font:800 20px 'Baloo 2',sans-serif;margin:6px 0 2px">{{ k.val }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_perfOps }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
+                <sc-for list="{{ opsRows }}" as="r" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #F0EBE1">
+                    <div>
+                      <div style="font:600 12.5px Inter,sans-serif">{{ r.k }}</div>
+                      <div style="font:400 11px Inter,sans-serif;color:#9AA0A6;margin-top:2px">{{ r.sub }}</div>
+                    </div>
+                    <div style="{{ r.valStyle }}">{{ r.val }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_closeDay }}" hint-placeholder-val="{{ false }}">
+              <div style="max-width:520px;display:flex;flex-direction:column;gap:16px">
+                <sc-if value="{{ dayOpen }}" hint-placeholder-val="{{ true }}">
+                  <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px">
+                    <div style="font:700 14px 'Baloo 2',sans-serif">Encerrar o dia</div>
+                    <p style="font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Gera o relatório do dia com faturamento, pedidos e ticket médio, e bloqueia novos fechamentos de pedido até reabrir.</p>
+                    <div onClick="{{ closeDay }}" style="background:#FF6B35;color:#fff;border-radius:10px;padding:12px;text-align:center;font:700 13px 'Baloo 2',sans-serif;cursor:pointer">Encerrar o dia agora</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ dayClosed }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px">
+                    <div style="font:700 14px 'Baloo 2',sans-serif">Dia encerrado</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                      <div><div style="font:600 10.5px Inter,sans-serif;color:#6B7280">Faturamento</div><div style="font:800 16px 'Baloo 2',sans-serif;margin-top:2px">{{ reportRevenue }}</div></div>
+                      <div><div style="font:600 10.5px Inter,sans-serif;color:#6B7280">Pedidos</div><div style="font:800 16px 'Baloo 2',sans-serif;margin-top:2px">{{ reportOrders }}</div></div>
+                      <div><div style="font:600 10.5px Inter,sans-serif;color:#6B7280">Ticket médio</div><div style="font:800 16px 'Baloo 2',sans-serif;margin-top:2px">{{ reportAvgTicket }}</div></div>
+                    </div>
+                    <sc-if value="{{ hasDayReport }}" hint-placeholder-val="{{ false }}">
+                      <div>
+                        <div style="font:600 11px Inter,sans-serif;color:#6B7280;margin-bottom:6px">Mais vendidos</div>
+                        <div style="display:flex;flex-direction:column;gap:5px">
+                          <sc-for list="{{ reportTopProducts }}" as="tp" hint-placeholder-count="3">
+                            <div style="font:500 12px Inter,sans-serif;display:flex;justify-content:space-between"><span>{{ tp.name }}</span><span style="color:#9AA0A6">{{ tp.qty }} un.</span></div>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </sc-if>
+                    <div onClick="{{ reopenDay }}" style="border:1px solid #E9E1D6;color:#1B2430;border-radius:10px;padding:11px;text-align:center;font:700 12.5px 'Baloo 2',sans-serif;cursor:pointer">Reabrir o dia</div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isCozinha }}" hint-placeholder-val="{{ false }}">
+      <div style="width:1180px;max-width:96vw;background:#F4EFE7;border-radius:20px;overflow:hidden;box-shadow:0 30px 60px -18px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.07);display:flex;height:760px">
+        <div style="width:220px;flex-shrink:0;background:#142850;display:flex;flex-direction:column;padding:22px 14px 16px;gap:18px">
+          <div style="padding:0 8px">
+            <div style="font:800 18px 'Baloo 2',sans-serif;color:#fff">Sunfood</div>
+            <div style="font:600 11px Inter,sans-serif;color:#FF9166;margin-top:2px">Cozinha</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1;overflow-y:auto">
+            <sc-for list="{{ cozinhaSide }}" as="it" hint-placeholder-count="3">
+              <div onClick="{{ it.go }}" style="{{ it.style }}">{{ it.label }}</div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px">
+            <div style="font:600 11px Inter,sans-serif;color:rgba(255,255,255,.5);padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div onClick="{{ goLogin }}" style="padding:9px 11px;border-radius:9px;font:600 12px Inter,sans-serif;cursor:pointer;color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.16);text-align:center">Sair</div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <div style="padding:16px 28px;border-bottom:1px solid #E9E1D6;display:flex;align-items:center;justify-content:space-between;background:#fff;flex-shrink:0">
+            <div style="font:700 17px 'Baloo 2',sans-serif">{{ screenLabel }}</div>
+            <div style="font:500 11px JetBrains Mono,monospace;color:#9AA0A6">{{ url }}</div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:26px 28px">
+
+            <sc-if value="{{ is_kanban }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:flex-start">
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
+                  <div style="padding:13px 16px;border-bottom:1px solid #F0EBE1;font:700 12.5px 'Baloo 2',sans-serif;display:flex;justify-content:space-between"><span>Na Fila</span><span style="color:#F5A623">{{ nQueue }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:10px;padding:12px">
+                    <sc-for list="{{ kQueue }}" as="k" hint-placeholder-count="3">
+                      <div style="background:#FFF9F1;border:1px solid #F0EBE1;border-radius:11px;padding:12px">
+                        <div style="display:flex;justify-content:space-between;font:700 12.5px 'Baloo 2',sans-serif"><span>{{ k.table }}</span><span style="font:500 10.5px Inter,sans-serif;color:#9AA0A6">{{ k.min }}</span></div>
+                        <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#6B7280;margin:6px 0">{{ k.items }}</div>
+                        <sc-if value="{{ k.hasObs }}" hint-placeholder-val="{{ false }}">
+                          <div style="font:600 10.5px Inter,sans-serif;color:#E8551E;background:#FFF3DE;border-radius:7px;padding:5px 8px;margin-bottom:8px">Obs: {{ k.obs }}</div>
+                        </sc-if>
+                        <sc-if value="{{ k.showBtn }}" hint-placeholder-val="{{ true }}">
+                          <div onClick="{{ k.advance }}" style="background:#FF6B35;color:#fff;border-radius:8px;padding:9px;text-align:center;font:700 11.5px 'Baloo 2',sans-serif;cursor:pointer">{{ k.btn }}</div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
+                  <div style="padding:13px 16px;border-bottom:1px solid #F0EBE1;font:700 12.5px 'Baloo 2',sans-serif;display:flex;justify-content:space-between"><span>Em Preparo</span><span style="color:#F5A623">{{ nPrep }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:10px;padding:12px">
+                    <sc-for list="{{ kPrep }}" as="k" hint-placeholder-count="3">
+                      <div style="background:#FFF9F1;border:1px solid #F0EBE1;border-radius:11px;padding:12px">
+                        <div style="display:flex;justify-content:space-between;font:700 12.5px 'Baloo 2',sans-serif"><span>{{ k.table }}</span><span style="font:500 10.5px Inter,sans-serif;color:#9AA0A6">{{ k.min }}</span></div>
+                        <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#6B7280;margin:6px 0">{{ k.items }}</div>
+                        <sc-if value="{{ k.hasObs }}" hint-placeholder-val="{{ false }}">
+                          <div style="font:600 10.5px Inter,sans-serif;color:#E8551E;background:#FFF3DE;border-radius:7px;padding:5px 8px;margin-bottom:8px">Obs: {{ k.obs }}</div>
+                        </sc-if>
+                        <sc-if value="{{ k.showBtn }}" hint-placeholder-val="{{ true }}">
+                          <div onClick="{{ k.advance }}" style="background:#FF6B35;color:#fff;border-radius:8px;padding:9px;text-align:center;font:700 11.5px 'Baloo 2',sans-serif;cursor:pointer">{{ k.btn }}</div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
+                  <div style="padding:13px 16px;border-bottom:1px solid #F0EBE1;font:700 12.5px 'Baloo 2',sans-serif;display:flex;justify-content:space-between"><span>Pronto</span><span style="color:#16A34A">{{ nReady }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:10px;padding:12px">
+                    <sc-for list="{{ kReady }}" as="k" hint-placeholder-count="3">
+                      <div style="background:#F0FBF4;border:1px solid #CBE9D6;border-radius:11px;padding:12px">
+                        <div style="display:flex;justify-content:space-between;font:700 12.5px 'Baloo 2',sans-serif"><span>{{ k.table }}</span><span style="font:500 10.5px Inter,sans-serif;color:#9AA0A6">{{ k.min }}</span></div>
+                        <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#6B7280;margin:6px 0 8px">{{ k.items }}</div>
+                        <div onClick="{{ k.deliver }}" style="background:#16A34A;color:#fff;border-radius:8px;padding:9px;text-align:center;font:700 11.5px 'Baloo 2',sans-serif;cursor:pointer">Marcar como entregue</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_unavailable }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="font:600 12px Inter,sans-serif;color:#6B7280">{{ soldOutCount }}</div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
+                  <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F0EBE1">
+                      <span style="width:36px;height:36px;border-radius:10px;background:linear-gradient(140deg,#FFE9D2,#FFC79E);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+                        <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ p.photoStyle }}"></span></sc-if>
+                        <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="19" height="19" fill="none" stroke="#E8551E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ p.markPath }}"></path></svg></sc-if>
+                      </span>
+                      <div style="flex:1;min-width:0">
+                        <div style="font:700 12.5px Inter,sans-serif">{{ p.name }}</div>
+                        <div style="font:400 10.5px Inter,sans-serif;color:#9AA0A6">{{ p.cat }}</div>
+                      </div>
+                      <span style="{{ p.pillStyle }}">{{ p.pill }}</span>
+                      <div onClick="{{ p.toggle }}" style="{{ p.swStyle }}"><div style="{{ p.knobStyle }}"></div></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_queueEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:80px 20px">
+                <svg viewBox="0 0 48 48" width="52" height="52" fill="none" stroke="#CBB998" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M24 15v9l6 4"></path></svg>
+                <div style="font:700 15px 'Baloo 2',sans-serif">Nenhum pedido na fila</div>
+                <p style="font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0;max-width:280px">Assim que um cliente fechar um pedido, ele aparece aqui automaticamente.</p>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+
       <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
       <div style="position:absolute;bottom:26px;left:50%;transform:translateX(-50%);background:#1B2430;color:#fff;font:600 12.5px Inter,sans-serif;padding:12px 20px;border-radius:100px;box-shadow:0 12px 28px -10px rgba(0,0,0,.6);animation:sfup .25s ease;z-index:40">{{ toast }}</div>
     </sc-if>
@@ -699,6 +1044,27 @@ function historyEntryFromApi(o){
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty}))};
 }
 
+function minutesAgo(sqliteDatetime){
+  const ms = Date.now() - new Date(String(sqliteDatetime).replace(' ', 'T') + 'Z').getTime();
+  return Math.max(0, Math.round(ms / 60000));
+}
+
+function secondsToLabel(totalSeconds){
+  if(totalSeconds == null) return 'sem dados hoje';
+  const m = Math.floor(totalSeconds / 60), s = totalSeconds % 60;
+  return m > 0 ? (m + ' min ' + s + ' s') : (s + ' s');
+}
+
+// Admin/Cozinha: formato usado pelas telas de pedidos/kanban, com o id
+// numérico real da API preservado (apiId) para as ações de avançar status.
+function adminOrderFromApi(o){
+  return {
+    id:'#' + o.id, apiId:o.id, table:o.tableNumber, status:o.status, totalStr:'R$ ' + o.total.toFixed(2).replace('.', ','),
+    itemsStr:o.items.map(it => it.qty + 'x ' + it.name).join(' · '),
+    obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt
+  };
+}
+
 const UI = {
   menu:'M8 34h32 M14 34c0-8 5-14 10-14s10 6 10 14 M24 20v-6 M21 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
   clock:'M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M24 15v9l6 4',
@@ -772,15 +1138,11 @@ class Component extends DCLogic {
     // restoreSession()/submitLogin(), não é mais um mock fixo.
     history:[],
     tables:[1,2,3,4,5,6,7,8,9,10,11,12].map(n => ({n, active:!(n===7||n===11), seats:n%3===0?6:4})),
-    paused:false,
-    kitchen:[
-      {id:'#1042', table:9, items:'2x Caipirinha · 1x Wrap de Frango', status:'Na Fila', min:2, flag:'', obs:'Sem cebola no wrap, entregar tudo junto'},
-      {id:'#1041', table:3, items:'1x Peixe Frito com Pirão', status:'Em Preparo', min:9, flag:'Atrasado', obs:'Peixe bem passado, sem coentro'},
-      {id:'#1040', table:12, items:'1x Açaí na Tigela · 1x Água de Coco', status:'Pronto', min:14, flag:''}
-    ],
-    adminEmail:'gerente@sunfood.com.br', adminPass:'', adminRole:'Admin', adminErr:'',
-    adminTab:'vendas', dayClosed:false,
-    pf:{name:'Porção de Camarão', price:'58,00', cat:'Pratos', desc:'Camarão empanado, 300 g', active:true},
+    paused:false, dayClosed:false,
+    // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
+    // opsMetrics), carregado em loadAdminData()/pollAdminData() — nada é mock.
+    adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
+    pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:''}, pfMsg:'',
     toast:''
   };
 
@@ -793,8 +1155,8 @@ class Component extends DCLogic {
     // agora quem muda o status é a cozinha/administração, do lado do servidor).
     this.timer = setInterval(() => {
       const o = this.state.order;
-      if(!o || !o._apiId || o.status === 'Cancelado' || o.status === 'Entregue') return;
-      this.pollOrder(o._apiId);
+      if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue') this.pollOrder(o._apiId);
+      if((this.state.module === 'admin' || this.state.module === 'cozinha') && this.state.token) this.loadAdminData();
     }, 3000);
   }
 
@@ -803,7 +1165,8 @@ class Component extends DCLogic {
     try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){ saved = null; }
     if(!saved || !saved.token) return;
     this.setState({token:saved.token, authUser:saved.user, email:saved.user.email});
-    this.loadHistory(saved.token);
+    if(saved.user.role === 'cliente') this.loadHistory(saved.token);
+    else this.loadAdminData();
   }
 
   async loadCatalog(){
@@ -818,11 +1181,129 @@ class Component extends DCLogic {
       this.setState({
         products: products.map(apiProductToState),
         tables: tables.map(t => ({n:t.number, active:t.active, seats:t.seats})),
-        paused: kiosk.paused
+        paused: kiosk.paused, dayClosed: kiosk.dayClosed
       });
     } catch(e){
       // API fora do ar: mantém os dados de exemplo já carregados no estado inicial.
     }
+  }
+
+  // Admin/Cozinha: pedidos (kanban/lista) sempre; dashboard/operação só pro admin.
+  async loadAdminData(){
+    if(!this.state.token) return;
+    const headers = {Authorization:'Bearer ' + this.state.token};
+    try {
+      const ordersRes = await fetch(API_BASE + '/orders', {headers});
+      if(ordersRes.ok) this.setState({adminOrders:(await ordersRes.json()).map(adminOrderFromApi)});
+    } catch(e){}
+    if(this.state.authUser && this.state.authUser.role === 'admin'){
+      try {
+        const [dashRes, opsRes, kioskRes] = await Promise.all([
+          fetch(API_BASE + '/dashboard', {headers}),
+          fetch(API_BASE + '/ops-metrics', {headers}),
+          fetch(API_BASE + '/kiosk-settings')
+        ]);
+        const updates = {};
+        if(dashRes.ok) updates.dashboard = await dashRes.json();
+        if(opsRes.ok) updates.opsMetrics = await opsRes.json();
+        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; }
+        this.setState(updates);
+      } catch(e){}
+    }
+  }
+
+  async loadLatestDayReport(){
+    try {
+      const res = await fetch(API_BASE + '/day-reports/latest', {headers:{Authorization:'Bearer ' + this.state.token}});
+      if(res.ok) this.setState({lastDayReport: await res.json()});
+    } catch(e){}
+  }
+
+  async togglePauseKiosk(){
+    try {
+      const res = await fetch(API_BASE + '/kiosk-settings/pause', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({paused: !this.state.paused})
+      });
+      if(res.ok){ const data = await res.json(); this.setState({paused:data.paused}); }
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  async toggleTableActive(number, active){
+    try {
+      const res = await fetch(API_BASE + '/tables/' + number + '/active', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({active})
+      });
+      if(res.ok){
+        const row = await res.json();
+        this.setState(x => ({tables:x.tables.map(t => t.n === number ? {n:row.number, active:row.active, seats:row.seats} : t)}));
+      }
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  async toggleProductSoldOut(id, soldOut){
+    try {
+      const res = await fetch(API_BASE + '/products/' + id + '/sold-out', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({soldOut})
+      });
+      if(res.ok){
+        const p = await res.json();
+        this.setState(x => ({products:x.products.map(prod => prod.id === id ? apiProductToState(p) : prod)}));
+      }
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  async saveProduct(){
+    const pf = this.state.pf;
+    const price = Number(String(pf.price).replace(',', '.'));
+    if(!pf.name.trim() || !price || price <= 0) return this.setState({pfMsg:'Preencha nome e um preço válido.'});
+    const body = {name:pf.name.trim(), description:pf.desc || '', longDescription:'', category:pf.cat,
+      price, portion:pf.portion || '', prepTime:pf.prepTime || ''};
+    try {
+      const res = await fetch(API_BASE + '/products' + (pf.id ? '/' + pf.id : ''), {
+        method: pf.id ? 'PUT' : 'POST',
+        headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify(body)
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({pfMsg: data.error || 'Não foi possível salvar.'});
+      const saved = apiProductToState(data);
+      this.setState(x => {
+        const exists = x.products.some(p => p.id === saved.id);
+        const products = exists ? x.products.map(p => p.id === saved.id ? saved : p) : x.products.concat([saved]);
+        return {products, pfMsg: pf.id ? 'Produto atualizado.' : 'Produto criado.',
+          pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:''}};
+      });
+    } catch(e){ this.setState({pfMsg:'Falha de conexão com o servidor.'}); }
+  }
+
+  async advanceOrderStatus(apiId, nextStatus){
+    try {
+      const res = await fetch(API_BASE + '/orders/' + apiId + '/status', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({status:nextStatus})
+      });
+      if(res.ok) this.loadAdminData();
+      else { const data = await res.json(); this.flash(data.error || 'Não foi possível atualizar o pedido.'); }
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  async closeDayReal(){
+    try {
+      const res = await fetch(API_BASE + '/close-day', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json();
+      if(!res.ok) return this.flash(data.error || 'Não foi possível encerrar o dia.');
+      this.setState({dayClosed:true, lastDayReport:data});
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  async reopenDayReal(){
+    try {
+      const res = await fetch(API_BASE + '/reopen-day', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
+      if(res.ok) this.setState({dayClosed:false});
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
   }
 
   async loadHistory(token){
@@ -867,6 +1348,9 @@ class Component extends DCLogic {
 
   logout(){
     try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+    // Admin/cozinha não têm mais uma tela de login própria dentro do app (o
+    // acesso é só pelo modal do index.html) — sair manda de volta pra lá.
+    if(this.state.module === 'admin' || this.state.module === 'cozinha'){ window.location.href = 'index.html'; return; }
     this.setState({token:null, authUser:null, order:null, history:[], cart:[], pass:'', screen:'login'});
   }
 
@@ -1150,109 +1634,148 @@ class Component extends DCLogic {
     v.fpBlocked = !v.fpOk;
     v.sendFp = () => v.fpOk && this.setState({fpSent:true});
 
-    // admin
-    v.adminEmail = s.adminEmail; v.adminPass = s.adminPass; v.adminErr = s.adminErr; v.hasAdminErr = !!s.adminErr;
-    v.setAdminEmail = e => this.setState({adminEmail:e.target.value, adminErr:''});
-    v.setAdminPass = e => this.setState({adminPass:e.target.value, adminErr:''});
-    v.roleTabs = [['Admin','admin','dashboard'],['Cozinha','cozinha','kanban']].map(([label, mod, scr]) => ({
-      label, pick:() => this.setState({adminRole:label}),
-      style:'flex:1;text-align:center;font:700 12px Inter,sans-serif;padding:8px 0;border-radius:8px;cursor:pointer;' +
-        (s.adminRole === label ? 'background:#fff;color:#E8551E;box-shadow:0 2px 6px rgba(0,0,0,.1)' : 'color:#6B7280')
-    }));
-    v.adminLogin = () => {
-      if(!/@/.test(s.adminEmail) || s.adminPass.length < 4) return this.setState({adminErr:'Credenciais inválidas para o painel.'});
-      if(s.adminRole === 'Cozinha') this.go('kanban', 'cozinha'); else this.go('dashboard', 'admin');
-    };
+    // admin — tudo abaixo lê s.dashboard/s.opsMetrics/s.adminOrders, carregados
+    // de verdade por loadAdminData() (nada é mock; adminLogin/adminForgot saíram
+    // do menu porque a autenticação agora é só pelo modal do index.html).
     v.adminSide = SCREENS.admin.slice(2).map(([k, label]) => ({
       label, go:() => this.go(k, 'admin'),
       style:'padding:9px 11px;border-radius:9px;font:600 12px Inter,sans-serif;cursor:pointer;transition:background .15s;' +
         (s.screen === k ? 'background:#FF6B35;color:#fff' : 'color:rgba(255,255,255,.6)')
     }));
-    v.kpis = [
-      {lbl:'Faturamento hoje', val:'R$ 4.812,40', delta:'+12% vs. ontem'},
-      {lbl:'Pedidos', val:'86', delta:'+9 na última hora'},
-      {lbl:'Ticket médio', val:'R$ 55,96', delta:'+3,1%'},
-      {lbl:'Tempo médio', val:'12 min', delta:'−2 min'}
+
+    const dash = s.dashboard;
+    v.kpis = dash ? [
+      {lbl:'Faturamento hoje', val:'R$ ' + dash.revenueToday.toFixed(2).replace('.', ','), delta:dash.ordersToday + ' pedido(s) hoje'},
+      {lbl:'Pedidos', val:String(dash.ordersToday), delta:'hoje'},
+      {lbl:'Ticket médio', val:'R$ ' + dash.avgTicket.toFixed(2).replace('.', ','), delta:'por pedido'},
+      {lbl:'Tempo médio de preparo', val:s.opsMetrics ? secondsToLabel(s.opsMetrics.avgPrepSeconds) : '—', delta:'hoje'}
+    ] : [
+      {lbl:'Faturamento hoje', val:'—', delta:'carregando…'},
+      {lbl:'Pedidos', val:'—', delta:'carregando…'},
+      {lbl:'Ticket médio', val:'—', delta:'carregando…'},
+      {lbl:'Tempo médio de preparo', val:'—', delta:'carregando…'}
     ];
-    v.adminOrders = [{id:v.orderId, table:v.orderTable, st:v.orderStatus, tot:v.orderTotalStr, hora:'agora'}]
-      .filter(() => !!o)
-      .concat(s.kitchen.filter(k => !o || k.id !== o.id).map(k => ({id:k.id, table:String(k.table), st:k.status, tot:this.fmt(78.4), hora:k.min + ' min'})))
-      .concat(s.history.map(h => ({id:h.id, table:String(h.table), st:h.status, tot:this.fmt(h.total), hora:h.when})))
-      .map(r => Object.assign({}, r, {
-        stStyle:'font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' +
-          (r.st === 'Pronto' || r.st === 'Entregue' ? '#E7F7ED;color:#16A34A' : r.st === 'Cancelado' ? '#FDEBEA;color:#E74C3C' : '#FFF3DE;color:#F5A623')
-      }));
+
+    v.adminOrders = s.adminOrders.map(r => Object.assign({}, r, {
+      hora:r.minAgo === 0 ? 'agora' : r.minAgo + ' min atrás',
+      stStyle:'font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' +
+        (r.status === 'Pronto' || r.status === 'Entregue' ? '#E7F7ED;color:#16A34A' : r.status === 'Cancelado' ? '#FDEBEA;color:#E74C3C' : '#FFF3DE;color:#F5A623')
+    }));
+    v.hasAdminOrders = v.adminOrders.length > 0;
+
     v.tableTiles = s.tables.map(t => ({
       n:('0' + t.n).slice(-2), seats:t.seats + ' lugares',
-      toggle:() => this.setState(x => ({tables:x.tables.map(y => y.n === t.n ? Object.assign({}, y, {active:!y.active}) : y)})),
+      toggle:() => this.toggleTableActive(t.n, !t.active),
       pill:t.active ? 'Ativa' : 'Inativa',
       pillStyle:'font:700 9.5px Inter,sans-serif;padding:3px 9px;border-radius:100px;background:' + (t.active ? '#E7F7ED;color:#16A34A' : '#EEE;color:#999'),
       tileStyle:'background:#fff;border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:1px solid ' + (t.active ? '#E9E1D6' : '#F0D6D2')
     }));
-    v.activeTables = s.tables.filter(t => t.active).length + ' de 12 ativas';
-    v.togglePause = () => this.setState(x => ({paused:!x.paused}));
+    v.activeTables = s.tables.filter(t => t.active).length + ' de ' + s.tables.length + ' ativas';
+
+    v.togglePause = () => this.togglePauseKiosk();
     v.pauseLabel = s.paused ? 'Quiosque pausado' : 'Quiosque aberto';
     v.pauseSub = s.paused ? 'O cardápio do cliente exibe aviso e o checkout está bloqueado.' : 'Novos pedidos estão sendo aceitos normalmente.';
     v.pauseSwitchStyle = 'width:48px;height:26px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (s.paused ? '#E74C3C' : '#16A34A');
     v.pauseKnobStyle = 'position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;left:' + (s.paused ? '25px' : '3px');
     v.pauseBannerStyle = 'display:flex;align-items:center;justify-content:space-between;gap:16px;border-radius:14px;padding:16px 18px;border:1px solid ' +
       (s.paused ? '#F5C6C2;background:#FDEBEA' : '#CBE9D6;background:#E7F7ED');
-    v.salesBars = [42,58,36,71,88,64,95,78,52,66,84,70].map((h, i) => ({
-      style:'flex:1;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#FF6B35,#FF9166);height:' + h + '%',
-      lbl:(10 + i) + 'h'
-    }));
-    v.opsRows = [['Tempo médio na fila','3 min 20 s','Meta: 5 min','ok'],['Tempo médio de preparo','9 min 05 s','Meta: 10 min','ok'],
-                 ['Pedidos atrasados','4 de 86','4,6% do total','warn'],['Itens indisponíveis','1 (Peixe Frito)','Sinalizado pela cozinha','warn'],
-                 ['Cancelamentos','2','Ambos ainda na fila','ok']].map(([k, val, sub, kind]) => ({
+
+    const HOURS_WINDOW = [10,11,12,13,14,15,16,17,18,19,20,21];
+    const hourRevenue = dash ? new Map(dash.salesByHour.map(h => [h.hour, h.revenue])) : new Map();
+    const maxRevenue = Math.max(1, ...HOURS_WINDOW.map(h => hourRevenue.get(h) || 0));
+    v.salesBars = HOURS_WINDOW.map(h => {
+      const rev = hourRevenue.get(h) || 0;
+      return {
+        style:'flex:1;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#FF6B35,#FF9166);height:' + Math.max(4, Math.round(rev / maxRevenue * 100)) + '%',
+        lbl:h + 'h'
+      };
+    });
+
+    const ops = s.opsMetrics;
+    v.opsRows = ops ? [
+      ['Tempo médio na fila', secondsToLabel(ops.avgQueueSeconds), 'Meta: 5 min', (ops.avgQueueSeconds == null || ops.avgQueueSeconds <= 300) ? 'ok' : 'warn'],
+      ['Tempo médio de preparo', secondsToLabel(ops.avgPrepSeconds), 'Meta: 10 min', (ops.avgPrepSeconds == null || ops.avgPrepSeconds <= 600) ? 'ok' : 'warn'],
+      ['Pedidos atrasados', ops.lateOrders + ' de ' + ops.ordersInQueueOrPrep, 'Mais de 10 min sem avançar', ops.lateOrders > 0 ? 'warn' : 'ok'],
+      ['Itens indisponíveis', ops.soldOutProducts.length ? (ops.soldOutProducts.length + ' (' + ops.soldOutProducts.join(', ') + ')') : 'Nenhum', 'Sinalizado pela cozinha', ops.soldOutProducts.length ? 'warn' : 'ok'],
+      ['Cancelamentos', String(ops.cancelledToday), 'Hoje', ops.cancelledToday > 0 ? 'warn' : 'ok']
+    ].map(([k, val, sub, kind]) => ({
       k, val, sub, valStyle:"font:800 16px 'Baloo 2',sans-serif;color:" + (kind === 'ok' ? '#16A34A' : '#F5A623')
+    })) : [];
+
+    v.pfCategoryOptions = ['Bebidas','Lanches','Pratos','Sobremesas'].map(cat => ({
+      cat, pick:() => this.setState(x => ({pf:Object.assign({}, x.pf, {cat})})),
+      style:'padding:7px 14px;border-radius:100px;font:600 12px Inter,sans-serif;cursor:pointer;flex-shrink:0;' +
+        (s.pf.cat === cat ? 'background:#FF6B35;color:#fff' : 'background:#fff;border:1px solid #E9E1D6;color:#6B7280')
     }));
     v.pf = s.pf; v.pfName = s.pf.name; v.pfPrice = s.pf.price; v.pfDesc = s.pf.desc; v.pfCat = s.pf.cat;
+    v.pfPortion = s.pf.portion; v.pfPrepTime = s.pf.prepTime;
     v.setPf = key => e => this.setState(x => ({pf:Object.assign({}, x.pf, {[key]:e.target.value})}));
     v.setPfName = v.setPf('name'); v.setPfPrice = v.setPf('price'); v.setPfDesc = v.setPf('desc');
-    v.pfOk = s.pf.name.trim() && s.pf.price.trim();
+    v.setPfPortion = v.setPf('portion'); v.setPfPrepTime = v.setPf('prepTime');
+    v.setPfCat = e => this.setState(x => ({pf:Object.assign({}, x.pf, {cat:e.target.value})}));
+    v.pfOk = !!(s.pf.name.trim() && Number(String(s.pf.price).replace(',', '.')) > 0);
     v.pfBlocked = !v.pfOk;
-    v.savePf = () => { if(v.pfOk) this.flash('Produto salvo e publicado no cardápio.'); };
-    v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
-    v.closeDay = () => this.setState({dayClosed:true});
-    v.reopenDay = () => this.setState({dayClosed:false});
+    v.pfEditing = !!s.pf.id;
+    v.pfFormTitle = v.pfEditing ? 'Editar produto' : 'Novo produto';
+    v.savePf = () => this.saveProduct();
+    v.pfMsg = s.pfMsg; v.hasPfMsg = !!s.pfMsg;
+    v.newProduct = () => this.setState({pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:''}, pfMsg:''});
+    v.productRows = s.products.map(p => ({
+      id:p.id, name:p.name, cat:p.cat, priceStr:'R$ ' + p.price.toFixed(2).replace('.', ','),
+      markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
+      pill:p.soldOut ? 'Esgotado' : 'Disponível',
+      pillStyle:'font:700 9.5px Inter,sans-serif;padding:3px 9px;border-radius:100px;background:' + (p.soldOut ? '#FDEBEA;color:#E74C3C' : '#E7F7ED;color:#16A34A'),
+      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo}, pfMsg:''})
+    }));
 
-    // cozinha
-    const col = st => s.kitchen.filter(k => k.status === st).map(k => ({
-      id:k.id, table:'Mesa ' + k.table, items:k.items, min:k.min + ' min', flag:k.flag, hasFlag:!!k.flag,
+    v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
+    v.closeDay = () => this.closeDayReal();
+    v.reopenDay = () => this.reopenDayReal();
+    const report = s.lastDayReport;
+    v.hasDayReport = !!report;
+    v.reportRevenue = report ? 'R$ ' + report.totalRevenue.toFixed(2).replace('.', ',') : '—';
+    v.reportOrders = report ? String(report.totalOrders) : '—';
+    v.reportAvgTicket = report ? 'R$ ' + report.avgTicket.toFixed(2).replace('.', ',') : '—';
+    v.reportTopProducts = report ? report.topProducts.map(p => ({name:p.name, qty:p.qty})) : [];
+
+    // cozinha — deriva do mesmo s.adminOrders (não há mais uma "comanda" separada
+    // do pedido: avançar o kanban chama a mesma API que o admin usa em /orders).
+    v.cozinhaSide = SCREENS.cozinha.map(([k, label]) => ({
+      label, go:() => this.go(k === 'kanban' ? (v.kitchenEmpty ? 'queueEmpty' : 'kanban') : k, 'cozinha'),
+      style:'padding:9px 11px;border-radius:9px;font:600 12px Inter,sans-serif;cursor:pointer;transition:background .15s;' +
+        (s.screen === k ? 'background:#FF6B35;color:#fff' : 'color:rgba(255,255,255,.6)')
+    }));
+    const col = st => s.adminOrders.filter(k => k.status === st).map(k => ({
+      id:k.id, table:'Mesa ' + k.table, items:k.itemsStr, min:k.minAgo + ' min',
       obs:k.obs || '', hasObs:!!k.obs,
       btn:st === 'Na Fila' ? 'Iniciar preparo' : 'Marcar como pronto',
       showBtn:st !== 'Pronto',
-      advance:() => {
-        const next = st === 'Na Fila' ? 'Em Preparo' : 'Pronto';
-        this.setState(x => ({kitchen:x.kitchen.map(y => y.id === k.id ? Object.assign({}, y, {status:next}) : y),
-          order:x.order && x.order.id === k.id ? Object.assign({}, x.order, {status:next}) : x.order}));
-      },
-      deliver:() => this.setState(x => ({kitchen:x.kitchen.filter(y => y.id !== k.id),
-        order:x.order && x.order.id === k.id ? Object.assign({}, x.order, {status:'Entregue'}) : x.order}))
+      advance:() => this.advanceOrderStatus(k.apiId, st === 'Na Fila' ? 'Em Preparo' : 'Pronto'),
+      deliver:() => this.advanceOrderStatus(k.apiId, 'Entregue')
     }));
     v.kQueue = col('Na Fila'); v.kPrep = col('Em Preparo'); v.kReady = col('Pronto');
     v.nQueue = v.kQueue.length; v.nPrep = v.kPrep.length; v.nReady = v.kReady.length;
-    v.kitchenEmpty = s.kitchen.length === 0;
+    v.kitchenEmpty = (v.nQueue + v.nPrep + v.nReady) === 0;
+
     v.availRows = s.products.map(p => ({
       name:p.name, cat:p.cat, markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
       pill:p.soldOut ? 'Indisponível' : 'Disponível',
       pillStyle:'font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' + (p.soldOut ? '#FDEBEA;color:#E74C3C' : '#E7F7ED;color:#16A34A'),
-      toggle:() => this.setState(x => ({products:x.products.map(y => y.id === p.id ? Object.assign({}, y, {soldOut:!y.soldOut}) : y)})),
+      toggle:() => this.toggleProductSoldOut(p.id, !p.soldOut),
       swStyle:'width:40px;height:22px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (p.soldOut ? '#E74C3C' : '#16A34A'),
       knobStyle:'position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;left:' + (p.soldOut ? '20px' : '2px')
     }));
     v.soldOutCount = s.products.filter(p => p.soldOut).length + ' item(ns) sinalizado(s)';
-    const nObs = s.kitchen.filter(k => k.obs).length;
+    const nObs = s.adminOrders.filter(k => k.obs).length;
     v.obsCount = nObs === 1 ? '1 pedido com observação' : nObs + ' pedidos com observação';
     v.hasObsCount = nObs > 0;
 
-    v.topSellers = [['p2', 42], ['p1', 38], ['p4', 27], ['p6', 19]].map(([id, n]) => {
-      // Fallback defensivo: em produção os ids vêm do banco (numéricos), não mais
-      // dos ids mock 'p1'..'p8' — sem isso, o find() abaixo pode não achar nada
-      // (essa tela ainda não tem interface própria, mas o cálculo roda sempre).
-      const p = s.products.find(x => x.id === id) || s.products[0] || {name:'—', mark:'coco'};
-      return {name:p.name, n:String(n), markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark]};
-    });
+    v.topSellers = dash && dash.topProducts.length ? dash.topProducts.map(tp => {
+      const p = s.products.find(x => x.name === tp.name) || {name:tp.name, mark:'coco'};
+      return {name:p.name, n:String(tp.qty), markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark]};
+    }) : [];
+    v.hasTopSellers = v.topSellers.length > 0;
+
     const pfProd = s.products.find(p => p.name === s.pf.name) || {mark:'camarao'};
     v.pfMarkPath = MARK[pfProd.mark];
     v.pfPhotoStyle = photoBg(pfProd.mark, 'width:100%;height:112px;border-radius:10px;margin-bottom:11px;'); v.pfHasPhoto = !!PHOTO[pfProd.mark]; v.pfNoPhoto = !PHOTO[pfProd.mark];
@@ -1285,7 +1808,7 @@ class Component extends DCLogic {
     v.goCard = () => this.go('card');
     v.retryPay = () => this.go('payment');
     v.goOffline = () => this.go('offline');
-    v.goKanban = () => this.go('kanban', 'cozinha');
+    v.goKanban = () => this.go(v.kitchenEmpty ? 'queueEmpty' : 'kanban', 'cozinha');
     v.goUnavailable = () => this.go('unavailable', 'cozinha');
     return v;
   }
