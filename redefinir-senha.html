@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#FFF6EC; -webkit-font-smoothing:antialiased; }
+  a { color:#E8551E; text-decoration:none; }
+  a:hover { color:#FF6B35; }
+</style>
+</helmet>
+
+<div style="font-family:Inter,sans-serif;color:#1B2430;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(165deg,#142850 0%,#1F3B6B 34%,#FF6B35 130%)">
+  <div style="width:404px;max-width:100%;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 40px 80px -24px rgba(0,0,0,.6)">
+    <div style="background:linear-gradient(165deg,#142850 0%,#1F3B6B 40%,#FF6B35 100%);color:#fff;padding:26px 24px 22px;text-align:center">
+      <div style="display:flex;align-items:center;justify-content:center;gap:9px">
+        <svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" style="display:block"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
+        <span style="font:800 23px 'Baloo 2',sans-serif">SUNFOOD</span>
+      </div>
+      <div style="font:500 12.5px Inter,sans-serif;color:rgba(255,255,255,.78);margin-top:5px">Redefinir senha</div>
+    </div>
+
+    <sc-if value="{{ tokenMissing }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:26px 24px;display:flex;flex-direction:column;gap:14px;text-align:center">
+        <p style="font:400 13.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Este link de redefinição é inválido ou já foi usado. Peça um novo link na tela de login.</p>
+        <a href="index.html?login=1" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif">Voltar ao login</a>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tokenMissing }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:26px 24px;display:flex;flex-direction:column;gap:14px;text-align:center">
+          <p style="font:400 13.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Senha redefinida com sucesso. Já dá pra entrar com a nova senha.</p>
+          <a href="index.html?login=1" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif">Ir para o login</a>
+        </div>
+      </sc-if>
+      <sc-if value="{{ done }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:24px;display:flex;flex-direction:column;gap:14px">
+          <div>
+            <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Nova senha</span>
+            <input type="password" value="{{ newPass }}" onChange="{{ setNewPass }}" placeholder="Mínimo 6 caracteres" style="width:100%;box-sizing:border-box;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font:400 14px Inter,sans-serif;outline:none" style-focus="border-color:#FF6B35">
+          </div>
+          <div>
+            <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Confirmar nova senha</span>
+            <input type="password" value="{{ confirmPass }}" onChange="{{ setConfirmPass }}" placeholder="Repita a senha" style="width:100%;box-sizing:border-box;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font:400 14px Inter,sans-serif;outline:none" style-focus="border-color:#FF6B35">
+          </div>
+          <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ err }}</div>
+          </sc-if>
+          <div onClick="{{ submit }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer" style-hover="background:#E8551E">Redefinir senha</div>
+        </div>
+      </sc-if>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:520}}">
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:8787'
+  : 'https://sunfood-api.vercel.app';
+
+class Component extends DCLogic {
+  state = { accessToken:null, newPass:'', confirmPass:'', err:'', done:false };
+
+  componentDidMount(){
+    // O Supabase manda o token de recuperação no fragmento da URL
+    // (#access_token=...&type=recovery), não como query string.
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const token = hash.get('access_token');
+    if(hash.get('type') === 'recovery' && token) this.setState({accessToken:token});
+  }
+
+  async submit(){
+    const s = this.state;
+    if(s.newPass.length < 6) return this.setState({err:'A senha deve ter ao menos 6 caracteres.'});
+    if(s.newPass !== s.confirmPass) return this.setState({err:'As senhas não conferem.'});
+    try {
+      const res = await fetch(API_BASE + '/auth/update-password', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({accessToken:s.accessToken, newPassword:s.newPass})
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({err: data.error || 'Não foi possível redefinir a senha.'});
+      this.setState({done:true, err:''});
+    } catch(e){
+      this.setState({err:'Falha de conexão com o servidor.'});
+    }
+  }
+
+  renderVals(){
+    const s = this.state;
+    return {
+      tokenMissing: !s.accessToken,
+      newPass: s.newPass, confirmPass: s.confirmPass,
+      setNewPass: e => this.setState({newPass:e.target.value, err:''}),
+      setConfirmPass: e => this.setState({confirmPass:e.target.value, err:''}),
+      err: s.err, hasErr: !!s.err,
+      done: s.done,
+      submit: () => this.submit()
+    };
+  }
+}
+</script>
+</body>
+</html>

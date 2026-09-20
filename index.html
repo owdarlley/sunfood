@@ -178,6 +178,8 @@
         <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="sobre.html">Sobre nós</a></div>
         <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="contato.html">Fale conosco</a></div>
         <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="mapa.html">Mapa do sistema</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="termos.html">Termos de Uso</a></div>
+        <div style="font:400 13.5px Inter,sans-serif;margin-top:8px"><a href="privacidade.html">Política de Privacidade</a></div>
       </div>
       <div>
         <div style="font:600 11px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FF9166">Equipe</div>
@@ -228,6 +230,10 @@
           <sc-if value="{{ ok }}" hint-placeholder-val="{{ false }}">
             <a href="{{ dest }}" style="display:block;background:#142850;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif" style-hover="background:#1F3B6B;color:#fff">Continuar →</a>
           </sc-if>
+          <div style="display:flex;justify-content:space-between;font:600 12px Inter,sans-serif">
+            <a href="app-cliente.dc.html?module=cliente&amp;screen=forgot" style="color:#E8551E">Esqueci minha senha</a>
+            <a href="app-cliente.dc.html?module=cliente&amp;screen=signup" style="color:#E8551E">Criar conta</a>
+          </div>
           <div style="text-align:center;font:400 11.5px/1.7 Inter,sans-serif;color:#8A8F98">
             Contas de demonstração:<br>
             Cliente — <strong style="color:#E8551E">ana@email.com</strong> · <strong style="color:#E8551E">praia2026</strong><br>
@@ -243,7 +249,11 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showDepoimento&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Seções&quot;}}">
 const THUMB = (a, b) => 'width:52px;height:52px;flex-shrink:0;border-radius:12px;background:linear-gradient(140deg,' + a + ',' + b + ')';
-const API_BASE = 'http://localhost:8787';
+// Local (python -m http.server) fala com a API local; publicado (GitHub
+// Pages ou qualquer outro domínio) fala com a API de produção na Vercel.
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:8787'
+  : 'https://sunfood-api.vercel.app';
 
 class Component extends DCLogic {
   state = { loginOpen: false, email: '', pass: '', msg: '', ok: false, dest: '',

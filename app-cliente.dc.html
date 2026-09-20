@@ -296,20 +296,31 @@ a:hover{color:#FF6B35}
 
             <sc-if value="{{ is_pix }}" hint-placeholder-val="{{ false }}">
               <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <sc-if value="{{ pixSimulated }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:9px 12px;font:700 11px Inter,sans-serif;color:#B0791A;text-align:center">Ambiente de testes — nenhuma cobrança real foi gerada (configure o Mercado Pago no servidor)</div>
+                </sc-if>
                 <div style="background:#fff;border-radius:18px;padding:20px;text-align:center;border:1px solid #E9E1D6">
-                  <div style="width:164px;height:164px;margin:0 auto 12px;padding:7px;background:#fff;border-radius:12px;box-shadow:0 0 0 1px #E9E1D6,0 6px 16px -10px rgba(20,40,80,.4)"><svg viewBox="0 0 100 100" width="150" height="150" fill="#101826" shape-rendering="crispEdges" style="display:block"><rect width="100" height="100" fill="#fff"></rect><rect x="28" y="0" width="4" height="4"></rect><rect x="48" y="0" width="4" height="4"></rect><rect x="56" y="0" width="4" height="4"></rect><rect x="60" y="0" width="4" height="4"></rect><rect x="68" y="0" width="4" height="4"></rect><rect x="28" y="4" width="4" height="4"></rect><rect x="32" y="4" width="4" height="4"></rect><rect x="36" y="4" width="4" height="4"></rect><rect x="40" y="4" width="4" height="4"></rect><rect x="44" y="4" width="4" height="4"></rect><rect x="52" y="4" width="4" height="4"></rect><rect x="60" y="4" width="4" height="4"></rect><rect x="68" y="4" width="4" height="4"></rect><rect x="28" y="8" width="4" height="4"></rect><rect x="36" y="8" width="4" height="4"></rect><rect x="40" y="8" width="4" height="4"></rect><rect x="52" y="8" width="4" height="4"></rect><rect x="60" y="8" width="4" height="4"></rect><rect x="28" y="12" width="4" height="4"></rect><rect x="32" y="12" width="4" height="4"></rect><rect x="36" y="12" width="4" height="4"></rect><rect x="44" y="12" width="4" height="4"></rect><rect x="48" y="12" width="4" height="4"></rect><rect x="64" y="12" width="4" height="4"></rect><rect x="68" y="12" width="4" height="4"></rect><rect x="28" y="16" width="4" height="4"></rect><rect x="40" y="16" width="4" height="4"></rect><rect x="48" y="16" width="4" height="4"></rect><rect x="52" y="16" width="4" height="4"></rect><rect x="60" y="16" width="4" height="4"></rect><rect x="28" y="20" width="4" height="4"></rect><rect x="32" y="20" width="4" height="4"></rect><rect x="36" y="20" width="4" height="4"></rect><rect x="52" y="20" width="4" height="4"></rect><rect x="68" y="20" width="4" height="4"></rect><rect x="28" y="24" width="4" height="4"></rect><rect x="32" y="24" width="4" height="4"></rect><rect x="44" y="24" width="4" height="4"></rect><rect x="48" y="24" width="4" height="4"></rect><rect x="52" y="24" width="4" height="4"></rect><rect x="56" y="24" width="4" height="4"></rect><rect x="64" y="24" width="4" height="4"></rect><rect x="68" y="24" width="4" height="4"></rect><rect x="4" y="28" width="4" height="4"></rect><rect x="16" y="28" width="4" height="4"></rect><rect x="20" y="28" width="4" height="4"></rect><rect x="44" y="28" width="4" height="4"></rect><rect x="52" y="28" width="4" height="4"></rect><rect x="60" y="28" width="4" height="4"></rect><rect x="76" y="28" width="4" height="4"></rect><rect x="80" y="28" width="4" height="4"></rect><rect x="92" y="28" width="4" height="4"></rect><rect x="96" y="28" width="4" height="4"></rect><rect x="0" y="32" width="4" height="4"></rect><rect x="4" y="32" width="4" height="4"></rect><rect x="20" y="32" width="4" height="4"></rect><rect x="28" y="32" width="4" height="4"></rect><rect x="36" y="32" width="4" height="4"></rect><rect x="52" y="32" width="4" height="4"></rect><rect x="56" y="32" width="4" height="4"></rect><rect x="60" y="32" width="4" height="4"></rect><rect x="80" y="32" width="4" height="4"></rect><rect x="92" y="32" width="4" height="4"></rect><rect x="0" y="36" width="4" height="4"></rect><rect x="16" y="36" width="4" height="4"></rect><rect x="28" y="36" width="4" height="4"></rect><rect x="36" y="36" width="4" height="4"></rect><rect x="40" y="36" width="4" height="4"></rect><rect x="44" y="36" width="4" height="4"></rect><rect x="52" y="36" width="4" height="4"></rect><rect x="56" y="36" width="4" height="4"></rect><rect x="60" y="36" width="4" height="4"></rect><rect x="80" y="36" width="4" height="4"></rect><rect x="84" y="36" width="4" height="4"></rect><rect x="88" y="36" width="4" height="4"></rect><rect x="92" y="36" width="4" height="4"></rect><rect x="8" y="40" width="4" height="4"></rect><rect x="20" y="40" width="4" height="4"></rect><rect x="28" y="40" width="4" height="4"></rect><rect x="40" y="40" width="4" height="4"></rect><rect x="44" y="40" width="4" height="4"></rect><rect x="48" y="40" width="4" height="4"></rect><rect x="52" y="40" width="4" height="4"></rect><rect x="68" y="40" width="4" height="4"></rect><rect x="72" y="40" width="4" height="4"></rect><rect x="76" y="40" width="4" height="4"></rect><rect x="92" y="40" width="4" height="4"></rect><rect x="0" y="44" width="4" height="4"></rect><rect x="4" y="44" width="4" height="4"></rect><rect x="8" y="44" width="4" height="4"></rect><rect x="12" y="44" width="4" height="4"></rect><rect x="32" y="44" width="4" height="4"></rect><rect x="40" y="44" width="4" height="4"></rect><rect x="44" y="44" width="4" height="4"></rect><rect x="56" y="44" width="4" height="4"></rect><rect x="68" y="44" width="4" height="4"></rect><rect x="72" y="44" width="4" height="4"></rect><rect x="80" y="44" width="4" height="4"></rect><rect x="92" y="44" width="4" height="4"></rect><rect x="4" y="48" width="4" height="4"></rect><rect x="16" y="48" width="4" height="4"></rect><rect x="20" y="48" width="4" height="4"></rect><rect x="24" y="48" width="4" height="4"></rect><rect x="32" y="48" width="4" height="4"></rect><rect x="36" y="48" width="4" height="4"></rect><rect x="44" y="48" width="4" height="4"></rect><rect x="52" y="48" width="4" height="4"></rect><rect x="56" y="48" width="4" height="4"></rect><rect x="60" y="48" width="4" height="4"></rect><rect x="64" y="48" width="4" height="4"></rect><rect x="76" y="48" width="4" height="4"></rect><rect x="84" y="48" width="4" height="4"></rect><rect x="92" y="48" width="4" height="4"></rect><rect x="96" y="48" width="4" height="4"></rect><rect x="4" y="52" width="4" height="4"></rect><rect x="8" y="52" width="4" height="4"></rect><rect x="12" y="52" width="4" height="4"></rect><rect x="16" y="52" width="4" height="4"></rect><rect x="20" y="52" width="4" height="4"></rect><rect x="32" y="52" width="4" height="4"></rect><rect x="40" y="52" width="4" height="4"></rect><rect x="44" y="52" width="4" height="4"></rect><rect x="56" y="52" width="4" height="4"></rect><rect x="60" y="52" width="4" height="4"></rect><rect x="64" y="52" width="4" height="4"></rect><rect x="68" y="52" width="4" height="4"></rect><rect x="80" y="52" width="4" height="4"></rect><rect x="84" y="52" width="4" height="4"></rect><rect x="88" y="52" width="4" height="4"></rect><rect x="92" y="52" width="4" height="4"></rect><rect x="96" y="52" width="4" height="4"></rect><rect x="8" y="56" width="4" height="4"></rect><rect x="16" y="56" width="4" height="4"></rect><rect x="28" y="56" width="4" height="4"></rect><rect x="32" y="56" width="4" height="4"></rect><rect x="36" y="56" width="4" height="4"></rect><rect x="40" y="56" width="4" height="4"></rect><rect x="44" y="56" width="4" height="4"></rect><rect x="60" y="56" width="4" height="4"></rect><rect x="72" y="56" width="4" height="4"></rect><rect x="76" y="56" width="4" height="4"></rect><rect x="80" y="56" width="4" height="4"></rect><rect x="88" y="56" width="4" height="4"></rect><rect x="92" y="56" width="4" height="4"></rect><rect x="96" y="56" width="4" height="4"></rect><rect x="4" y="60" width="4" height="4"></rect><rect x="36" y="60" width="4" height="4"></rect><rect x="48" y="60" width="4" height="4"></rect><rect x="52" y="60" width="4" height="4"></rect><rect x="56" y="60" width="4" height="4"></rect><rect x="60" y="60" width="4" height="4"></rect><rect x="64" y="60" width="4" height="4"></rect><rect x="72" y="60" width="4" height="4"></rect><rect x="76" y="60" width="4" height="4"></rect><rect x="96" y="60" width="4" height="4"></rect><rect x="0" y="64" width="4" height="4"></rect><rect x="4" y="64" width="4" height="4"></rect><rect x="20" y="64" width="4" height="4"></rect><rect x="28" y="64" width="4" height="4"></rect><rect x="36" y="64" width="4" height="4"></rect><rect x="40" y="64" width="4" height="4"></rect><rect x="44" y="64" width="4" height="4"></rect><rect x="48" y="64" width="4" height="4"></rect><rect x="56" y="64" width="4" height="4"></rect><rect x="60" y="64" width="4" height="4"></rect><rect x="64" y="64" width="4" height="4"></rect><rect x="68" y="64" width="4" height="4"></rect><rect x="72" y="64" width="4" height="4"></rect><rect x="80" y="64" width="4" height="4"></rect><rect x="92" y="64" width="4" height="4"></rect><rect x="0" y="68" width="4" height="4"></rect><rect x="4" y="68" width="4" height="4"></rect><rect x="12" y="68" width="4" height="4"></rect><rect x="16" y="68" width="4" height="4"></rect><rect x="28" y="68" width="4" height="4"></rect><rect x="32" y="68" width="4" height="4"></rect><rect x="36" y="68" width="4" height="4"></rect><rect x="44" y="68" width="4" height="4"></rect><rect x="52" y="68" width="4" height="4"></rect><rect x="76" y="68" width="4" height="4"></rect><rect x="88" y="68" width="4" height="4"></rect><rect x="96" y="68" width="4" height="4"></rect><rect x="28" y="72" width="4" height="4"></rect><rect x="32" y="72" width="4" height="4"></rect><rect x="64" y="72" width="4" height="4"></rect><rect x="72" y="72" width="4" height="4"></rect><rect x="76" y="72" width="4" height="4"></rect><rect x="84" y="72" width="4" height="4"></rect><rect x="88" y="72" width="4" height="4"></rect><rect x="32" y="76" width="4" height="4"></rect><rect x="36" y="76" width="4" height="4"></rect><rect x="40" y="76" width="4" height="4"></rect><rect x="44" y="76" width="4" height="4"></rect><rect x="64" y="76" width="4" height="4"></rect><rect x="28" y="80" width="4" height="4"></rect><rect x="32" y="80" width="4" height="4"></rect><rect x="40" y="80" width="4" height="4"></rect><rect x="44" y="80" width="4" height="4"></rect><rect x="60" y="80" width="4" height="4"></rect><rect x="64" y="80" width="4" height="4"></rect><rect x="76" y="80" width="4" height="4"></rect><rect x="88" y="80" width="4" height="4"></rect><rect x="40" y="84" width="4" height="4"></rect><rect x="68" y="84" width="4" height="4"></rect><rect x="72" y="84" width="4" height="4"></rect><rect x="80" y="84" width="4" height="4"></rect><rect x="84" y="84" width="4" height="4"></rect><rect x="88" y="84" width="4" height="4"></rect><rect x="92" y="84" width="4" height="4"></rect><rect x="96" y="84" width="4" height="4"></rect><rect x="28" y="88" width="4" height="4"></rect><rect x="32" y="88" width="4" height="4"></rect><rect x="44" y="88" width="4" height="4"></rect><rect x="48" y="88" width="4" height="4"></rect><rect x="68" y="88" width="4" height="4"></rect><rect x="76" y="88" width="4" height="4"></rect><rect x="92" y="88" width="4" height="4"></rect><rect x="28" y="92" width="4" height="4"></rect><rect x="56" y="92" width="4" height="4"></rect><rect x="60" y="92" width="4" height="4"></rect><rect x="80" y="92" width="4" height="4"></rect><rect x="84" y="92" width="4" height="4"></rect><rect x="88" y="92" width="4" height="4"></rect><rect x="92" y="92" width="4" height="4"></rect><rect x="96" y="92" width="4" height="4"></rect><rect x="36" y="96" width="4" height="4"></rect><rect x="40" y="96" width="4" height="4"></rect><rect x="44" y="96" width="4" height="4"></rect><rect x="48" y="96" width="4" height="4"></rect><rect x="52" y="96" width="4" height="4"></rect><rect x="56" y="96" width="4" height="4"></rect><rect x="68" y="96" width="4" height="4"></rect><rect x="88" y="96" width="4" height="4"></rect><rect x="92" y="96" width="4" height="4"></rect><rect x="96" y="96" width="4" height="4"></rect><rect x="0" y="0" width="28" height="28"></rect><rect x="4" y="4" width="20" height="20" fill="#fff"></rect><rect x="8" y="8" width="12" height="12"></rect><rect x="72" y="0" width="28" height="28"></rect><rect x="76" y="4" width="20" height="20" fill="#fff"></rect><rect x="80" y="8" width="12" height="12"></rect><rect x="0" y="72" width="28" height="28"></rect><rect x="4" y="76" width="20" height="20" fill="#fff"></rect><rect x="8" y="80" width="12" height="12"></rect></svg></div>
+                  <sc-if value="{{ hasPixQrImg }}" hint-placeholder-val="{{ false }}">
+                    <img src="{{ pixQrImg }}" alt="QR Code PIX" style="width:164px;height:164px;margin:0 auto 12px;padding:7px;background:#fff;border-radius:12px;box-shadow:0 0 0 1px #E9E1D6,0 6px 16px -10px rgba(20,40,80,.4);display:block" />
+                  </sc-if>
+                  <sc-if value="{{ hasPixQrImg }}" hint-placeholder-val="{{ true }}">
+                    <div style="width:164px;height:164px;margin:0 auto 12px;border-radius:12px;background:#F4EFE7;display:flex;align-items:center;justify-content:center;color:#B7AFA2"><svg viewBox="0 0 48 48" width="60" height="60" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M24 6 42 24 24 42 6 24 24 6Z M17 24h14 M24 17v14"></path></svg></div>
+                  </sc-if>
                   <div style="font:500 11.5px Inter,sans-serif;color:#6B7280">Valor a pagar</div>
                   <div style="font:800 22px 'Baloo 2',sans-serif">{{ totalStr }}</div>
-                  <div style="font:600 11.5px Inter,sans-serif;color:#E74C3C;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px"><svg viewBox="0 0 48 48" width="14" height="14" fill="none" stroke="#E74C3C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M24 15v9l6 4"></path></svg>Expira em 14:32</div>
+                  <div style="font:600 11.5px Inter,sans-serif;color:#16A34A;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px"><svg viewBox="0 0 48 48" width="14" height="14" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" style="display:block"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0"></path><path d="M17 24l5 5 9-11" fill="none"></path></svg>Aguardando confirmação do pagamento…</div>
                 </div>
-                <div style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">Copiar código PIX</div>
-                <div style="font:400 11.5px/1.6 Inter,sans-serif;color:#9A9384;text-align:center">Abra o app do seu banco, escaneie o QR e confirme. A cozinha recebe o pedido automaticamente.</div>
-                <div onClick="{{ payPix }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Já paguei — confirmar</div>
+                <div onClick="{{ copyPix }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">Copiar código PIX</div>
+                <div style="font:400 11.5px/1.6 Inter,sans-serif;color:#9A9384;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola. A cozinha recebe o pedido assim que o pagamento for confirmado — automaticamente, sem precisar avisar aqui.</div>
+                <sc-if value="{{ pixSimulated }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ simulatePix }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Simular pagamento aprovado (teste)</div>
+                </sc-if>
               </div>
             </sc-if>
 
             <sc-if value="{{ is_card }}" hint-placeholder-val="{{ false }}">
               <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:11px">
+                <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:9px 12px;font:700 11px Inter,sans-serif;color:#B0791A;text-align:center">Ambiente de testes — pagamento por cartão ainda não processa cobrança real. Use PIX para pagamento de verdade.</div>
                 <div>
                   <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Número do cartão</span>
                   <input value="{{ cardNum }}" onChange="{{ setCardNum }}" placeholder="0000 0000 0000 0000" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
@@ -1018,7 +1029,11 @@ const PRODUCTS = [
 
 // API real (Fase 1): o front continua estático, mas agora fala com um backend
 // de verdade (Node/Express + SQLite) rodando localmente durante o desenvolvimento.
-const API_BASE = 'http://localhost:8787';
+// Local (python -m http.server) fala com a API local; publicado (GitHub
+// Pages ou qualquer outro domínio) fala com a API de produção na Vercel.
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:8787'
+  : 'https://sunfood-api.vercel.app';
 const SESSION_KEY = 'sunfood_session';
 
 function apiProductToState(p){
@@ -1029,14 +1044,18 @@ function apiProductToState(p){
 
 function orderFromApi(o){
   return {id:'#' + o.id, _apiId:o.id, table:o.tableNumber, total:o.total, status:o.status, obs:o.note || '',
+    paymentStatus:o.paymentStatus || 'pending',
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
 }
 
-function formatWhen(sqliteDatetime){
+// O Postgres/Supabase devolve timestamps ISO-8601 completos (com fuso) —
+// dá pra passar direto pro Date(), sem a gambiarra que o formato do SQLite
+// antigo ("YYYY-MM-DD HH:MM:SS", sem fuso) exigia.
+function formatWhen(isoDatetime){
   try {
-    const d = new Date(String(sqliteDatetime).replace(' ', 'T') + 'Z');
+    const d = new Date(isoDatetime);
     return d.toLocaleDateString('pt-BR') + ' · ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-  } catch(e){ return String(sqliteDatetime); }
+  } catch(e){ return String(isoDatetime); }
 }
 
 function historyEntryFromApi(o){
@@ -1044,8 +1063,8 @@ function historyEntryFromApi(o){
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty}))};
 }
 
-function minutesAgo(sqliteDatetime){
-  const ms = Date.now() - new Date(String(sqliteDatetime).replace(' ', 'T') + 'Z').getTime();
+function minutesAgo(isoDatetime){
+  const ms = Date.now() - new Date(isoDatetime).getTime();
   return Math.max(0, Math.round(ms / 60000));
 }
 
@@ -1133,6 +1152,7 @@ class Component extends DCLogic {
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
     payMethod:'pix', cardNum:'', cardName:'', cardExp:'', cardCvv:'', forceFail:false,
+    payingPix:false, pixQrCode:'', pixQrImg:'', pixSimulated:false,
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
     // restoreSession()/submitLogin(), não é mais um mock fixo.
@@ -1323,6 +1343,9 @@ class Component extends DCLogic {
       if(!res.ok) return;
       const data = await res.json();
       this.setState({order: orderFromApi(data)});
+      // Pagamento aprovado enquanto o cliente está vendo o QR: some com o QR
+      // e confirma automaticamente — ninguém precisa "avisar" que pagou.
+      if(this.state.screen === 'pix' && data.paymentStatus === 'approved') this.go('confirm');
     } catch(e){}
   }
 
@@ -1369,6 +1392,45 @@ class Component extends DCLogic {
       this.flash('Falha de conexão com o servidor.');
     }
   }
+
+  async submitSignup(){
+    const s = this.state;
+    const ok = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6;
+    if(!ok) return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'});
+    try {
+      const res = await fetch(API_BASE + '/auth/signup', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name:s.suName.trim(), email:s.suEmail.trim(), password:s.suPass})
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({suErr: data.error || 'Não foi possível criar a conta.'});
+      if(data.requiresEmailConfirmation){
+        this.flash('Conta criada — confirme seu e-mail antes de entrar.');
+        this.setState({suErr:'', screen:'login', email:s.suEmail.trim()});
+      } else {
+        // Alguns projetos Supabase confirmam o e-mail automaticamente — nesse
+        // caso já dá pra logar direto com a senha recém-criada.
+        this.setState({suErr:'', email:s.suEmail.trim(), pass:s.suPass});
+        await this.submitLogin();
+      }
+    } catch(e){
+      this.setState({suErr:'Falha de conexão com o servidor.'});
+    }
+  }
+
+  async submitForgotPassword(){
+    if(!/@/.test(this.state.fpEmail)) return;
+    try {
+      await fetch(API_BASE + '/auth/forgot-password', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:this.state.fpEmail})
+      });
+    } catch(e){}
+    // Sempre mostra a mesma confirmação, exista ou não o e-mail — o backend
+    // já responde assim de propósito, pra não revelar quais contas existem.
+    this.setState({fpSent:true});
+  }
+
   // roteamento pós-login: o site abre o app já no módulo e na tela do perfil
   aplicarRota(){
     const q = new URLSearchParams(window.location.search);
@@ -1389,13 +1451,6 @@ class Component extends DCLogic {
 
   subtotal(){ return this.state.cart.reduce((a,c) => a + c.price * c.qty, 0); }
 
-  setOrderStatus(st){
-    this.setState(s => ({
-      order: Object.assign({}, s.order, {status:st}),
-      kitchen: s.kitchen.map(k => k.id === (s.order && s.order.id) ? Object.assign({}, k, {status:st}) : k)
-    }));
-  }
-
   addToCart(p, qty, note){
     if(p.soldOut) return this.flash('Item indisponível — sinalizado pela cozinha.');
     this.setState(s => {
@@ -1408,7 +1463,9 @@ class Component extends DCLogic {
     this.flash(p.name + ' adicionado ao carrinho');
   }
 
-  async placeOrder(){
+  // Cria o pedido no servidor. Retorna o pedido criado (formato da API) ou
+  // null se falhou — quem chama decide pra onde navegar a partir disso.
+  async createOrderOnServer(){
     const itemNotes = this.state.cart.filter(c => c.note).map(c => c.name + ': ' + c.note);
     if(this.state.orderNote) itemNotes.push('Pedido: ' + this.state.orderNote);
     const note = itemNotes.join(' · ');
@@ -1422,12 +1479,72 @@ class Component extends DCLogic {
       const data = await res.json();
       if(!res.ok){
         this.flash(data.error || 'Não foi possível fechar o pedido.');
-        return;
+        return null;
       }
-      this.setState({order:orderFromApi(data), screen:'confirm', cart:[], orderNote:''});
+      this.setState({order:orderFromApi(data), cart:[], orderNote:''});
+      return data;
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
+      return null;
     }
+  }
+
+  // Cartão ainda não tem processamento real (tokenização de cartão é uma
+  // integração maior, fora do escopo desta fase — só o PIX processa
+  // pagamento de verdade). Fecha o pedido e confirma direto, deixando claro
+  // na tela que é um ambiente de testes.
+  async placeOrder(){
+    const created = await this.createOrderOnServer();
+    if(created) this.go('confirm');
+  }
+
+  // PIX de verdade: cria o pedido, gera a cobrança no Mercado Pago (ou o
+  // modo simulado, se MERCADOPAGO_ACCESS_TOKEN não estiver configurado no
+  // servidor) e mostra o QR — a confirmação vem do polling em
+  // componentDidMount(), nunca de o próprio cliente "avisar" que pagou.
+  async payWithPix(){
+    this.setState({payingPix:true});
+    const created = await this.createOrderOnServer();
+    if(!created){ this.setState({payingPix:false}); return; }
+    try {
+      const res = await fetch(API_BASE + '/payments/pix/' + created.id, {
+        method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
+      });
+      const data = await res.json();
+      if(!res.ok){
+        this.setState({payingPix:false});
+        this.flash(data.error || 'Não foi possível gerar o PIX.');
+        return;
+      }
+      this.setState({
+        payingPix:false, pixQrCode:data.qrCode || '', pixQrImg:data.qrCodeBase64 || '',
+        pixSimulated:!!data.simulated, screen:'pix'
+      });
+    } catch(e){
+      this.setState({payingPix:false});
+      this.flash('Falha de conexão com o servidor.');
+    }
+  }
+
+  // Só existe enquanto o pagamento roda em modo simulado (sem conta Mercado
+  // Pago configurada) — o próprio servidor recusa isso assim que
+  // MERCADOPAGO_ACCESS_TOKEN estiver de verdade configurado.
+  async simulatePixApproval(){
+    const o = this.state.order;
+    if(!o || !o._apiId) return;
+    try {
+      await fetch(API_BASE + '/payments/pix/' + o._apiId + '/simulate-approve', {
+        method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
+      });
+      this.pollOrder(o._apiId);
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  copyPixCode(){
+    const code = this.state.pixQrCode;
+    if(!code) return;
+    try { navigator.clipboard.writeText(code); this.flash('Código PIX copiado.'); }
+    catch(e){ this.flash('Não foi possível copiar automaticamente — selecione o código manualmente.'); }
   }
 
   renderVals(){
@@ -1548,7 +1665,7 @@ class Component extends DCLogic {
         (s.payMethod === k ? '#FF6B35;background:radial-gradient(circle,#FF6B35 40%,transparent 44%)' : '#E9E1D6')
     }));
     v.payLabel = 'Pagar ' + v.totalStr;
-    v.goPay = () => this.go(s.payMethod === 'card' ? 'card' : 'pix');
+    v.goPay = () => { if(s.payMethod === 'card') this.go('card'); else this.payWithPix(); };
 
     // card form
     v.cardNum = s.cardNum; v.cardName = s.cardName; v.cardExp = s.cardExp; v.cardCvv = s.cardCvv;
@@ -1563,7 +1680,15 @@ class Component extends DCLogic {
     v.failStyle = 'width:40px;height:22px;border-radius:100px;position:relative;flex-shrink:0;cursor:pointer;transition:background .2s;background:' + (s.forceFail ? '#E74C3C' : '#E9E1D6');
     v.knobStyle = 'position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;left:' + (s.forceFail ? '20px' : '2px');
     v.payCard = () => { if(!cardOk) return; if(s.forceFail) return this.go('payFail'); this.placeOrder(); };
-    v.payPix = () => { if(s.forceFail) return this.go('payFail'); this.placeOrder(); };
+
+    // pix
+    v.payingPix = !!s.payingPix;
+    v.pixQrCode = s.pixQrCode || '';
+    v.pixQrImg = s.pixQrImg || '';
+    v.hasPixQrImg = !!s.pixQrImg;
+    v.pixSimulated = !!s.pixSimulated;
+    v.copyPix = () => this.copyPixCode();
+    v.simulatePix = () => this.simulatePixApproval();
 
     // order / status
     const o = s.order;
@@ -1627,12 +1752,12 @@ class Component extends DCLogic {
     v.setSuPass = e => this.setState({suPass:e.target.value, suErr:''});
     v.suOk = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6;
     v.suBlocked = !v.suOk;
-    v.doSignup = () => { if(!v.suOk) return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'}); this.go('menu'); };
+    v.doSignup = () => this.submitSignup();
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
     v.setFp = e => this.setState({fpEmail:e.target.value});
     v.fpOk = /@/.test(s.fpEmail);
     v.fpBlocked = !v.fpOk;
-    v.sendFp = () => v.fpOk && this.setState({fpSent:true});
+    v.sendFp = () => v.fpOk && this.submitForgotPassword();
 
     // admin — tudo abaixo lê s.dashboard/s.opsMetrics/s.adminOrders, carregados
     // de verdade por loadAdminData() (nada é mock; adminLogin/adminForgot saíram
