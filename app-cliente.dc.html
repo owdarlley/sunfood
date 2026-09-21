@@ -87,12 +87,24 @@ a:hover{color:#FF6B35}
                     <input value="{{ suEmail }}" onChange="{{ setSuEmail }}" placeholder="voce@email.com" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
                   </div>
                   <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">WhatsApp / telefone</span>
+                    <input value="{{ suPhone }}" onChange="{{ setSuPhone }}" placeholder="(11) 91234-5678" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Data de nascimento</span>
+                    <input type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}" style="width:100%;box-sizing:border-box;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none;color:#1B2430" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div>
                     <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Senha</span>
                     <input type="password" value="{{ suPass }}" onChange="{{ setSuPass }}" placeholder="Mínimo 6 caracteres" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
                   </div>
                   <div>
                     <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Confirmar senha</span>
                     <input type="password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" placeholder="Repita a senha" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div onClick="{{ toggleSuTerms }}" style="display:flex;align-items:flex-start;gap:9px;cursor:pointer">
+                    <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:#FF6B35">
+                    <span style="font:500 11.5px/1.5 Inter,sans-serif;color:#6B7280">Li e aceito os <a href="termos.html" target="_blank" onClick="{{ stopProp }}" style="color:#E8551E;font-weight:600">Termos de Uso</a> e a <a href="privacidade.html" target="_blank" onClick="{{ stopProp }}" style="color:#E8551E;font-weight:600">Política de Privacidade</a> do Sunfood.</span>
                   </div>
                   <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}">
                     <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ suErr }}</div>
@@ -104,7 +116,6 @@ a:hover{color:#FF6B35}
                   <div onClick="{{ signInWithGoogle }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">
                     <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
                   </div>
-                  <div style="font:500 11px/1.5 Inter,sans-serif;color:#9A9384;text-align:center">Ao continuar você aceita os termos de uso e a política de privacidade do Sunfood.</div>
                   <div style="text-align:center;font:500 12px Inter,sans-serif;color:#6B7280;margin-top:auto">Já tem conta? <b onClick="{{ goLogin }}" style="color:#E8551E;cursor:pointer">Entrar</b></div>
                 </div>
               </div>
@@ -1053,6 +1064,17 @@ function orderFromApi(o){
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
 }
 
+// Idade mínima pra cadastro — checagem espelhada no backend (o cardápio vende
+// bebida alcoólica, então é validação real, não só UX).
+function isAdult(birthDateStr){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(birthDateStr || '')) return false;
+  const birth = new Date(birthDateStr + 'T00:00:00Z');
+  if(Number.isNaN(birth.getTime())) return false;
+  const limit = new Date();
+  limit.setUTCFullYear(limit.getUTCFullYear() - 18);
+  return birth.getTime() <= limit.getTime();
+}
+
 // O Postgres/Supabase devolve timestamps ISO-8601 completos (com fuso) —
 // dá pra passar direto pro Date(), sem a gambiarra que o formato do SQLite
 // antigo ("YYYY-MM-DD HH:MM:SS", sem fuso) exigia.
@@ -1151,7 +1173,7 @@ class Component extends DCLogic {
     module:'cliente', screen:'login',
     email:'ana@email.com', pass:'praia2026', loginErr:'',
     token:null, authUser:null, busy:null,
-    suName:'', suEmail:'', suPass:'', suPass2:'', suErr:'',
+    suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suBirth:'', suTerms:false, suErr:'',
     fpEmail:'', fpSent:false,
     cat:'Todos', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
@@ -1449,11 +1471,17 @@ class Component extends DCLogic {
       return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'});
     }
     if(s.suPass !== s.suPass2) return this.setState({suErr:'As senhas não conferem.'});
+    if(s.suPhone.replace(/\D/g, '').length < 10) return this.setState({suErr:'Informe um telefone/WhatsApp válido.'});
+    if(!isAdult(s.suBirth)) return this.setState({suErr:'É preciso ter 18 anos ou mais para se cadastrar.'});
+    if(!s.suTerms) return this.setState({suErr:'É preciso aceitar os termos de uso e a política de privacidade.'});
     this.setState({suErr:'', busy:'signup'});
     try {
       const res = await fetch(API_BASE + '/auth/signup', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name:s.suName.trim(), email:s.suEmail.trim(), password:s.suPass})
+        body:JSON.stringify({
+          name:s.suName.trim(), email:s.suEmail.trim(), password:s.suPass,
+          phone:s.suPhone.trim(), birthDate:s.suBirth, termsAccepted:s.suTerms
+        })
       });
       const data = await res.json();
       if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível criar a conta.'}); return; }
@@ -1822,11 +1850,17 @@ class Component extends DCLogic {
     v.doLogin = () => this.submitLogin();
     v.signInWithGoogle = () => this.signInWithGoogle();
     v.suName = s.suName; v.suEmail = s.suEmail; v.suPass = s.suPass; v.suPass2 = s.suPass2; v.suErr = s.suErr; v.hasSuErr = !!s.suErr;
+    v.suPhone = s.suPhone; v.suBirth = s.suBirth; v.suTerms = s.suTerms;
     v.setSuName = e => this.setState({suName:e.target.value, suErr:''});
     v.setSuEmail = e => this.setState({suEmail:e.target.value, suErr:''});
     v.setSuPass = e => this.setState({suPass:e.target.value, suErr:''});
     v.setSuPass2 = e => this.setState({suPass2:e.target.value, suErr:''});
-    v.suOk = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6 && s.suPass === s.suPass2;
+    v.setSuPhone = e => this.setState({suPhone:e.target.value, suErr:''});
+    v.setSuBirth = e => this.setState({suBirth:e.target.value, suErr:''});
+    v.toggleSuTerms = () => this.setState(st => ({suTerms:!st.suTerms, suErr:''}));
+    v.stopProp = e => e.stopPropagation();
+    v.suOk = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6 && s.suPass === s.suPass2
+      && s.suPhone.replace(/\D/g, '').length >= 10 && isAdult(s.suBirth) && s.suTerms;
     v.suBlocked = !v.suOk;
     v.doSignup = () => this.submitSignup();
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
