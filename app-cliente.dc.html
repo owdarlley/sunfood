@@ -25,11 +25,9 @@ a:hover{color:#FF6B35}
 </style>
 </helmet>
 
-<div style="display:flex;align-items:flex-start;justify-content:center;padding:0;position:relative;background:transparent">
+<div style="display:flex;align-items:flex-start;justify-content:center;padding:0;position:relative;background:transparent;min-height:100vh">
       <sc-if value="{{ isCliente }}" hint-placeholder-val="{{ true }}">
-      <div style="width:390px;flex-shrink:0;background:#0B0F1A;border-radius:46px;padding:10px;box-shadow:0 30px 60px -18px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07)">
-        <div style="background:#FFF6EC;border-radius:36px;overflow:hidden;height:766px;display:flex;flex-direction:column;position:relative">
-          <div style="{{ sbStyle }}"><span>9:41</span><svg viewBox="0 0 52 12" width="52" height="12" fill="currentColor" style="display:block"><rect x="0" y="7" width="2.6" height="5" rx="1"></rect><rect x="4.4" y="5" width="2.6" height="7" rx="1"></rect><rect x="8.8" y="2.8" width="2.6" height="9.2" rx="1"></rect><rect x="13.2" y="0" width="2.6" height="12" rx="1"></rect><path d="M22 4.4a7 7 0 0 1 8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><path d="M24.3 7.2a4 4 0 0 1 3.4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="26" cy="9.8" r="1.1"></circle><rect x="36" y="1.6" width="14" height="8.8" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.5"></rect><rect x="37.6" y="3.2" width="9" height="5.6" rx="1.4"></rect><rect x="50.6" y="4.4" width="1.4" height="3.2" rx="0.7"></rect></svg></div>
+      <div style="width:100%;max-width:480px;min-height:100vh;height:100vh;background:#FFF6EC;display:flex;flex-direction:column;position:relative">
 
           <sc-if value="{{ showHeader }}" hint-placeholder-val="{{ false }}">
             <div style="background:#FF6B35;color:#fff;padding:15px 18px;display:flex;align-items:center;gap:12px;font:700 16px 'Baloo 2',sans-serif;box-shadow:0 4px 14px -6px rgba(255,107,53,.7)">
@@ -62,12 +60,6 @@ a:hover{color:#FF6B35}
                   </sc-if>
                   <div onClick="{{ goForgot }}" style="text-align:right;font:600 12px Inter,sans-serif;color:#E8551E;cursor:pointer">Esqueci minha senha</div>
                   <div onClick="{{ doLogin }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65);transition:transform .12s" style-hover="transform:translateY(-1px)">Entrar</div>
-                  <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px Inter,sans-serif">
-                    <span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>ou<span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>
-                  </div>
-                  <div onClick="{{ goMenu }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">
-                    <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
-                  </div>
                   <div style="text-align:center;font:500 12px Inter,sans-serif;color:#6B7280;margin-top:auto">Não tem conta? <b onClick="{{ goSignup }}" style="color:#E8551E;cursor:pointer">Cadastre-se</b></div>
                 </div>
               </div>
@@ -96,12 +88,6 @@ a:hover{color:#FF6B35}
                     <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ suErr }}</div>
                   </sc-if>
                   <div onClick="{{ doSignup }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Criar minha conta</div>
-                  <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px Inter,sans-serif">
-                    <span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>ou<span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>
-                  </div>
-                  <div onClick="{{ goMenu }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">
-                    <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
-                  </div>
                   <div style="font:500 11px/1.5 Inter,sans-serif;color:#9A9384;text-align:center">Ao continuar você aceita os termos de uso e a política de privacidade do Sunfood.</div>
                   <div style="text-align:center;font:500 12px Inter,sans-serif;color:#6B7280;margin-top:auto">Já tem conta? <b onClick="{{ goLogin }}" style="color:#E8551E;cursor:pointer">Entrar</b></div>
                 </div>
@@ -585,7 +571,6 @@ a:hover{color:#FF6B35}
             </div>
           </sc-if>
         </div>
-      </div>
       </sc-if>
 
       <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
@@ -1575,8 +1560,6 @@ class Component extends DCLogic {
     v.hdrTitle = meta.t || ''; v.showHeader = !!meta.t;
     v.hdrBack = !!meta.back; v.onBack = () => meta.back && this.go(meta.back);
     v.showNav = !!meta.nav;
-    v.sbStyle = 'display:flex;justify-content:space-between;align-items:center;padding:14px 20px 6px;font:600 12px Inter,sans-serif;color:' +
-      (['login','signup','forgot'].indexOf(s.screen) >= 0 ? '#fff' : '#1B2430');
     v.navItems = [['menu','Cardápio','menu'],['status','Pedido','clock'],['history','Histórico','receipt'],['profile','Perfil','user']].map(([k, label, ic]) => ({
       key:k, label,
       icPath:UI[ic],
