@@ -90,6 +90,10 @@ a:hover{color:#FF6B35}
                     <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Senha</span>
                     <input type="password" value="{{ suPass }}" onChange="{{ setSuPass }}" placeholder="Mínimo 6 caracteres" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
                   </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Confirmar senha</span>
+                    <input type="password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" placeholder="Repita a senha" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
                   <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}">
                     <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ suErr }}</div>
                   </sc-if>
@@ -1147,7 +1151,7 @@ class Component extends DCLogic {
     module:'cliente', screen:'login',
     email:'ana@email.com', pass:'praia2026', loginErr:'',
     token:null, authUser:null, busy:null,
-    suName:'', suEmail:'', suPass:'', suErr:'',
+    suName:'', suEmail:'', suPass:'', suPass2:'', suErr:'',
     fpEmail:'', fpSent:false,
     cat:'Todos', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
@@ -1441,8 +1445,10 @@ class Component extends DCLogic {
   async submitSignup(){
     if(this.state.busy) return;
     const s = this.state;
-    const ok = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6;
-    if(!ok) return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'});
+    if(!(s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6)){
+      return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'});
+    }
+    if(s.suPass !== s.suPass2) return this.setState({suErr:'As senhas não conferem.'});
     this.setState({suErr:'', busy:'signup'});
     try {
       const res = await fetch(API_BASE + '/auth/signup', {
@@ -1815,11 +1821,12 @@ class Component extends DCLogic {
     v.setPass = e => this.setState({pass:e.target.value, loginErr:''});
     v.doLogin = () => this.submitLogin();
     v.signInWithGoogle = () => this.signInWithGoogle();
-    v.suName = s.suName; v.suEmail = s.suEmail; v.suPass = s.suPass; v.suErr = s.suErr; v.hasSuErr = !!s.suErr;
+    v.suName = s.suName; v.suEmail = s.suEmail; v.suPass = s.suPass; v.suPass2 = s.suPass2; v.suErr = s.suErr; v.hasSuErr = !!s.suErr;
     v.setSuName = e => this.setState({suName:e.target.value, suErr:''});
     v.setSuEmail = e => this.setState({suEmail:e.target.value, suErr:''});
     v.setSuPass = e => this.setState({suPass:e.target.value, suErr:''});
-    v.suOk = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6;
+    v.setSuPass2 = e => this.setState({suPass2:e.target.value, suErr:''});
+    v.suOk = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6 && s.suPass === s.suPass2;
     v.suBlocked = !v.suOk;
     v.doSignup = () => this.submitSignup();
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
