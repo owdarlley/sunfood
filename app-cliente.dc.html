@@ -59,7 +59,13 @@ a:hover{color:#FF6B35}
                     <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ loginErr }}</div>
                   </sc-if>
                   <div onClick="{{ goForgot }}" style="text-align:right;font:600 12px Inter,sans-serif;color:#E8551E;cursor:pointer">Esqueci minha senha</div>
-                  <div onClick="{{ doLogin }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65);transition:transform .12s" style-hover="transform:translateY(-1px)">Entrar</div>
+                  <div onClick="{{ doLogin }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65);transition:transform .12s;opacity:{{ loginBusyOpacity }}" style-hover="transform:translateY(-1px)">{{ loginBtnLabel }}</div>
+                  <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px Inter,sans-serif">
+                    <span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>ou<span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>
+                  </div>
+                  <div onClick="{{ signInWithGoogle }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">
+                    <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
+                  </div>
                   <div style="text-align:center;font:500 12px Inter,sans-serif;color:#6B7280;margin-top:auto">Não tem conta? <b onClick="{{ goSignup }}" style="color:#E8551E;cursor:pointer">Cadastre-se</b></div>
                 </div>
               </div>
@@ -87,7 +93,13 @@ a:hover{color:#FF6B35}
                   <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}">
                     <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ suErr }}</div>
                   </sc-if>
-                  <div onClick="{{ doSignup }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Criar minha conta</div>
+                  <div onClick="{{ doSignup }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65);opacity:{{ signupBusyOpacity }}" style-hover="transform:translateY(-1px)">{{ signupBtnLabel }}</div>
+                  <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px Inter,sans-serif">
+                    <span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>ou<span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>
+                  </div>
+                  <div onClick="{{ signInWithGoogle }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">
+                    <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
+                  </div>
                   <div style="font:500 11px/1.5 Inter,sans-serif;color:#9A9384;text-align:center">Ao continuar você aceita os termos de uso e a política de privacidade do Sunfood.</div>
                   <div style="text-align:center;font:500 12px Inter,sans-serif;color:#6B7280;margin-top:auto">Já tem conta? <b onClick="{{ goLogin }}" style="color:#E8551E;cursor:pointer">Entrar</b></div>
                 </div>
@@ -1020,6 +1032,10 @@ const API_BASE = (window.location.hostname === 'localhost' || window.location.ho
   ? 'http://localhost:8787'
   : 'https://sunfood-api-nine.vercel.app';
 const SESSION_KEY = 'sunfood_session';
+// URL pública do projeto Supabase — não é segredo (é a mesma que qualquer
+// client-side SDK do Supabase expõe), só é usada aqui pra mandar o navegador
+// direto pro endpoint de OAuth (/auth/v1/authorize) do "Entrar com Google".
+const SUPABASE_URL = 'https://gsbjffbbcxerucmvfjvh.supabase.co';
 
 function apiProductToState(p){
   return {id:p.id, cat:p.category, name:p.name, desc:p.description, price:p.price, mark:p.imageKey,
@@ -1130,7 +1146,7 @@ class Component extends DCLogic {
   state = {
     module:'cliente', screen:'login',
     email:'ana@email.com', pass:'praia2026', loginErr:'',
-    token:null, authUser:null,
+    token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suErr:'',
     fpEmail:'', fpSent:false,
     cat:'Todos', products:PRODUCTS.map(p => Object.assign({}, p)),
@@ -1153,7 +1169,7 @@ class Component extends DCLogic {
 
   componentDidMount(){
     this.aplicarRota();
-    this.restoreSession();
+    if(!this.handleGoogleCallback()) this.restoreSession();
     this.loadCatalog();
     // Enquanto há um pedido em aberto, consulta o status real no servidor a
     // cada poucos segundos (antes era uma simulação local por tempo decorrido;
@@ -1172,6 +1188,43 @@ class Component extends DCLogic {
     this.setState({token:saved.token, authUser:saved.user, email:saved.user.email});
     if(saved.user.role === 'cliente') this.loadHistory(saved.token);
     else this.loadAdminData();
+  }
+
+  // Entrar/cadastrar com Google de verdade: manda o navegador direto pro
+  // endpoint de OAuth do Supabase, que cuida da tela de consentimento do
+  // Google e devolve pra cá com um access_token real no #fragmento da URL.
+  signInWithGoogle(){
+    const redirectTo = window.location.href.split('#')[0];
+    window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
+  }
+
+  // Chamado em todo componentDidMount — se a URL tiver voltado do Google com
+  // um token no fragmento, completa o login; senão deixa o restoreSession()
+  // normal (localStorage) seguir o fluxo. Retorna true quando tratou o
+  // retorno do Google, pra não rodar os dois ao mesmo tempo.
+  handleGoogleCallback(){
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const accessToken = hash.get('access_token');
+    if(!accessToken) return false;
+    // Tira o token da barra de endereço antes de qualquer outra coisa — ele
+    // não deve ficar visível nem salvo no histórico do navegador.
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    this.completeGoogleLogin(accessToken);
+    return true;
+  }
+
+  async completeGoogleLogin(accessToken){
+    try {
+      const res = await fetch(API_BASE + '/auth/me', { headers:{Authorization:'Bearer ' + accessToken} });
+      const data = await res.json();
+      if(!res.ok){ this.flash(data.error || 'Não foi possível entrar com Google.'); return; }
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify({token:accessToken, user:data.user})); } catch(e){}
+      this.setState({token:accessToken, authUser:data.user, email:data.user.email});
+      this.loadHistory(accessToken);
+      this.go('menu');
+    } catch(e){
+      this.flash('Falha de conexão com o servidor.');
+    }
   }
 
   async loadCatalog(){
@@ -1335,22 +1388,25 @@ class Component extends DCLogic {
   }
 
   async submitLogin(){
+    if(this.state.busy) return;
     const email = this.state.email, password = this.state.pass;
     if(!email || !password) return this.setState({loginErr:'Preencha e-mail e senha.'});
-    this.setState({loginErr:''});
+    this.setState({loginErr:'', busy:'login'});
     try {
       const res = await fetch(API_BASE + '/auth/login', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({email, password})
       });
       const data = await res.json();
-      if(!res.ok) return this.setState({loginErr: data.error || 'E-mail ou senha inválidos.'});
+      if(!res.ok){ this.setState({loginErr: data.error || 'E-mail ou senha inválidos.'}); return; }
       try { localStorage.setItem(SESSION_KEY, JSON.stringify({token:data.token, user:data.user})); } catch(e){}
       this.setState({token:data.token, authUser:data.user, loginErr:''});
       this.loadHistory(data.token);
       this.go('menu');
     } catch(e){
       this.setState({loginErr:'Falha de conexão com o servidor. Confira se a API está rodando.'});
+    } finally {
+      this.setState({busy:null});
     }
   }
 
@@ -1363,8 +1419,10 @@ class Component extends DCLogic {
   }
 
   async cancelOrder(){
+    if(this.state.busy) return;
     const o = this.state.order;
     if(!o || !o._apiId) return;
+    this.setState({busy:'cancel'});
     try {
       const res = await fetch(API_BASE + '/orders/' + o._apiId + '/cancel', {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
@@ -1375,36 +1433,46 @@ class Component extends DCLogic {
       this.setState({order: orderFromApi(data), screen:'cancelDone'});
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
+    } finally {
+      this.setState({busy:null});
     }
   }
 
   async submitSignup(){
+    if(this.state.busy) return;
     const s = this.state;
     const ok = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6;
     if(!ok) return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'});
+    this.setState({suErr:'', busy:'signup'});
     try {
       const res = await fetch(API_BASE + '/auth/signup', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name:s.suName.trim(), email:s.suEmail.trim(), password:s.suPass})
       });
       const data = await res.json();
-      if(!res.ok) return this.setState({suErr: data.error || 'Não foi possível criar a conta.'});
+      if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível criar a conta.'}); return; }
       if(data.requiresEmailConfirmation){
         this.flash('Conta criada — confirme seu e-mail antes de entrar.');
         this.setState({suErr:'', screen:'login', email:s.suEmail.trim()});
       } else {
         // Alguns projetos Supabase confirmam o e-mail automaticamente — nesse
-        // caso já dá pra logar direto com a senha recém-criada.
-        this.setState({suErr:'', email:s.suEmail.trim(), pass:s.suPass});
+        // caso já dá pra logar direto com a senha recém-criada. Libera o
+        // busy antes, senão o guard do próprio submitLogin barraria a chamada.
+        this.setState({suErr:'', email:s.suEmail.trim(), pass:s.suPass, busy:null});
         await this.submitLogin();
+        return;
       }
     } catch(e){
       this.setState({suErr:'Falha de conexão com o servidor.'});
+    } finally {
+      this.setState({busy:null});
     }
   }
 
   async submitForgotPassword(){
+    if(this.state.busy) return;
     if(!/@/.test(this.state.fpEmail)) return;
+    this.setState({busy:'forgot'});
     try {
       await fetch(API_BASE + '/auth/forgot-password', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -1413,7 +1481,7 @@ class Component extends DCLogic {
     } catch(e){}
     // Sempre mostra a mesma confirmação, exista ou não o e-mail — o backend
     // já responde assim de propósito, pra não revelar quais contas existem.
-    this.setState({fpSent:true});
+    this.setState({fpSent:true, busy:null});
   }
 
   // roteamento pós-login: o site abre o app já no módulo e na tela do perfil
@@ -1479,8 +1547,14 @@ class Component extends DCLogic {
   // pagamento de verdade). Fecha o pedido e confirma direto, deixando claro
   // na tela que é um ambiente de testes.
   async placeOrder(){
-    const created = await this.createOrderOnServer();
-    if(created) this.go('confirm');
+    if(this.state.busy) return;
+    this.setState({busy:'order'});
+    try {
+      const created = await this.createOrderOnServer();
+      if(created) this.go('confirm');
+    } finally {
+      this.setState({busy:null});
+    }
   }
 
   // PIX de verdade: cria o pedido, gera a cobrança no Mercado Pago (ou o
@@ -1488,10 +1562,11 @@ class Component extends DCLogic {
   // servidor) e mostra o QR — a confirmação vem do polling em
   // componentDidMount(), nunca de o próprio cliente "avisar" que pagou.
   async payWithPix(){
-    this.setState({payingPix:true});
-    const created = await this.createOrderOnServer();
-    if(!created){ this.setState({payingPix:false}); return; }
+    if(this.state.busy) return;
+    this.setState({busy:'pix', payingPix:true});
     try {
+      const created = await this.createOrderOnServer();
+      if(!created){ this.setState({payingPix:false}); return; }
       const res = await fetch(API_BASE + '/payments/pix/' + created.id, {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
       });
@@ -1508,6 +1583,8 @@ class Component extends DCLogic {
     } catch(e){
       this.setState({payingPix:false});
       this.flash('Falha de conexão com o servidor.');
+    } finally {
+      this.setState({busy:null});
     }
   }
 
@@ -1515,14 +1592,17 @@ class Component extends DCLogic {
   // Pago configurada) — o próprio servidor recusa isso assim que
   // MERCADOPAGO_ACCESS_TOKEN estiver de verdade configurado.
   async simulatePixApproval(){
+    if(this.state.busy) return;
     const o = this.state.order;
     if(!o || !o._apiId) return;
+    this.setState({busy:'simPix'});
     try {
       await fetch(API_BASE + '/payments/pix/' + o._apiId + '/simulate-approve', {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
       });
       this.pollOrder(o._apiId);
     } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+    finally { this.setState({busy:null}); }
   }
 
   copyPixCode(){
@@ -1555,6 +1635,11 @@ class Component extends DCLogic {
       lblStyle:"font:700 13px/1.2 'Baloo 2',sans-serif;color:" + (s.module === k ? '#FFC9AE' : 'rgba(255,255,255,.75)'),
       subStyle:'font:500 9.5px Inter,sans-serif;color:rgba(255,255,255,.4)'
     }));
+
+    v.loginBtnLabel = s.busy === 'login' ? 'Entrando...' : 'Entrar';
+    v.loginBusyOpacity = s.busy === 'login' ? '.6' : '1';
+    v.signupBtnLabel = s.busy === 'signup' ? 'Criando conta...' : 'Criar minha conta';
+    v.signupBusyOpacity = s.busy === 'signup' ? '.6' : '1';
 
     const meta = META[s.screen] || {};
     v.hdrTitle = meta.t || ''; v.showHeader = !!meta.t;
@@ -1729,6 +1814,7 @@ class Component extends DCLogic {
     v.setEmail = e => this.setState({email:e.target.value, loginErr:''});
     v.setPass = e => this.setState({pass:e.target.value, loginErr:''});
     v.doLogin = () => this.submitLogin();
+    v.signInWithGoogle = () => this.signInWithGoogle();
     v.suName = s.suName; v.suEmail = s.suEmail; v.suPass = s.suPass; v.suErr = s.suErr; v.hasSuErr = !!s.suErr;
     v.setSuName = e => this.setState({suName:e.target.value, suErr:''});
     v.setSuEmail = e => this.setState({suEmail:e.target.value, suErr:''});
