@@ -152,7 +152,7 @@ a:hover{color:#FF6B35}
                 <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
                   <div style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:12px;padding:11px 13px;font:600 12px/1.45 Inter,sans-serif;color:#E74C3C;display:flex;gap:9px;align-items:flex-start"><svg viewBox="0 0 48 48" width="18" height="18" fill="none" stroke="#E74C3C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0;margin-top:1px"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M20 18v12 M28 18v12"></path></svg><span>Quiosque pausado pelo Admin. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
                 </sc-if>
-                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:12px;padding:11px 13px;font:500 13px Inter,sans-serif;color:#9A9384;display:flex;align-items:center;gap:9px"><svg viewBox="0 0 48 48" width="16" height="16" fill="none" stroke="#B7AFA2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M11 22a11 11 0 1 0 22 0a11 11 0 1 0-22 0 M30 30l9 9"></path></svg>Buscar no cardápio</div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:12px;padding:11px 13px;font:500 13px Inter,sans-serif;color:#9A9384;display:flex;align-items:center;gap:9px"><svg viewBox="0 0 48 48" width="16" height="16" fill="none" stroke="#B7AFA2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><path d="M11 22a11 11 0 1 0 22 0a11 11 0 1 0-22 0 M30 30l9 9"></path></svg><input value="{{ menuSearch }}" onChange="{{ setMenuSearch }}" placeholder="Buscar no cardápio" style="flex:1;min-width:0;border:none;outline:none;font:500 13px Inter,sans-serif;color:#1B2430;background:transparent"></div>
                 <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:2px">
                   <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
                     <div onClick="{{ c.go }}" style="{{ c.style }}">{{ c.c }}</div>
@@ -1175,7 +1175,7 @@ class Component extends DCLogic {
     token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suBirth:'', suTerms:false, suErr:'',
     fpEmail:'', fpSent:false,
-    cat:'Todos', products:PRODUCTS.map(p => Object.assign({}, p)),
+    cat:'Todos', menuSearch:'', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
     payMethod:'pix', cardNum:'', cardName:'', cardExp:'', cardCvv:'', forceFail:false,
@@ -1688,12 +1688,18 @@ class Component extends DCLogic {
     }));
 
     // menu
+    v.menuSearch = s.menuSearch;
+    v.setMenuSearch = e => this.setState({menuSearch:e.target.value});
     v.cats = ['Todos','Bebidas','Lanches','Pratos','Sobremesas'].map(c => ({
       c, go:() => this.setState({cat:c}),
       style:'font:700 12px Inter,sans-serif;padding:7px 14px;border-radius:100px;white-space:nowrap;cursor:pointer;border:1px solid ' +
         (s.cat === c ? '#FF6B35;background:#FF6B35;color:#fff' : '#E9E1D6;background:#fff;color:#6B7280')
     }));
-    v.menuItems = s.products.filter(p => s.cat === 'Todos' || p.cat === s.cat).map(p => ({
+    const menuQuery = s.menuSearch.trim().toLowerCase();
+    v.menuItems = s.products
+      .filter(p => s.cat === 'Todos' || p.cat === s.cat)
+      .filter(p => !menuQuery || p.name.toLowerCase().includes(menuQuery) || p.desc.toLowerCase().includes(menuQuery))
+      .map(p => ({
       name:p.name, desc:p.desc, markPath:MARK[p.mark], priceStr:f(p.price), soldOut:p.soldOut, avail:!p.soldOut,
       photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
       open:() => this.setState({selId:p.id, qty:1, note:'', screen:'product'}),
