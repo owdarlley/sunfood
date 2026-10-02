@@ -573,7 +573,7 @@ a:hover{color:#FF6B35}
               <div style="flex:1;padding:16px;display:flex;flex-direction:column">
                 <div style="display:flex;align-items:center;gap:13px;padding:4px 2px 16px;border-bottom:1px solid #E9E1D6">
                   <span style="{{ avatarStyle }}"></span>
-                  <div><div style="font:700 16px 'Baloo 2',sans-serif">Ana Souza</div><div style="font:400 11.5px Inter,sans-serif;color:#6B7280">ana@email.com</div></div>
+                  <div><div style="font:700 16px 'Baloo 2',sans-serif">{{ profileName }}</div><div style="font:400 11.5px Inter,sans-serif;color:#6B7280">{{ profileEmail }}</div></div>
                 </div>
                 <div onClick="{{ goLocation }}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="color:#E8551E">Localização do quiosque<span style="color:#C7BFB2">›</span></div>
                 <div onClick="{{ goHistory }}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="color:#E8551E">Meus pedidos<span style="color:#C7BFB2">›</span></div>
@@ -2091,6 +2091,8 @@ class Component extends DCLogic {
     v.goHistory = () => this.go(v.hasHistory ? 'history' : 'historyEmpty');
     v.goProfile = () => this.go('profile');
     v.avatarStyle = 'width:52px;height:52px;border-radius:50%;flex-shrink:0;display:block;box-shadow:0 0 0 2px #FFF6EC,0 0 0 4px #FF6B35;background-image:url(' + AVATAR + ');background-size:cover;background-position:center';
+    v.profileName = (s.authUser && s.authUser.name) || 'Ana Souza';
+    v.profileEmail = (s.authUser && s.authUser.email) || 'ana@email.com';
     v.goSplit = () => this.go('split');
     v.goLocation = () => this.go('location');
     v.goDelete = () => this.go('deleteAccount');
