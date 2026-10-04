@@ -573,7 +573,7 @@ a:hover{color:#FF6B35}
               <div style="flex:1;padding:16px;display:flex;flex-direction:column">
                 <div style="display:flex;align-items:center;gap:13px;padding:4px 2px 16px;border-bottom:1px solid #E9E1D6">
                   <span style="{{ avatarStyle }}"></span>
-                  <div><div style="font:700 16px 'Baloo 2',sans-serif">Ana Souza</div><div style="font:400 11.5px Inter,sans-serif;color:#6B7280">ana@email.com</div></div>
+                  <div><div style="font:700 16px 'Baloo 2',sans-serif">{{ profileName }}</div><div style="font:400 11.5px Inter,sans-serif;color:#6B7280">{{ profileEmail }}</div></div>
                 </div>
                 <div onClick="{{ goLocation }}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="color:#E8551E">Localização do quiosque<span style="color:#C7BFB2">›</span></div>
                 <div onClick="{{ goHistory }}" style="display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-bottom:1px solid #E9E1D6;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="color:#E8551E">Meus pedidos<span style="color:#C7BFB2">›</span></div>
@@ -762,6 +762,7 @@ a:hover{color:#FF6B35}
                   <input value="{{ pfPrice }}" onChange="{{ setPfPrice }}" placeholder="Preço (ex: 24.90)" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
                   <input value="{{ pfPortion }}" onChange="{{ setPfPortion }}" placeholder="Porção (ex: 300ml)" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
                   <input value="{{ pfPrepTime }}" onChange="{{ setPfPrepTime }}" placeholder="Tempo de preparo (ex: 10 min)" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
+                  <input value="{{ pfStock }}" onChange="{{ setPfStock }}" placeholder="Estoque (vazio = ilimitado)" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
                   <textarea value="{{ pfDesc }}" onChange="{{ setPfDesc }}" placeholder="Descrição" style="border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none;min-height:64px;resize:vertical"></textarea>
                   <sc-if value="{{ hasPfMsg }}" hint-placeholder-val="{{ false }}">
                     <div style="font:600 11.5px Inter,sans-serif;color:#E8551E">{{ pfMsg }}</div>
@@ -1093,9 +1094,12 @@ const SESSION_KEY = 'sunfood_session';
 // direto pro endpoint de OAuth (/auth/v1/authorize) do "Entrar com Google".
 const SUPABASE_URL = 'https://gsbjffbbcxerucmvfjvh.supabase.co';
 
+// Estoque controlado e zerado: o item fica esgotado até alguém repor o saldo.
+function noStock(p){ return p.stock != null && p.stock <= 0; }
+
 function apiProductToState(p){
   return {id:p.id, cat:p.category, name:p.name, desc:p.description, price:p.price, mark:p.imageKey,
-    soldOut:p.soldOut, long:p.longDescription, porcao:p.portion, tempo:p.prepTime, kcal:p.kcal,
+    soldOut:p.soldOut, stock:p.stockQty, long:p.longDescription, porcao:p.portion, tempo:p.prepTime, kcal:p.kcal,
     nota:p.rating, avaliacoes:p.reviewCount, ingredientes:p.ingredients, tags:p.tags};
 }
 
@@ -1212,7 +1216,7 @@ const META = {
 class Component extends DCLogic {
   state = {
     module:'cliente', screen:'login',
-    email:'ana@email.com', pass:'praia2026', loginErr:'',
+    email:'', pass:'', loginErr:'',
     token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suBirth:'', suTerms:false, suErr:'',
     fpEmail:'', fpSent:false,
@@ -1230,7 +1234,7 @@ class Component extends DCLogic {
     // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
     // opsMetrics), carregado em loadAdminData()/pollAdminData() — nada é mock.
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
-    pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:''}, pfMsg:'',
+    pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'',
     toast:''
   };
 
@@ -1384,8 +1388,13 @@ class Component extends DCLogic {
     const pf = this.state.pf;
     const price = Number(String(pf.price).replace(',', '.'));
     if(!pf.name.trim() || !price || price <= 0) return this.setState({pfMsg:'Preencha nome e um preço válido.'});
+    const stockTrim = String(pf.stock || '').trim();
+    if(stockTrim && (!/^\d+$/.test(stockTrim))) return this.setState({pfMsg:'Estoque deve ser um número inteiro (ou vazio p/ ilimitado).'});
     const body = {name:pf.name.trim(), description:pf.desc || '', longDescription:'', category:pf.cat,
       price, portion:pf.portion || '', prepTime:pf.prepTime || ''};
+    // Na edição, só manda o estoque se o admin mexeu no campo: senão o saldo
+    // carregado no formulário sobrescreveria as baixas dos pedidos feitos nesse meio-tempo.
+    if(!pf.id || stockTrim !== String(pf.stockOrig || '').trim()) body.stockQty = stockTrim ? Number(stockTrim) : null;
     try {
       const res = await fetch(API_BASE + '/products' + (pf.id ? '/' + pf.id : ''), {
         method: pf.id ? 'PUT' : 'POST',
@@ -1399,7 +1408,7 @@ class Component extends DCLogic {
         const exists = x.products.some(p => p.id === saved.id);
         const products = exists ? x.products.map(p => p.id === saved.id ? saved : p) : x.products.concat([saved]);
         return {products, pfMsg: pf.id ? 'Produto atualizado.' : 'Produto criado.',
-          pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:''}};
+          pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}};
       });
     } catch(e){ this.setState({pfMsg:'Falha de conexão com o servidor.'}); }
   }
@@ -1999,10 +2008,10 @@ class Component extends DCLogic {
         (s.pf.cat === cat ? 'background:#FF6B35;color:#fff' : 'background:#fff;border:1px solid #E9E1D6;color:#6B7280')
     }));
     v.pf = s.pf; v.pfName = s.pf.name; v.pfPrice = s.pf.price; v.pfDesc = s.pf.desc; v.pfCat = s.pf.cat;
-    v.pfPortion = s.pf.portion; v.pfPrepTime = s.pf.prepTime;
+    v.pfPortion = s.pf.portion; v.pfPrepTime = s.pf.prepTime; v.pfStock = s.pf.stock;
     v.setPf = key => e => this.setState(x => ({pf:Object.assign({}, x.pf, {[key]:e.target.value})}));
     v.setPfName = v.setPf('name'); v.setPfPrice = v.setPf('price'); v.setPfDesc = v.setPf('desc');
-    v.setPfPortion = v.setPf('portion'); v.setPfPrepTime = v.setPf('prepTime');
+    v.setPfPortion = v.setPf('portion'); v.setPfPrepTime = v.setPf('prepTime'); v.setPfStock = v.setPf('stock');
     v.setPfCat = e => this.setState(x => ({pf:Object.assign({}, x.pf, {cat:e.target.value})}));
     v.pfOk = !!(s.pf.name.trim() && Number(String(s.pf.price).replace(',', '.')) > 0);
     v.pfBlocked = !v.pfOk;
@@ -2010,13 +2019,13 @@ class Component extends DCLogic {
     v.pfFormTitle = v.pfEditing ? 'Editar produto' : 'Novo produto';
     v.savePf = () => this.saveProduct();
     v.pfMsg = s.pfMsg; v.hasPfMsg = !!s.pfMsg;
-    v.newProduct = () => this.setState({pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:''}, pfMsg:''});
+    v.newProduct = () => this.setState({pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:''});
     v.productRows = s.products.map(p => ({
       id:p.id, name:p.name, cat:p.cat, priceStr:'R$ ' + p.price.toFixed(2).replace('.', ','),
       markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
-      pill:p.soldOut ? 'Esgotado' : 'Disponível',
+      pill:noStock(p) ? 'Sem estoque' : p.soldOut ? 'Esgotado' : (p.stock != null ? 'Estoque: ' + p.stock : 'Disponível'),
       pillStyle:'font:700 9.5px Inter,sans-serif;padding:3px 9px;border-radius:100px;background:' + (p.soldOut ? '#FDEBEA;color:#E74C3C' : '#E7F7ED;color:#16A34A'),
-      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo}, pfMsg:''})
+      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : '', stockOrig:p.stock != null ? String(p.stock) : ''}, pfMsg:''})
     }));
 
     v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
@@ -2050,9 +2059,11 @@ class Component extends DCLogic {
 
     v.availRows = s.products.map(p => ({
       name:p.name, cat:p.cat, markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
-      pill:p.soldOut ? 'Indisponível' : 'Disponível',
+      pill:noStock(p) ? 'Sem estoque' : p.soldOut ? 'Indisponível' : (p.stock != null ? 'Disponível · estoque ' + p.stock : 'Disponível'),
       pillStyle:'font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' + (p.soldOut ? '#FDEBEA;color:#E74C3C' : '#E7F7ED;color:#16A34A'),
-      toggle:() => this.toggleProductSoldOut(p.id, !p.soldOut),
+      // Esgotado por estoque zerado não se resolve no interruptor (o PATCH só
+      // mexe no sinal manual): avisa onde repor em vez de não fazer nada.
+      toggle:() => noStock(p) ? this.flash('Sem estoque. Reponha o estoque em Produtos para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
       swStyle:'width:40px;height:22px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (p.soldOut ? '#E74C3C' : '#16A34A'),
       knobStyle:'position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;left:' + (p.soldOut ? '20px' : '2px')
     }));
@@ -2091,6 +2102,8 @@ class Component extends DCLogic {
     v.goHistory = () => this.go(v.hasHistory ? 'history' : 'historyEmpty');
     v.goProfile = () => this.go('profile');
     v.avatarStyle = 'width:52px;height:52px;border-radius:50%;flex-shrink:0;display:block;box-shadow:0 0 0 2px #FFF6EC,0 0 0 4px #FF6B35;background-image:url(' + AVATAR + ');background-size:cover;background-position:center';
+    v.profileName = (s.authUser && s.authUser.name) || 'Ana Souza';
+    v.profileEmail = (s.authUser && s.authUser.email) || 'ana@email.com';
     v.goSplit = () => this.go('split');
     v.goLocation = () => this.go('location');
     v.goDelete = () => this.go('deleteAccount');
