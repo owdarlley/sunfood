@@ -1094,6 +1094,9 @@ const SESSION_KEY = 'sunfood_session';
 // direto pro endpoint de OAuth (/auth/v1/authorize) do "Entrar com Google".
 const SUPABASE_URL = 'https://gsbjffbbcxerucmvfjvh.supabase.co';
 
+// Estoque controlado e zerado: o item fica esgotado até alguém repor o saldo.
+function noStock(p){ return p.stock != null && p.stock <= 0; }
+
 function apiProductToState(p){
   return {id:p.id, cat:p.category, name:p.name, desc:p.description, price:p.price, mark:p.imageKey,
     soldOut:p.soldOut, stock:p.stockQty, long:p.longDescription, porcao:p.portion, tempo:p.prepTime, kcal:p.kcal,
@@ -1388,7 +1391,10 @@ class Component extends DCLogic {
     const stockTrim = String(pf.stock || '').trim();
     if(stockTrim && (!/^\d+$/.test(stockTrim))) return this.setState({pfMsg:'Estoque deve ser um número inteiro (ou vazio p/ ilimitado).'});
     const body = {name:pf.name.trim(), description:pf.desc || '', longDescription:'', category:pf.cat,
-      price, portion:pf.portion || '', prepTime:pf.prepTime || '', stockQty: stockTrim ? Number(stockTrim) : null};
+      price, portion:pf.portion || '', prepTime:pf.prepTime || ''};
+    // Na edição, só manda o estoque se o admin mexeu no campo: senão o saldo
+    // carregado no formulário sobrescreveria as baixas dos pedidos feitos nesse meio-tempo.
+    if(!pf.id || stockTrim !== String(pf.stockOrig || '').trim()) body.stockQty = stockTrim ? Number(stockTrim) : null;
     try {
       const res = await fetch(API_BASE + '/products' + (pf.id ? '/' + pf.id : ''), {
         method: pf.id ? 'PUT' : 'POST',
@@ -2017,9 +2023,9 @@ class Component extends DCLogic {
     v.productRows = s.products.map(p => ({
       id:p.id, name:p.name, cat:p.cat, priceStr:'R$ ' + p.price.toFixed(2).replace('.', ','),
       markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
-      pill:p.soldOut ? 'Esgotado' : (p.stock != null ? 'Estoque: ' + p.stock : 'Disponível'),
+      pill:noStock(p) ? 'Sem estoque' : p.soldOut ? 'Esgotado' : (p.stock != null ? 'Estoque: ' + p.stock : 'Disponível'),
       pillStyle:'font:700 9.5px Inter,sans-serif;padding:3px 9px;border-radius:100px;background:' + (p.soldOut ? '#FDEBEA;color:#E74C3C' : '#E7F7ED;color:#16A34A'),
-      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : ''}, pfMsg:''})
+      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : '', stockOrig:p.stock != null ? String(p.stock) : ''}, pfMsg:''})
     }));
 
     v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
@@ -2053,9 +2059,11 @@ class Component extends DCLogic {
 
     v.availRows = s.products.map(p => ({
       name:p.name, cat:p.cat, markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
-      pill:p.soldOut ? 'Indisponível' : (p.stock != null ? 'Disponível · estoque ' + p.stock : 'Disponível'),
+      pill:noStock(p) ? 'Sem estoque' : p.soldOut ? 'Indisponível' : (p.stock != null ? 'Disponível · estoque ' + p.stock : 'Disponível'),
       pillStyle:'font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' + (p.soldOut ? '#FDEBEA;color:#E74C3C' : '#E7F7ED;color:#16A34A'),
-      toggle:() => this.toggleProductSoldOut(p.id, !p.soldOut),
+      // Esgotado por estoque zerado não se resolve no interruptor (o PATCH só
+      // mexe no sinal manual): avisa onde repor em vez de não fazer nada.
+      toggle:() => noStock(p) ? this.flash('Sem estoque. Reponha o estoque em Produtos para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
       swStyle:'width:40px;height:22px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (p.soldOut ? '#E74C3C' : '#16A34A'),
       knobStyle:'position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;left:' + (p.soldOut ? '20px' : '2px')
     }));
