@@ -291,7 +291,7 @@ a:hover{color:#FF6B35}
                   <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;color:#1B2430;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>Total a pagar</span><span>{{ totalStr }}</span></div>
                 </div>
                 <sc-if value="{{ minWarn }}" hint-placeholder-val="{{ false }}">
-                  <div style="background:#FFF3DE;color:#B0791A;font:600 11.5px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ Pedido mínimo de R$ 10,00 (RN01).</div>
+                  <div style="background:#FFF3DE;color:#B0791A;font:600 11.5px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ minWarnText }}</div>
                 </sc-if>
                 <div onClick="{{ goTable }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Ir para pagamento</div>
                 <div onClick="{{ goSplit }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">Dividir a conta com amigos</div>
@@ -798,6 +798,19 @@ a:hover{color:#FF6B35}
                     <div style="{{ pauseKnobStyle }}"></div>
                   </div>
                 </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+                  <div>
+                    <div style="font:700 14px 'Baloo 2',sans-serif">Pedido mínimo</div>
+                    <div style="font:400 12px/1.5 Inter,sans-serif;color:#6B7280;margin-top:2px">Atual: {{ minOrderStr }}. O cliente só consegue fechar o pedido se o subtotal (sem a taxa) chegar nesse valor. Use 0 para não ter mínimo.</div>
+                  </div>
+                  <div style="display:flex;gap:8px">
+                    <input value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" placeholder="Novo valor (ex: 15,00)" style="flex:1;border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
+                    <div onClick="{{ saveMinOrder }}" style="background:#FF6B35;color:#fff;border-radius:10px;padding:10px 16px;text-align:center;font:700 13px 'Baloo 2',sans-serif;cursor:pointer">Salvar</div>
+                  </div>
+                  <sc-if value="{{ hasMinOrderMsg }}" hint-placeholder-val="{{ false }}">
+                    <div style="font:600 11.5px Inter,sans-serif;color:#E8551E">{{ minOrderMsg }}</div>
+                  </sc-if>
+                </div>
               </div>
             </sc-if>
 
@@ -1180,7 +1193,7 @@ const SCREENS = {
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Dashboard Geral'],
     ['orders','Lista de Pedidos'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
-    ['pause','Pausar Quiosque'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
+    ['pause','Quiosque e pedido mínimo'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
     ['closeDay','Encerrar Dia / Relatório']
   ],
   cozinha:[
@@ -1231,6 +1244,8 @@ class Component extends DCLogic {
     history:[],
     tables:[1,2,3,4,5,6,7,8,9,10,11,12].map(n => ({n, active:!(n===7||n===11), seats:n%3===0?6:4})),
     paused:false, dayClosed:false,
+    // Pedido mínimo (R$) — vem de GET /kiosk-settings; 10 é só o padrão até carregar.
+    minOrder:10, minOrderInput:'', minOrderMsg:'',
     // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
     // opsMetrics), carregado em loadAdminData()/pollAdminData() — nada é mock.
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
@@ -1310,7 +1325,8 @@ class Component extends DCLogic {
       this.setState({
         products: products.map(apiProductToState),
         tables: tables.map(t => ({n:t.number, active:t.active, seats:t.seats})),
-        paused: kiosk.paused, dayClosed: kiosk.dayClosed
+        paused: kiosk.paused, dayClosed: kiosk.dayClosed,
+        minOrder: typeof kiosk.minOrder === 'number' ? kiosk.minOrder : this.state.minOrder
       });
     } catch(e){
       // API fora do ar: mantém os dados de exemplo já carregados no estado inicial.
@@ -1335,7 +1351,7 @@ class Component extends DCLogic {
         const updates = {};
         if(dashRes.ok) updates.dashboard = await dashRes.json();
         if(opsRes.ok) updates.opsMetrics = await opsRes.json();
-        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; }
+        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.minOrder === 'number') updates.minOrder = k.minOrder; }
         this.setState(updates);
       } catch(e){}
     }
@@ -1356,6 +1372,21 @@ class Component extends DCLogic {
       });
       if(res.ok){ const data = await res.json(); this.setState({paused:data.paused}); }
     } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  async saveMinOrder(){
+    const raw = String(this.state.minOrderInput || '').trim().replace(',', '.');
+    const value = Number(raw);
+    if(!raw || !isFinite(value) || value < 0) return this.setState({minOrderMsg:'Digite um valor válido (ex: 15,00).'});
+    try {
+      const res = await fetch(API_BASE + '/kiosk-settings/min-order', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({minOrder: Math.round(value * 100) / 100})
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({minOrderMsg: (data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
+      this.setState({minOrder:data.minOrder, minOrderInput:'', minOrderMsg:'Pedido mínimo atualizado.'});
+    } catch(e){ this.setState({minOrderMsg:'Falha de conexão com o servidor.'}); }
   }
 
   async toggleTableActive(number, active){
@@ -1800,9 +1831,10 @@ class Component extends DCLogic {
       inc:() => this.setState(x => { const cart = x.cart.slice(); cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty + 1}); return {cart}; }),
       dec:() => this.setState(x => { const cart = x.cart.slice(); if(cart[i].qty === 1) cart.splice(i, 1); else cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty - 1}); return {cart, screen:cart.length ? x.screen : 'cartEmpty'}; })
     }));
-    v.minOk = this.subtotal() >= 10;
+    v.minOk = this.subtotal() >= s.minOrder;
+    v.minWarnText = 'Pedido mínimo de ' + f(s.minOrder) + '.';
     v.minWarn = !v.minOk && v.hasCart;
-    v.goTable = () => { if(s.paused) return this.flash('Quiosque pausado no Admin — não é possível fechar o pedido.'); if(!v.minOk) return this.flash('Pedido mínimo de R$ 10,00 (RN01).'); this.go('table'); };
+    v.goTable = () => { if(s.paused) return this.flash('Quiosque pausado no Admin — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
 
     // table
     v.tableInput = s.tableInput; v.tableErr = s.tableErr; v.hasTableErr = !!s.tableErr;
@@ -1973,6 +2005,11 @@ class Component extends DCLogic {
     v.activeTables = s.tables.filter(t => t.active).length + ' de ' + s.tables.length + ' ativas';
 
     v.togglePause = () => this.togglePauseKiosk();
+    v.minOrderStr = f(s.minOrder);
+    v.minOrderInput = s.minOrderInput;
+    v.setMinOrderInput = e => this.setState({minOrderInput:e.target.value, minOrderMsg:''});
+    v.saveMinOrder = () => this.saveMinOrder();
+    v.minOrderMsg = s.minOrderMsg; v.hasMinOrderMsg = !!s.minOrderMsg;
     v.pauseLabel = s.paused ? 'Quiosque pausado' : 'Quiosque aberto';
     v.pauseSub = s.paused ? 'O cardápio do cliente exibe aviso e o checkout está bloqueado.' : 'Novos pedidos estão sendo aceitos normalmente.';
     v.pauseSwitchStyle = 'width:48px;height:26px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (s.paused ? '#E74C3C' : '#16A34A');

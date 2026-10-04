@@ -84,6 +84,11 @@ export const kioskPauseSchema = z.object({
   paused: z.boolean(),
 });
 
+// Em reais (como os preços); 0 = sem pedido mínimo.
+export const kioskMinOrderSchema = z.object({
+  minOrder: z.number().min(0, "Valor não pode ser negativo.").max(1000, "Valor máximo é R$ 1.000,00."),
+});
+
 export const orderStatusUpdateSchema = z.object({
   status: z.enum(["Em Preparo", "Pronto", "Entregue", "Cancelado"]),
 });

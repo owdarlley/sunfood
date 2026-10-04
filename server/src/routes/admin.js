@@ -1,14 +1,19 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { kioskPauseSchema, validate } from "../validation/schemas.js";
+import { minOrderCentsFrom } from "../business-rules.js";
+import { kioskPauseSchema, kioskMinOrderSchema, validate } from "../validation/schemas.js";
 
 export const adminRouter = Router();
+
+function settingsToApi(row) {
+  return { paused: !!row.paused, dayClosed: !!row.day_closed, minOrder: minOrderCentsFrom(row) / 100 };
+}
 
 adminRouter.get("/kiosk-settings", async (req, res) => {
   const { data, error } = await supabaseAdmin.from("kiosk_settings").select("*").eq("id", 1).single();
   if (error) return res.status(500).json({ error: "Erro ao carregar configurações do quiosque." });
-  res.json({ paused: !!data.paused, dayClosed: !!data.day_closed });
+  res.json(settingsToApi(data));
 });
 
 adminRouter.patch(
@@ -24,7 +29,24 @@ adminRouter.patch(
       .select()
       .single();
     if (error) return res.status(500).json({ error: "Não foi possível atualizar o quiosque." });
-    res.json({ paused: !!data.paused, dayClosed: !!data.day_closed });
+    res.json(settingsToApi(data));
+  }
+);
+
+adminRouter.patch(
+  "/kiosk-settings/min-order",
+  requireAuth,
+  requireRole("admin"),
+  validate(kioskMinOrderSchema),
+  async (req, res) => {
+    const { data, error } = await supabaseAdmin
+      .from("kiosk_settings")
+      .update({ min_order_cents: Math.round(req.body.minOrder * 100) })
+      .eq("id", 1)
+      .select()
+      .single();
+    if (error) return res.status(500).json({ error: "Não foi possível salvar o pedido mínimo." });
+    res.json(settingsToApi(data));
   }
 );
 
