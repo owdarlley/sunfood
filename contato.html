@@ -75,7 +75,7 @@
             </div>
             <div style="font:700 clamp(21px,2vw,26px)/1.25 'Baloo 2',sans-serif;margin-top:18px;text-wrap:pretty">Recebemos sua mensagem, {{ nomeEnviado }}</div>
             <p style="font:400 15px/1.7 Inter,sans-serif;color:#5C636E;margin:10px 0 0;text-wrap:pretty">Protocolo de atendimento <strong style="color:#1B2430">{{ protocolo }}</strong>. O pedido de <strong style="color:#1B2430">{{ motivoEnviado }}</strong> entra na fila de triagem da administração e a resposta chega no contato informado.</p>
-            <p style="font:400 13.5px/1.6 Inter,sans-serif;color:#8A8F98;margin:14px 0 0">Protótipo acadêmico: nenhuma mensagem é realmente transmitida ou armazenada.</p>
+            <p style="font:400 13.5px/1.6 Inter,sans-serif;color:#8A8F98;margin:14px 0 0">Guarde o protocolo: ele identifica sua mensagem caso precise falar com a equipe no quiosque.</p>
             <div onClick="{{ novaMensagem }}" style="display:inline-block;margin-top:24px;border:1.5px solid #E9E1D6;color:#142850;font:700 15px 'Baloo 2',sans-serif;padding:13px 24px;border-radius:12px;cursor:pointer" style-hover="border-color:#FF6B35">Enviar outra mensagem</div>
           </div>
         </sc-if>
@@ -123,8 +123,11 @@
                 </div>
               </div>
 
-              <div onClick="{{ enviar }}" style="background:#FF6B35;color:#fff;font:700 16px 'Baloo 2',sans-serif;padding:15px 28px;border-radius:13px;text-align:center;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,107,53,.6)" style-hover="background:#E8551E">Enviar mensagem</div>
-              <div style="font:400 12.5px/1.6 Inter,sans-serif;color:#8A8F98;text-align:center">Formulário de protótipo acadêmico. Nada é enviado para servidores externos.</div>
+              <sc-if value="{{ temErroEnvio }}" hint-placeholder-val="{{ false }}">
+                <div role="alert" style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:12px;padding:12px 15px;font:600 13.5px/1.5 Inter,sans-serif;color:#B42318">{{ erroEnvio }}</div>
+              </sc-if>
+              <div onClick="{{ enviar }}" style="{{ estiloBotao }}" style-hover="background:#E8551E">{{ textoBotao }}</div>
+              <div style="font:400 12.5px/1.6 Inter,sans-serif;color:#8A8F98;text-align:center">A mensagem fica registrada no sistema e é lida pela administração do quiosque.</div>
             </div>
           </div>
         </sc-if>
@@ -214,8 +217,36 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+// Local (python -m http.server) fala com a API local; publicado (GitHub
+// Pages ou qualquer outro domínio) fala com a API de produção na Vercel.
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:8787'
+  : 'https://sunfood-api-nine.vercel.app';
+
 class Component extends DCLogic {
-  state = { nome:'', contato:'', motivo:'Reservar mesa ou guarda-sol', mensagem:'', erros:{}, enviado:null };
+  state = { nome:'', contato:'', motivo:'Reservar mesa ou guarda-sol', mensagem:'', erros:{}, enviado:null, enviando:false, erroEnvio:'' };
+
+  async enviar() {
+    const s = this.state;
+    if (s.enviando) return;
+    const erros = this.validar();
+    if (erros.nome || erros.contato || erros.mensagem) return this.setState({ erros, erroEnvio:'' });
+    this.setState({ erros:{}, enviando:true, erroEnvio:'' });
+    try {
+      const res = await fetch(API_BASE + '/contact', {
+        method:'POST', headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ name:s.nome.trim(), contact:s.contato.trim(), reason:s.motivo, message:s.mensagem.trim() })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detalhe = body.details && body.details[0] ? body.details[0].message : '';
+        return this.setState({ enviando:false, erroEnvio: detalhe || body.error || 'Não foi possível enviar agora. Tente novamente.' });
+      }
+      this.setState({ enviando:false, enviado:{ nome:s.nome.trim().split(' ')[0], motivo:s.motivo, protocolo:body.protocol } });
+    } catch (e) {
+      this.setState({ enviando:false, erroEnvio:'Sem conexão com o servidor. Confira sua internet e tente de novo.' });
+    }
+  }
 
   validar() {
     const { nome, contato, mensagem } = this.state;
@@ -243,19 +274,11 @@ class Component extends DCLogic {
       motivoEnviado: s.enviado ? s.enviado.motivo.toLowerCase() : '',
       protocolo: s.enviado ? s.enviado.protocolo : '',
       motivos: ['Reservar mesa ou guarda-sol','Tirar dúvida sobre o cardápio','Dúvida sobre pagamento ou divisão de conta','Suporte com um pedido em andamento','Parceria com meu quiosque'],
-      enviar: () => {
-        const erros = this.validar();
-        if (erros.nome || erros.contato || erros.mensagem) return this.setState({ erros });
-        this.setState({
-          erros: {},
-          enviado: {
-            nome: s.nome.trim().split(' ')[0],
-            motivo: s.motivo,
-            protocolo: 'SF-' + String(Math.floor(Math.random()*9000)+1000)
-          }
-        });
-      },
-      novaMensagem: () => this.setState({ nome:'', contato:'', motivo:'Reservar mesa ou guarda-sol', mensagem:'', erros:{}, enviado:null }),
+      enviar: () => this.enviar(),
+      temErroEnvio: !!s.erroEnvio, erroEnvio: s.erroEnvio,
+      textoBotao: s.enviando ? 'Enviando…' : 'Enviar mensagem',
+      estiloBotao: "background:#FF6B35;color:#fff;font:700 16px 'Baloo 2',sans-serif;padding:15px 28px;border-radius:13px;text-align:center;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,107,53,.6)" + (s.enviando ? ';opacity:.7;cursor:wait' : ''),
+      novaMensagem: () => this.setState({ nome:'', contato:'', motivo:'Reservar mesa ou guarda-sol', mensagem:'', erros:{}, enviado:null, enviando:false, erroEnvio:'' }),
       canais: [
         { k: 'E-mail do projeto', v: 'darlley1997@gmail.com' },
         { k: 'WhatsApp do quiosque', v: '(13) 99999-0000' },

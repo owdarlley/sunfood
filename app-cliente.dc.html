@@ -866,10 +866,45 @@ a:hover{color:#FF6B35}
                       </div>
                     </sc-for>
                   </sc-if>
-                  <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ false }}">
+                  <sc-if value="{{ noPayRows }}" hint-placeholder-val="{{ false }}">
                     <div style="padding:30px;text-align:center;font:500 13px Inter,sans-serif;color:#9AA0A6">Nenhum pedido ainda.</div>
                   </sc-if>
                 </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ is_messages }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ msgFilters }}" as="mf" hint-placeholder-count="3">
+                    <div onClick="{{ mf.pick }}" style="{{ mf.style }}">{{ mf.label }}</div>
+                  </sc-for>
+                  <span style="flex:1"></span>
+                  <span style="font:500 11px Inter,sans-serif;color:#9AA0A6">Recebidas pelo Fale conosco do site</span>
+                </div>
+                <sc-if value="{{ hasMsgErr }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:10px;padding:10px 14px;font:600 12px Inter,sans-serif;color:#E74C3C">{{ msgErr }}</div>
+                </sc-if>
+                <sc-for list="{{ msgRows }}" as="m" hint-placeholder-count="3">
+                  <div style="{{ m.cardStyle }}">
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                      <span style="font:700 13px 'Baloo 2',sans-serif">{{ m.name }}</span>
+                      <span style="font:500 11.5px Inter,sans-serif;color:#6B7280">{{ m.contact }}</span>
+                      <span style="font:600 10.5px Inter,sans-serif;padding:3px 8px;border-radius:100px;background:#FFF1E8;color:#E8551E">{{ m.reason }}</span>
+                      <span style="flex:1"></span>
+                      <span style="font:500 11px Inter,sans-serif;color:#9AA0A6">{{ m.protocol }} · {{ m.when }}</span>
+                    </div>
+                    <div style="font:400 13px/1.55 Inter,sans-serif;color:#1B2430;margin-top:8px;white-space:pre-wrap">{{ m.message }}</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+                      <span style="{{ m.statusStyle }}">{{ m.statusLabel }}</span>
+                      <span style="flex:1"></span>
+                      <span onClick="{{ m.toggle }}" style="font:700 11px Inter,sans-serif;padding:6px 12px;border-radius:8px;cursor:pointer;{{ m.toggleStyle }}">{{ m.toggleLabel }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ noMsgRows }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:30px;text-align:center;font:500 13px Inter,sans-serif;color:#9AA0A6">{{ msgEmptyText }}</div>
+                </sc-if>
               </div>
             </sc-if>
 
@@ -1400,7 +1435,7 @@ const SCREENS = {
   ],
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Dashboard Geral'],
-    ['orders','Lista de Pedidos'],['payments','Pagamentos'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
+    ['orders','Lista de Pedidos'],['payments','Pagamentos'],['messages','Mensagens (Fale conosco)'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
     ['pause','Quiosque: pausa, cancelamento e pedido mínimo'],['reports','Relatórios'],['perfOps','Desempenho — Operação'],
     ['closeDay','Encerrar Dia / Relatório']
   ],
@@ -1464,6 +1499,8 @@ class Component extends DCLogic {
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
     // Relatórios (GET /reports/sales): período escolhido e último resultado.
     reportPeriod:'hoje', report:null, reportErr:'', reportAt:0,
+    // Mensagens do Fale conosco (GET /contact): lista, filtro e último erro.
+    contactMsgs:null, msgFilter:'novo', msgErr:'', msgAt:0,
     pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'',
     toast:''
   };
@@ -1650,7 +1687,32 @@ class Component extends DCLogic {
       } catch(e){}
       // Na tela de relatórios, atualiza sozinho a cada 30 s (não a cada 3 s).
       if(this.state.screen === 'reports' && Date.now() - this.state.reportAt > 30000) this.loadReport();
+      if(this.state.screen === 'messages' && Date.now() - this.state.msgAt > 30000) this.loadMessages();
     }
+  }
+
+  async loadMessages(){
+    this.setState({msgAt:Date.now()});
+    try {
+      const res = await fetch(API_BASE + '/contact', {headers:{Authorization:'Bearer ' + this.state.token}});
+      if(res.ok) this.setState({contactMsgs: await res.json(), msgErr:''});
+      else this.setState({msgErr:'Não foi possível carregar as mensagens. Tente de novo em instantes.'});
+    } catch(e){
+      this.setState({msgErr:'Sem conexão com o servidor para carregar as mensagens.'});
+    }
+  }
+
+  async setMessageStatus(id, status){
+    try {
+      const res = await fetch(API_BASE + '/contact/' + encodeURIComponent(id) + '/status', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({status})
+      });
+      if(!res.ok) return this.flash('Não foi possível atualizar a mensagem.');
+      const upd = await res.json();
+      this.setState(s => ({contactMsgs:(s.contactMsgs || []).map(m => m.id === upd.id ? upd : m)}));
+      this.flash(status === 'respondido' ? 'Mensagem marcada como respondida.' : 'Mensagem voltou para Novas.');
+    } catch(e){ this.flash('Sem conexão com o servidor.'); }
   }
 
   async loadReport(period){
@@ -1985,6 +2047,7 @@ class Component extends DCLogic {
   go(screen, module){
     this.setState(s => ({screen, module: module || s.module, toast:''}));
     if(screen === 'reports' && this.state.token) this.loadReport();
+    if(screen === 'messages' && this.state.token) this.loadMessages();
   }
   flash(msg){ this.setState({toast:msg}); clearTimeout(this._t); this._t = setTimeout(() => this.setState({toast:''}), 2600); }
 
@@ -2467,7 +2530,7 @@ class Component extends DCLogic {
         undo:() => this.markPaymentReceived(r.apiId, null)
       };
     });
-    v.hasPayRows = v.payRows.length > 0;
+    v.hasPayRows = v.payRows.length > 0; v.noPayRows = !v.hasPayRows;
 
     v.tableTiles = s.tables.map(t => ({
       n:('0' + t.n).slice(-2), seats:t.seats + ' lugares',
@@ -2560,6 +2623,32 @@ class Component extends DCLogic {
     })) : [];
     v.hasReportTop = v.reportTop.length > 0; v.noReportTop = !v.hasReportTop;
     v.reportEmptyText = rep ? 'Nenhuma venda paga nesse período.' : 'Carregando…';
+
+    // Mensagens do Fale conosco: novas primeiro no filtro padrão.
+    const msgs = s.contactMsgs || [];
+    const newCount = msgs.filter(m => m.status === 'novo').length;
+    v.msgFilters = [['novo','Novas (' + newCount + ')'],['respondido','Respondidas'],['todas','Todas']].map(([k, label]) => ({
+      label, pick:() => this.setState({msgFilter:k}),
+      style:'padding:7px 14px;border-radius:100px;font:600 12px Inter,sans-serif;cursor:pointer;' +
+        (s.msgFilter === k ? 'background:#FF6B35;color:#fff' : 'background:#fff;border:1px solid #E9E1D6;color:#6B7280')
+    }));
+    v.msgErr = s.msgErr; v.hasMsgErr = !!s.msgErr;
+    v.msgRows = msgs.filter(m => s.msgFilter === 'todas' || m.status === s.msgFilter).map(m => {
+      const isNew = m.status === 'novo';
+      const d = new Date(m.createdAt);
+      return {
+        name:m.name, contact:m.contact, reason:m.reason, message:m.message, protocol:m.protocol,
+        when:d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+        cardStyle:'background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 18px' + (isNew ? ';border-left:4px solid #FF6B35' : ''),
+        statusLabel:isNew ? 'Nova' : 'Respondida',
+        statusStyle:'font:700 10.5px Inter,sans-serif;padding:3px 9px;border-radius:100px;' + (isNew ? 'background:#FFF3DE;color:#B0791A' : 'background:#E7F6EC;color:#16A34A'),
+        toggleLabel:isNew ? 'Marcar como respondida' : 'Voltar para novas',
+        toggleStyle:isNew ? 'background:#16A34A;color:#fff' : 'border:1px solid #E9E1D6;color:#6B7280',
+        toggle:() => this.setMessageStatus(m.id, isNew ? 'respondido' : 'novo')
+      };
+    });
+    v.noMsgRows = v.msgRows.length === 0;
+    v.msgEmptyText = s.contactMsgs === null ? 'Carregando…' : (s.msgFilter === 'novo' ? 'Nenhuma mensagem nova.' : 'Nenhuma mensagem aqui.');
 
     const ops = s.opsMetrics;
     v.opsRows = ops ? [

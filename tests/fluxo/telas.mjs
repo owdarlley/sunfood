@@ -110,7 +110,7 @@ await step('fluxo da cozinha', async () => {
 });
 
 // 4. Admin: todas as telas renderizam
-for (const sc of ['dashboard', 'orders', 'productForm', 'tables', 'pause', 'reports', 'perfOps', 'closeDay']) {
+for (const sc of ['dashboard', 'orders', 'payments', 'messages', 'productForm', 'tables', 'pause', 'reports', 'perfOps', 'closeDay']) {
   await step(`admin ${sc}`, async () => {
     const page = await open(`app-cliente.dc.html?module=admin&screen=${sc}`, { role: 'admin', seed: true });
     const err = page.jsErrors.join(' | ') || await renderError(page);
@@ -137,6 +137,45 @@ await step('admin relatórios', async () => {
   check('relatórios: troca para 30 dias', page.api.db.lastReportPeriod === '30d' && t.includes('150 un.'));
   check('relatórios: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
   await page.close();
+});
+
+// 6. Fale conosco grava pela API e o admin lê e marca como respondida
+await step('fale conosco', async () => {
+  const page = await open('contato.html');
+  await page.fill('#c-nome', 'Bruna Lima');
+  await page.fill('#c-contato', 'abc');
+  await page.fill('#c-msg', 'Quero reservar uma mesa para 6 pessoas no sábado.');
+  await click(page, 'Enviar mensagem');
+  check('contato: contato inválido não envia', page.api.db.contacts.length === 0 && (await text(page)).includes('Informe um e-mail válido'));
+  await page.fill('#c-contato', '(13) 98888-7777');
+  await click(page, 'Enviar mensagem');
+  await page.waitForTimeout(400);
+  const t = await text(page);
+  check('contato: mensagem gravada pela API', page.api.db.contacts.length === 1 && page.api.db.contacts[0].name === 'Bruna Lima', JSON.stringify(page.api.db.contacts));
+  check('contato: mostra o protocolo devolvido pelo servidor', t.includes('Recebemos sua mensagem, Bruna') && t.includes('SF-100001'), t.slice(0, 400));
+  check('contato: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+  await page.close();
+
+  const fora = await open('contato.html');
+  await fora.unroute('http://localhost:8787/**');
+  await fora.route('http://localhost:8787/**', r => r.abort());
+  await fora.fill('#c-nome', 'Bruna'); await fora.fill('#c-contato', 'bruna@email.com'); await fora.fill('#c-msg', 'Mensagem com servidor fora do ar.');
+  await click(fora, 'Enviar mensagem');
+  check('contato: avisa quando o servidor está fora do ar', (await text(fora)).includes('Sem conexão com o servidor'));
+  await fora.close();
+
+  const admin = await open('app-cliente.dc.html?module=admin&screen=messages', { role: 'admin' });
+  admin.api.db.contacts.push({ id: 'c1', protocol: 'SF-100001', name: 'Bruna Lima', contact: '(13) 98888-7777', reason: 'Reservar mesa ou guarda-sol', message: 'Mesa para 6 no sábado.', status: 'novo', createdAt: new Date().toISOString() });
+  await click(admin, 'Pagamentos'); await click(admin, 'Mensagens (Fale conosco)');
+  let a = await text(admin);
+  check('admin mensagens: mostra a mensagem nova', a.includes('Bruna Lima') && a.includes('Mesa para 6 no sábado.') && a.includes('Novas (1)'), a.slice(0, 500));
+  await click(admin, 'Marcar como respondida');
+  a = await text(admin);
+  check('admin mensagens: marca como respondida', admin.api.db.contacts[0].status === 'respondido' && a.includes('Nenhuma mensagem nova.'));
+  await click(admin, 'Respondidas');
+  check('admin mensagens: aparece em Respondidas', (await text(admin)).includes('Bruna Lima'));
+  check('admin mensagens: sem erro de JavaScript', admin.jsErrors.length === 0 && !(await renderError(admin)), admin.jsErrors.join(' | '));
+  await admin.close();
 });
 
 await browser.close();
