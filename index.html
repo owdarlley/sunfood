@@ -267,8 +267,6 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showDepoimento&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Seções&quot;}}">
 const THUMB = (a, b) => 'width:52px;height:52px;flex-shrink:0;border-radius:12px;background:linear-gradient(140deg,' + a + ',' + b + ')';
-// URL pública do projeto Supabase (não é segredo), usada só pelo "Entrar com Google".
-const SUPABASE_URL = 'https://gsbjffbbcxerucmvfjvh.supabase.co';
 // Local (python -m http.server) fala com a API local; publicado (GitHub
 // Pages ou qualquer outro domínio) fala com a API de produção na Vercel.
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -409,13 +407,10 @@ class Component extends DCLogic {
       openLogin: () => this.setState({ loginOpen: true, msg: '', ok: false, dest: '' }),
       closeLogin: () => this.setState({ loginOpen: false }),
       stop: e => e.stopPropagation(),
-      // Mesmo fluxo do botão do app: o Supabase abre a tela do Google e devolve
-      // pro app do cliente com o token; lá ele cria a conta (se não existir),
-      // entra e pede telefone/nascimento/termos na primeira vez.
-      googleLogin: () => {
-        const app = new URL('app-cliente.dc.html', window.location.href).href;
-        window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(app);
-      },
+      // Abre o app do cliente já pedindo o login com Google (?google=1): é lá
+      // que fica o fluxo do Google, que cria a conta (se não existir), entra e
+      // pede telefone/CPF/nascimento/termos na primeira vez.
+      googleLogin: () => { window.location.href = 'app-cliente.dc.html?google=1'; },
       doLogin: async () => {
         const { email, pass } = this.state;
         if (!email || !pass) return this.setState({ msg: 'Preencha e-mail e senha.', ok: false });
