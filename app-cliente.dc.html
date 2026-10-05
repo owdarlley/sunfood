@@ -316,7 +316,7 @@ a:hover{color:#FF6B35}
                 <div style="background:#fff;border-radius:18px;padding:20px 18px;text-align:center;border:1.5px dashed #FF9166">
                   <span style="font:600 11px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.06em">Nº da mesa ou guarda-sol</span>
                   <input value="{{ tableInput }}" onChange="{{ setTable }}" placeholder="00" style="display:block;width:100%;border:none;outline:none;text-align:center;font:800 46px 'Baloo 2',sans-serif;color:#E8551E;background:transparent;margin:6px 0 4px">
-                  <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#9A9384">O número está na plaquinha de madeira do guarda-sol. Mesas ativas: 1 a 12, exceto 7 e 11.</div>
+                  <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#9A9384">O número está na plaquinha de madeira do guarda-sol. {{ activeTablesHint }}</div>
                 </div>
                 <sc-if value="{{ hasTableErr }}" hint-placeholder-val="{{ false }}">
                   <div style="background:#FDEBEA;color:#E74C3C;font:600 12px/1.45 Inter,sans-serif;padding:10px 12px;border-radius:11px;animation:sfup .25s ease">⚠ {{ tableErr }}</div>
@@ -1184,6 +1184,22 @@ function historyEntryFromApi(o){
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty}))};
 }
 
+// Lista as mesas ativas em faixas ("1 a 6, 8, 10 a 12") a partir do que
+// veio da API, em vez de um texto fixo que fica errado quando o Admin
+// ativa/desativa uma mesa.
+function activeTablesText(tables){
+  const nums = tables.filter(t => t.active).map(t => t.n).sort((a, b) => a - b);
+  if(!nums.length) return 'Nenhuma mesa ativa no momento.';
+  const parts = [];
+  for(let i = 0; i < nums.length; i++){
+    let j = i;
+    while(j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
+    parts.push(j > i ? nums[i] + ' a ' + nums[j] : String(nums[i]));
+    i = j;
+  }
+  return (nums.length === 1 ? 'Mesa ativa: ' : 'Mesas ativas: ') + parts.join(', ') + '.';
+}
+
 function minutesAgo(isoDatetime){
   const ms = Date.now() - new Date(isoDatetime).getTime();
   return Math.max(0, Math.round(ms / 60000));
@@ -1977,6 +1993,7 @@ class Component extends DCLogic {
     v.tableInput = s.tableInput; v.tableErr = s.tableErr; v.hasTableErr = !!s.tableErr;
     v.setTable = e => this.setState({tableInput:e.target.value.replace(/\D/g, '').slice(0, 2), tableErr:''});
     v.tableFilled = s.tableInput.length > 0;
+    v.activeTablesHint = activeTablesText(s.tables);
     v.confirmTable = () => {
       const n = parseInt(s.tableInput, 10);
       const t = s.tables.find(x => x.n === n);
