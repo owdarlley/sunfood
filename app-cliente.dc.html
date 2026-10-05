@@ -472,6 +472,9 @@ a:hover{color:#FF6B35}
                     <div style="font:500 12px/1.55 Inter,sans-serif;color:#8A6015">{{ orderObs }}</div>
                   </div>
                 </sc-if>
+                <sc-if value="{{ hasCancelHint }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:auto;font:500 11.5px Inter,sans-serif;color:#6B7280;text-align:center">{{ cancelHint }}</div>
+                </sc-if>
                 <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ false }}">
                   <div onClick="{{ askCancel }}" style="margin-top:auto;border:1.5px solid #F5C6C2;background:#fff;color:#E74C3C;border-radius:12px;padding:13px;text-align:center;font:700 13.5px Inter,sans-serif;cursor:pointer" style-hover="background:#FDEBEA">Cancelar pedido</div>
                 </sc-if>
@@ -506,7 +509,7 @@ a:hover{color:#FF6B35}
                 <div style="text-align:center">
                   <div style="width:74px;height:74px;border-radius:50%;background:#FFF3DE;display:flex;align-items:center;justify-content:center;margin:6px auto 10px"><svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="#F5A623" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M16 21h16a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4v-9a4 4 0 0 1 4-4Z M18 21v-5a6 6 0 0 1 12 0v5 M24 27v4"></path></svg></div>
                   <div style="font:700 19px 'Baloo 2',sans-serif">Não é mais possível cancelar</div>
-                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">O status do pedido é <b>{{ orderStatus }}</b>. Depois que a cozinha começa o preparo, o cancelamento pelo app é bloqueado (RN04).</p>
+                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">{{ cancelBlockedMsg }}</p>
                 </div>
                 <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px;font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280">Precisa de ajuda? Chame um atendente na mesa <b>{{ orderTable }}</b> ou fale com o balcão do quiosque.</div>
                 <div onClick="{{ goStatus }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer">Voltar ao acompanhamento</div>
@@ -783,6 +786,19 @@ a:hover{color:#FF6B35}
                   <div onClick="{{ togglePause }}" style="{{ pauseSwitchStyle }}">
                     <div style="{{ pauseKnobStyle }}"></div>
                   </div>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+                  <div>
+                    <div style="font:700 14px 'Baloo 2',sans-serif">Prazo para o cliente cancelar</div>
+                    <div style="font:400 12px/1.5 Inter,sans-serif;color:#6B7280;margin-top:2px">Atual: {{ cancelWindowStr }}. Depois desse tempo, contado a partir do pedido, o cliente não consegue mais cancelar pelo app. Em qualquer caso, o cancelamento só vale enquanto o pedido está na fila. Use 0 para não ter prazo.</div>
+                  </div>
+                  <div style="display:flex;gap:8px">
+                    <input value="{{ cancelWindowInput }}" onChange="{{ setCancelWindowInput }}" placeholder="Minutos (ex: 5)" inputmode="numeric" style="flex:1;border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
+                    <div onClick="{{ saveCancelWindow }}" style="background:#FF6B35;color:#fff;border-radius:10px;padding:10px 16px;text-align:center;font:700 13px 'Baloo 2',sans-serif;cursor:pointer">Salvar</div>
+                  </div>
+                  <sc-if value="{{ hasCancelWindowMsg }}" hint-placeholder-val="{{ false }}">
+                    <div style="font:600 11.5px Inter,sans-serif;color:#E8551E">{{ cancelWindowMsg }}</div>
+                  </sc-if>
                 </div>
               </div>
             </sc-if>
@@ -1094,7 +1110,7 @@ function apiProductToState(p){
 
 function orderFromApi(o){
   return {id:'#' + o.id, _apiId:o.id, table:o.tableNumber, total:o.total, status:o.status, obs:o.note || '',
-    paymentStatus:o.paymentStatus || 'pending', paymentMethod:o.paymentMethod || 'pix',
+    paymentStatus:o.paymentStatus || 'pending', paymentMethod:o.paymentMethod || 'pix', cancelDeadline:o.cancelDeadline || null,
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
 }
 
@@ -1184,7 +1200,7 @@ const SCREENS = {
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Dashboard Geral'],
     ['orders','Lista de Pedidos'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
-    ['pause','Pausar Quiosque'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
+    ['pause','Pausar Quiosque e Cancelamento'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
     ['closeDay','Encerrar Dia / Relatório']
   ],
   cozinha:[
@@ -1235,6 +1251,8 @@ class Component extends DCLogic {
     history:[],
     tables:[1,2,3,4,5,6,7,8,9,10,11,12].map(n => ({n, active:!(n===7||n===11), seats:n%3===0?6:4})),
     paused:false, dayClosed:false,
+    // Prazo (min) pro cliente cancelar — vem de GET /kiosk-settings; 0 = sem prazo.
+    cancelWindow:0, cancelWindowInput:'', cancelWindowMsg:'',
     // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
     // opsMetrics), carregado em loadAdminData()/pollAdminData() — nada é mock.
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
@@ -1340,7 +1358,7 @@ class Component extends DCLogic {
         const updates = {};
         if(dashRes.ok) updates.dashboard = await dashRes.json();
         if(opsRes.ok) updates.opsMetrics = await opsRes.json();
-        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; }
+        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; }
         this.setState(updates);
       } catch(e){}
     }
@@ -1361,6 +1379,22 @@ class Component extends DCLogic {
       });
       if(res.ok){ const data = await res.json(); this.setState({paused:data.paused}); }
     } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  async saveCancelWindow(){
+    const raw = String(this.state.cancelWindowInput || '').trim();
+    const minutes = Number(raw);
+    if(!raw || !Number.isInteger(minutes) || minutes < 0 || minutes > 120)
+      return this.setState({cancelWindowMsg:'Digite um número inteiro de minutos, de 0 a 120.'});
+    try {
+      const res = await fetch(API_BASE + '/kiosk-settings/cancel-window', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({minutes})
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({cancelWindowMsg:(data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
+      this.setState({cancelWindow:data.cancelWindowMinutes, cancelWindowInput:'', cancelWindowMsg:'Prazo de cancelamento atualizado.'});
+    } catch(e){ this.setState({cancelWindowMsg:'Falha de conexão com o servidor.'}); }
   }
 
   async toggleTableActive(number, active){
@@ -1920,7 +1954,17 @@ class Component extends DCLogic {
     v.orderItems = o ? o.items.map(it => ({n:it.n, v:f(it.v)})) : [];
     v.orderObs = o && o.obs ? o.obs : '';
     v.hasOrderObs = !!(o && o.obs);
-    v.canCancel = !!o && o.status === 'Na Fila';
+    // Prazo de cancelamento vem do servidor (cancelDeadline); sem prazo = null.
+    const deadlineMs = o && o.cancelDeadline ? new Date(o.cancelDeadline).getTime() : null;
+    const deadlinePassed = deadlineMs !== null && Date.now() > deadlineMs;
+    v.canCancel = !!o && o.status === 'Na Fila' && !deadlinePassed;
+    v.cancelHint = v.canCancel && deadlineMs !== null
+      ? 'Você pode cancelar até ' + new Date(deadlineMs).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) + '.'
+      : '';
+    v.hasCancelHint = !!v.cancelHint;
+    v.cancelBlockedMsg = o && o.status === 'Na Fila' && deadlinePassed
+      ? 'O prazo para cancelar pelo app já passou. O quiosque permite cancelar só nos primeiros minutos depois do pedido.'
+      : 'O status do pedido é ' + (o ? o.status : '—') + '. Depois que a cozinha começa o preparo, o cancelamento pelo app é bloqueado.';
     const payOnDelivery = !!o && o.paymentMethod === 'entrega';
     const paidInApp = !!o && !payOnDelivery && o.paymentStatus === 'approved';
     v.totalPaidLabel = payOnDelivery ? 'A pagar na entrega' : 'Total pago';
@@ -2041,6 +2085,11 @@ class Component extends DCLogic {
     v.activeTables = s.tables.filter(t => t.active).length + ' de ' + s.tables.length + ' ativas';
 
     v.togglePause = () => this.togglePauseKiosk();
+    v.cancelWindowStr = s.cancelWindow ? s.cancelWindow + ' min depois do pedido' : 'sem prazo (pode cancelar enquanto estiver na fila)';
+    v.cancelWindowInput = s.cancelWindowInput;
+    v.setCancelWindowInput = e => this.setState({cancelWindowInput:e.target.value, cancelWindowMsg:''});
+    v.saveCancelWindow = () => this.saveCancelWindow();
+    v.cancelWindowMsg = s.cancelWindowMsg; v.hasCancelWindowMsg = !!s.cancelWindowMsg;
     v.pauseLabel = s.paused ? 'Quiosque pausado' : 'Quiosque aberto';
     v.pauseSub = s.paused ? 'O cardápio do cliente exibe aviso e o checkout está bloqueado.' : 'Novos pedidos estão sendo aceitos normalmente.';
     v.pauseSwitchStyle = 'width:48px;height:26px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (s.paused ? '#E74C3C' : '#16A34A');
