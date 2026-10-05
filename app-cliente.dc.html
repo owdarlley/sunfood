@@ -172,7 +172,7 @@ a:hover{color:#FF6B35}
                 <div style="background:#fff;border-radius:26px 26px 0 0;flex:1;padding:24px 22px 20px;display:flex;flex-direction:column;gap:14px">
                   <sc-if value="{{ fpNotSent }}" hint-placeholder-val="{{ true }}">
                     <div style="display:flex;flex-direction:column;gap:14px">
-                      <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Informe o e-mail da sua conta. Enviaremos um link de redefinição válido por 30 minutos.</p>
+                      <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Informe o e-mail da sua conta. Enviaremos um link para criar uma senha nova, válido por 1 hora.</p>
                       <input value="{{ fpEmail }}" onChange="{{ setFp }}" placeholder="voce@email.com" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
                       <div onClick="{{ sendFp }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)">Enviar link</div>
                       <div onClick="{{ goLogin }}" style="text-align:center;font:600 12px Inter,sans-serif;color:#E8551E;cursor:pointer">Voltar ao login</div>
@@ -1386,6 +1386,13 @@ class Component extends DCLogic {
   // retorno do Google, pra não rodar os dois ao mesmo tempo.
   handleGoogleCallback(){
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    // Link de "esqueci minha senha" que caiu aqui (o Supabase manda pra URL
+    // padrão do site quando a de redefinição não está liberada): leva pra
+    // tela de nova senha em vez de entrar logado sem trocar a senha.
+    if(hash.get('type') === 'recovery' || /recovery|otp_expired/.test(hash.get('error_code') || '')){
+      window.location.replace('redefinir-senha.html' + window.location.hash);
+      return true;
+    }
     const accessToken = hash.get('access_token');
     if(!accessToken) return false;
     // Tira o token da barra de endereço antes de qualquer outra coisa — ele
