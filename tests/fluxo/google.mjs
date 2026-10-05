@@ -9,6 +9,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import { fakeApi } from './fake-api.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -31,7 +32,7 @@ const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : 
 const results = [];
 const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`${ok ? 'ok   ' : 'FALHA'} ${name}${ok || !detail ? '' : ' -> ' + detail}`); };
 
-async function open(path, { me, orderRefused, saved } = {}) {
+async function open(path, { me, orderRefused, saved, clientId = '' } = {}) {
   const page = await browser.newPage({ viewport: { width: 400, height: 860 }, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
@@ -40,11 +41,34 @@ async function open(path, { me, orderRefused, saved } = {}) {
     r.fulfill({ path: join(CDN, 'node_modules', mod), contentType: 'application/javascript' });
   });
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+  // Escolhe o fluxo do Google: ID do cliente vazio = pelo Supabase (/authorize);
+  // preenchido = direto no Google, trocando o id_token no Supabase.
+  await page.route(/\/app-cliente\.dc\.html(\?.*)?$/, async r => {
+    const html = await readFile(join(ROOT, 'app-cliente.dc.html'), 'utf8');
+    r.fulfill({ contentType: 'text/html', body: html.replace(/const GOOGLE_CLIENT_ID = '[^']*';/, `const GOOGLE_CLIENT_ID = '${clientId}';`) });
+  });
+  // Google falso (fluxo direto): devolve um id_token no #fragmento.
+  page.googleUrls = [];
+  await page.route('https://accounts.google.com/**', route => {
+    const u = new URL(route.request().url());
+    page.googleUrls.push(u);
+    const hash = page.googleCancels ? '#error=access_denied'
+      : '#state=' + u.searchParams.get('state') + '&id_token=gid&authuser=0';
+    route.fulfill({ status: 302, headers: { location: u.searchParams.get('redirect_uri') + hash } });
+  });
   // Supabase + Google falsos: o /authorize devolve direto pro site com um
   // token no #fragmento, como o Supabase faz depois da tela do Google.
   page.authorizeUrls = [];
+  page.tokenCalls = [];
   await page.route('https://gsbjffbbcxerucmvfjvh.supabase.co/**', route => {
     const u = new URL(route.request().url());
+    if (u.pathname === '/auth/v1/token') {
+      const body = JSON.parse(route.request().postData());
+      page.tokenCalls.push({ url: u, body, apikey: route.request().headers()['apikey'] });
+      const ok = body.provider === 'google' && body.id_token === 'gid' && !page.supabaseRefuses;
+      return route.fulfill({ status: ok ? 200 : 400, contentType: 'application/json',
+        body: JSON.stringify(ok ? { access_token: 'gtok', refresh_token: 'r1', token_type: 'bearer' } : { error: 'invalid' }) });
+    }
     page.authorizeUrls.push(u.href);
     const back = u.searchParams.get('redirect_to');
     const hash = page.googleCancels ? '#error=access_denied&error_description=cancelado'
@@ -195,6 +219,63 @@ await step('Google na página inicial', async () => {
   check('página inicial: volta para o app do cliente', /\/app-cliente\.dc\.html$/.test(auth.searchParams.get('redirect_to') || ''), auth.href);
   check('página inicial: abre "Falta pouco" no app', (await text(page)).includes('Falta pouco'));
   await noErrors('página inicial', page);
+  await page.close();
+});
+
+// 7. Fluxo direto no Google (com ID do cliente): a tela do Google mostra o
+// domínio do site, e o id_token é trocado por uma sessão no Supabase.
+const sha256 = t => createHash('sha256').update(t).digest('hex');
+await step('Google direto', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=login', { clientId: 'cid.apps.googleusercontent.com' });
+  await click(page, 'Entrar com Google');
+  await page.waitForTimeout(1500);
+  const g = page.googleUrls[0] || new URL('http://x');
+  check('direto: vai ao Google, não ao /authorize do Supabase', g.hostname === 'accounts.google.com' && page.authorizeUrls.length === 0, g.href);
+  check('direto: pede id_token com o ID do cliente', g.searchParams.get('response_type') === 'id_token' && g.searchParams.get('client_id') === 'cid.apps.googleusercontent.com');
+  check('direto: volta para a própria página, sem ?parâmetros', /^http:\/\/localhost:\d+\/app-cliente\.dc\.html$/.test(g.searchParams.get('redirect_uri') || ''), g.searchParams.get('redirect_uri'));
+  const tc = page.tokenCalls[0];
+  check('direto: troca o id_token no Supabase com a chave publicável', tc && tc.url.searchParams.get('grant_type') === 'id_token' && /^sb_publishable_/.test(tc.apikey || ''), JSON.stringify(tc?.body));
+  check('direto: Google recebe o nonce em hash e o Supabase o original', tc && sha256(tc.body.nonce) === g.searchParams.get('nonce'));
+  check('direto: usa a sessão em /auth/me', called(page, '/auth/me')[0]?.auth === 'Bearer gtok');
+  check('direto: tira o token e devolve os ?parâmetros na barra de endereço', !page.url().includes('id_token') && page.url().endsWith('?module=cliente&screen=login'), page.url());
+  check('direto: mostra "Falta pouco"', (await text(page)).includes('Falta pouco'));
+  await noErrors('Google direto', page);
+  await page.close();
+});
+
+await step('Google direto cancelado', async () => {
+  const page = await open('app-cliente.dc.html', { clientId: 'cid' });
+  page.googleCancels = true;
+  await click(page, 'Entrar com Google');
+  await page.waitForTimeout(1500);
+  const t = await text(page);
+  check('direto cancelado: avisa e fica no login', t.includes('Não foi possível entrar') && t.includes('Esqueci minha senha'));
+  check('direto cancelado: não troca token', page.tokenCalls.length === 0 && called(page, '/auth/me').length === 0);
+  await noErrors('Google direto cancelado', page);
+  await page.close();
+});
+
+await step('Google direto recusado pelo Supabase', async () => {
+  const page = await open('app-cliente.dc.html', { clientId: 'cid' });
+  page.supabaseRefuses = true;
+  await click(page, 'Entrar com Google');
+  await page.waitForTimeout(1500);
+  const t = await text(page);
+  check('direto recusado: avisa e fica no login', t.includes('Não foi possível entrar com Google') && t.includes('Esqueci minha senha'));
+  check('direto recusado: não chama /auth/me', called(page, '/auth/me').length === 0);
+  await noErrors('Google direto recusado', page);
+  await page.close();
+});
+
+await step('Google direto pela página inicial', async () => {
+  const page = await open('index.html', { clientId: 'cid' });
+  await click(page, 'Entrar', true);
+  await click(page, 'Entrar ou criar conta com Google');
+  await page.waitForTimeout(2500);
+  check('página inicial direto: vai ao Google', page.googleUrls.length === 1 && page.authorizeUrls.length === 0);
+  check('página inicial direto: abre "Falta pouco" no app', (await text(page)).includes('Falta pouco'));
+  check('página inicial direto: tira o ?google=1 da URL', !page.url().includes('google='), page.url());
+  await noErrors('página inicial direto', page);
   await page.close();
 });
 

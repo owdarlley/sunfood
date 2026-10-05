@@ -1259,6 +1259,23 @@ const SESSION_KEY = 'sunfood_session';
 // client-side SDK do Supabase expõe), só é usada aqui pra mandar o navegador
 // direto pro endpoint de OAuth (/auth/v1/authorize) do "Entrar com Google".
 const SUPABASE_URL = 'https://gsbjffbbcxerucmvfjvh.supabase.co';
+// Chave publicável do Supabase (feita pra ficar no navegador) e ID do cliente
+// OAuth do Google (também público). Com o ID preenchido, o "Entrar com Google"
+// vai direto ao Google e a tela de login mostra o domínio do site, não o do
+// Supabase. Vazio = fluxo antigo pelo /auth/v1/authorize do Supabase.
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_17jaSzYyesdQZm7WK7esPQ_eVwdnuu1';
+const GOOGLE_CLIENT_ID = '620747293875-mg22eu690lh33k7bb1cdk8ti03iea2mp.apps.googleusercontent.com';
+const GOOGLE_LOGIN_KEY = 'sunfood_google_login';
+
+function randomToken(){
+  const b = new Uint8Array(16);
+  crypto.getRandomValues(b);
+  return Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+}
+async function sha256Hex(text){
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(d), x => x.toString(16).padStart(2, '0')).join('');
+}
 
 // Estoque controlado e zerado: o item fica esgotado até alguém repor o saldo.
 function noStock(p){ return p.stock != null && p.stock <= 0; }
@@ -1471,6 +1488,11 @@ class Component extends DCLogic {
   componentDidMount(){
     this.aplicarRota();
     if(!this.handleGoogleCallback()) this.restoreSession();
+    // Veio do botão do Google da página inicial: já segue para o Google.
+    if(new URLSearchParams(window.location.search).get('google') === '1'){
+      history.replaceState(null, '', window.location.pathname);
+      this.signInWithGoogle();
+    }
     this.handleCardReturn();
     this.loadCatalog();
     // Enquanto há um pedido em aberto, consulta o status real no servidor a
@@ -1498,9 +1520,49 @@ class Component extends DCLogic {
   // Entrar/cadastrar com Google de verdade: manda o navegador direto pro
   // endpoint de OAuth do Supabase, que cuida da tela de consentimento do
   // Google e devolve pra cá com um access_token real no #fragmento da URL.
-  signInWithGoogle(){
-    const redirectTo = window.location.href.split('#')[0];
-    window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
+  async signInWithGoogle(){
+    if(!GOOGLE_CLIENT_ID){
+      const redirectTo = window.location.href.split('#')[0];
+      window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
+      return;
+    }
+    // Direto no Google: volta pra esta mesma página com um id_token no
+    // #fragmento, que o Supabase troca por uma sessão. O Google pede o nonce
+    // em hash e o Supabase confere com o original, guardado só nesta aba.
+    const nonce = randomToken(), state = randomToken();
+    try { sessionStorage.setItem(GOOGLE_LOGIN_KEY, JSON.stringify({nonce, state, search:window.location.search})); } catch(e){}
+    const params = new URLSearchParams({
+      client_id:GOOGLE_CLIENT_ID,
+      redirect_uri:window.location.origin + window.location.pathname,
+      response_type:'id_token',
+      scope:'openid email profile',
+      prompt:'select_account',
+      nonce:await sha256Hex(nonce),
+      state
+    });
+    window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+  }
+
+  // Troca o id_token do Google por uma sessão do Supabase (mesmo access_token
+  // que o fluxo antigo devolvia no #fragmento).
+  async exchangeGoogleIdToken(idToken, state){
+    let saved = {};
+    try { saved = JSON.parse(sessionStorage.getItem(GOOGLE_LOGIN_KEY) || '{}'); sessionStorage.removeItem(GOOGLE_LOGIN_KEY); } catch(e){}
+    if(saved.search) history.replaceState(null, '', window.location.pathname + saved.search);
+    const fail = () => { this.setState({screen:'login', module:'cliente'}); this.flash('Não foi possível entrar com Google. Tente de novo.'); };
+    if(!saved.nonce || saved.state !== state) return fail();
+    try {
+      const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=id_token', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', apikey:SUPABASE_PUBLISHABLE_KEY},
+        body:JSON.stringify({provider:'google', id_token:idToken, nonce:saved.nonce})
+      });
+      const data = await res.json();
+      if(!res.ok || !data.access_token) return fail();
+      this.completeGoogleLogin(data.access_token);
+    } catch(e){
+      this.flash('Falha de conexão com o servidor.');
+    }
   }
 
   // Chamado em todo componentDidMount — se a URL tiver voltado do Google com
@@ -1517,9 +1579,18 @@ class Component extends DCLogic {
       return true;
     }
     if(hash.get('error')){
-      history.replaceState(null, '', window.location.pathname + window.location.search);
+      // Cancelou na tela do Google: volta pro login sem perder o ?módulo da URL.
+      let search = window.location.search;
+      try { search = JSON.parse(sessionStorage.getItem(GOOGLE_LOGIN_KEY) || '{}').search || search; sessionStorage.removeItem(GOOGLE_LOGIN_KEY); } catch(e){}
+      history.replaceState(null, '', window.location.pathname + search);
       this.setState({screen:'login', module:'cliente'});
       setTimeout(() => this.flash('Não foi possível entrar. Tente de novo.'), 0);
+      return true;
+    }
+    const idToken = hash.get('id_token');
+    if(idToken){
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      this.exchangeGoogleIdToken(idToken, hash.get('state'));
       return true;
     }
     const accessToken = hash.get('access_token');
