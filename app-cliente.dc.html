@@ -776,6 +776,50 @@ a:hover{color:#FF6B35}
               </div>
             </sc-if>
 
+            <sc-if value="{{ is_payments }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                  <sc-for list="{{ payKpis }}" as="k" hint-placeholder-count="4">
+                    <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 16px">
+                      <div style="font:600 11px Inter,sans-serif;color:#6B7280">{{ k.lbl }}</div>
+                      <div style="font:800 20px 'Baloo 2',sans-serif;margin-top:2px">{{ k.val }}</div>
+                      <div style="font:500 10.5px Inter,sans-serif;color:#9AA0A6">{{ k.sub }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ payOnlineOff }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:10px 14px;font:600 11.5px/1.5 Inter,sans-serif;color:#B0791A">Pagamento online desligado (Mercado Pago não configurado). Os clientes só veem "Pagar na entrega". Anote aqui como o garçom recebeu cada pedido.</div>
+                </sc-if>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
+                  <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ true }}">
+                    <sc-for list="{{ payRows }}" as="r" hint-placeholder-count="6">
+                      <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F0EBE1">
+                        <span style="font:700 13px 'Baloo 2',sans-serif;width:52px;flex-shrink:0">{{ r.id }}</span>
+                        <span style="font:500 12px Inter,sans-serif;color:#6B7280;width:60px;flex-shrink:0">Mesa {{ r.table }}</span>
+                        <span style="font:500 11px Inter,sans-serif;color:#9AA0A6;width:92px;flex-shrink:0">{{ r.when }}</span>
+                        <span style="font:500 11px Inter,sans-serif;color:#6B7280;width:84px;flex-shrink:0">{{ r.status }}</span>
+                        <span style="{{ r.payStyle }};margin-bottom:0">{{ r.payLabel }}</span>
+                        <span style="flex:1"></span>
+                        <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
+                          <span style="font:600 11px Inter,sans-serif;color:#6B7280">Recebido em:</span>
+                          <span onClick="{{ r.recvCash }}" style="font:700 11px Inter,sans-serif;padding:6px 10px;border-radius:8px;background:#16A34A;color:#fff;cursor:pointer">Dinheiro</span>
+                          <span onClick="{{ r.recvCard }}" style="font:700 11px Inter,sans-serif;padding:6px 10px;border-radius:8px;background:#1F3B6B;color:#fff;cursor:pointer">Cartão</span>
+                          <span onClick="{{ r.recvPix }}" style="font:700 11px Inter,sans-serif;padding:6px 10px;border-radius:8px;background:#0E9F8E;color:#fff;cursor:pointer">PIX</span>
+                        </sc-if>
+                        <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
+                          <span onClick="{{ r.undo }}" style="font:600 11px Inter,sans-serif;padding:6px 10px;border-radius:8px;border:1px solid #E9E1D6;color:#6B7280;cursor:pointer">Desfazer</span>
+                        </sc-if>
+                        <span style="font:700 12.5px Inter,sans-serif;width:78px;text-align:right;flex-shrink:0">{{ r.totalStr }}</span>
+                      </div>
+                    </sc-for>
+                  </sc-if>
+                  <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:30px;text-align:center;font:500 13px Inter,sans-serif;color:#9AA0A6">Nenhum pedido ainda.</div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+
             <sc-if value="{{ is_pause }}" hint-placeholder-val="{{ false }}">
               <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
                 <div style="{{ pauseBannerStyle }}">
@@ -1159,6 +1203,7 @@ function adminOrderFromApi(o){
     itemsStr:o.items.map(it => it.qty + 'x ' + it.name).join(' · '),
     obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt,
     paymentMethod:o.paymentMethod || 'pix', paymentStatus:o.paymentStatus || 'pending',
+    receivedWith:o.receivedWith || null, total:o.total,
     ...paymentBadge(o)
   };
 }
@@ -1169,6 +1214,8 @@ function paymentBadge(o){
   const base = 'display:inline-block;font:700 10px Inter,sans-serif;padding:4px 9px;border-radius:100px;margin-bottom:8px;';
   const total = 'R$ ' + o.total.toFixed(2).replace('.', ',');
   const method = o.paymentMethod || 'pix';
+  const recebido = {dinheiro:'dinheiro', cartao:'cartão', pix:'PIX'}[o.receivedWith];
+  if(method === 'entrega' && o.paymentStatus === 'approved') return {payLabel:'Recebido na entrega' + (recebido ? ' (' + recebido + ')' : ''), payStyle:base + 'background:#E7F7ED;color:#16A34A'};
   if(method === 'entrega') return {payLabel:'Cobrar na entrega · ' + total, payStyle:base + 'background:#FFF3DE;color:#B0791A'};
   const nome = method === 'cartao' ? 'cartão' : 'PIX';
   if(o.paymentStatus === 'approved') return {payLabel:'Pago no app (' + nome + ')', payStyle:base + 'background:#E7F7ED;color:#16A34A'};
@@ -1199,7 +1246,7 @@ const SCREENS = {
   ],
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Dashboard Geral'],
-    ['orders','Lista de Pedidos'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
+    ['orders','Lista de Pedidos'],['payments','Pagamentos'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
     ['pause','Pausar Quiosque e Cancelamento'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
     ['closeDay','Encerrar Dia / Relatório']
   ],
@@ -1244,6 +1291,9 @@ class Component extends DCLogic {
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
     payMethod:'pix', cardWaiting:false, cardSimulated:false,
+    // Pagamento online (PIX/cartão) só aparece com o Mercado Pago configurado
+    // no servidor (GET /payments/status). null = ainda não sabemos.
+    paymentsOnline:null,
     payingPix:false, pixQrCode:'', pixQrImg:'', pixSimulated:false,
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
@@ -1321,7 +1371,29 @@ class Component extends DCLogic {
     }
   }
 
+  async loadPaymentsStatus(){
+    try {
+      const res = await fetch(API_BASE + '/payments/status');
+      if(!res.ok) return;
+      const data = await res.json();
+      const online = !!data.configured;
+      this.setState(x => ({paymentsOnline:online, payMethod:online ? x.payMethod : 'entrega'}));
+    } catch(e){}
+  }
+
+  async markPaymentReceived(apiId, receivedWith){
+    try {
+      const res = await fetch(API_BASE + '/orders/' + apiId + '/payment-received', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({receivedWith})
+      });
+      if(res.ok){ this.loadAdminData(); this.flash(receivedWith ? 'Recebimento anotado.' : 'Recebimento desfeito.'); }
+      else { const data = await res.json(); this.flash(data.error || 'Não foi possível salvar o recebimento.'); }
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
   async loadCatalog(){
+    this.loadPaymentsStatus();
     try {
       const [productsRes, tablesRes, kioskRes] = await Promise.all([
         fetch(API_BASE + '/products'),
@@ -1914,7 +1986,8 @@ class Component extends DCLogic {
     // payment
     v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
                  ['cartao','Cartão de crédito','Pague agora pelo Mercado Pago','card','#1F3B6B'],
-                 ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']].map(([k, nm, sub, ic, bg]) => ({
+                 ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']]
+      .filter(([k]) => s.paymentsOnline !== false || k === 'entrega').map(([k, nm, sub, ic, bg]) => ({
       nm, sub, icPath:UI[ic],
       iconWrapStyle:'width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + bg,
       pick:() => this.setState({payMethod:k}),
@@ -2074,6 +2147,36 @@ class Component extends DCLogic {
         (r.status === 'Pronto' || r.status === 'Entregue' ? '#E7F7ED;color:#16A34A' : r.status === 'Cancelado' ? '#FDEBEA;color:#E74C3C' : '#FFF3DE;color:#F5A623')
     }));
     v.hasAdminOrders = v.adminOrders.length > 0;
+
+    // Pagamentos: todas as transações, com o que falta receber.
+    const today = new Date().toDateString();
+    const isToday = r => new Date(r.createdAt).toDateString() === today;
+    const sum = list => f(list.reduce((a, r) => a + r.total, 0));
+    const live = s.adminOrders.filter(r => r.status !== 'Cancelado');
+    const received = live.filter(r => r.paymentStatus === 'approved' && isToday(r));
+    const toReceive = live.filter(r => r.paymentMethod === 'entrega' && r.paymentStatus !== 'approved');
+    const onlineWaiting = live.filter(r => r.paymentMethod !== 'entrega' && r.paymentStatus !== 'approved');
+    const refunded = s.adminOrders.filter(r => r.paymentStatus === 'refunded');
+    v.payKpis = [
+      {lbl:'Recebido hoje', val:sum(received), sub:received.length + ' pedido(s)'},
+      {lbl:'A receber na entrega', val:sum(toReceive), sub:toReceive.length + ' pedido(s)'},
+      {lbl:'Online aguardando', val:sum(onlineWaiting), sub:onlineWaiting.length + ' pedido(s)'},
+      {lbl:'Estornado', val:sum(refunded), sub:refunded.length + ' pedido(s)'}
+    ];
+    v.payOnlineOff = s.paymentsOnline === false;
+    v.payRows = s.adminOrders.map(r => {
+      const canReceive = r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus !== 'approved';
+      return {
+        id:r.id, table:r.table, status:r.status, totalStr:r.totalStr, payLabel:r.payLabel, payStyle:r.payStyle,
+        when:formatWhen(r.createdAt), canReceive,
+        canUndo:r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus === 'approved',
+        recvCash:() => this.markPaymentReceived(r.apiId, 'dinheiro'),
+        recvCard:() => this.markPaymentReceived(r.apiId, 'cartao'),
+        recvPix:() => this.markPaymentReceived(r.apiId, 'pix'),
+        undo:() => this.markPaymentReceived(r.apiId, null)
+      };
+    });
+    v.hasPayRows = v.payRows.length > 0;
 
     v.tableTiles = s.tables.map(t => ({
       n:('0' + t.n).slice(-2), seats:t.seats + ' lugares',
