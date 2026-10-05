@@ -1,0 +1,71 @@
+// API falsa em memória: o navegador acha que está falando com o servidor,
+// mas nada sai da máquina e nada é gravado no banco de verdade.
+export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
+  const now = () => new Date().toISOString();
+  const db = {
+    products: [
+      ['p1','Petiscos','Batata Frita',25,'batata',3],
+      ['p2','Bebidas','Água de Coco',12,'coco',null],
+      ['p3','Bebidas','Caipirinha',22,'caipirinha',null],
+      ['p4','Pratos','Peixe Frito',89,'peixe',null],
+      ['p5','Sobremesas','Açaí',18,'acai',0],
+    ].map(([id, category, name, price, imageKey, stockQty]) => ({ id, category, name, description: name, longDescription: name,
+      price, imageKey, stockQty, soldOut: stockQty === 0, portion: '1', prepTime: '10 min', kcal: 100, rating: 4.5,
+      reviewCount: 10, ingredients: '-', tags: [] })),
+    tables: [1, 2, 3, 4, 5].map(number => ({ number, active: number !== 2, seats: 4 })),
+    kiosk: { paused: false, dayClosed: false, cancelWindowMinutes: 0 },
+    orders: [],
+    paymentsConfigured,
+  };
+  const user = { id: 'u1', email: role + '@teste', name: 'Teste', role };
+  const toApi = o => o;
+  const handler = async route => {
+    const req = route.request();
+    const url = new URL(req.url());
+    const p = url.pathname, m = req.method();
+    const body = req.postData() ? JSON.parse(req.postData()) : {};
+    const json = (status, data) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
+    db.log = (db.log || []).concat(m + ' ' + p);
+    if (p === '/auth/login') return json(200, { token: 'tok', user });
+    if (p === '/auth/me') return json(200, { user });
+    if (p === '/products' && m === 'GET') return json(200, db.products);
+    if (p === '/tables') return json(200, db.tables);
+    if (p === '/kiosk-settings/cancel-window') { db.kiosk.cancelWindowMinutes = body.minutes; return json(200, db.kiosk); }
+    if (p === '/kiosk-settings') return json(200, db.kiosk);
+    if (p === '/orders/mine') return json(200, db.orders);
+    if (p === '/orders' && m === 'GET') return json(200, db.orders);
+    if (p === '/orders' && m === 'POST') {
+      const items = body.items.map(i => { const pr = db.products.find(x => x.id === i.productId);
+        return { productId: pr.id, name: pr.name, qty: i.qty, unitPrice: pr.price, note: i.note }; });
+      const subtotal = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+      const o = { id: 'o' + (db.orders.length + 1), tableNumber: body.tableNumber, status: 'Na Fila', subtotal,
+        total: Math.round(subtotal * 110) / 100, note: body.note, paymentStatus: 'pending', paymentMethod: body.paymentMethod, createdAt: now(), updatedAt: now(), items };
+      db.orders.unshift(o); return json(201, o);
+    }
+    let r;
+    if ((r = p.match(/^\/payments\/card\/([^/]+)$/))) { db.cardReturnUrl = body.returnUrl;
+      if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
+      return json(200, { simulated: true, checkoutUrl: null }); }
+    if ((r = p.match(/^\/payments\/pix\/([^/]+)$/))) {
+      if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
+      return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '', simulated: true }); }
+    if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured });
+    if ((r = p.match(/^\/orders\/([^/]+)\/payment-received$/))) { const o = db.orders.find(o => o.id === r[1]);
+      if (o.paymentMethod !== 'entrega' || o.status === 'Cancelado') return json(409, { error: 'Só pedido na entrega.' });
+      Object.assign(o, body.receivedWith ? { paymentStatus: 'approved', receivedWith: body.receivedWith } : { paymentStatus: 'pending', receivedWith: null });
+      return json(200, o); }
+    if ((r = p.match(/^\/payments\/pix\/([^/]+)\/status$/))) return json(200, { paymentStatus: db.orders.find(o => o.id === r[1]).paymentStatus });
+    if ((r = p.match(/^\/orders\/([^/]+)\/cancel$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = 'Cancelado'; return json(200, o); }
+    if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now(); return json(200, o); }
+    if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, db.orders.find(o => o.id === r[1]));
+    if ((r = p.match(/^\/products\/([^/]+)\/sold-out$/))) { const pr = db.products.find(x => x.id === r[1]); pr.soldOut = body.soldOut; return json(200, pr); }
+    if (p === '/dashboard') return json(200, { revenueToday: 0, ordersToday: 0, avgTicket: 0, topProducts: [], salesByHour: Array.from({ length: 24 }, (_, hour) => ({ hour, revenue: 0 })) });
+    if (p === '/ops-metrics') return json(200, { lateOrders: 0, avgPrepSeconds: null, cancelledToday: 0, avgQueueSeconds: null, soldOutProducts: [], ordersInQueueOrPrep: 1 });
+    if (p === '/day-reports/latest') return json(404, { error: 'none' });
+    return json(404, { error: 'rota falsa não implementada: ' + m + ' ' + p });
+  };
+  handler.db = db;
+  handler.seed = () => db.orders.push({ id: 'o9', tableNumber: 1, status: 'Na Fila', subtotal: 25, total: 27.5, note: 'sem sal',
+    paymentStatus: 'approved', createdAt: now(), updatedAt: now(), items: [{ productId: 'p1', name: 'Batata Frita', qty: 1, unitPrice: 25, note: '' }] });
+  return handler;
+}
