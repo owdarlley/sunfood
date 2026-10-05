@@ -778,7 +778,7 @@ a:hover{color:#FF6B35}
 
             <sc-if value="{{ is_payments }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;flex-direction:column;gap:16px">
-                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
                   <sc-for list="{{ payKpis }}" as="k" hint-placeholder-count="4">
                     <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 16px">
                       <div style="font:600 11px Inter,sans-serif;color:#6B7280">{{ k.lbl }}</div>
@@ -788,7 +788,7 @@ a:hover{color:#FF6B35}
                   </sc-for>
                 </div>
                 <sc-if value="{{ payOnlineOff }}" hint-placeholder-val="{{ false }}">
-                  <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:10px 14px;font:600 11.5px/1.5 Inter,sans-serif;color:#B0791A">Pagamento online desligado (Mercado Pago não configurado). Os clientes só veem "Pagar na entrega". Anote aqui como o garçom recebeu cada pedido.</div>
+                  <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:10px 14px;font:600 11.5px/1.5 Inter,sans-serif;color:#B0791A">Mercado Pago ainda não configurado. Enquanto isso, o cartão é aprovado na hora sem cobrança de verdade (aparece como "Cartão provisório") e o PIX fica escondido. Nos pedidos "na entrega", anote aqui como o garçom recebeu.</div>
                 </sc-if>
                 <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;overflow:hidden">
                   <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ true }}">
@@ -1154,7 +1154,7 @@ function apiProductToState(p){
 
 function orderFromApi(o){
   return {id:'#' + o.id, _apiId:o.id, table:o.tableNumber, total:o.total, status:o.status, obs:o.note || '',
-    paymentStatus:o.paymentStatus || 'pending', paymentMethod:o.paymentMethod || 'pix', cancelDeadline:o.cancelDeadline || null,
+    paymentStatus:o.paymentStatus || 'pending', paymentMethod:o.paymentMethod || 'pix', paymentProvider:o.paymentProvider || null, cancelDeadline:o.cancelDeadline || null,
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
 }
 
@@ -1203,7 +1203,7 @@ function adminOrderFromApi(o){
     itemsStr:o.items.map(it => it.qty + 'x ' + it.name).join(' · '),
     obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt,
     paymentMethod:o.paymentMethod || 'pix', paymentStatus:o.paymentStatus || 'pending',
-    receivedWith:o.receivedWith || null, total:o.total,
+    receivedWith:o.receivedWith || null, total:o.total, paymentProvider:o.paymentProvider || null,
     ...paymentBadge(o)
   };
 }
@@ -1218,6 +1218,7 @@ function paymentBadge(o){
   if(method === 'entrega' && o.paymentStatus === 'approved') return {payLabel:'Recebido na entrega' + (recebido ? ' (' + recebido + ')' : ''), payStyle:base + 'background:#E7F7ED;color:#16A34A'};
   if(method === 'entrega') return {payLabel:'Cobrar na entrega · ' + total, payStyle:base + 'background:#FFF3DE;color:#B0791A'};
   const nome = method === 'cartao' ? 'cartão' : 'PIX';
+  if(o.paymentStatus === 'approved' && o.paymentProvider === 'provisorio') return {payLabel:'Cartão provisório (sem cobrança) · ' + total, payStyle:base + 'background:#EEF2FF;color:#4338CA'};
   if(o.paymentStatus === 'approved') return {payLabel:'Pago no app (' + nome + ')', payStyle:base + 'background:#E7F7ED;color:#16A34A'};
   if(o.paymentStatus === 'refunded') return {payLabel:'Estornado (' + nome + ')', payStyle:base + 'background:#F4EFE7;color:#6B7280'};
   return {payLabel:'Aguardando pagamento (' + nome + ')', payStyle:base + 'background:#FDEBEA;color:#E74C3C'};
@@ -1377,7 +1378,7 @@ class Component extends DCLogic {
       if(!res.ok) return;
       const data = await res.json();
       const online = !!data.configured;
-      this.setState(x => ({paymentsOnline:online, payMethod:online ? x.payMethod : 'entrega'}));
+      this.setState(x => ({paymentsOnline:online, payMethod:online || x.payMethod !== 'pix' ? x.payMethod : 'cartao'}));
     } catch(e){}
   }
 
@@ -1809,6 +1810,8 @@ class Component extends DCLogic {
       });
       const data = await res.json();
       if(!res.ok){ this.flash(data.error || 'Não foi possível abrir o pagamento com cartão.'); return; }
+      // Provisório (sem Mercado Pago): o servidor já aprovou, segue pra confirmação.
+      if(data.provisional){ this.pollOrder(o._apiId); return; }
       if(data.simulated || !data.checkoutUrl){ this.setState({cardSimulated:true}); return; }
       window.location.href = data.checkoutUrl;
     } catch(e){
@@ -1987,7 +1990,7 @@ class Component extends DCLogic {
     v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
                  ['cartao','Cartão de crédito','Pague agora pelo Mercado Pago','card','#1F3B6B'],
                  ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']]
-      .filter(([k]) => s.paymentsOnline !== false || k === 'entrega').map(([k, nm, sub, ic, bg]) => ({
+      .filter(([k]) => s.paymentsOnline !== false || k !== 'pix').map(([k, nm, sub, ic, bg]) => ({
       nm, sub, icPath:UI[ic],
       iconWrapStyle:'width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + bg,
       pick:() => this.setState({payMethod:k}),
@@ -2039,7 +2042,8 @@ class Component extends DCLogic {
       ? 'O prazo para cancelar pelo app já passou. O quiosque permite cancelar só nos primeiros minutos depois do pedido.'
       : 'O status do pedido é ' + (o ? o.status : '—') + '. Depois que a cozinha começa o preparo, o cancelamento pelo app é bloqueado.';
     const payOnDelivery = !!o && o.paymentMethod === 'entrega';
-    const paidInApp = !!o && !payOnDelivery && o.paymentStatus === 'approved';
+    // Cartão provisório (sem Mercado Pago) não cobrou nada, então não há estorno.
+    const paidInApp = !!o && !payOnDelivery && o.paymentStatus === 'approved' && o.paymentProvider !== 'provisorio';
     v.totalPaidLabel = payOnDelivery ? 'A pagar na entrega' : 'Total pago';
     v.confirmMsg = payOnDelivery
       ? 'A cozinha já recebeu seu pedido. Pague ao garçom na entrega, com cartão ou dinheiro.'
@@ -2153,7 +2157,8 @@ class Component extends DCLogic {
     const isToday = r => new Date(r.createdAt).toDateString() === today;
     const sum = list => f(list.reduce((a, r) => a + r.total, 0));
     const live = s.adminOrders.filter(r => r.status !== 'Cancelado');
-    const received = live.filter(r => r.paymentStatus === 'approved' && isToday(r));
+    const provisional = live.filter(r => r.paymentProvider === 'provisorio' && r.paymentStatus === 'approved' && isToday(r));
+    const received = live.filter(r => r.paymentStatus === 'approved' && r.paymentProvider !== 'provisorio' && isToday(r));
     const toReceive = live.filter(r => r.paymentMethod === 'entrega' && r.paymentStatus !== 'approved');
     const onlineWaiting = live.filter(r => r.paymentMethod !== 'entrega' && r.paymentStatus !== 'approved');
     const refunded = s.adminOrders.filter(r => r.paymentStatus === 'refunded');
@@ -2163,6 +2168,7 @@ class Component extends DCLogic {
       {lbl:'Online aguardando', val:sum(onlineWaiting), sub:onlineWaiting.length + ' pedido(s)'},
       {lbl:'Estornado', val:sum(refunded), sub:refunded.length + ' pedido(s)'}
     ];
+    if(s.paymentsOnline === false) v.payKpis.splice(1, 0, {lbl:'Cartão provisório hoje', val:sum(provisional), sub:provisional.length + ' pedido(s), sem cobrança'});
     v.payOnlineOff = s.paymentsOnline === false;
     v.payRows = s.adminOrders.map(r => {
       const canReceive = r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus !== 'approved';
