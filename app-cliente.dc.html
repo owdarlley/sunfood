@@ -355,9 +355,6 @@ a:hover{color:#FF6B35}
 
             <sc-if value="{{ is_pix }}" hint-placeholder-val="{{ false }}">
               <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px">
-                <sc-if value="{{ pixSimulated }}" hint-placeholder-val="{{ false }}">
-                  <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:9px 12px;font:700 11px Inter,sans-serif;color:#B0791A;text-align:center">Ambiente de testes — nenhuma cobrança real foi gerada (configure o Mercado Pago no servidor)</div>
-                </sc-if>
                 <div style="background:#fff;border-radius:18px;padding:20px;text-align:center;border:1px solid #E9E1D6">
                   <sc-if value="{{ hasPixQrImg }}" hint-placeholder-val="{{ false }}">
                     <img src="{{ pixQrImg }}" alt="QR Code PIX" style="width:164px;height:164px;margin:0 auto 12px;padding:7px;background:#fff;border-radius:12px;box-shadow:0 0 0 1px #E9E1D6,0 6px 16px -10px rgba(20,40,80,.4);display:block" />
@@ -371,17 +368,11 @@ a:hover{color:#FF6B35}
                 </div>
                 <div onClick="{{ copyPix }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">Copiar código PIX</div>
                 <div style="font:400 11.5px/1.6 Inter,sans-serif;color:#9A9384;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola. A cozinha recebe o pedido assim que o pagamento for confirmado — automaticamente, sem precisar avisar aqui.</div>
-                <sc-if value="{{ pixSimulated }}" hint-placeholder-val="{{ false }}">
-                  <div onClick="{{ simulatePix }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Simular pagamento aprovado (teste)</div>
-                </sc-if>
               </div>
             </sc-if>
 
             <sc-if value="{{ is_card }}" hint-placeholder-val="{{ false }}">
               <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px">
-                <sc-if value="{{ cardSimulated }}" hint-placeholder-val="{{ false }}">
-                  <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:9px 12px;font:700 11px Inter,sans-serif;color:#B0791A;text-align:center">Ambiente de testes — o pagamento com cartão só funciona com o Mercado Pago configurado no servidor</div>
-                </sc-if>
                 <div style="background:#fff;border-radius:18px;padding:20px;text-align:center;border:1px solid #E9E1D6">
                   <div style="width:56px;height:56px;margin:0 auto 10px;border-radius:14px;background:#1F3B6B;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="28" height="28" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M11 13h26a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4Z M7 21h34 M14 29h7"></path></svg></div>
                   <div style="font:500 11.5px Inter,sans-serif;color:#6B7280">Valor a pagar</div>
@@ -1326,11 +1317,11 @@ class Component extends DCLogic {
     cat:'Todos', menuSearch:'', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
-    payMethod:'pix', cardWaiting:false, cardSimulated:false,
+    payMethod:'pix', cardWaiting:false,
     // Mercado Pago configurado no servidor (GET /payments/status)? Sem ele,
     // PIX e cartão são aprovados na hora como "provisório". null = ainda não sabemos.
     paymentsOnline:null,
-    payingPix:false, pixQrCode:'', pixQrImg:'', pixSimulated:false,
+    payingPix:false, pixQrCode:'', pixQrImg:'',
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
     // restoreSession()/submitLogin(), não é mais um mock fixo.
@@ -1877,8 +1868,7 @@ class Component extends DCLogic {
       // Provisório (sem Mercado Pago): o servidor já aprovou, segue pra confirmação.
       if(data.provisional){ this.setState({payingPix:false, screen:'pix'}); this.pollOrder(created.id); return; }
       this.setState({
-        payingPix:false, pixQrCode:data.qrCode || '', pixQrImg:data.qrCodeBase64 || '',
-        pixSimulated:!!data.simulated, screen:'pix'
+        payingPix:false, pixQrCode:data.qrCode || '', pixQrImg:data.qrCodeBase64 || '', screen:'pix'
       });
     } catch(e){
       this.setState({payingPix:false});
@@ -1897,7 +1887,7 @@ class Component extends DCLogic {
     try {
       const created = await this.createOrderOnServer('cartao');
       if(!created) return;
-      this.setState({screen:'card', cardWaiting:false, cardSimulated:false});
+      this.setState({screen:'card', cardWaiting:false});
     } finally {
       this.setState({busy:null});
     }
@@ -1918,7 +1908,7 @@ class Component extends DCLogic {
       if(!res.ok){ this.flash(data.error || 'Não foi possível abrir o pagamento com cartão.'); return; }
       // Provisório (sem Mercado Pago): o servidor já aprovou, segue pra confirmação.
       if(data.provisional){ this.pollOrder(o._apiId); return; }
-      if(data.simulated || !data.checkoutUrl){ this.setState({cardSimulated:true}); return; }
+      if(!data.checkoutUrl){ this.flash('Não foi possível abrir o pagamento com cartão.'); return; }
       window.location.href = data.checkoutUrl;
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
@@ -1943,23 +1933,6 @@ class Component extends DCLogic {
     this.setState({module:'cliente', screen:failed ? 'payFail' : 'card', cardWaiting:!failed,
       order:{id:'#' + orderId, _apiId:orderId, table:'—', total:0, status:'Na Fila', obs:'', paymentStatus:'pending', paymentMethod:'cartao', items:[]}});
     this.pollOrder(orderId, saved.token);
-  }
-
-  // Só existe enquanto o pagamento roda em modo simulado (sem conta Mercado
-  // Pago configurada) — o próprio servidor recusa isso assim que
-  // MERCADOPAGO_ACCESS_TOKEN estiver de verdade configurado.
-  async simulatePixApproval(){
-    if(this.state.busy) return;
-    const o = this.state.order;
-    if(!o || !o._apiId) return;
-    this.setState({busy:'simPix'});
-    try {
-      await fetch(API_BASE + '/payments/pix/' + o._apiId + '/simulate-approve', {
-        method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
-      });
-      this.pollOrder(o._apiId);
-    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
-    finally { this.setState({busy:null}); }
   }
 
   copyPixCode(){
@@ -2117,7 +2090,6 @@ class Component extends DCLogic {
 
     // card (checkout do Mercado Pago)
     v.cardWaiting = !!s.cardWaiting;
-    v.cardSimulated = !!s.cardSimulated;
     v.openCardCheckout = () => this.openCardCheckout();
 
     // pix
@@ -2125,9 +2097,7 @@ class Component extends DCLogic {
     v.pixQrCode = s.pixQrCode || '';
     v.pixQrImg = s.pixQrImg || '';
     v.hasPixQrImg = !!s.pixQrImg;
-    v.pixSimulated = !!s.pixSimulated;
     v.copyPix = () => this.copyPixCode();
-    v.simulatePix = () => this.simulatePixApproval();
 
     // order / status
     const o = s.order;

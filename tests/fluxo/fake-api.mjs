@@ -1,5 +1,8 @@
 // API falsa em memória: o navegador acha que está falando com o servidor,
 // mas nada sai da máquina e nada é gravado no banco de verdade.
+// Página de checkout do Mercado Pago de mentira (o teste responde ela sem rede).
+export const FAKE_CHECKOUT_URL = 'https://www.mercadopago.com.br/checkout/teste';
+
 export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
   const now = () => new Date().toISOString();
   const db = {
@@ -45,10 +48,10 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     let r;
     if ((r = p.match(/^\/payments\/card\/([^/]+)$/))) { db.cardReturnUrl = body.returnUrl;
       if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
-      return json(200, { simulated: true, checkoutUrl: null }); }
+      return json(200, { checkoutUrl: FAKE_CHECKOUT_URL }); }
     if ((r = p.match(/^\/payments\/pix\/([^/]+)$/))) {
       if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
-      return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '', simulated: true }); }
+      return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '' }); }
     if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured });
     if ((r = p.match(/^\/orders\/([^/]+)\/payment-received$/))) { const o = db.orders.find(o => o.id === r[1]);
       if (o.paymentMethod !== 'entrega' || o.status === 'Cancelado') return json(409, { error: 'Só pedido na entrega.' });
@@ -64,6 +67,8 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     if (p === '/day-reports/latest') return json(404, { error: 'none' });
     return json(404, { error: 'rota falsa não implementada: ' + m + ' ' + p });
   };
+  // Faz o papel do webhook do Mercado Pago: o pagamento do pedido foi aprovado.
+  handler.approvePayment = id => { db.orders.find(o => o.id === id).paymentStatus = 'approved'; };
   handler.db = db;
   handler.seed = () => db.orders.push({ id: 'o9', tableNumber: 1, status: 'Na Fila', subtotal: 25, total: 27.5, note: 'sem sal',
     paymentStatus: 'approved', createdAt: now(), updatedAt: now(), items: [{ productId: 'p1', name: 'Batata Frita', qty: 1, unitPrice: 25, note: '' }] });

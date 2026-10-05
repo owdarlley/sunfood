@@ -2,9 +2,9 @@
 
 Sistema de pedidos online para quiosques de praia.
 
-O site resolve a dor de quiosques com alta rotatividade de clientes e atendimento disperso entre mesas e guarda-sóis: hoje o processo é quase todo em papel. O Sunfood propõe cardápio digital, pedido pelo celular, pagamento real via PIX, conta dividida sem cálculo manual e acompanhamento em tempo real para cozinha e administração.
+O site resolve a dor de quiosques com alta rotatividade de clientes e atendimento disperso entre mesas e guarda-sóis: hoje o processo é quase todo em papel. O Sunfood propõe cardápio digital, pedido pelo celular, pagamento por PIX, cartão ou na entrega, e acompanhamento em tempo real para cozinha e administração.
 
-**O front-end é estático** (publicado no GitHub Pages) **e fala com um backend real** — Node/Express + Supabase (Postgres + Auth), com autenticação, banco de dados e as regras de negócio validadas no servidor (não só no navegador), mais Mercado Pago para pagamento PIX de verdade. Veja [`server/README.md`](server/README.md) para detalhes e para rodar a API localmente.
+**Este repositório é o site** (estático, publicado no GitHub Pages). Ele fala com a API do Sunfood, que fica no repositório [`owdarlley/sunfood-backend`](https://github.com/owdarlley/sunfood-backend): Node/Express + Supabase (banco e login), com as regras de negócio validadas no servidor, publicada na Vercel. Banco, migrações e modelos de e-mail também ficam lá.
 
 ## 🔗 Acesse pelo GitHub Pages
 
@@ -12,7 +12,7 @@ O site resolve a dor de quiosques com alta rotatividade de clientes e atendiment
 
 O site é publicado direto da branch `main` deste repositório — qualquer alteração enviada para `main` atualiza automaticamente o endereço acima em poucos minutos.
 
-O front-end detecta sozinho onde está rodando: em `localhost`, fala com a API local (`http://localhost:8787`); publicado (GitHub Pages ou qualquer outro domínio), fala com a API de produção. Se a API de produção estiver fora do ar ou sem as credenciais configuradas (ver `server/README.md`), o botão **Entrar** mostra "Falha de conexão com o servidor" — as páginas de conteúdo (Sobre, Funcionalidades, etc.) continuam funcionando normalmente.
+O front-end detecta sozinho onde está rodando: em `localhost`, fala com a API local (`http://localhost:8787`); publicado (GitHub Pages ou qualquer outro domínio), fala com a API de produção. Se a API de produção estiver fora do ar, o botão **Entrar** mostra "Falha de conexão com o servidor" — as páginas de conteúdo (Sobre, Funcionalidades, etc.) continuam funcionando normalmente.
 
 **Conta de demonstração** (botão **Entrar** no menu, abre o modal de login em `index.html`):
 
@@ -32,7 +32,7 @@ A home (`index.html`) traz o menu principal, de onde se chega a todas as página
 | Funcionalidades | `funcionalidades.html` | Benefícios do sistema para o quiosque |
 | Como funciona | `como-funciona.html` | O fluxo em três passos, do guarda-sol à cozinha |
 | Perfis de acesso | `perfis.html` | O que cliente, cozinha e administração enxergam |
-| Protótipo completo | `prototipo.html` | Protótipo navegável de 38 telas (Cliente, Administração, Cozinha) |
+| Protótipo | `prototipo.html` | Protótipo navegável de 38 telas (Cliente, Administração, Cozinha) |
 | Sobre nós | `sobre.html` | Missão, visão, contexto e problema do projeto |
 | Fale conosco | `contato.html` | Formulário de contato e pré-agendamento |
 | Mapa do sistema | `mapa.html` | Mapa completo de páginas e telas, para fins de documentação |
@@ -44,19 +44,24 @@ O botão **Entrar**, no menu fixo de todas as páginas, abre o login (direto na 
 
 ## Rodando localmente
 
-O front-end continua estático (nenhum build, nenhuma dependência) — mas pra login/cardápio/pedido funcionarem, a API precisa estar rodando também. Dois terminais:
+O site não tem build nem dependências: basta servir a pasta. Para login, cardápio e pedidos funcionarem, a API precisa estar rodando em `http://localhost:8787` (veja o README do [`sunfood-backend`](https://github.com/owdarlley/sunfood-backend)).
 
 ```bash
-# terminal 1 — API (porta 8787) — veja server/README.md para o .env
-cd server
-npm install
-npm start
-
-# terminal 2 — front-end (porta 8000)
 python3 -m http.server 8000
 ```
 
 Acesse `http://localhost:8000`.
+
+## Testes
+
+Os testes de tela ficam em [`tests/fluxo`](tests/fluxo/README.md) e rodam sozinhos no GitHub a cada push. Para rodar na sua máquina:
+
+```bash
+cd tests
+npm ci
+npx playwright install chromium
+npm test
+```
 
 ## Estrutura de pastas
 
@@ -64,10 +69,11 @@ Acesse `http://localhost:8000`.
 index.html, sobre.html, contato.html, ...    → páginas do site
 termos.html, privacidade.html                → documentos legais
 redefinir-senha.html                         → segunda etapa da recuperação de senha
-app-cliente.dc.html, prototipo-completo.html → protótipos navegáveis (fala com a API)
-support.js                                   → script de apoio às páginas
-assets/                                      → imagens usadas no projeto
-server/                                      → backend Node/Express + Supabase + Mercado Pago (ver server/README.md)
+app-cliente.dc.html                          → o app (cliente, cozinha e administração), fala com a API
+prototipo.html, prototipo-completo.html      → protótipo navegável das telas
+support.js                                   → script de apoio às páginas (gerado, não editar)
+assets/                                      → imagens usadas no protótipo
+tests/                                       → testes de tela (Playwright)
 ```
 
 ## Grupo
