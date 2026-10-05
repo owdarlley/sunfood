@@ -98,6 +98,9 @@ a:hover{color:#FF6B35}
                   <sc-if value="{{ hasLoginErr }}" hint-placeholder-val="{{ false }}">
                     <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ loginErr }}</div>
                   </sc-if>
+                  <sc-if value="{{ loginNeedsConfirm }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ resendConfirm }}" style="border:1.5px solid #FF6B35;color:#E8551E;border-radius:12px;padding:11px;text-align:center;font:700 13px Inter,sans-serif;cursor:pointer">{{ resendLabel }}</div>
+                  </sc-if>
                   <div onClick="{{ goForgot }}" style="text-align:right;font:600 12px Inter,sans-serif;color:#E8551E;cursor:pointer">Esqueci minha senha</div>
                   <div onClick="{{ doLogin }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65);transition:transform .12s;opacity:{{ loginBusyOpacity }}" style-hover="transform:translateY(-1px)">{{ loginBtnLabel }}</div>
                   <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px Inter,sans-serif">
@@ -1284,7 +1287,7 @@ const META = {
 class Component extends DCLogic {
   state = {
     module:'cliente', screen:'login',
-    email:'', pass:'', loginErr:'',
+    email:'', pass:'', loginErr:'', loginNeedsConfirm:false,
     token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suBirth:'', suTerms:false, suErr:'',
     fpEmail:'', fpSent:false,
@@ -1579,20 +1582,44 @@ class Component extends DCLogic {
     if(this.state.busy) return;
     const email = this.state.email, password = this.state.pass;
     if(!email || !password) return this.setState({loginErr:'Preencha e-mail e senha.'});
-    this.setState({loginErr:'', busy:'login'});
+    this.setState({loginErr:'', loginNeedsConfirm:false, busy:'login'});
     try {
       const res = await fetch(API_BASE + '/auth/login', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({email, password})
       });
       const data = await res.json();
-      if(!res.ok){ this.setState({loginErr: data.error || 'E-mail ou senha inválidos.'}); return; }
+      if(!res.ok){
+        this.setState({loginErr: data.error || 'E-mail ou senha inválidos.', loginNeedsConfirm: data.code === 'email_not_confirmed'});
+        return;
+      }
       try { localStorage.setItem(SESSION_KEY, JSON.stringify({token:data.token, user:data.user})); } catch(e){}
       this.setState({token:data.token, authUser:data.user, loginErr:''});
       this.loadHistory(data.token);
       this.go('menu');
     } catch(e){
       this.setState({loginErr:'Falha de conexão com o servidor. Confira se a API está rodando.'});
+    } finally {
+      this.setState({busy:null});
+    }
+  }
+
+  // Reenvia o link de confirmação de cadastro — aparece só quando o login
+  // falhou porque o e-mail ainda não foi confirmado.
+  async resendConfirmation(){
+    if(this.state.busy) return;
+    this.setState({busy:'resend'});
+    try {
+      const res = await fetch(API_BASE + '/auth/resend-confirmation', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:this.state.email})
+      });
+      const data = await res.json();
+      if(!res.ok){ this.setState({loginErr: data.error || 'Não foi possível reenviar o e-mail.'}); return; }
+      this.setState({loginErr:'', loginNeedsConfirm:false});
+      this.flash('Enviamos um novo link de confirmação. Confira também o spam.');
+    } catch(e){
+      this.setState({loginErr:'Falha de conexão com o servidor.'});
     } finally {
       this.setState({busy:null});
     }
@@ -2101,7 +2128,10 @@ class Component extends DCLogic {
 
     // auth
     v.email = s.email; v.pass = s.pass; v.loginErr = s.loginErr; v.hasLoginErr = !!s.loginErr;
-    v.setEmail = e => this.setState({email:e.target.value, loginErr:''});
+    v.loginNeedsConfirm = !!s.loginNeedsConfirm;
+    v.resendLabel = s.busy === 'resend' ? 'Enviando…' : 'Reenviar e-mail de confirmação';
+    v.resendConfirm = () => this.resendConfirmation();
+    v.setEmail = e => this.setState({email:e.target.value, loginErr:'', loginNeedsConfirm:false});
     v.setPass = e => this.setState({pass:e.target.value, loginErr:''});
     v.doLogin = () => this.submitLogin();
     v.signInWithGoogle = () => this.signInWithGoogle();
