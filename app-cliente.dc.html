@@ -360,7 +360,7 @@ a:hover{color:#FF6B35}
                     <div style="width:164px;height:164px;margin:0 auto 12px;border-radius:12px;background:#F4EFE7;display:flex;align-items:center;justify-content:center;color:#B7AFA2"><svg viewBox="0 0 48 48" width="60" height="60" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M24 6 42 24 24 42 6 24 24 6Z M17 24h14 M24 17v14"></path></svg></div>
                   </sc-if>
                   <div style="font:500 11.5px Inter,sans-serif;color:#6B7280">Valor a pagar</div>
-                  <div style="font:800 22px 'Baloo 2',sans-serif">{{ totalStr }}</div>
+                  <div style="font:800 22px 'Baloo 2',sans-serif">{{ orderTotalStr }}</div>
                   <div style="font:600 11.5px Inter,sans-serif;color:#16A34A;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px"><svg viewBox="0 0 48 48" width="14" height="14" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" style="display:block"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0"></path><path d="M17 24l5 5 9-11" fill="none"></path></svg>Aguardando confirmação do pagamento…</div>
                 </div>
                 <div onClick="{{ copyPix }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13px Inter,sans-serif;cursor:pointer" style-hover="border-color:#FF9166">Copiar código PIX</div>
@@ -372,38 +372,24 @@ a:hover{color:#FF6B35}
             </sc-if>
 
             <sc-if value="{{ is_card }}" hint-placeholder-val="{{ false }}">
-              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:11px">
-                <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:9px 12px;font:700 11px Inter,sans-serif;color:#B0791A;text-align:center">Ambiente de testes — pagamento por cartão ainda não processa cobrança real. Use PIX para pagamento de verdade.</div>
-                <div>
-                  <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Número do cartão</span>
-                  <input value="{{ cardNum }}" onChange="{{ setCardNum }}" placeholder="0000 0000 0000 0000" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
-                </div>
-                <div style="display:flex;gap:9px">
-                  <div style="flex:1">
-                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Validade</span>
-                    <input value="{{ cardExp }}" onChange="{{ setCardExp }}" placeholder="MM/AA" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
-                  </div>
-                  <div style="flex:1">
-                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">CVV</span>
-                    <input value="{{ cardCvv }}" onChange="{{ setCardCvv }}" placeholder="123" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
-                  </div>
-                </div>
-                <div>
-                  <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Nome no cartão</span>
-                  <input value="{{ cardName }}" onChange="{{ setCardName }}" placeholder="Como está impresso" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
-                </div>
-                <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E9E1D6;border-radius:12px;padding:11px 13px">
-                  <div style="flex:1">
-                    <div style="font:700 12px Inter,sans-serif">Simular recusa do emissor</div>
-                    <div style="font:400 10.5px Inter,sans-serif;color:#6B7280">Leva para a tela de falha no pagamento</div>
-                  </div>
-                  <div onClick="{{ toggleFail }}" style="{{ failStyle }}"><span style="{{ knobStyle }}"></span></div>
-                </div>
-                <sc-if value="{{ cardBlocked }}" hint-placeholder-val="{{ true }}">
-                  <div style="margin-top:auto;background:#E9E1D6;color:#9A9384;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:not-allowed">{{ payLabel }}</div>
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <sc-if value="{{ cardSimulated }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FFF3DE;border:1px solid #F5D9A8;border-radius:10px;padding:9px 12px;font:700 11px Inter,sans-serif;color:#B0791A;text-align:center">Ambiente de testes — o pagamento com cartão só funciona com o Mercado Pago configurado no servidor</div>
                 </sc-if>
-                <sc-if value="{{ cardOk }}" hint-placeholder-val="{{ false }}">
-                  <div onClick="{{ payCard }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">{{ payLabel }}</div>
+                <div style="background:#fff;border-radius:18px;padding:20px;text-align:center;border:1px solid #E9E1D6">
+                  <div style="width:56px;height:56px;margin:0 auto 10px;border-radius:14px;background:#1F3B6B;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="28" height="28" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M11 13h26a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4Z M7 21h34 M14 29h7"></path></svg></div>
+                  <div style="font:500 11.5px Inter,sans-serif;color:#6B7280">Valor a pagar</div>
+                  <div style="font:800 22px 'Baloo 2',sans-serif">{{ orderTotalStr }}</div>
+                  <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
+                    <div style="font:600 11.5px Inter,sans-serif;color:#16A34A;margin-top:6px">Aguardando confirmação do pagamento…</div>
+                  </sc-if>
+                </div>
+                <div style="font:400 11.5px/1.6 Inter,sans-serif;color:#9A9384;text-align:center">Você vai para a página segura do Mercado Pago para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ openCardCheckout }}" style="margin-top:auto;border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer">Abrir o pagamento de novo</div>
+                </sc-if>
+                <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ openCardCheckout }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Pagar com cartão</div>
                 </sc-if>
               </div>
             </sc-if>
@@ -413,13 +399,13 @@ a:hover{color:#FF6B35}
                 <div style="text-align:center">
                   <div style="width:74px;height:74px;border-radius:50%;background:#E7F7ED;color:#16A34A;display:flex;align-items:center;justify-content:center;font-size:32px;margin:6px auto 10px">✓</div>
                   <div style="font:700 20px 'Baloo 2',sans-serif">Pedido confirmado</div>
-                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">A cozinha já recebeu seu pedido. Fique à vontade no guarda-sol — levamos até você.</p>
+                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">{{ confirmMsg }}</p>
                 </div>
                 <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px">
                   <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Pedido</span><span style="color:#1B2430;font-weight:700">{{ orderId }}</span></div>
                   <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Mesa</span><span style="color:#1B2430;font-weight:700">{{ orderTable }}</span></div>
                   <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Tempo estimado</span><span style="color:#1B2430;font-weight:700">{{ etaStr }}</span></div>
-                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>Total pago</span><span>{{ orderTotalStr }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>{{ totalPaidLabel }}</span><span>{{ orderTotalStr }}</span></div>
                 </div>
                 <div onClick="{{ goStatus }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)" style-hover="transform:translateY(-1px)">Acompanhar pedido</div>
                 <div onClick="{{ goMenu }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer">Pedir mais alguma coisa</div>
@@ -431,10 +417,9 @@ a:hover{color:#FF6B35}
                 <div style="text-align:center">
                   <div style="width:74px;height:74px;border-radius:50%;background:#FDEBEA;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-size:30px;margin:6px auto 10px">✕</div>
                   <div style="font:700 20px 'Baloo 2',sans-serif">Pagamento não aprovado</div>
-                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">O emissor do cartão recusou a transação. Nada foi cobrado e seu carrinho continua salvo.</p>
+                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">O pagamento com cartão não foi concluído e nada foi cobrado. Você pode tentar de novo ou pagar de outro jeito.</p>
                 </div>
-                <div style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:12px;padding:12px 14px;font:600 11.5px/1.5 Inter,sans-serif;color:#B5453A">Código do gateway: <b>51 — saldo insuficiente</b></div>
-                <div onClick="{{ retryPay }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)">Tentar outro pagamento</div>
+                <div onClick="{{ retryPay }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65)">Tentar de novo</div>
                 <div onClick="{{ goCart }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer">Voltar ao carrinho</div>
               </div>
             </sc-if>
@@ -479,13 +464,16 @@ a:hover{color:#FF6B35}
                   <sc-for list="{{ orderItems }}" as="it" hint-placeholder-count="3">
                     <div style="display:flex;justify-content:space-between;font:500 12.5px Inter,sans-serif;color:#6B7280;padding:3px 0"><span>{{ it.n }}</span><span>{{ it.v }}</span></div>
                   </sc-for>
-                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>Total pago</span><span>{{ orderTotalStr }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:700 14px Inter,sans-serif;border-top:1px dashed #E9E1D6;margin-top:6px;padding-top:8px"><span>{{ totalPaidLabel }}</span><span>{{ orderTotalStr }}</span></div>
                 </div>
                 <sc-if value="{{ hasOrderObs }}" hint-placeholder-val="{{ false }}">
                   <div style="background:#FFF3DE;border:1px solid #F3DFB8;border-radius:14px;padding:12px 14px">
                     <div style="font:700 9.5px Inter,sans-serif;color:#B0791A;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Observações enviadas</div>
                     <div style="font:500 12px/1.55 Inter,sans-serif;color:#8A6015">{{ orderObs }}</div>
                   </div>
+                </sc-if>
+                <sc-if value="{{ hasCancelHint }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:auto;font:500 11.5px Inter,sans-serif;color:#6B7280;text-align:center">{{ cancelHint }}</div>
                 </sc-if>
                 <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ false }}">
                   <div onClick="{{ askCancel }}" style="margin-top:auto;border:1.5px solid #F5C6C2;background:#fff;color:#E74C3C;border-radius:12px;padding:13px;text-align:center;font:700 13.5px Inter,sans-serif;cursor:pointer" style-hover="background:#FDEBEA">Cancelar pedido</div>
@@ -498,10 +486,10 @@ a:hover{color:#FF6B35}
                 <div style="background:#E7F7ED;border:1px solid #CBE9D6;border-radius:12px;padding:12px 14px;font:600 11.5px/1.5 Inter,sans-serif;color:#15803D">✓ Cancelamento permitido — o pedido ainda está <b>Na Fila</b> e não entrou em preparo.</div>
                 <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px">
                   <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Pedido</span><span style="color:#1B2430;font-weight:700">{{ orderId }}</span></div>
-                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Estorno</span><span style="color:#1B2430;font-weight:700">{{ orderTotalStr }}</span></div>
-                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Prazo</span><span style="color:#1B2430;font-weight:700">até 2 dias úteis</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Estorno</span><span style="color:#1B2430;font-weight:700">{{ refundStr }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:500 13px Inter,sans-serif;color:#6B7280;padding:4px 0"><span>Prazo</span><span style="color:#1B2430;font-weight:700">{{ refundEta }}</span></div>
                 </div>
-                <p style="font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Ao confirmar, o pedido sai da fila da cozinha e o valor é estornado no mesmo meio de pagamento.</p>
+                <p style="font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">{{ cancelAskMsg }}</p>
                 <div onClick="{{ doCancel }}" style="margin-top:auto;background:#E74C3C;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(231,76,60,.6)">Confirmar cancelamento</div>
                 <div onClick="{{ goStatus }}" style="border:1.5px solid #E9E1D6;background:#fff;border-radius:12px;padding:13px;text-align:center;font:600 13.5px Inter,sans-serif;cursor:pointer">Manter meu pedido</div>
               </div>
@@ -511,7 +499,7 @@ a:hover{color:#FF6B35}
               <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 30px;gap:5px;animation:sfup .3s ease">
                 <div style="width:74px;height:74px;border-radius:50%;background:#FDEBEA;color:#E74C3C;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:10px">↺</div>
                 <div style="font:700 19px 'Baloo 2',sans-serif">Pedido cancelado</div>
-                <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">{{ orderId }} saiu da fila da cozinha. O estorno de {{ orderTotalStr }} já foi solicitado.</p>
+                <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:0">{{ cancelDoneMsg }}</p>
                 <div onClick="{{ goMenu }}" style="margin-top:18px;background:#FF6B35;color:#fff;border-radius:12px;padding:12px 26px;font:700 14px 'Baloo 2',sans-serif;cursor:pointer">Voltar ao cardápio</div>
               </div>
             </sc-if>
@@ -521,7 +509,7 @@ a:hover{color:#FF6B35}
                 <div style="text-align:center">
                   <div style="width:74px;height:74px;border-radius:50%;background:#FFF3DE;display:flex;align-items:center;justify-content:center;margin:6px auto 10px"><svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="#F5A623" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M16 21h16a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4v-9a4 4 0 0 1 4-4Z M18 21v-5a6 6 0 0 1 12 0v5 M24 27v4"></path></svg></div>
                   <div style="font:700 19px 'Baloo 2',sans-serif">Não é mais possível cancelar</div>
-                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">O status do pedido é <b>{{ orderStatus }}</b>. Depois que a cozinha começa o preparo, o cancelamento pelo app é bloqueado (RN04).</p>
+                  <p style="font:400 13px/1.6 Inter,sans-serif;color:#6B7280;margin:6px 0 0">{{ cancelBlockedMsg }}</p>
                 </div>
                 <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 15px;font:400 12.5px/1.6 Inter,sans-serif;color:#6B7280">Precisa de ajuda? Chame um atendente na mesa <b>{{ orderTable }}</b> ou fale com o balcão do quiosque.</div>
                 <div onClick="{{ goStatus }}" style="margin-top:auto;background:#FF6B35;color:#fff;border-radius:12px;padding:15px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer">Voltar ao acompanhamento</div>
@@ -717,6 +705,7 @@ a:hover{color:#FF6B35}
                       <span style="font:700 13px 'Baloo 2',sans-serif;width:52px;flex-shrink:0">{{ r.id }}</span>
                       <span style="font:500 12px Inter,sans-serif;color:#6B7280;width:70px;flex-shrink:0">Mesa {{ r.table }}</span>
                       <span style="flex:1;font:400 12px Inter,sans-serif;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.itemsStr }}</span>
+                      <span style="{{ r.payStyle }}">{{ r.payLabel }}</span>
                       <span style="{{ r.stStyle }}">{{ r.status }}</span>
                       <span style="font:700 12.5px Inter,sans-serif;width:78px;text-align:right;flex-shrink:0">{{ r.totalStr }}</span>
                       <span style="font:500 11px Inter,sans-serif;color:#9AA0A6;width:82px;text-align:right;flex-shrink:0">{{ r.hora }}</span>
@@ -797,6 +786,19 @@ a:hover{color:#FF6B35}
                   <div onClick="{{ togglePause }}" style="{{ pauseSwitchStyle }}">
                     <div style="{{ pauseKnobStyle }}"></div>
                   </div>
+                </div>
+                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+                  <div>
+                    <div style="font:700 14px 'Baloo 2',sans-serif">Prazo para o cliente cancelar</div>
+                    <div style="font:400 12px/1.5 Inter,sans-serif;color:#6B7280;margin-top:2px">Atual: {{ cancelWindowStr }}. Depois desse tempo, contado a partir do pedido, o cliente não consegue mais cancelar pelo app. Em qualquer caso, o cancelamento só vale enquanto o pedido está na fila. Use 0 para não ter prazo.</div>
+                  </div>
+                  <div style="display:flex;gap:8px">
+                    <input value="{{ cancelWindowInput }}" onChange="{{ setCancelWindowInput }}" placeholder="Minutos (ex: 5)" inputmode="numeric" style="flex:1;border:1px solid #E9E1D6;border-radius:9px;padding:10px 12px;font:500 12.5px Inter,sans-serif;outline:none" />
+                    <div onClick="{{ saveCancelWindow }}" style="background:#FF6B35;color:#fff;border-radius:10px;padding:10px 16px;text-align:center;font:700 13px 'Baloo 2',sans-serif;cursor:pointer">Salvar</div>
+                  </div>
+                  <sc-if value="{{ hasCancelWindowMsg }}" hint-placeholder-val="{{ false }}">
+                    <div style="font:600 11.5px Inter,sans-serif;color:#E8551E">{{ cancelWindowMsg }}</div>
+                  </sc-if>
                 </div>
               </div>
             </sc-if>
@@ -910,6 +912,7 @@ a:hover{color:#FF6B35}
                       <div style="background:#FFF9F1;border:1px solid #F0EBE1;border-radius:11px;padding:12px">
                         <div style="display:flex;justify-content:space-between;font:700 12.5px 'Baloo 2',sans-serif"><span>{{ k.table }}</span><span style="font:500 10.5px Inter,sans-serif;color:#9AA0A6">{{ k.min }}</span></div>
                         <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#6B7280;margin:6px 0">{{ k.items }}</div>
+                        <div style="{{ k.payStyle }}">{{ k.payLabel }}</div>
                         <sc-if value="{{ k.hasObs }}" hint-placeholder-val="{{ false }}">
                           <div style="font:600 10.5px Inter,sans-serif;color:#E8551E;background:#FFF3DE;border-radius:7px;padding:5px 8px;margin-bottom:8px">Obs: {{ k.obs }}</div>
                         </sc-if>
@@ -927,6 +930,7 @@ a:hover{color:#FF6B35}
                       <div style="background:#FFF9F1;border:1px solid #F0EBE1;border-radius:11px;padding:12px">
                         <div style="display:flex;justify-content:space-between;font:700 12.5px 'Baloo 2',sans-serif"><span>{{ k.table }}</span><span style="font:500 10.5px Inter,sans-serif;color:#9AA0A6">{{ k.min }}</span></div>
                         <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#6B7280;margin:6px 0">{{ k.items }}</div>
+                        <div style="{{ k.payStyle }}">{{ k.payLabel }}</div>
                         <sc-if value="{{ k.hasObs }}" hint-placeholder-val="{{ false }}">
                           <div style="font:600 10.5px Inter,sans-serif;color:#E8551E;background:#FFF3DE;border-radius:7px;padding:5px 8px;margin-bottom:8px">Obs: {{ k.obs }}</div>
                         </sc-if>
@@ -943,7 +947,8 @@ a:hover{color:#FF6B35}
                     <sc-for list="{{ kReady }}" as="k" hint-placeholder-count="3">
                       <div style="background:#F0FBF4;border:1px solid #CBE9D6;border-radius:11px;padding:12px">
                         <div style="display:flex;justify-content:space-between;font:700 12.5px 'Baloo 2',sans-serif"><span>{{ k.table }}</span><span style="font:500 10.5px Inter,sans-serif;color:#9AA0A6">{{ k.min }}</span></div>
-                        <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#6B7280;margin:6px 0 8px">{{ k.items }}</div>
+                        <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#6B7280;margin:6px 0">{{ k.items }}</div>
+                        <div style="{{ k.payStyle }}">{{ k.payLabel }}</div>
                         <div onClick="{{ k.deliver }}" style="background:#16A34A;color:#fff;border-radius:8px;padding:9px;text-align:center;font:700 11.5px 'Baloo 2',sans-serif;cursor:pointer">Marcar como entregue</div>
                       </div>
                     </sc-for>
@@ -1105,7 +1110,7 @@ function apiProductToState(p){
 
 function orderFromApi(o){
   return {id:'#' + o.id, _apiId:o.id, table:o.tableNumber, total:o.total, status:o.status, obs:o.note || '',
-    paymentStatus:o.paymentStatus || 'pending',
+    paymentStatus:o.paymentStatus || 'pending', paymentMethod:o.paymentMethod || 'pix', cancelDeadline:o.cancelDeadline || null,
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
 }
 
@@ -1152,8 +1157,23 @@ function adminOrderFromApi(o){
   return {
     id:'#' + o.id, apiId:o.id, table:o.tableNumber, status:o.status, totalStr:'R$ ' + o.total.toFixed(2).replace('.', ','),
     itemsStr:o.items.map(it => it.qty + 'x ' + it.name).join(' · '),
-    obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt
+    obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt,
+    paymentMethod:o.paymentMethod || 'pix', paymentStatus:o.paymentStatus || 'pending',
+    ...paymentBadge(o)
   };
+}
+
+// Selo de pagamento no kanban e na lista do admin: a cozinha precisa saber se
+// já está pago no app ou se o garçom cobra na entrega.
+function paymentBadge(o){
+  const base = 'display:inline-block;font:700 10px Inter,sans-serif;padding:4px 9px;border-radius:100px;margin-bottom:8px;';
+  const total = 'R$ ' + o.total.toFixed(2).replace('.', ',');
+  const method = o.paymentMethod || 'pix';
+  if(method === 'entrega') return {payLabel:'Cobrar na entrega · ' + total, payStyle:base + 'background:#FFF3DE;color:#B0791A'};
+  const nome = method === 'cartao' ? 'cartão' : 'PIX';
+  if(o.paymentStatus === 'approved') return {payLabel:'Pago no app (' + nome + ')', payStyle:base + 'background:#E7F7ED;color:#16A34A'};
+  if(o.paymentStatus === 'refunded') return {payLabel:'Estornado (' + nome + ')', payStyle:base + 'background:#F4EFE7;color:#6B7280'};
+  return {payLabel:'Aguardando pagamento (' + nome + ')', payStyle:base + 'background:#FDEBEA;color:#E74C3C'};
 }
 
 const UI = {
@@ -1180,7 +1200,7 @@ const SCREENS = {
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Dashboard Geral'],
     ['orders','Lista de Pedidos'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
-    ['pause','Pausar Quiosque'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
+    ['pause','Pausar Quiosque e Cancelamento'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
     ['closeDay','Encerrar Dia / Relatório']
   ],
   cozinha:[
@@ -1196,7 +1216,7 @@ const META = {
   table:{t:'Confirmar Pedido',back:'cart',sb:'dark'},
   payment:{t:'Pagamento',back:'table',sb:'dark'},
   pix:{t:'Pagamento via PIX',back:'payment',sb:'dark'},
-  card:{t:'Cartão de Crédito',back:'payment',sb:'dark'},
+  card:{t:'Pagamento com cartão',back:'payment',sb:'dark'},
   confirm:{t:'Pedido Confirmado',back:null,sb:'dark'},
   payFail:{t:'Pagamento',back:'payment',sb:'dark'},
   split:{t:'Dividir a Conta',back:'cart',sb:'dark'},
@@ -1223,7 +1243,7 @@ class Component extends DCLogic {
     cat:'Todos', menuSearch:'', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
-    payMethod:'pix', cardNum:'', cardName:'', cardExp:'', cardCvv:'', forceFail:false,
+    payMethod:'pix', cardWaiting:false, cardSimulated:false,
     payingPix:false, pixQrCode:'', pixQrImg:'', pixSimulated:false,
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
@@ -1231,6 +1251,8 @@ class Component extends DCLogic {
     history:[],
     tables:[1,2,3,4,5,6,7,8,9,10,11,12].map(n => ({n, active:!(n===7||n===11), seats:n%3===0?6:4})),
     paused:false, dayClosed:false,
+    // Prazo (min) pro cliente cancelar — vem de GET /kiosk-settings; 0 = sem prazo.
+    cancelWindow:0, cancelWindowInput:'', cancelWindowMsg:'',
     // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
     // opsMetrics), carregado em loadAdminData()/pollAdminData() — nada é mock.
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
@@ -1241,6 +1263,7 @@ class Component extends DCLogic {
   componentDidMount(){
     this.aplicarRota();
     if(!this.handleGoogleCallback()) this.restoreSession();
+    this.handleCardReturn();
     this.loadCatalog();
     // Enquanto há um pedido em aberto, consulta o status real no servidor a
     // cada poucos segundos (antes era uma simulação local por tempo decorrido;
@@ -1335,7 +1358,7 @@ class Component extends DCLogic {
         const updates = {};
         if(dashRes.ok) updates.dashboard = await dashRes.json();
         if(opsRes.ok) updates.opsMetrics = await opsRes.json();
-        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; }
+        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; }
         this.setState(updates);
       } catch(e){}
     }
@@ -1356,6 +1379,22 @@ class Component extends DCLogic {
       });
       if(res.ok){ const data = await res.json(); this.setState({paused:data.paused}); }
     } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  async saveCancelWindow(){
+    const raw = String(this.state.cancelWindowInput || '').trim();
+    const minutes = Number(raw);
+    if(!raw || !Number.isInteger(minutes) || minutes < 0 || minutes > 120)
+      return this.setState({cancelWindowMsg:'Digite um número inteiro de minutos, de 0 a 120.'});
+    try {
+      const res = await fetch(API_BASE + '/kiosk-settings/cancel-window', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({minutes})
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({cancelWindowMsg:(data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
+      this.setState({cancelWindow:data.cancelWindowMinutes, cancelWindowInput:'', cancelWindowMsg:'Prazo de cancelamento atualizado.'});
+    } catch(e){ this.setState({cancelWindowMsg:'Falha de conexão com o servidor.'}); }
   }
 
   async toggleTableActive(number, active){
@@ -1451,15 +1490,15 @@ class Component extends DCLogic {
     } catch(e){}
   }
 
-  async pollOrder(apiId){
+  async pollOrder(apiId, token){
     try {
-      const res = await fetch(API_BASE + '/orders/' + apiId, {headers:{Authorization:'Bearer ' + this.state.token}});
+      const res = await fetch(API_BASE + '/orders/' + apiId, {headers:{Authorization:'Bearer ' + (token || this.state.token)}});
       if(!res.ok) return;
       const data = await res.json();
       this.setState({order: orderFromApi(data)});
       // Pagamento aprovado enquanto o cliente está vendo o QR: some com o QR
       // e confirma automaticamente — ninguém precisa "avisar" que pagou.
-      if(this.state.screen === 'pix' && data.paymentStatus === 'approved') this.go('confirm');
+      if((this.state.screen === 'pix' || this.state.screen === 'card') && data.paymentStatus === 'approved') this.go('confirm');
     } catch(e){}
   }
 
@@ -1602,7 +1641,7 @@ class Component extends DCLogic {
 
   // Cria o pedido no servidor. Retorna o pedido criado (formato da API) ou
   // null se falhou — quem chama decide pra onde navegar a partir disso.
-  async createOrderOnServer(){
+  async createOrderOnServer(paymentMethod){
     const itemNotes = this.state.cart.filter(c => c.note).map(c => c.name + ': ' + c.note);
     if(this.state.orderNote) itemNotes.push('Pedido: ' + this.state.orderNote);
     const note = itemNotes.join(' · ');
@@ -1611,7 +1650,7 @@ class Component extends DCLogic {
       const res = await fetch(API_BASE + '/orders', {
         method:'POST',
         headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
-        body:JSON.stringify({tableNumber:this.state.table, items, note})
+        body:JSON.stringify({tableNumber:this.state.table, items, note, paymentMethod})
       });
       const data = await res.json();
       if(!res.ok){
@@ -1626,15 +1665,13 @@ class Component extends DCLogic {
     }
   }
 
-  // Cartão ainda não tem processamento real (tokenização de cartão é uma
-  // integração maior, fora do escopo desta fase — só o PIX processa
-  // pagamento de verdade). Fecha o pedido e confirma direto, deixando claro
-  // na tela que é um ambiente de testes.
-  async placeOrder(){
+  // Pagar na entrega: o pedido vai direto pra cozinha e o garçom cobra na
+  // maquininha ou em dinheiro ao entregar.
+  async placeOrderPayOnDelivery(){
     if(this.state.busy) return;
     this.setState({busy:'order'});
     try {
-      const created = await this.createOrderOnServer();
+      const created = await this.createOrderOnServer('entrega');
       if(created) this.go('confirm');
     } finally {
       this.setState({busy:null});
@@ -1649,7 +1686,7 @@ class Component extends DCLogic {
     if(this.state.busy) return;
     this.setState({busy:'pix', payingPix:true});
     try {
-      const created = await this.createOrderOnServer();
+      const created = await this.createOrderOnServer('pix');
       if(!created){ this.setState({payingPix:false}); return; }
       const res = await fetch(API_BASE + '/payments/pix/' + created.id, {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
@@ -1670,6 +1707,61 @@ class Component extends DCLogic {
     } finally {
       this.setState({busy:null});
     }
+  }
+
+  // Cartão: cria o pedido e manda o cliente pro checkout do Mercado Pago. Os
+  // dados do cartão são digitados lá, nunca aqui. Na volta, handleCardReturn()
+  // retoma o pedido e o polling confirma quando o webhook aprovar.
+  async payWithCard(){
+    if(this.state.busy) return;
+    this.setState({busy:'card'});
+    try {
+      const created = await this.createOrderOnServer('cartao');
+      if(!created) return;
+      this.setState({screen:'card', cardWaiting:false, cardSimulated:false});
+    } finally {
+      this.setState({busy:null});
+    }
+    this.openCardCheckout();
+  }
+
+  async openCardCheckout(){
+    const o = this.state.order;
+    if(this.state.busy || !o || !o._apiId) return;
+    this.setState({busy:'card'});
+    try {
+      const res = await fetch(API_BASE + '/payments/card/' + o._apiId, {
+        method:'POST',
+        headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({returnUrl:window.location.origin + window.location.pathname + '?module=cliente&screen=card'})
+      });
+      const data = await res.json();
+      if(!res.ok){ this.flash(data.error || 'Não foi possível abrir o pagamento com cartão.'); return; }
+      if(data.simulated || !data.checkoutUrl){ this.setState({cardSimulated:true}); return; }
+      window.location.href = data.checkoutUrl;
+    } catch(e){
+      this.flash('Falha de conexão com o servidor.');
+    } finally {
+      this.setState({busy:null});
+    }
+  }
+
+  // Volta do Mercado Pago: a URL traz ?pedido=<id> (posto pelo servidor) e o
+  // status que o Mercado Pago mandou. Quem confirma o pagamento é sempre o
+  // servidor (webhook) — aqui só mostramos a espera ou a falha.
+  handleCardReturn(){
+    const q = new URLSearchParams(window.location.search);
+    const orderId = q.get('pedido');
+    if(!orderId) return;
+    const mpStatus = q.get('collection_status') || q.get('status');
+    history.replaceState(null, '', window.location.pathname);
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){}
+    if(!saved || !saved.token) return;
+    const failed = mpStatus === 'rejected' || mpStatus === 'null' || mpStatus === 'failure';
+    this.setState({module:'cliente', screen:failed ? 'payFail' : 'card', cardWaiting:!failed,
+      order:{id:'#' + orderId, _apiId:orderId, table:'—', total:0, status:'Na Fila', obs:'', paymentStatus:'pending', paymentMethod:'cartao', items:[]}});
+    this.pollOrder(orderId, saved.token);
   }
 
   // Só existe enquanto o pagamento roda em modo simulado (sem conta Mercado
@@ -1820,9 +1912,9 @@ class Component extends DCLogic {
     v.setOrderNote = e => this.setState({orderNote:e.target.value});
 
     // payment
-    v.payOpts = [['pix','PIX','Confirmação em segundos','pix','#16A34A'],
-                 ['card','Cartão de Crédito','Visa, Mastercard, Elo','card','#1F3B6B'],
-                 ['wallet','Apple / Google Pay','Aprovação biométrica','wallet','#1B2430']].map(([k, nm, sub, ic, bg]) => ({
+    v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
+                 ['cartao','Cartão de crédito','Pague agora pelo Mercado Pago','card','#1F3B6B'],
+                 ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']].map(([k, nm, sub, ic, bg]) => ({
       nm, sub, icPath:UI[ic],
       iconWrapStyle:'width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + bg,
       pick:() => this.setState({payMethod:k}),
@@ -1831,22 +1923,17 @@ class Component extends DCLogic {
       radioStyle:'width:18px;height:18px;border-radius:50%;margin-left:auto;flex-shrink:0;border:2px solid ' +
         (s.payMethod === k ? '#FF6B35;background:radial-gradient(circle,#FF6B35 40%,transparent 44%)' : '#E9E1D6')
     }));
-    v.payLabel = 'Pagar ' + v.totalStr;
-    v.goPay = () => { if(s.payMethod === 'card') this.go('card'); else this.payWithPix(); };
+    v.payLabel = s.payMethod === 'entrega' ? 'Fazer pedido · ' + v.totalStr : 'Pagar ' + v.totalStr;
+    v.goPay = () => {
+      if(s.payMethod === 'cartao') this.payWithCard();
+      else if(s.payMethod === 'entrega') this.placeOrderPayOnDelivery();
+      else this.payWithPix();
+    };
 
-    // card form
-    v.cardNum = s.cardNum; v.cardName = s.cardName; v.cardExp = s.cardExp; v.cardCvv = s.cardCvv;
-    v.setCardNum = e => this.setState({cardNum:e.target.value.replace(/[^\d ]/g, '').slice(0, 19)});
-    v.setCardName = e => this.setState({cardName:e.target.value});
-    v.setCardExp = e => this.setState({cardExp:e.target.value.slice(0, 5)});
-    v.setCardCvv = e => this.setState({cardCvv:e.target.value.replace(/\D/g, '').slice(0, 3)});
-    const cardOk = s.cardNum.replace(/\s/g, '').length >= 16 && s.cardName.trim().length > 2 && s.cardExp.length === 5 && s.cardCvv.length === 3;
-    v.cardOk = cardOk; v.cardBlocked = !cardOk;
-    v.forceFail = s.forceFail;
-    v.toggleFail = () => this.setState(x => ({forceFail:!x.forceFail}));
-    v.failStyle = 'width:40px;height:22px;border-radius:100px;position:relative;flex-shrink:0;cursor:pointer;transition:background .2s;background:' + (s.forceFail ? '#E74C3C' : '#E9E1D6');
-    v.knobStyle = 'position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;left:' + (s.forceFail ? '20px' : '2px');
-    v.payCard = () => { if(!cardOk) return; if(s.forceFail) return this.go('payFail'); this.placeOrder(); };
+    // card (checkout do Mercado Pago)
+    v.cardWaiting = !!s.cardWaiting;
+    v.cardSimulated = !!s.cardSimulated;
+    v.openCardCheckout = () => this.openCardCheckout();
 
     // pix
     v.payingPix = !!s.payingPix;
@@ -1867,12 +1954,37 @@ class Component extends DCLogic {
     v.orderItems = o ? o.items.map(it => ({n:it.n, v:f(it.v)})) : [];
     v.orderObs = o && o.obs ? o.obs : '';
     v.hasOrderObs = !!(o && o.obs);
-    v.canCancel = !!o && o.status === 'Na Fila';
+    // Prazo de cancelamento vem do servidor (cancelDeadline); sem prazo = null.
+    const deadlineMs = o && o.cancelDeadline ? new Date(o.cancelDeadline).getTime() : null;
+    const deadlinePassed = deadlineMs !== null && Date.now() > deadlineMs;
+    v.canCancel = !!o && o.status === 'Na Fila' && !deadlinePassed;
+    v.cancelHint = v.canCancel && deadlineMs !== null
+      ? 'Você pode cancelar até ' + new Date(deadlineMs).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) + '.'
+      : '';
+    v.hasCancelHint = !!v.cancelHint;
+    v.cancelBlockedMsg = o && o.status === 'Na Fila' && deadlinePassed
+      ? 'O prazo para cancelar pelo app já passou. O quiosque permite cancelar só nos primeiros minutos depois do pedido.'
+      : 'O status do pedido é ' + (o ? o.status : '—') + '. Depois que a cozinha começa o preparo, o cancelamento pelo app é bloqueado.';
+    const payOnDelivery = !!o && o.paymentMethod === 'entrega';
+    const paidInApp = !!o && !payOnDelivery && o.paymentStatus === 'approved';
+    v.totalPaidLabel = payOnDelivery ? 'A pagar na entrega' : 'Total pago';
+    v.confirmMsg = payOnDelivery
+      ? 'A cozinha já recebeu seu pedido. Pague ao garçom na entrega, com cartão ou dinheiro.'
+      : 'A cozinha já recebeu seu pedido. Fique à vontade no guarda-sol — levamos até você.';
+    v.refundStr = paidInApp ? v.orderTotalStr : 'Nada a estornar';
+    v.refundEta = paidInApp ? 'até 2 dias úteis' : '—';
+    v.cancelAskMsg = paidInApp
+      ? 'Ao confirmar, o pedido sai da fila da cozinha e o valor é estornado no mesmo meio de pagamento.'
+      : 'Ao confirmar, o pedido sai da fila da cozinha. Nada foi cobrado, então não há estorno.';
+    v.cancelDoneMsg = !o ? '' : o.paymentStatus === 'refunded'
+      ? o.id + ' saiu da fila da cozinha. O estorno de ' + v.orderTotalStr + ' já foi solicitado.'
+      : o.id + ' saiu da fila da cozinha.';
     v.etaStr = o ? (o.status === 'Pronto' ? 'Pronto para retirada' : o.status === 'Em Preparo' ? '~7 min' : '~15 min') : '~15 min';
     const stages = ['Na Fila','Em Preparo','Pronto'];
     const ci = o ? stages.indexOf(o.status) : 0;
     v.steps = [
-      {t:'Pagamento aprovado', d:'PIX confirmado', i:0},
+      payOnDelivery ? {t:'Pagamento na entrega', d:'Cartão ou dinheiro com o garçom', i:0}
+        : {t:'Pagamento aprovado', d:(o && o.paymentMethod === 'cartao') ? 'Cartão confirmado' : 'PIX confirmado', i:0},
       {t:'Na fila da cozinha', d:'Pedido recebido pelo quiosque', i:1},
       {t:'Em preparo', d:'A cozinha está montando seu pedido', i:2},
       {t:'Pronto — entrega na mesa ' + v.orderTable, d:'Um atendente já está indo até você', i:3}
@@ -1973,6 +2085,11 @@ class Component extends DCLogic {
     v.activeTables = s.tables.filter(t => t.active).length + ' de ' + s.tables.length + ' ativas';
 
     v.togglePause = () => this.togglePauseKiosk();
+    v.cancelWindowStr = s.cancelWindow ? s.cancelWindow + ' min depois do pedido' : 'sem prazo (pode cancelar enquanto estiver na fila)';
+    v.cancelWindowInput = s.cancelWindowInput;
+    v.setCancelWindowInput = e => this.setState({cancelWindowInput:e.target.value, cancelWindowMsg:''});
+    v.saveCancelWindow = () => this.saveCancelWindow();
+    v.cancelWindowMsg = s.cancelWindowMsg; v.hasCancelWindowMsg = !!s.cancelWindowMsg;
     v.pauseLabel = s.paused ? 'Quiosque pausado' : 'Quiosque aberto';
     v.pauseSub = s.paused ? 'O cardápio do cliente exibe aviso e o checkout está bloqueado.' : 'Novos pedidos estão sendo aceitos normalmente.';
     v.pauseSwitchStyle = 'width:48px;height:26px;border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;background:' + (s.paused ? '#E74C3C' : '#16A34A');
@@ -2045,8 +2162,11 @@ class Component extends DCLogic {
       style:'padding:9px 11px;border-radius:9px;font:600 12px Inter,sans-serif;cursor:pointer;transition:background .15s;' +
         (s.screen === k ? 'background:#FF6B35;color:#fff' : 'color:rgba(255,255,255,.6)')
     }));
-    const col = st => s.adminOrders.filter(k => k.status === st).map(k => ({
+    // Pedido de PIX/cartão ainda não pago não aparece pra cozinha (o servidor
+    // já filtra pro perfil cozinha; aqui vale também pro admin olhando o kanban).
+    const col = st => s.adminOrders.filter(k => k.status === st && (k.paymentMethod === 'entrega' || k.paymentStatus === 'approved')).map(k => ({
       id:k.id, table:'Mesa ' + k.table, items:k.itemsStr, min:k.minAgo + ' min',
+      payLabel:k.payLabel, payStyle:k.payStyle,
       obs:k.obs || '', hasObs:!!k.obs,
       btn:st === 'Na Fila' ? 'Iniciar preparo' : 'Marcar como pronto',
       showBtn:st !== 'Pronto',
@@ -2110,7 +2230,13 @@ class Component extends DCLogic {
     v.goPayment = () => this.go('payment');
     v.goPix = () => this.go('pix');
     v.goCard = () => this.go('card');
-    v.retryPay = () => this.go('payment');
+    v.retryPay = () => {
+      const ord = this.state.order;
+      if(ord && ord.paymentMethod === 'cartao' && ord.status === 'Na Fila' && ord.paymentStatus !== 'approved'){
+        this.setState({screen:'card', cardWaiting:false});
+        this.openCardCheckout();
+      } else this.go('payment');
+    };
     v.goOffline = () => this.go('offline');
     v.goKanban = () => this.go(v.kitchenEmpty ? 'queueEmpty' : 'kanban', 'cozinha');
     v.goUnavailable = () => this.go('unavailable', 'cozinha');
