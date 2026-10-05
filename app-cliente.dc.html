@@ -190,6 +190,38 @@ a:hover{color:#FF6B35}
               </div>
             </sc-if>
 
+            <sc-if value="{{ is_completeProfile }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;background:linear-gradient(165deg,#142850 0%,#1F3B6B 34%,#FF6B35 100%);display:flex;flex-direction:column">
+                <div style="text-align:center;color:#fff;padding:24px 22px 18px">
+                  <div style="font:800 22px 'Baloo 2',sans-serif">Falta pouco</div>
+                  <div style="font:500 12px Inter,sans-serif;color:rgba(255,255,255,.75);margin-top:4px">Complete seu cadastro para fazer pedidos</div>
+                </div>
+                <div style="background:#fff;border-radius:26px 26px 0 0;flex:1;padding:24px 22px 20px;display:flex;flex-direction:column;gap:12px">
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Nome completo</span>
+                    <input value="{{ suName }}" onChange="{{ setSuName }}" placeholder="Ana Souza" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">WhatsApp / telefone</span>
+                    <input value="{{ suPhone }}" onChange="{{ setSuPhone }}" placeholder="(11) 91234-5678" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Data de nascimento</span>
+                    <input type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}" style="width:100%;box-sizing:border-box;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none;color:#1B2430" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div style="display:flex;align-items:flex-start;gap:9px">
+                    <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:#FF6B35;cursor:pointer">
+                    <span onClick="{{ toggleSuTerms }}" style="font:500 11.5px/1.5 Inter,sans-serif;color:#6B7280;cursor:pointer">Li e aceito os <a href="termos.html" target="_blank" onClick="{{ stopProp }}" style="color:#E8551E;font-weight:600">Termos de Uso</a> e a <a href="privacidade.html" target="_blank" onClick="{{ stopProp }}" style="color:#E8551E;font-weight:600">Política de Privacidade</a> do Sunfood.</span>
+                  </div>
+                  <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:#FDEBEA;color:#E74C3C;font:600 12px Inter,sans-serif;padding:9px 11px;border-radius:10px">⚠ {{ suErr }}</div>
+                  </sc-if>
+                  <div onClick="{{ doCompleteProfile }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 10px 20px -8px rgba(255,107,53,.65);opacity:{{ completeBusyOpacity }}" style-hover="transform:translateY(-1px)">{{ completeBtnLabel }}</div>
+                  <div onClick="{{ goLogin }}" style="text-align:center;font:600 12px Inter,sans-serif;color:#6B7280;cursor:pointer;margin-top:auto">Sair</div>
+                </div>
+              </div>
+            </sc-if>
+
             <sc-if value="{{ is_menu }}" hint-placeholder-val="{{ false }}">
               <div style="flex:1;padding:16px 16px 12px;display:flex;flex-direction:column;gap:12px">
                 <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
@@ -1278,7 +1310,8 @@ const SCREENS = {
     ['status','Status em Tempo Real'],['cancelAsk','Cancelar Pedido — Permitido'],['cancelDone','Cancelamento Confirmado'],
     ['cancelBlocked','Cancelamento Bloqueado'],['history','Histórico de Pedidos'],['historyEmpty','Histórico Vazio'],
     ['orderDetail','Detalhe de Pedido'],['profile','Perfil'],['deleteAccount','Excluir Conta'],
-    ['location','Localização do Quiosque'],['offline','Sem Conexão']
+    ['location','Localização do Quiosque'],['offline','Sem Conexão'],
+    ['completeProfile','Completar Cadastro']
   ],
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Dashboard Geral'],
@@ -1368,7 +1401,10 @@ class Component extends DCLogic {
     try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){ saved = null; }
     if(!saved || !saved.token) return;
     this.setState({token:saved.token, authUser:saved.user, email:saved.user.email});
-    if(saved.user.role === 'cliente') this.loadHistory(saved.token);
+    if(saved.user.role === 'cliente'){
+      this.loadHistory(saved.token);
+      if(saved.user.profileComplete === false) this.askCompleteProfile(saved.user);
+    }
     else this.loadAdminData();
   }
 
@@ -1393,6 +1429,12 @@ class Component extends DCLogic {
       window.location.replace('redefinir-senha.html' + window.location.hash);
       return true;
     }
+    if(hash.get('error')){
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      this.setState({screen:'login', module:'cliente'});
+      setTimeout(() => this.flash('Não foi possível entrar. Tente de novo.'), 0);
+      return true;
+    }
     const accessToken = hash.get('access_token');
     if(!accessToken) return false;
     // Tira o token da barra de endereço antes de qualquer outra coisa — ele
@@ -1402,15 +1444,54 @@ class Component extends DCLogic {
     return true;
   }
 
+  // Guarda a sessão e decide a primeira tela: quem entrou pelo Google (ou
+  // conta antiga) sem telefone/nascimento/termos completa o cadastro antes.
+  startSession(token, user){
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify({token, user})); } catch(e){}
+    this.setState({token, authUser:user});
+    this.loadHistory(token);
+    if(user.profileComplete === false) this.askCompleteProfile(user);
+    else this.go('menu');
+  }
+
+  askCompleteProfile(user){
+    this.setState(s => ({suName: s.suName || (user && user.name) || '', suErr:''}));
+    this.go('completeProfile', 'cliente');
+  }
+
+  async submitCompleteProfile(){
+    if(this.state.busy) return;
+    const s = this.state;
+    if(s.suName.trim().length < 2) return this.setState({suErr:'Informe seu nome.'});
+    if(s.suPhone.replace(/\D/g, '').length < 10) return this.setState({suErr:'Informe um telefone/WhatsApp válido.'});
+    if(!isAdult(s.suBirth)) return this.setState({suErr:'É preciso ter 18 anos ou mais para fazer pedidos.'});
+    if(!s.suTerms) return this.setState({suErr:'É preciso aceitar os termos de uso e a política de privacidade.'});
+    this.setState({suErr:'', busy:'complete'});
+    try {
+      const res = await fetch(API_BASE + '/auth/complete-profile', {
+        method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + s.token},
+        body:JSON.stringify({name:s.suName.trim(), phone:s.suPhone.trim(), birthDate:s.suBirth, termsAccepted:s.suTerms})
+      });
+      const data = await res.json();
+      if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível salvar seu cadastro.'}); return; }
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify({token:s.token, user:data.user})); } catch(e){}
+      this.setState({authUser:data.user});
+      this.go(s.cart.length ? 'cart' : 'menu');
+      this.flash('Cadastro completo. Bom apetite!');
+    } catch(e){
+      this.setState({suErr:'Falha de conexão com o servidor.'});
+    } finally {
+      this.setState({busy:null});
+    }
+  }
+
   async completeGoogleLogin(accessToken){
     try {
       const res = await fetch(API_BASE + '/auth/me', { headers:{Authorization:'Bearer ' + accessToken} });
       const data = await res.json();
       if(!res.ok){ this.flash(data.error || 'Não foi possível entrar com Google.'); return; }
-      try { localStorage.setItem(SESSION_KEY, JSON.stringify({token:accessToken, user:data.user})); } catch(e){}
-      this.setState({token:accessToken, authUser:data.user, email:data.user.email});
-      this.loadHistory(accessToken);
-      this.go('menu');
+      this.setState({email:data.user.email});
+      this.startSession(accessToken, data.user);
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
     }
@@ -1650,10 +1731,8 @@ class Component extends DCLogic {
         this.setState({loginErr: data.error || 'E-mail ou senha inválidos.', loginNeedsConfirm: data.code === 'email_not_confirmed'});
         return;
       }
-      try { localStorage.setItem(SESSION_KEY, JSON.stringify({token:data.token, user:data.user})); } catch(e){}
-      this.setState({token:data.token, authUser:data.user, loginErr:''});
-      this.loadHistory(data.token);
-      this.go('menu');
+      this.setState({loginErr:''});
+      this.startSession(data.token, data.user);
     } catch(e){
       this.setState({loginErr:'Falha de conexão com o servidor. Confira se a API está rodando.'});
     } finally {
@@ -1831,6 +1910,7 @@ class Component extends DCLogic {
       });
       const data = await res.json();
       if(!res.ok){
+        if(data.code === 'profile_incomplete'){ this.askCompleteProfile(this.state.authUser); return null; }
         this.flash(data.error || 'Não foi possível fechar o pedido.');
         return null;
       }
@@ -2229,6 +2309,9 @@ class Component extends DCLogic {
       && s.suPhone.replace(/\D/g, '').length >= 10 && isAdult(s.suBirth) && s.suTerms;
     v.suBlocked = !v.suOk;
     v.doSignup = () => this.submitSignup();
+    v.doCompleteProfile = () => this.submitCompleteProfile();
+    v.completeBtnLabel = s.busy === 'complete' ? 'Salvando...' : 'Salvar e continuar';
+    v.completeBusyOpacity = s.busy === 'complete' ? '.6' : '1';
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
     v.setFp = e => this.setState({fpEmail:e.target.value});
     v.fpOk = /@/.test(s.fpEmail);

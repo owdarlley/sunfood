@@ -7,6 +7,7 @@ Testam o app de ponta a ponta **sem deixar nada gravado em produção**.
 | `telas.mjs` | Páginas do site, fluxo do cliente (login → cardápio → carrinho → mesa → PIX → confirmação), kanban da cozinha e todas as telas do admin | `node tests/fluxo/telas.mjs` |
 | `pagamentos.mjs` | Formas de pagamento (PIX, cartão, na entrega), modo provisório sem Mercado Pago, tela de Pagamentos do admin e prazo de cancelamento | `node tests/fluxo/pagamentos.mjs` |
 | `senha.mjs` | Esqueci minha senha: pedir o link, trocar a senha pela tela `redefinir-senha.html`, link expirado e link que cai na página inicial ou no app | `node tests/fluxo/senha.mjs` |
+| `google.mjs` | Entrar com Google: ida ao Supabase, volta com o token, tela "Falta pouco" (telefone, nascimento 18+ e termos), Google cancelado e pedido recusado por cadastro incompleto | `node tests/fluxo/google.mjs` |
 | `conta.mjs` | Cadastro, login com e-mail não confirmado (botão Reenviar), pedido mínimo, dia encerrado e excluir conta | `node tests/fluxo/conta.mjs` |
 | `banco.sql` | No Supabase: pedido baixa estoque, cancelar devolve, transições de status da cozinha, venda acima do estoque recusada | Colar no SQL Editor do Supabase (ou `execute_sql`) |
 | `banco-pagamentos.sql` | No Supabase: formas de pagamento e prazo de cancelamento | Idem |
