@@ -1,5 +1,5 @@
 // Teste do "Entrar com Google" num navegador de verdade (Chromium): ida ao
-// Supabase, volta com o token, tela "Falta pouco" (telefone, nascimento e
+// Supabase, volta com o token, tela "Falta pouco" (telefone, CPF, nascimento e
 // termos) e pedido recusado por cadastro incompleto. Supabase e API falsos:
 // nada sai da máquina, nada vai pro banco.
 // Uso: node tests/fluxo/google.mjs   (a partir da raiz do repositório)
@@ -93,6 +93,13 @@ await step('Google primeiro acesso', async () => {
   check('Google: mostra "Falta pouco" em vez do cardápio', t.includes('Falta pouco') && !t.includes('Batata Frita'));
   check('Google: nome já vem preenchido', await page.getByPlaceholder('Ana Souza').inputValue() === 'Bia Google');
   await page.getByPlaceholder('(11) 91234-5678').fill('11 98888-7777');
+  await page.getByPlaceholder('000.000.000-00').fill('111.111.111-11');
+  await page.locator('input[type=date]').fill('1999-05-05');
+  await page.locator('input[type=checkbox]').check();
+  await click(page, 'Salvar e continuar');
+  t = await text(page);
+  check('completar: recusa CPF inválido', t.includes('CPF inválido') && called(page, '/auth/complete-profile').length === 0);
+  await page.getByPlaceholder('000.000.000-00').fill('111.444.777-35');
   await page.locator('input[type=date]').fill('2012-01-01');
   await page.locator('input[type=checkbox]').check();
   await click(page, 'Salvar e continuar');
@@ -106,8 +113,8 @@ await step('Google primeiro acesso', async () => {
   await page.locator('input[type=checkbox]').check();
   await click(page, 'Salvar e continuar');
   const sent = called(page, '/auth/complete-profile')[0];
-  check('completar: envia nome, telefone, nascimento e aceite com o token', sent && sent.auth === 'Bearer gtok' && sent.body.name === 'Bia Google'
-    && sent.body.phone === '11 98888-7777' && sent.body.birthDate === '1999-05-05' && sent.body.termsAccepted === true, JSON.stringify(sent));
+  check('completar: envia nome, telefone, CPF, nascimento e aceite com o token', sent && sent.auth === 'Bearer gtok' && sent.body.name === 'Bia Google'
+    && sent.body.phone === '11 98888-7777' && sent.body.cpf === '11144477735' && sent.body.birthDate === '1999-05-05' && sent.body.termsAccepted === true, JSON.stringify(sent));
   t = await text(page);
   check('completar: vai para o cardápio', t.includes('Batata Frita') && !t.includes('Falta pouco'));
   const savedUser = await page.evaluate(() => JSON.parse(localStorage.getItem('sunfood_session')).user);
@@ -151,7 +158,7 @@ await step('sessão incompleta', async () => {
 
 // 5. Servidor recusa o pedido por cadastro incompleto: leva para completar e volta ao carrinho
 await step('pedido recusado', async () => {
-  // /auth/me diz que está completo, mas o servidor recusa o pedido (ex.: conta antiga sem telefone).
+  // /auth/me diz que está completo, mas o servidor recusa o pedido (ex.: conta antiga sem telefone ou sem CPF).
   const page = await open('app-cliente.dc.html', { me: { profileComplete: true }, orderRefused: true });
   await click(page, 'Entrar com Google');
   await page.waitForTimeout(1500);
@@ -166,6 +173,7 @@ await step('pedido recusado', async () => {
   let t = await text(page);
   check('pedido recusado: leva para "Falta pouco"', t.includes('Falta pouco'), t.slice(0, 200));
   await page.getByPlaceholder('(11) 91234-5678').fill('11 98888-7777');
+  await page.getByPlaceholder('000.000.000-00').fill('529.982.247-25');
   await page.locator('input[type=date]').fill('1999-05-05');
   await page.locator('input[type=checkbox]').check();
   await click(page, 'Salvar e continuar');

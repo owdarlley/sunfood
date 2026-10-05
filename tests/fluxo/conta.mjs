@@ -86,10 +86,19 @@ await step('cadastro', async () => {
   await page.getByPlaceholder('Mínimo 6 caracteres').fill('senha123');
   await page.getByPlaceholder('Repita a senha').fill('senha123');
   await page.locator('input[type=checkbox]').check();
+  const cpf = page.getByPlaceholder('000.000.000-00');
+  await cpf.pressSequentially('12345678900');
+  check('cadastro: pontua o CPF enquanto digita', await cpf.inputValue() === '123.456.789-00', await cpf.inputValue());
+  check('cadastro: avisa na hora que o CPF é inválido', (await text(page)).includes('CPF inválido'));
+  await click(page, 'Criar minha conta');
+  check('cadastro: não envia com CPF inválido', called(page, '/auth/signup').length === 0);
+  await cpf.fill('');
+  await cpf.pressSequentially('52998224725');
+  check('cadastro: CPF válido tira o aviso', !(await text(page)).includes('CPF inválido'));
   await click(page, 'Criar minha conta');
   const sent = called(page, '/auth/signup')[0]?.body;
-  check('cadastro: envia nome, e-mail, telefone, nascimento e aceite', sent && sent.name === 'Ana Teste' && sent.email === 'ana@teste.com'
-    && sent.birthDate === '2000-01-01' && sent.termsAccepted === true, JSON.stringify(sent));
+  check('cadastro: envia nome, e-mail, telefone, CPF (só números), nascimento e aceite', sent && sent.name === 'Ana Teste' && sent.email === 'ana@teste.com'
+    && sent.cpf === '52998224725' && sent.birthDate === '2000-01-01' && sent.termsAccepted === true, JSON.stringify(sent));
   const t = await text(page);
   check('cadastro: avisa para confirmar o e-mail', /confirme seu e-mail/i.test(t));
   check('cadastro: volta para o login', t.includes('Esqueci minha senha'));
