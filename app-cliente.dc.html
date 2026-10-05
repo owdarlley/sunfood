@@ -144,6 +144,13 @@ a:hover{color:#FF6B35}
                     <input value="{{ suPhone }}" onChange="{{ setSuPhone }}" placeholder="(11) 91234-5678" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
                   </div>
                   <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">CPF</span>
+                    <input value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="width:100%;border:1.5px solid {{ suCpfBorder }};border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                    <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}">
+                      <span style="display:block;font:600 11px Inter,sans-serif;color:#E74C3C;margin-top:4px">CPF inválido. Confira os números.</span>
+                    </sc-if>
+                  </div>
+                  <div>
                     <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Data de nascimento</span>
                     <input type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}" style="width:100%;box-sizing:border-box;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none;color:#1B2430" style-focus="border-color:#FF6B35">
                   </div>
@@ -214,6 +221,13 @@ a:hover{color:#FF6B35}
                   <div>
                     <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">WhatsApp / telefone</span>
                     <input value="{{ suPhone }}" onChange="{{ setSuPhone }}" placeholder="(11) 91234-5678" style="width:100%;border:1.5px solid #E9E1D6;border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                  </div>
+                  <div>
+                    <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">CPF</span>
+                    <input value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="width:100%;border:1.5px solid {{ suCpfBorder }};border-radius:12px;padding:12px 13px;font-size:14px;outline:none" style-focus="border-color:#FF6B35">
+                    <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}">
+                      <span style="display:block;font:600 11px Inter,sans-serif;color:#E74C3C;margin-top:4px">CPF inválido. Confira os números.</span>
+                    </sc-if>
                   </div>
                   <div>
                     <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Data de nascimento</span>
@@ -1210,6 +1224,25 @@ function orderFromApi(o){
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
 }
 
+// CPF com os dois dígitos verificadores certos — mesma conta do backend, que
+// também confere (aqui é só pra avisar na hora, antes de enviar).
+function cpfDigits(v){ return String(v || '').replace(/\D/g, ''); }
+function isValidCpf(v){
+  const cpf = cpfDigits(v);
+  if(cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  for(const len of [9, 10]){
+    let sum = 0;
+    for(let i = 0; i < len; i++) sum += Number(cpf[i]) * (len + 1 - i);
+    if(((sum * 10) % 11) % 10 !== Number(cpf[len])) return false;
+  }
+  return true;
+}
+// Vai pontuando enquanto a pessoa digita: 52998224725 → 529.982.247-25.
+function formatCpf(v){
+  const d = cpfDigits(v).slice(0, 11);
+  return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2');
+}
+
 // Idade mínima pra cadastro — checagem espelhada no backend (o cardápio vende
 // bebida alcoólica, então é validação real, não só UX).
 function isAdult(birthDateStr){
@@ -1355,7 +1388,7 @@ class Component extends DCLogic {
     module:'cliente', screen:'login',
     email:'', pass:'', loginErr:'', loginNeedsConfirm:false,
     token:null, authUser:null, busy:null,
-    suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suBirth:'', suTerms:false, suErr:'',
+    suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'',
     fpEmail:'', fpSent:false,
     cat:'Todos', menuSearch:'', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
@@ -1446,7 +1479,7 @@ class Component extends DCLogic {
   }
 
   // Guarda a sessão e decide a primeira tela: quem entrou pelo Google (ou
-  // conta antiga) sem telefone/nascimento/termos completa o cadastro antes.
+  // conta antiga) sem telefone/CPF/nascimento/termos completa o cadastro antes.
   startSession(token, user){
     try { localStorage.setItem(SESSION_KEY, JSON.stringify({token, user})); } catch(e){}
     this.setState({token, authUser:user});
@@ -1465,13 +1498,14 @@ class Component extends DCLogic {
     const s = this.state;
     if(s.suName.trim().length < 2) return this.setState({suErr:'Informe seu nome.'});
     if(s.suPhone.replace(/\D/g, '').length < 10) return this.setState({suErr:'Informe um telefone/WhatsApp válido.'});
+    if(!isValidCpf(s.suCpf)) return this.setState({suErr:'CPF inválido. Confira os números.'});
     if(!isAdult(s.suBirth)) return this.setState({suErr:'É preciso ter 18 anos ou mais para fazer pedidos.'});
     if(!s.suTerms) return this.setState({suErr:'É preciso aceitar os termos de uso e a política de privacidade.'});
     this.setState({suErr:'', busy:'complete'});
     try {
       const res = await fetch(API_BASE + '/auth/complete-profile', {
         method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + s.token},
-        body:JSON.stringify({name:s.suName.trim(), phone:s.suPhone.trim(), birthDate:s.suBirth, termsAccepted:s.suTerms})
+        body:JSON.stringify({name:s.suName.trim(), phone:s.suPhone.trim(), cpf:cpfDigits(s.suCpf), birthDate:s.suBirth, termsAccepted:s.suTerms})
       });
       const data = await res.json();
       if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível salvar seu cadastro.'}); return; }
@@ -1818,6 +1852,7 @@ class Component extends DCLogic {
     }
     if(s.suPass !== s.suPass2) return this.setState({suErr:'As senhas não conferem.'});
     if(s.suPhone.replace(/\D/g, '').length < 10) return this.setState({suErr:'Informe um telefone/WhatsApp válido.'});
+    if(!isValidCpf(s.suCpf)) return this.setState({suErr:'CPF inválido. Confira os números.'});
     if(!isAdult(s.suBirth)) return this.setState({suErr:'É preciso ter 18 anos ou mais para se cadastrar.'});
     if(!s.suTerms) return this.setState({suErr:'É preciso aceitar os termos de uso e a política de privacidade.'});
     this.setState({suErr:'', busy:'signup'});
@@ -1826,7 +1861,7 @@ class Component extends DCLogic {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           name:s.suName.trim(), email:s.suEmail.trim(), password:s.suPass,
-          phone:s.suPhone.trim(), birthDate:s.suBirth, termsAccepted:s.suTerms
+          phone:s.suPhone.trim(), cpf:cpfDigits(s.suCpf), birthDate:s.suBirth, termsAccepted:s.suTerms
         })
       });
       const data = await res.json();
@@ -2277,16 +2312,20 @@ class Component extends DCLogic {
     v.signInWithGoogle = () => this.signInWithGoogle();
     v.suName = s.suName; v.suEmail = s.suEmail; v.suPass = s.suPass; v.suPass2 = s.suPass2; v.suErr = s.suErr; v.hasSuErr = !!s.suErr;
     v.suPhone = s.suPhone; v.suBirth = s.suBirth; v.suTerms = s.suTerms;
+    v.suCpf = s.suCpf;
+    v.suCpfBad = cpfDigits(s.suCpf).length === 11 && !isValidCpf(s.suCpf);
+    v.suCpfBorder = v.suCpfBad ? '#E74C3C' : '#E9E1D6';
     v.setSuName = e => this.setState({suName:e.target.value, suErr:''});
     v.setSuEmail = e => this.setState({suEmail:e.target.value, suErr:''});
     v.setSuPass = e => this.setState({suPass:e.target.value, suErr:''});
     v.setSuPass2 = e => this.setState({suPass2:e.target.value, suErr:''});
     v.setSuPhone = e => this.setState({suPhone:e.target.value, suErr:''});
+    v.setSuCpf = e => this.setState({suCpf:formatCpf(e.target.value), suErr:''});
     v.setSuBirth = e => this.setState({suBirth:e.target.value, suErr:''});
     v.toggleSuTerms = () => this.setState(st => ({suTerms:!st.suTerms, suErr:''}));
     v.stopProp = e => e.stopPropagation();
     v.suOk = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6 && s.suPass === s.suPass2
-      && s.suPhone.replace(/\D/g, '').length >= 10 && isAdult(s.suBirth) && s.suTerms;
+      && s.suPhone.replace(/\D/g, '').length >= 10 && isValidCpf(s.suCpf) && isAdult(s.suBirth) && s.suTerms;
     v.suBlocked = !v.suOk;
     v.doSignup = () => this.submitSignup();
     v.doCompleteProfile = () => this.submitCompleteProfile();
