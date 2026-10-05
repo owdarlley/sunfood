@@ -7,6 +7,7 @@ Testam o app de ponta a ponta **sem deixar nada gravado em produção**.
 | `telas.mjs` | Páginas do site, fluxo do cliente (login → cardápio → carrinho → mesa → PIX → confirmação), kanban da cozinha e todas as telas do admin | `node fluxo/telas.mjs` |
 | `pagamentos.mjs` | Formas de pagamento (PIX, cartão, na entrega), modo provisório sem Mercado Pago, tela de Pagamentos do admin e prazo de cancelamento | `node fluxo/pagamentos.mjs` |
 | `senha.mjs` | Esqueci minha senha: pedir o link, trocar a senha pela tela `redefinir-senha.html`, link expirado e link que cai na página inicial ou no app | `node fluxo/senha.mjs` |
+| `google.mjs` | Entrar com Google: ida ao Supabase, volta com o token, tela "Falta pouco" (telefone, nascimento 18+ e termos), Google cancelado e pedido recusado por cadastro incompleto | `node fluxo/google.mjs` |
 | `conta.mjs` | Cadastro, login com e-mail não confirmado (botão Reenviar), pedido mínimo, dia encerrado e excluir conta | `node fluxo/conta.mjs` |
 
 Os testes abrem um Chromium de verdade, mas todas as chamadas para a API são respondidas por `fake-api.mjs`, uma API falsa em memória: nada chega ao servidor nem ao banco.
