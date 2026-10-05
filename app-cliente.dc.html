@@ -195,6 +195,9 @@ a:hover{color:#FF6B35}
                 <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
                   <div style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:12px;padding:11px 13px;font:600 12px/1.45 Inter,sans-serif;color:#E74C3C;display:flex;gap:9px;align-items:flex-start"><svg viewBox="0 0 48 48" width="18" height="18" fill="none" stroke="#E74C3C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0;margin-top:1px"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M20 18v12 M28 18v12"></path></svg><span>Quiosque pausado pelo Admin. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
                 </sc-if>
+                <sc-if value="{{ menuDayClosed }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:12px;padding:11px 13px;font:600 12px/1.45 Inter,sans-serif;color:#E74C3C;display:flex;gap:9px;align-items:flex-start"><svg viewBox="0 0 48 48" width="18" height="18" fill="none" stroke="#E74C3C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0;margin-top:1px"><path d="M9 24a15 15 0 1 0 30 0a15 15 0 1 0-30 0 M20 18v12 M28 18v12"></path></svg><span>O quiosque já encerrou o dia. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
+                </sc-if>
                 <div style="background:#fff;border:1px solid #E9E1D6;border-radius:12px;padding:11px 13px;font:500 13px Inter,sans-serif;color:#9A9384;display:flex;align-items:center;gap:9px"><svg viewBox="0 0 48 48" width="16" height="16" fill="none" stroke="#B7AFA2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><path d="M11 22a11 11 0 1 0 22 0a11 11 0 1 0-22 0 M30 30l9 9"></path></svg><input value="{{ menuSearch }}" onChange="{{ setMenuSearch }}" placeholder="Buscar no cardápio" style="flex:1;min-width:0;border:none;outline:none;font:500 13px Inter,sans-serif;color:#1B2430;background:transparent"></div>
                 <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:2px">
                   <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
@@ -2009,6 +2012,7 @@ class Component extends DCLogic {
       rowStyle:'display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:10px;cursor:pointer;transition:box-shadow .18s,transform .18s;' + (p.soldOut ? 'opacity:.55' : '')
     }));
     v.paused = s.paused;
+    v.menuDayClosed = s.dayClosed && !s.paused;
     v.cartCount = s.cart.reduce((a, c) => a + c.qty, 0);
     v.hasCart = v.cartCount > 0;
     v.cartCountStr = v.cartCount + (v.cartCount === 1 ? ' item no carrinho' : ' itens no carrinho');
@@ -2046,7 +2050,7 @@ class Component extends DCLogic {
     v.minOk = this.subtotal() >= s.minOrder;
     v.minWarnText = 'Pedido mínimo de ' + f(s.minOrder) + '.';
     v.minWarn = !v.minOk && v.hasCart;
-    v.goTable = () => { if(s.paused) return this.flash('Quiosque pausado no Admin — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
+    v.goTable = () => { if(s.paused) return this.flash('Quiosque pausado no Admin — não é possível fechar o pedido.'); if(s.dayClosed) return this.flash('O quiosque já encerrou o dia — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
 
     // table
     v.tableInput = s.tableInput; v.tableErr = s.tableErr; v.hasTableErr = !!s.tableErr;
