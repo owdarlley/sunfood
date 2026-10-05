@@ -14,13 +14,13 @@ O site é publicado direto da branch `main` deste repositório — qualquer alte
 
 O front-end detecta sozinho onde está rodando: em `localhost`, fala com a API local (`http://localhost:8787`); publicado (GitHub Pages ou qualquer outro domínio), fala com a API de produção. Se a API de produção estiver fora do ar ou sem as credenciais configuradas (ver `server/README.md`), o botão **Entrar** mostra "Falha de conexão com o servidor" — as páginas de conteúdo (Sobre, Funcionalidades, etc.) continuam funcionando normalmente.
 
-**Contas de demonstração** (botão **Entrar** no menu, abre o modal de login em `index.html`):
+**Conta de demonstração** (botão **Entrar** no menu, abre o modal de login em `index.html`):
 
 | Perfil | E-mail | Senha | Abre |
 | --- | --- | --- | --- |
 | Cliente | `ana@email.com` | `praia2026` | cardápio da mesa |
-| Administração | `admin@sunfood.com` | `admin2026` | dashboard de vendas |
-| Cozinha | `cozinha@sunfood.com` | `cozinha2026` | kanban de pedidos |
+
+As contas de **Administração** (`admin@sunfood.com`, abre o dashboard de vendas) e **Cozinha** (`cozinha@sunfood.com`, abre o kanban de pedidos) não têm a senha publicada: quem tem essas senhas consegue mudar preços, pausar o quiosque e encerrar o dia de verdade, já que o site fala com o banco de produção. Peça a senha ao responsável pelo projeto.
 
 ## Como navegar
 
