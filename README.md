@@ -4,7 +4,7 @@ Sistema de pedidos online para quiosques de praia.
 
 O site resolve a dor de quiosques com alta rotatividade de clientes e atendimento disperso entre mesas e guarda-sóis: hoje o processo é quase todo em papel. O Sunfood propõe cardápio digital, pedido pelo celular, pagamento por PIX, cartão ou na entrega, e acompanhamento em tempo real para cozinha e administração.
 
-**Este repositório é o site** (estático, publicado no GitHub Pages). Ele fala com a API do Sunfood, que fica no repositório [`owdarlley/sunfood-backend`](https://github.com/owdarlley/sunfood-backend): Node/Express + Supabase (banco e login), com as regras de negócio validadas no servidor, publicada na Vercel. Banco, migrações e modelos de e-mail também ficam lá.
+> **O Sunfood tem dois repositórios.** Este (`sunfood`) é o **site**: as páginas e o app que o cliente, a cozinha e o admin usam. A **API e o banco** (servidor, Supabase, migrações, modelos de e-mail) ficam em [`owdarlley/sunfood-backend`](https://github.com/owdarlley/sunfood-backend).
 
 ## 🔗 Acesse pelo GitHub Pages
 
