@@ -1,19 +1,24 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { minOrderCentsFrom } from "../business-rules.js";
-import { kioskPauseSchema, kioskMinOrderSchema, validate } from "../validation/schemas.js";
+import { cancelWindowFrom, minOrderCentsFrom } from "../business-rules.js";
+import { kioskPauseSchema, kioskCancelWindowSchema, kioskMinOrderSchema, validate } from "../validation/schemas.js";
 
 export const adminRouter = Router();
 
-function settingsToApi(row) {
-  return { paused: !!row.paused, dayClosed: !!row.day_closed, minOrder: minOrderCentsFrom(row) / 100 };
+function kioskToApi(row) {
+  return {
+    paused: !!row.paused,
+    dayClosed: !!row.day_closed,
+    cancelWindowMinutes: cancelWindowFrom(row),
+    minOrder: minOrderCentsFrom(row) / 100,
+  };
 }
 
 adminRouter.get("/kiosk-settings", async (req, res) => {
   const { data, error } = await supabaseAdmin.from("kiosk_settings").select("*").eq("id", 1).single();
   if (error) return res.status(500).json({ error: "Erro ao carregar configurações do quiosque." });
-  res.json(settingsToApi(data));
+  res.json(kioskToApi(data));
 });
 
 adminRouter.patch(
@@ -29,7 +34,25 @@ adminRouter.patch(
       .select()
       .single();
     if (error) return res.status(500).json({ error: "Não foi possível atualizar o quiosque." });
-    res.json(settingsToApi(data));
+    res.json(kioskToApi(data));
+  }
+);
+
+// Admin: quantos minutos o cliente tem pra cancelar depois de fazer o pedido.
+adminRouter.patch(
+  "/kiosk-settings/cancel-window",
+  requireAuth,
+  requireRole("admin"),
+  validate(kioskCancelWindowSchema),
+  async (req, res) => {
+    const { data, error } = await supabaseAdmin
+      .from("kiosk_settings")
+      .update({ cancel_window_minutes: req.body.minutes })
+      .eq("id", 1)
+      .select()
+      .single();
+    if (error) return res.status(500).json({ error: "Não foi possível salvar o prazo de cancelamento." });
+    res.json(kioskToApi(data));
   }
 );
 
@@ -46,7 +69,7 @@ adminRouter.patch(
       .select()
       .single();
     if (error) return res.status(500).json({ error: "Não foi possível salvar o pedido mínimo." });
-    res.json(settingsToApi(data));
+    res.json(kioskToApi(data));
   }
 );
 
