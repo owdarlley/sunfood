@@ -64,6 +64,20 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     if ((r = p.match(/^\/products\/([^/]+)\/sold-out$/))) { const pr = db.products.find(x => x.id === r[1]); pr.soldOut = body.soldOut; return json(200, pr); }
     if (p === '/dashboard') return json(200, { revenueToday: 0, ordersToday: 0, avgTicket: 0, topProducts: [], salesByHour: Array.from({ length: 24 }, (_, hour) => ({ hour, revenue: 0 })) });
     if (p === '/ops-metrics') return json(200, { lateOrders: 0, avgPrepSeconds: null, cancelledToday: 0, avgQueueSeconds: null, soldOutProducts: [], ordersInQueueOrPrep: 1 });
+    if (p === '/reports/sales') {
+      // Relatório de mentira: 12h é o pico; período de 1, 7 ou 30 dias.
+      const period = url.searchParams.get('period') || 'hoje';
+      const days = { hoje: 1, '7d': 7, '30d': 30 }[period];
+      if (!days) return json(400, { error: 'Período inválido.' });
+      db.lastReportPeriod = period;
+      const day = i => new Date(Date.UTC(2026, 9, 5 - (days - 1) + i)).toISOString().slice(0, 10);
+      const byDay = Array.from({ length: days }, (_, i) => ({ date: day(i), orders: i === days - 1 ? 3 : 1, revenue: i === days - 1 ? 120 : 40 }));
+      const orders = byDay.reduce((a, d) => a + d.orders, 0), revenue = byDay.reduce((a, d) => a + d.revenue, 0);
+      return json(200, { period, from: byDay[0].date, to: byDay[days - 1].date, revenue, orders, avgTicket: revenue / orders, itemsSold: orders * 2,
+        topProducts: [{ name: 'Batata Frita', qty: 5 * days, revenue: 125 * days }, { name: 'Água de Coco', qty: 2 * days, revenue: 24 * days }],
+        byHour: Array.from({ length: 24 }, (_, hour) => ({ hour, orders: hour === 12 ? 2 : hour === 18 ? 1 : 0, revenue: hour === 12 ? 80 : hour === 18 ? 40 : 0 })),
+        byDay });
+    }
     if (p === '/day-reports/latest') return json(404, { error: 'none' });
     return json(404, { error: 'rota falsa não implementada: ' + m + ' ' + p });
   };

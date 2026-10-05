@@ -913,26 +913,77 @@ a:hover{color:#FF6B35}
               </div>
             </sc-if>
 
-            <sc-if value="{{ is_perfSales }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;gap:18px">
-                <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:18px">
-                  <div style="font:700 13px 'Baloo 2',sans-serif;margin-bottom:14px">Vendas por horário (hoje)</div>
-                  <div style="display:flex;align-items:flex-end;gap:6px;height:130px">
-                    <sc-for list="{{ salesBars }}" as="b" hint-placeholder-count="12">
-                      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
-                        <div style="{{ b.style }};width:100%"></div>
-                        <div style="font:500 9px Inter,sans-serif;color:#9AA0A6;margin-top:4px">{{ b.lbl }}</div>
-                      </div>
-                    </sc-for>
-                  </div>
+            <sc-if value="{{ is_reports }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ reportPeriods }}" as="rp" hint-placeholder-count="3">
+                    <div onClick="{{ rp.pick }}" style="{{ rp.style }}">{{ rp.label }}</div>
+                  </sc-for>
+                  <span style="flex:1"></span>
+                  <span style="font:500 11px Inter,sans-serif;color:#9AA0A6">{{ reportRange }}</span>
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-                  <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
-                    <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:16px">
+                <div style="font:400 11.5px/1.5 Inter,sans-serif;color:#6B7280">Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.</div>
+                <sc-if value="{{ hasReportErr }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#FDEBEA;border:1px solid #F5C6C2;border-radius:10px;padding:10px 14px;font:600 12px Inter,sans-serif;color:#E74C3C">{{ reportErr }}</div>
+                </sc-if>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+                  <sc-for list="{{ reportKpis }}" as="k" hint-placeholder-count="4">
+                    <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:14px 16px">
                       <div style="font:600 11px Inter,sans-serif;color:#6B7280">{{ k.lbl }}</div>
-                      <div style="font:800 20px 'Baloo 2',sans-serif;margin:6px 0 2px">{{ k.val }}</div>
+                      <div style="font:800 21px 'Baloo 2',sans-serif;margin-top:2px">{{ k.val }}</div>
+                      <div style="font:500 10.5px Inter,sans-serif;color:#9AA0A6">{{ k.sub }}</div>
                     </div>
                   </sc-for>
+                </div>
+                <sc-if value="{{ reportMultiDay }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:18px">
+                    <div style="font:700 13px 'Baloo 2',sans-serif;margin-bottom:14px">Vendas por dia</div>
+                    <div style="display:flex;align-items:flex-end;gap:4px;height:120px">
+                      <sc-for list="{{ reportDayBars }}" as="b" hint-placeholder-count="7">
+                        <div title="{{ b.tip }}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                          <div style="{{ b.style }}"></div>
+                          <div style="font:500 9px Inter,sans-serif;color:#9AA0A6;margin-top:4px;white-space:nowrap;height:11px">{{ b.lbl }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+                  <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:18px">
+                    <div style="font:700 13px 'Baloo 2',sans-serif">Horários de pico</div>
+                    <div style="font:500 11.5px Inter,sans-serif;color:#6B7280;margin:4px 0 14px">{{ reportPeakText }}</div>
+                    <div style="display:flex;align-items:flex-end;gap:5px;height:120px">
+                      <sc-for list="{{ reportHourBars }}" as="b" hint-placeholder-count="12">
+                        <div title="{{ b.tip }}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                          <div style="font:700 9px Inter,sans-serif;color:#6B7280;margin-bottom:2px;height:11px">{{ b.top }}</div>
+                          <div style="{{ b.style }}"></div>
+                          <div style="font:500 9px Inter,sans-serif;color:#9AA0A6;margin-top:4px">{{ b.lbl }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="font:500 10.5px Inter,sans-serif;color:#9AA0A6;margin-top:10px">Número de pedidos por hora em que foram feitos.</div>
+                  </div>
+                  <div style="background:#fff;border:1px solid #E9E1D6;border-radius:14px;padding:18px">
+                    <div style="font:700 13px 'Baloo 2',sans-serif;margin-bottom:12px">Mais vendidos</div>
+                    <sc-if value="{{ hasReportTop }}" hint-placeholder-val="{{ true }}">
+                      <div style="display:flex;flex-direction:column;gap:10px">
+                        <sc-for list="{{ reportTop }}" as="tp" hint-placeholder-count="5">
+                          <div style="display:flex;flex-direction:column;gap:4px">
+                            <div style="display:flex;align-items:center;gap:8px;font:600 12.5px Inter,sans-serif">
+                              <span style="width:18px;color:#9AA0A6;font-weight:700">{{ tp.rank }}</span>
+                              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ tp.name }}</span>
+                              <span style="color:#E8551E;font-weight:700">{{ tp.qty }} un.</span>
+                              <span style="width:82px;text-align:right;color:#6B7280;font-weight:500">{{ tp.revenueStr }}</span>
+                            </div>
+                            <div style="margin-left:26px;height:5px;border-radius:5px;background:#F4EFE7;overflow:hidden"><div style="{{ tp.barStyle }}"></div></div>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ noReportTop }}" hint-placeholder-val="{{ false }}">
+                      <div style="padding:24px 0;text-align:center;font:500 12.5px Inter,sans-serif;color:#9AA0A6">{{ reportEmptyText }}</div>
+                    </sc-if>
+                  </div>
                 </div>
               </div>
             </sc-if>
@@ -1350,7 +1401,7 @@ const SCREENS = {
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Dashboard Geral'],
     ['orders','Lista de Pedidos'],['payments','Pagamentos'],['productForm','Cadastro / Edição de Produto'],['tables','Gestão de Mesas'],
-    ['pause','Quiosque: pausa, cancelamento e pedido mínimo'],['perfSales','Desempenho — Vendas'],['perfOps','Desempenho — Operação'],
+    ['pause','Quiosque: pausa, cancelamento e pedido mínimo'],['reports','Relatórios'],['perfOps','Desempenho — Operação'],
     ['closeDay','Encerrar Dia / Relatório']
   ],
   cozinha:[
@@ -1411,6 +1462,8 @@ class Component extends DCLogic {
     // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
     // opsMetrics), carregado em loadAdminData()/pollAdminData() — nada é mock.
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
+    // Relatórios (GET /reports/sales): período escolhido e último resultado.
+    reportPeriod:'hoje', report:null, reportErr:'', reportAt:0,
     pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'',
     toast:''
   };
@@ -1595,6 +1648,21 @@ class Component extends DCLogic {
         if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; if(typeof k.minOrder === 'number') updates.minOrder = k.minOrder; }
         this.setState(updates);
       } catch(e){}
+      // Na tela de relatórios, atualiza sozinho a cada 30 s (não a cada 3 s).
+      if(this.state.screen === 'reports' && Date.now() - this.state.reportAt > 30000) this.loadReport();
+    }
+  }
+
+  async loadReport(period){
+    period = period || this.state.reportPeriod;
+    this.setState({reportPeriod:period, reportAt:Date.now()});
+    try {
+      const res = await fetch(API_BASE + '/reports/sales?period=' + encodeURIComponent(period), {headers:{Authorization:'Bearer ' + this.state.token}});
+      if(this.state.reportPeriod !== period) return; // trocou de período no meio
+      if(res.ok) this.setState({report: await res.json(), reportErr:''});
+      else this.setState({reportErr:'Não foi possível carregar o relatório. Tente de novo em instantes.'});
+    } catch(e){
+      this.setState({reportErr:'Sem conexão com o servidor para carregar o relatório.'});
     }
   }
 
@@ -1914,7 +1982,10 @@ class Component extends DCLogic {
   componentWillUnmount(){ clearInterval(this.timer); }
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
-  go(screen, module){ this.setState(s => ({screen, module: module || s.module, toast:''})); }
+  go(screen, module){
+    this.setState(s => ({screen, module: module || s.module, toast:''}));
+    if(screen === 'reports' && this.state.token) this.loadReport();
+  }
   flash(msg){ this.setState({toast:msg}); clearTimeout(this._t); this._t = setTimeout(() => this.setState({toast:''}), 2600); }
 
   subtotal(){ return this.state.cart.reduce((a,c) => a + c.price * c.qty, 0); }
@@ -2435,6 +2506,60 @@ class Component extends DCLogic {
         lbl:h + 'h'
       };
     });
+
+    // Relatórios: vendas, mais vendidos e horários de pico no período.
+    const rep = s.report && s.report.period === s.reportPeriod ? s.report : null;
+    const ddmm = iso => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+    v.reportPeriods = [['hoje','Hoje'],['7d','Últimos 7 dias'],['30d','Últimos 30 dias']].map(([k, label]) => ({
+      label, pick:() => this.loadReport(k),
+      style:'padding:7px 14px;border-radius:100px;font:600 12px Inter,sans-serif;cursor:pointer;' +
+        (s.reportPeriod === k ? 'background:#FF6B35;color:#fff' : 'background:#fff;border:1px solid #E9E1D6;color:#6B7280')
+    }));
+    v.reportRange = rep ? (rep.from === rep.to ? ddmm(rep.from) : ddmm(rep.from) + ' a ' + ddmm(rep.to)) : 'carregando…';
+    v.reportErr = s.reportErr; v.hasReportErr = !!s.reportErr;
+    v.reportKpis = [
+      {lbl:'Faturamento', val:rep ? f(rep.revenue) : '—', sub:rep ? rep.orders + ' pedido(s)' : 'carregando…'},
+      {lbl:'Pedidos', val:rep ? String(rep.orders) : '—', sub:'pagos ou na entrega'},
+      {lbl:'Ticket médio', val:rep ? f(rep.avgTicket) : '—', sub:'por pedido'},
+      {lbl:'Itens vendidos', val:rep ? String(rep.itemsSold) : '—', sub:'unidades'}
+    ];
+    v.reportMultiDay = !!rep && rep.byDay.length > 1;
+    const maxDay = rep ? Math.max(1, ...rep.byDay.map(d => d.revenue)) : 1;
+    const labelEvery = rep && rep.byDay.length > 10 ? 5 : 1;
+    v.reportDayBars = rep ? rep.byDay.map((d, i) => ({
+      tip:ddmm(d.date) + ': ' + f(d.revenue) + ' em ' + d.orders + ' pedido(s)',
+      lbl:(i % labelEvery === 0 || i === rep.byDay.length - 1) ? ddmm(d.date) : '',
+      style:'width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#FF6B35,#FF9166);height:' +
+        (d.revenue > 0 ? Math.max(4, Math.round(d.revenue / maxDay * 100)) : 2) + '%' + (d.revenue > 0 ? '' : ';opacity:.3')
+    })) : [];
+    // Mostra o horário de funcionamento (10h–21h) e estica se houver venda fora dele.
+    const hours = rep ? rep.byHour : [];
+    const withSales = hours.filter(h => h.orders > 0).map(h => h.hour);
+    const firstHour = Math.min(10, ...withSales), lastHour = Math.max(21, ...withSales);
+    const shownHours = hours.filter(h => h.hour >= firstHour && h.hour <= lastHour);
+    const maxOrders = Math.max(1, ...shownHours.map(h => h.orders));
+    const peak = shownHours.reduce((best, h) => (h.orders > (best ? best.orders : 0) ? h : best), null);
+    v.reportHourBars = shownHours.map(h => {
+      const isPeak = peak && h.orders === peak.orders;
+      return {
+        tip:h.hour + 'h às ' + (h.hour + 1) + 'h: ' + h.orders + ' pedido(s), ' + f(h.revenue),
+        top:h.orders > 0 ? String(h.orders) : '',
+        lbl:h.hour + 'h',
+        style:'width:100%;border-radius:4px 4px 0 0;background:' + (isPeak ? '#E8551E' : 'linear-gradient(180deg,#FFB08A,#FFD3BC)') +
+          ';height:' + (h.orders > 0 ? Math.max(4, Math.round(h.orders / maxOrders * 100)) : 2) + '%' + (h.orders > 0 ? '' : ';opacity:.4')
+      };
+    });
+    const peakHours = peak ? shownHours.filter(h => h.orders === peak.orders).map(h => h.hour + 'h às ' + (h.hour + 1) + 'h') : [];
+    v.reportPeakText = !rep ? 'carregando…' : peak
+      ? 'Mais movimento: ' + peakHours.join(', ') + ' (' + peak.orders + ' pedido' + (peak.orders > 1 ? 's' : '') + (peakHours.length > 1 ? ' em cada' : '') + ')'
+      : 'Sem pedidos nesse período.';
+    const maxQty = rep && rep.topProducts.length ? rep.topProducts[0].qty : 1;
+    v.reportTop = rep ? rep.topProducts.map((p, i) => ({
+      rank:(i + 1) + 'º', name:p.name, qty:p.qty, revenueStr:f(p.revenue),
+      barStyle:'height:100%;border-radius:5px;background:#FF9166;width:' + Math.max(3, Math.round(p.qty / maxQty * 100)) + '%'
+    })) : [];
+    v.hasReportTop = v.reportTop.length > 0; v.noReportTop = !v.hasReportTop;
+    v.reportEmptyText = rep ? 'Nenhuma venda paga nesse período.' : 'Carregando…';
 
     const ops = s.opsMetrics;
     v.opsRows = ops ? [
