@@ -110,7 +110,7 @@ await step('fluxo da cozinha', async () => {
 });
 
 // 4. Admin: todas as telas renderizam
-for (const sc of ['dashboard', 'orders', 'productForm', 'tables', 'pause', 'perfSales', 'perfOps', 'closeDay']) {
+for (const sc of ['dashboard', 'orders', 'productForm', 'tables', 'pause', 'reports', 'perfOps', 'closeDay']) {
   await step(`admin ${sc}`, async () => {
     const page = await open(`app-cliente.dc.html?module=admin&screen=${sc}`, { role: 'admin', seed: true });
     const err = page.jsErrors.join(' | ') || await renderError(page);
@@ -118,6 +118,26 @@ for (const sc of ['dashboard', 'orders', 'productForm', 'tables', 'pause', 'perf
     await page.close();
   });
 }
+
+// 5. Admin: relatórios (vendas, mais vendidos, horários de pico, troca de período)
+await step('admin relatórios', async () => {
+  const page = await open('app-cliente.dc.html?module=admin&screen=reports', { role: 'admin', seed: true });
+  let t = await text(page);
+  check('relatórios: mostra faturamento de hoje', t.includes('R$ 120,00') && t.includes('Itens vendidos'), t.slice(0, 300));
+  check('relatórios: mostra o horário de pico', t.includes('Mais movimento: 12h às 13h (2 pedidos)'), t.slice(0, 600));
+  check('relatórios: mostra os mais vendidos com quantidade', t.includes('Batata Frita') && t.includes('5 un.'));
+  check('relatórios: hoje não mostra gráfico por dia', !t.includes('Vendas por dia'));
+  await click(page, 'Últimos 7 dias');
+  await page.waitForTimeout(500);
+  t = await text(page);
+  check('relatórios: troca para 7 dias', page.api.db.lastReportPeriod === '7d' && t.includes('Vendas por dia') && t.includes('35 un.'), page.api.db.lastReportPeriod);
+  check('relatórios: mostra o intervalo de datas', t.includes('29/09 a 05/10'));
+  await click(page, 'Últimos 30 dias');
+  t = await text(page);
+  check('relatórios: troca para 30 dias', page.api.db.lastReportPeriod === '30d' && t.includes('150 un.'));
+  check('relatórios: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
+  await page.close();
+});
 
 await browser.close();
 server.close();
