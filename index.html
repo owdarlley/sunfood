@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script>
+// Link de "esqueci minha senha" que caiu na página inicial: manda pra tela de nova senha.
+if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefinir-senha.html' + location.hash);
+</script>
 </head>
 <body>
 <x-dc>

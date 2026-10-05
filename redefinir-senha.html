@@ -29,19 +29,20 @@
 
     <sc-if value="{{ tokenMissing }}" hint-placeholder-val="{{ false }}">
       <div style="padding:26px 24px;display:flex;flex-direction:column;gap:14px;text-align:center">
-        <p style="font:400 13.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Este link de redefinição é inválido ou já foi usado. Peça um novo link na tela de login.</p>
-        <a href="index.html?login=1" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif">Voltar ao login</a>
+        <p style="font:400 13.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">{{ invalidMsg }}</p>
+        <a href="app-cliente.dc.html?module=cliente&amp;screen=forgot" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif">Pedir um novo link</a>
+        <a href="index.html?login=1" style="text-align:center;font:600 12.5px Inter,sans-serif">Voltar ao login</a>
       </div>
     </sc-if>
 
-    <sc-if value="{{ tokenMissing }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ hasToken }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
         <div style="padding:26px 24px;display:flex;flex-direction:column;gap:14px;text-align:center">
           <p style="font:400 13.5px/1.6 Inter,sans-serif;color:#6B7280;margin:0">Senha redefinida com sucesso. Já dá pra entrar com a nova senha.</p>
           <a href="index.html?login=1" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif">Ir para o login</a>
         </div>
       </sc-if>
-      <sc-if value="{{ done }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}">
         <div style="padding:24px;display:flex;flex-direction:column;gap:14px">
           <div>
             <span style="display:block;font:600 10.5px Inter,sans-serif;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Nova senha</span>
@@ -68,7 +69,7 @@ const API_BASE = (window.location.hostname === 'localhost' || window.location.ho
   : 'https://sunfood-api-nine.vercel.app';
 
 class Component extends DCLogic {
-  state = { accessToken:null, newPass:'', confirmPass:'', err:'', done:false };
+  state = { accessToken:null, expired:false, newPass:'', confirmPass:'', err:'', done:false };
 
   componentDidMount(){
     // O Supabase manda o token de recuperação no fragmento da URL
@@ -76,6 +77,9 @@ class Component extends DCLogic {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
     const token = hash.get('access_token');
     if(hash.get('type') === 'recovery' && token) this.setState({accessToken:token});
+    else if(hash.get('error_code') === 'otp_expired') this.setState({expired:true});
+    // Tira o token da barra de endereço: não deve ficar no histórico do navegador.
+    if(window.location.hash) history.replaceState(null, '', window.location.pathname);
   }
 
   async submit(){
@@ -99,11 +103,15 @@ class Component extends DCLogic {
     const s = this.state;
     return {
       tokenMissing: !s.accessToken,
+      hasToken: !!s.accessToken,
+      invalidMsg: s.expired ? 'Este link expirou (vale por 1 hora). Peça um novo e use o mais recente que chegar no e-mail.'
+        : 'Este link de redefinição é inválido ou já foi usado. Peça um novo para continuar.',
       newPass: s.newPass, confirmPass: s.confirmPass,
       setNewPass: e => this.setState({newPass:e.target.value, err:''}),
       setConfirmPass: e => this.setState({confirmPass:e.target.value, err:''}),
       err: s.err, hasErr: !!s.err,
       done: s.done,
+      notDone: !s.done,
       submit: () => this.submit()
     };
   }
