@@ -63,6 +63,12 @@ npx playwright install chromium
 npm test
 ```
 
+## App instalável (PWA)
+
+O site pode ser instalado como app. No Chrome ou Edge do computador, aparece o ícone **Instalar** na barra de endereço; no Android, o menu ⋮ mostra **Instalar app**; no iPhone (Safari), use Compartilhar → **Adicionar à Tela de Início**.
+
+O `sw.js` guarda as páginas e arquivos do site para abrirem mais rápido e mostra um aviso quando não há internet. Ele **nunca** guarda chamadas da API, do Supabase ou de pagamento. Páginas e scripts vêm sempre da rede primeiro, então atualizações aparecem na hora. Ao mudar a lista de arquivos ou a lógica do `sw.js`, aumente a constante `VERSAO` no topo dele.
+
 ## Estrutura de pastas
 
 ```
@@ -73,6 +79,8 @@ app-cliente.dc.html                          → o app (cliente, cozinha e admin
 prototipo.html, prototipo-completo.html      → protótipo navegável das telas
 support.js                                   → script de apoio às páginas (gerado, não editar)
 assets/                                      → imagens usadas no protótipo
+manifest.json, sw.js, pwa.js, offline.html   → app instalável (PWA): manifesto, service worker, registro e aviso sem internet
+icons/                                       → ícones do app instalado (192, 512, maskable, iPhone, favicon)
 tests/                                       → testes de tela (Playwright)
 ```
 

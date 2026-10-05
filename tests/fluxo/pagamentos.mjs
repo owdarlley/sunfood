@@ -30,7 +30,7 @@ const results = [];
 const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`${ok ? 'ok   ' : 'FALHA'} ${name}${ok || !detail ? '' : ' -> ' + detail}`); };
 
 async function open(path, { role, seed, session, paymentsConfigured = true } = {}) {
-  const page = await browser.newPage({ viewport: { width: 400, height: 860 } });
+  const page = await browser.newPage({ viewport: { width: 400, height: 860 }, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
   if (CDN) await page.route('https://unpkg.com/**', r => {
