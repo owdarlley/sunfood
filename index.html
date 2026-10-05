@@ -231,6 +231,12 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
             <div style="{{ msgStyle }}">{{ msg }}</div>
           </sc-if>
           <div onClick="{{ doLogin }}" style="background:#FF6B35;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif;cursor:pointer" style-hover="background:#E8551E">Entrar</div>
+          <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px Inter,sans-serif">
+            <span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>ou<span style="flex:1;height:1px;background:#E9E1D6;display:block"></span>
+          </div>
+          <div onClick="{{ googleLogin }}" style="border:1.5px solid #E9E1D6;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px Inter,sans-serif;color:#1B2430;cursor:pointer" style-hover="border-color:#FF9166">
+            <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar ou criar conta com Google
+          </div>
           <sc-if value="{{ ok }}" hint-placeholder-val="{{ false }}">
             <a href="{{ dest }}" style="display:block;background:#142850;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Baloo 2',sans-serif" style-hover="background:#1F3B6B;color:#fff">Continuar →</a>
           </sc-if>
@@ -251,6 +257,8 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showDepoimento&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Seções&quot;}}">
 const THUMB = (a, b) => 'width:52px;height:52px;flex-shrink:0;border-radius:12px;background:linear-gradient(140deg,' + a + ',' + b + ')';
+// URL pública do projeto Supabase (não é segredo), usada só pelo "Entrar com Google".
+const SUPABASE_URL = 'https://gsbjffbbcxerucmvfjvh.supabase.co';
 // Local (python -m http.server) fala com a API local; publicado (GitHub
 // Pages ou qualquer outro domínio) fala com a API de produção na Vercel.
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -391,6 +399,13 @@ class Component extends DCLogic {
       openLogin: () => this.setState({ loginOpen: true, msg: '', ok: false, dest: '' }),
       closeLogin: () => this.setState({ loginOpen: false }),
       stop: e => e.stopPropagation(),
+      // Mesmo fluxo do botão do app: o Supabase abre a tela do Google e devolve
+      // pro app do cliente com o token; lá ele cria a conta (se não existir),
+      // entra e pede telefone/nascimento/termos na primeira vez.
+      googleLogin: () => {
+        const app = new URL('app-cliente.dc.html', window.location.href).href;
+        window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(app);
+      },
       doLogin: async () => {
         const { email, pass } = this.state;
         if (!email || !pass) return this.setState({ msg: 'Preencha e-mail e senha.', ok: false });
