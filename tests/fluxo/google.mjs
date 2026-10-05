@@ -176,6 +176,20 @@ await step('pedido recusado', async () => {
   await page.close();
 });
 
+// 6. Botão do Google também na página inicial (janela "Entrar" do site)
+await step('Google na página inicial', async () => {
+  const page = await open('index.html');
+  await click(page, 'Entrar', true);
+  await click(page, 'Entrar ou criar conta com Google');
+  await page.waitForTimeout(2000);
+  const auth = new URL(page.authorizeUrls[0] || 'http://x');
+  check('página inicial: botão do Google manda para o Supabase', auth.searchParams.get('provider') === 'google', auth.href);
+  check('página inicial: volta para o app do cliente', /\/app-cliente\.dc\.html$/.test(auth.searchParams.get('redirect_to') || ''), auth.href);
+  check('página inicial: abre "Falta pouco" no app', (await text(page)).includes('Falta pouco'));
+  await noErrors('página inicial', page);
+  await page.close();
+});
+
 await browser.close();
 server.close();
 const failed = results.filter(r => !r.ok);
