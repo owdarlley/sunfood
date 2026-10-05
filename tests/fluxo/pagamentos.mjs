@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fakeApi } from './fake-api.mjs';
+import { fakeApi, FAKE_CHECKOUT_URL } from './fake-api.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CDN = process.env.CDN_DIR; // opcional: pasta com node_modules de react/react-dom/@babel/standalone
@@ -41,6 +41,7 @@ async function open(path, { role, seed, session, paymentsConfigured = true } = {
   const api = fakeApi(role || 'cliente', { paymentsConfigured });
   if (seed) api.seed();
   await page.route('http://localhost:8787/**', api);
+  await page.route(FAKE_CHECKOUT_URL, r => r.fulfill({ contentType: 'text/html', body: '<h1>Checkout Mercado Pago (teste)</h1>' }));
   page.api = api;
   if ((role && role !== 'cliente') || session) await page.addInitScript(r => localStorage.setItem('sunfood_session',
     JSON.stringify({ token: 'tok', user: { id: 'u1', email: r + '@teste', name: 'Teste', role: r } })), role);
@@ -91,9 +92,9 @@ await step('cartão', async () => {
   const o = page.api.db.orders[0];
   check('cartão: pedido enviado com paymentMethod=cartao', o && o.paymentMethod === 'cartao');
   check('cartão: pede checkout com volta pro próprio app', /app-cliente\.dc\.html\?module=cliente&screen=card$/.test(page.api.db.cardReturnUrl || ''), page.api.db.cardReturnUrl);
-  const t = await text(page);
-  check('cartão: sem formulário de cartão no app', !t.includes('Número do cartão') && t.includes('Mercado Pago'));
   check('cartão: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
+  await page.waitForURL(FAKE_CHECKOUT_URL, { timeout: 5000 }).catch(() => {});
+  check('cartão: leva pro checkout do Mercado Pago (cartão digitado lá, não no app)', page.url() === FAKE_CHECKOUT_URL, page.url());
   await page.close();
 });
 

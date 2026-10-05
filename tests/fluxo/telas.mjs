@@ -89,10 +89,12 @@ await step('fluxo do cliente', async () => {
   t = await text(page);
   check('cliente: tela do PIX abre', t.includes('Pagamento via PIX'));
   check('cliente: tela do PIX mostra o valor do pedido (R$ 55,00)', /Valor a pagar\s*R\$ 55,00/.test(t), (t.match(/Valor a pagar\s*(R\$ [\d,.]+)/) || [])[1]);
-  await click(page, 'Simular pagamento aprovado');
-  await page.waitForTimeout(800);
+  check('cliente: tela do PIX mostra o código copia-e-cola', t.includes('Copiar código PIX'));
+  check('cliente: sem pagamento ainda, não confirma', !t.includes('Pedido confirmado'));
+  page.api.approvePayment(sent.id);
+  await page.waitForTimeout(3500);
   t = await text(page);
-  check('cliente: pagamento aprovado leva à confirmação', t.includes('Pedido Confirmado') || t.includes('confirmado'));
+  check('cliente: pagamento aprovado leva à confirmação sozinho', t.includes('Pedido confirmado'), t.slice(0, 200));
   check('cliente: sem erro de JavaScript no fluxo', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
   await page.close();
 });
