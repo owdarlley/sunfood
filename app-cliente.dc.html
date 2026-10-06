@@ -263,28 +263,37 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
   .adm-main{padding:20px 16px 40px}
 }
 
-/* ===== Cozinha (tema escuro, pensado pra tela na parede) ===== */
-.kz{min-height:calc(100vh / var(--sfz));background:#0F1C24;color:#EAF2F3;width:100%;display:flex;flex-direction:column}
-.kz-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 28px;border-bottom:1px solid #22343F}
-.kz-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;background:#1A2F3B;font:600 14px 'DM Sans',sans-serif;white-space:nowrap}
+/* ===== Cozinha (mesmo visual da administração: menu escuro, fundo areia e
+   cartões brancos; letras grandes para ler de longe na parede) ===== */
+.kz-chip{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 14px;border-radius:12px;background:#fff;border:1px solid #E3DDD0;font:600 15px 'DM Sans',sans-serif;white-space:nowrap}
+.kz-chip b{font:800 18px 'Bricolage Grotesque',sans-serif}
+.kz-clock{font:800 34px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;margin-left:4px}
 .kz-btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;border-radius:12px;border:1px solid #2A3F4B;background:transparent;color:#EAF2F3;font:700 14px 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
 .kz-btn:hover{border-color:#9FB2BA}
-.kz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,.9fr);gap:16px;padding:20px 28px 40px;align-items:start}
-.kz-col{background:#172A35;border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px}
-.kz-colhead{display:flex;align-items:center;justify-content:space-between;font:800 18px 'DM Sans',sans-serif;padding:2px 2px 4px}
-.kz-n{display:inline-flex;min-width:28px;height:28px;align-items:center;justify-content:center;border-radius:999px;background:#22343F;font:800 14px 'DM Sans',sans-serif}
-.kz-card{background:#1E3642;border-radius:16px;padding:16px;border:2px solid transparent;display:flex;flex-direction:column;gap:10px}
-.kz-card.late{border-color:#E5533F}
-.kz-mesa{font:800 24px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.kz-time{font:800 15px 'DM Sans',sans-serif;padding:4px 10px;border-radius:999px;background:#22343F;white-space:nowrap}
-.kz-card.late .kz-time{background:#4A1F1A;color:#FF8A78}
-.kz-item{font:500 16px/1.35 'DM Sans',sans-serif}
-.kz-obs{background:#3A2F12;color:#FFD88A;border-radius:10px;padding:8px 10px;font:600 14px/1.4 'DM Sans',sans-serif}
-.kz-act{min-height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font:800 15px 'DM Sans',sans-serif;cursor:pointer;text-align:center;padding:0 12px}
-.kz-empty{color:#9FB2BA;font:500 15px/1.5 'DM Sans',sans-serif;text-align:center;padding:22px 8px}
-.kz-avail{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 4px;font:500 16px 'DM Sans',sans-serif}
-@media (max-width:1200px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
-@media (max-width:700px){ .kz-board{grid-template-columns:1fr;padding:16px} .kz-head{padding:14px 16px} }
+.kz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,.9fr);gap:16px;align-items:start}
+.kz-col{background:#fff;border:1px solid #E3DDD0;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.kz-colhead{display:flex;align-items:center;justify-content:space-between;font:800 19px 'DM Sans',sans-serif;padding:2px 2px 4px;color:#12232E}
+.kz-n{display:inline-flex;min-width:30px;height:30px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;font:800 15px 'DM Sans',sans-serif;padding:0 8px}
+.kz-card{background:#FBFAF6;border-radius:16px;padding:16px;border:2px solid #EFEADF;display:flex;flex-direction:column;gap:10px}
+.kz-card.late{border-color:#D9432F;background:#FFF8F6}
+.kz-mesa{font:800 26px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:#12232E}
+.kz-time{font:800 15px 'DM Sans',sans-serif;padding:5px 11px;border-radius:999px;background:#EFEADF;color:#12232E;white-space:nowrap}
+.kz-card.late .kz-time{background:#FDECEA;color:#8A1C12}
+.kz-item{font:500 17px/1.4 'DM Sans',sans-serif;color:#12232E}
+.kz-item b{color:#0B6670}
+.kz-obs{background:#FFF4DB;color:#7A4B00;border-radius:10px;padding:8px 10px;font:600 15px/1.4 'DM Sans',sans-serif}
+.kz-act{min-height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font:800 15px 'DM Sans',sans-serif;cursor:pointer;text-align:center;padding:0 14px}
+.kz-empty{color:#5A6670;font:500 15px/1.5 'DM Sans',sans-serif;text-align:center;padding:22px 8px}
+.kz-avail{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 4px;border-top:1px solid #EFEADF;font:500 16px 'DM Sans',sans-serif}
+.kz-sound{padding:14px 16px;border-radius:16px;background:#FFF4DB;border:1px solid #F3DDA6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+@media (max-width:1400px){
+  .kz-board{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kz-board > .kz-availcol{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));column-gap:24px;row-gap:0}
+  .kz-board > .kz-availcol > .kz-colhead,.kz-board > .kz-availcol > .kz-sub{grid-column:1/-1}
+  .kz-board > .kz-availcol > .kz-sub{margin:0 0 8px !important}
+}
+@media (max-width:1100px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:700px){ .kz-board{grid-template-columns:1fr} .kz-clock{font-size:26px} .kz-chip{min-height:42px;font-size:14px} }
 @media (max-width:640px){.cartrow{flex-wrap:wrap}.cartrow .cr-info{flex:1 1 calc(100% - 80px)}.cartrow .stepper{margin-left:78px}.cartrow .cr-price{flex:1;width:auto}}
 @media (max-width:640px){.bars{gap:3px}.bar .bl{font-size:10px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{padding:14px!important}.kpi .v{font-size:22px}.kpi .k{font-size:13px}}
 @media (max-width:640px){.pcard .stepper .sb{width:32px;height:32px;font-size:18px}.pcard .stepper .sq{min-width:20px}}
@@ -1489,81 +1498,94 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
       </sc-if>
 
       <sc-if value="{{ isCozinha }}" hint-placeholder-val="{{ false }}">
-      <div class="kz">
-        <div class="kz-head">
-          <div onClick="{{ goHome }}" style="display:flex;align-items:center;gap:12px;cursor:pointer">
-            <svg width="38" height="38" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg>
-            <div><div class="tt" style="font-size:24px">Cozinha</div><div style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA">Sunfood · atualiza em tempo real</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span class="kz-chip">Entregues hoje <b style="color:#FFB21E">{{ kDelivered }}</b></span>
-            <span class="kz-chip">Atrasados <b style="color:#FF8A78">{{ kLate }}</b></span>
-            <span onClick="{{ toggleSound }}" class="kz-btn">{{ soundLabel }}</span>
-            <sc-if value="{{ isAdminUser }}" hint-placeholder-val="{{ false }}">
-              <span onClick="{{ goAdminHome }}" class="kz-btn">Painel admin</span>
-            </sc-if>
-            <span onClick="{{ goLogin }}" class="kz-btn">Sair</span>
-            <span class="tt" style="font-size:28px;margin-left:6px">{{ kClock }}</span>
+      <div class="adm kz">
+        <div class="adm-side {{ admMenuCls }}">
+          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>cozinha</small></div>
+          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
+          <sc-for list="{{ cozinhaSide }}" as="it" hint-placeholder-count="2">
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+          </sc-for>
+          <div onClick="{{ toggleSound }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ soundIc }}"></path></svg>{{ soundLabel }}</div>
+          <sc-if value="{{ isAdminUser }}" hint-placeholder-val="{{ false }}">
+            <div class="adm-sep"></div>
+            <div onClick="{{ goAdminHome }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v4h-7z M13 10h7v10h-7z M4 13h7v7H4z"></path></svg>Painel admin</div>
+          </sc-if>
+          <div class="adm-foot">
+            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
-        <sc-if value="{{ soundOff }}" hint-placeholder-val="{{ true }}">
-          <div style="margin:16px 28px 0;padding:14px 16px;border-radius:14px;background:#2E2A14;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-            <span style="font:500 15px 'DM Sans',sans-serif;color:#FFE3A3"><b>O som de novos pedidos está desligado.</b> O navegador só libera o som depois de um toque.</span>
-            <span onClick="{{ toggleSound }}" class="btn btn-sun btn-sm" style="min-height:44px">Ativar som</span>
-          </div>
-        </sc-if>
-        <sc-if value="{{ is_unavailable }}" hint-placeholder-val="{{ false }}">
-          <div style="padding:20px 28px 40px;max-width:720px">
-            <div class="kz-col">
-              <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
-              <div style="font:500 14px 'DM Sans',sans-serif;color:#9FB2BA;margin-top:-6px">Desligue o que acabou: some do cardápio na hora.</div>
-              <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
-                <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
-              </sc-for>
-              <div onClick="{{ goKanban }}" class="kz-btn" style="justify-content:center;margin-top:6px">Voltar aos pedidos</div>
+        <div class="adm-main">
+          <div class="adm-head">
+            <div>
+              <div class="muted" style="font-size:15px">{{ kEyebrow }}</div>
+              <h1 class="tt">{{ kTitle }}</h1>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span class="kz-chip">Entregues hoje <b style="color:#1E6B36">{{ kDelivered }}</b></span>
+              <span class="kz-chip">Atrasados <b style="color:#B3261E">{{ kLate }}</b></span>
+              <span class="kz-clock">{{ kClock }}</span>
             </div>
           </div>
-        </sc-if>
-        <sc-if value="{{ kBoardOn }}" hint-placeholder-val="{{ true }}">
-          <div class="kz-board">
-            <sc-for list="{{ kCols }}" as="col" hint-placeholder-count="3">
+          <sc-if value="{{ soundOff }}" hint-placeholder-val="{{ true }}">
+            <div class="kz-sound">
+              <span style="font:500 15px 'DM Sans',sans-serif;color:#7A4B00"><b>O som de novos pedidos está desligado.</b> O navegador só libera o som depois de um toque.</span>
+              <span onClick="{{ toggleSound }}" class="btn btn-sun btn-sm" style="min-height:44px">Ativar som</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ is_unavailable }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:720px">
               <div class="kz-col">
-                <div class="kz-colhead"><span style="display:flex;align-items:center;gap:8px"><span style="{{ col.dotStyle }}"></span>{{ col.title }}</span><span class="kz-n">{{ col.n }}</span></div>
-                <sc-for list="{{ col.cards }}" as="k" hint-placeholder-count="2">
-                  <div class="kz-card {{ k.lateCls }}">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                      <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA">{{ k.id }}</span></div>
-                      <span class="kz-time">{{ k.min }}</span>
-                    </div>
-                    <div>
-                      <sc-for list="{{ k.lines }}" as="ln" hint-placeholder-count="2">
-                        <div class="kz-item"><b style="color:#FFB21E">{{ ln.q }}</b> {{ ln.n }}</div>
-                      </sc-for>
-                    </div>
-                    <sc-if value="{{ k.hasObs }}" hint-placeholder-val="{{ false }}">
-                      <div class="kz-obs">Obs: {{ k.obs }}</div>
-                    </sc-if>
-                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                      <span style="{{ k.payStyle }}">{{ k.payLabel }}</span>
-                      <span style="flex:1"></span>
-                      <div onClick="{{ k.act }}" class="kz-act" style="{{ k.btnStyle }}">{{ k.btn }}</div>
-                    </div>
-                  </div>
+                <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
+                <div class="kz-sub" style="font:500 14px 'DM Sans',sans-serif;color:#5A6670;margin-top:-6px">Desligue o que acabou: some do cardápio na hora.</div>
+                <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
+                  <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
                 </sc-for>
-                <sc-if value="{{ col.empty }}" hint-placeholder-val="{{ false }}">
-                  <div class="kz-empty">{{ col.emptyText }}</div>
-                </sc-if>
+                <div onClick="{{ goKanban }}" class="btn btn-ghost btn-sm" style="min-height:46px;margin-top:6px">Voltar aos pedidos</div>
               </div>
-            </sc-for>
-            <div class="kz-col" style="background:#152630">
-              <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
-              <div style="font:500 14px 'DM Sans',sans-serif;color:#9FB2BA;margin-top:-6px">Desligue o que acabou: some do cardápio na hora.</div>
-              <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
-                <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
-              </sc-for>
             </div>
-          </div>
-        </sc-if>
+          </sc-if>
+          <sc-if value="{{ kBoardOn }}" hint-placeholder-val="{{ true }}">
+            <div class="kz-board">
+              <sc-for list="{{ kCols }}" as="col" hint-placeholder-count="3">
+                <div class="kz-col">
+                  <div class="kz-colhead"><span style="display:flex;align-items:center;gap:8px"><span style="{{ col.dotStyle }}"></span>{{ col.title }}</span><span class="kz-n">{{ col.n }}</span></div>
+                  <sc-for list="{{ col.cards }}" as="k" hint-placeholder-count="2">
+                    <div class="kz-card {{ k.lateCls }}">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                        <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 13px 'DM Sans',sans-serif;color:#5A6670">{{ k.id }}</span></div>
+                        <span class="kz-time">{{ k.min }}</span>
+                      </div>
+                      <div>
+                        <sc-for list="{{ k.lines }}" as="ln" hint-placeholder-count="2">
+                          <div class="kz-item"><b>{{ ln.q }}</b> {{ ln.n }}</div>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ k.hasObs }}" hint-placeholder-val="{{ false }}">
+                        <div class="kz-obs">Obs: {{ k.obs }}</div>
+                      </sc-if>
+                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <span style="{{ k.payStyle }}">{{ k.payLabel }}</span>
+                        <span style="flex:1"></span>
+                        <div onClick="{{ k.act }}" class="kz-act" style="{{ k.btnStyle }}">{{ k.btn }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ col.empty }}" hint-placeholder-val="{{ false }}">
+                    <div class="kz-empty">{{ col.emptyText }}</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <div class="kz-col kz-availcol">
+                <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
+                <div class="kz-sub" style="font:500 14px 'DM Sans',sans-serif;color:#5A6670;margin-top:-6px">Desligue o que acabou: some do cardápio na hora.</div>
+                <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
+                  <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
       </div>
       </sc-if>
 
@@ -3378,11 +3400,9 @@ class Component extends DCLogic {
 
     // cozinha — deriva do mesmo s.adminOrders (não há mais uma "comanda" separada
     // do pedido: avançar o kanban chama a mesma API que o admin usa em /orders).
-    v.cozinhaSide = SCREENS.cozinha.map(([k, label]) => ({
-      label, go:() => this.go(k === 'kanban' ? (v.kitchenEmpty ? 'queueEmpty' : 'kanban') : k, 'cozinha'),
-      style:'padding:9px 11px;border-radius:9px;font:600 12px Inter,sans-serif;cursor:pointer;transition:background .15s;' +
-        (s.screen === k ? 'background:#FF6B35;color:#fff' : 'color:rgba(255,255,255,.6)')
-    }));
+    v.cozinhaSide = [['kanban','Pedidos','M4 4h4v16H4z M10 4h4v10h-4z M16 4h4v13h-4z'],['unavailable','Disponibilidade','M4 12l5 5L20 6']]
+      .map(([k, label, ic]) => ({label, ic, cls:(s.screen === 'unavailable') === (k === 'unavailable') ? 'on' : '',
+        go:() => this.go(k === 'kanban' ? (v.kitchenEmpty ? 'queueEmpty' : 'kanban') : k, 'cozinha')}));
     // Pedido de PIX/cartão ainda não pago não aparece pra cozinha (o servidor
     // já filtra pro perfil cozinha; aqui vale também pro admin olhando o kanban).
     const col = st => s.adminOrders.filter(k => k.status === st && (k.paymentMethod === 'entrega' || k.paymentStatus === 'approved')).map(k => ({
@@ -3404,15 +3424,15 @@ class Component extends DCLogic {
     const kRaw = st => s.adminOrders.filter(k => k.status === st && (k.paymentMethod === 'entrega' || k.paymentStatus === 'approved'));
     const KCOLS = [
       ['Na Fila', 'Novos', '#FFB21E', 'Iniciar preparo', 'background:#FFB21E;color:#12232E'],
-      ['Em Preparo', 'Em preparo', '#5FC7CF', 'Marcar como pronto', 'background:#0B6670;color:#fff'],
-      ['Pronto', 'Prontos', '#7CF29A', 'Marcar como entregue', 'background:#2E9C6A;color:#fff']
+      ['Em Preparo', 'Em preparo', '#0B6670', 'Marcar como pronto', 'background:#0B6670;color:#fff'],
+      ['Pronto', 'Prontos', '#2E9C6A', 'Marcar como entregue', 'background:#1E6B36;color:#fff']
     ];
     v.kCols = KCOLS.map(([st, title, dot, btn, btnStyle]) => {
       const cards = kRaw(st).map(k => ({
         id:k.id, table:'Mesa ' + k.table, min:k.minAgo + ' min',
         lateCls:st !== 'Pronto' && k.minAgo > 10 ? 'late' : '',
         lines:kLines(k.itemsStr), obs:k.obs || '', hasObs:!!k.obs,
-        payLabel:k.payLabel, payStyle:pillStyle(k.payTone, true),
+        payLabel:k.payLabel, payStyle:pillStyle(k.payTone),
         btn, btnStyle,
         act:st === 'Pronto' ? () => this.advanceOrderStatus(k.apiId, 'Entregue')
           : () => this.advanceOrderStatus(k.apiId, st === 'Na Fila' ? 'Em Preparo' : 'Pronto')
@@ -3426,6 +3446,9 @@ class Component extends DCLogic {
     v.kClock = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
     v.soundOff = !s.soundOn;
     v.soundLabel = s.soundOn ? 'Som ligado' : 'Som desligado';
+    v.soundIc = s.soundOn ? 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12' : 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6';
+    v.kTitle = s.screen === 'unavailable' ? 'Disponibilidade' : 'Pedidos';
+    v.kEyebrow = 'Atualiza sozinho, em tempo real';
     v.toggleSound = () => { const on = !this.state.soundOn; this.setState({soundOn:on}); if(on) this.beep(); };
     v.isAdminUser = !!(s.authUser && s.authUser.role === 'admin');
     v.goAdminHome = () => this.go('dashboard', 'admin');
@@ -3438,8 +3461,8 @@ class Component extends DCLogic {
       // Esgotado por estoque zerado não se resolve no interruptor (o PATCH só
       // mexe no sinal manual): avisa onde repor em vez de não fazer nada.
       toggle:() => noStock(p) ? this.flash('Sem estoque. Reponha o estoque em Produtos para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
-      nameStyle:"font:600 15px 'DM Sans',sans-serif;" + (p.soldOut ? 'color:#6E8590;text-decoration:line-through' : 'color:#fff'),
-      swStyle:'background:' + (p.soldOut ? '#3A4E59' : '#2E9C6A'),
+      nameStyle:"font:600 16px 'DM Sans',sans-serif;" + (p.soldOut ? 'color:#8A8478;text-decoration:line-through' : 'color:#12232E'),
+      swStyle:'background:' + (p.soldOut ? '#CFC8BA' : '#2E9C6A'),
       knobStyle:'left:' + (p.soldOut ? '3px' : '23px')
     }));
     const nSold = s.products.filter(p => p.soldOut).length;
