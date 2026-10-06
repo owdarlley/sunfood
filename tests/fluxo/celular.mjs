@@ -105,6 +105,10 @@ await step('tracinho de digitação', async () => {
     const b = await p.locator(botao).first().evaluate(e => [getComputedStyle(e).caretColor, getComputedStyle(e).userSelect]);
     const c = await p.locator(campo).first().evaluate(e => getComputedStyle(e).caretColor);
     check(`${path.split('?')[1] || path}: botão sem cursor de texto e sem selecionar, campo com cursor`, b[0] === 'rgba(0, 0, 0, 0)' && b[1] === 'none' && c !== 'rgba(0, 0, 0, 0)', JSON.stringify([b, c]));
+    // Texto comum (título) também não seleciona nem mostra o cursor de texto; o campo continua selecionável.
+    const t = await p.locator('h1, .tt').first().evaluate(e => [getComputedStyle(e).userSelect, getComputedStyle(e).cursor]);
+    const ci = await p.locator(campo).first().evaluate(e => getComputedStyle(e).userSelect);
+    check(`${path.split('?')[1] || path}: texto comum não seleciona ao clicar, campo sim`, t[0] === 'none' && t[1] === 'default' && ci === 'text', JSON.stringify([t, ci]));
     await p.context().close();
   }
 });
