@@ -28,7 +28,7 @@ O endereço principal (`index.html`, ou seja, https://sunfood.app.br/) é a **te
 
 | Link do rodapé | Endereço | Conteúdo |
 | --- | --- | --- |
-| Conheça o Sunfood | `/#conheca` | Proposta, benefícios, como funciona, os três perfis, sobre o projeto e links para o protótipo |
+| Conheça o Sunfood | `/#conheca` | Proposta, benefícios, como funciona, os três perfis e sobre o projeto |
 | Fale conosco | `/#fale-conosco` | Formulário de contato (grava pela API, `POST /contact`) |
 | Termos de uso | `/#termos` | Termos de uso do sistema |
 | Privacidade | `/#privacidade` | Política de privacidade, conforme a LGPD |
@@ -38,7 +38,7 @@ Os endereços antigos (`inicio.html`, `sobre.html`, `funcionalidades.html`, `com
 | Página | Arquivo | Conteúdo |
 | --- | --- | --- |
 | Redefinir senha | `redefinir-senha.html` | Segunda etapa do "esqueci minha senha" (o link do e-mail cai aqui) |
-| Protótipo | `prototipo.html`, `prototipo-completo.html` | Protótipo navegável de 38 telas (material da faculdade, mantido como estava) |
+| Protótipo | `prototipo.html`, `prototipo-completo.html` | Protótipo navegável de 38 telas (material da faculdade, mantido como estava, sem link no site) |
 
 Quem já entrou naquele aparelho vai direto para o seu módulo (exceto quando abre um dos painéis acima). Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração ou cozinha).
 
