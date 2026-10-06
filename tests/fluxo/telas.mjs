@@ -18,8 +18,9 @@ const TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.jpg': '
 const server = createServer(async (req, res) => {
   try {
     const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-    const body = await readFile(join(ROOT, path === '/' ? 'index.html' : path));
-    res.writeHead(200, { 'Content-Type': TYPES[extname(path)] || 'application/octet-stream' }).end(body);
+    const file = path === '/' ? 'index.html' : path;
+    const body = await readFile(join(ROOT, file));
+    res.writeHead(200, { 'Content-Type': TYPES[extname(file)] || 'application/octet-stream' }).end(body);
   } catch { res.writeHead(404).end(); }
 }).listen(0, 'localhost');
 await new Promise(r => server.on('listening', r));
@@ -29,7 +30,7 @@ const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : 
 const results = [];
 const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`${ok ? 'ok   ' : 'FALHA'} ${name}${ok || !detail ? '' : ' -> ' + detail}`); };
 
-async function open(path, { role, seed } = {}) {
+async function open(path, { role, seed, session = true } = {}) {
   const page = await browser.newPage({ viewport: { width: 400, height: 860 }, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
@@ -42,7 +43,7 @@ async function open(path, { role, seed } = {}) {
   if (seed) api.seed();
   await page.route('http://localhost:8787/**', api);
   page.api = api;
-  if (role && role !== 'cliente') await page.addInitScript(r => localStorage.setItem('sunfood_session',
+  if (role && role !== 'cliente' && session) await page.addInitScript(r => localStorage.setItem('sunfood_session',
     JSON.stringify({ token: 'tok', user: { id: 'u1', email: r + '@teste', name: 'Teste', role: r } })), role);
   await page.goto(BASE + path);
   await page.waitForTimeout(1200);
@@ -54,11 +55,53 @@ const click = async (page, t, exact = false) => { await page.getByText(t, { exac
 async function step(name, fn) { try { await fn(); } catch (e) { check(name, false, e.message.split('\n')[0]); } }
 
 // 1. Páginas do site abrem sem erro de JavaScript
-for (const p of ['index.html', 'sobre.html', 'funcionalidades.html', 'como-funciona.html', 'perfis.html', 'mapa.html', 'contato.html', 'termos.html', 'privacidade.html', 'redefinir-senha.html']) {
+for (const p of ['index.html', 'inicio.html', 'sobre.html', 'funcionalidades.html', 'como-funciona.html', 'perfis.html', 'mapa.html', 'contato.html', 'termos.html', 'privacidade.html', 'redefinir-senha.html']) {
   const page = await open(p);
   check(`página ${p} abre sem erro`, page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();
 }
+
+// 1b. O endereço principal (index.html) é a tela de login, para os três perfis
+await step('login no endereço principal', async () => {
+  const page = await open('');
+  check('raiz: abre a tela de login', (await text(page)).includes('Bem-vindo de volta'));
+  await click(page, 'Entrar', true);
+  check('raiz: pede e-mail e senha', (await text(page)).includes('Preencha e-mail e senha.'));
+  await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
+  await page.getByPlaceholder('••••••••').fill('senha');
+  await click(page, 'Entrar', true);
+  await page.waitForTimeout(1200);
+  check('raiz: cliente cai no cardápio', page.url().includes('module=cliente&screen=menu') && (await text(page)).includes('Batata Frita'), page.url());
+  check('raiz: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
+  await page.close();
+
+  for (const [role, dest] of [['admin', 'module=admin&screen=dashboard'], ['cozinha', 'module=cozinha&screen=kanban']]) {
+    const p = await open('', { role, session: false });
+    await p.getByPlaceholder('voce@email.com').fill(role + '@teste');
+    await p.getByPlaceholder('••••••••').fill('senha');
+    await click(p, 'Entrar', true);
+    await p.waitForTimeout(800);
+    check(`raiz: ${role} cai no módulo certo`, p.url().includes(dest), p.url());
+    await p.close();
+  }
+
+  const salvo = await open('', { role: 'cozinha' });
+  check('raiz: quem já entrou vai direto para o seu módulo', salvo.url().includes('module=cozinha&screen=kanban'), salvo.url());
+  await salvo.close();
+
+  const inicio = await open('inicio.html');
+  await click(inicio, 'Entrar', true);
+  check('inicio.html: botão Entrar leva à tela de login', inicio.url() === BASE && (await text(inicio)).includes('Bem-vindo de volta'), inicio.url());
+  await inicio.close();
+
+  const app = await open('app-cliente.dc.html', { role: 'admin', session: false });
+  await app.getByPlaceholder('voce@email.com').fill('admin@teste');
+  await app.getByPlaceholder('••••••••').fill('senha');
+  await click(app, 'Entrar', true);
+  await app.waitForTimeout(800);
+  check('login do app: admin vai para o painel', app.url().includes('module=admin&screen=dashboard'), app.url());
+  await app.close();
+});
 
 // 2. Cliente: login -> cardápio -> carrinho -> mesa -> PIX -> confirmação
 await step('fluxo do cliente', async () => {

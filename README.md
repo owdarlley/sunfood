@@ -14,7 +14,7 @@ O site é publicado direto da branch `main` deste repositório — qualquer alte
 
 O front-end detecta sozinho onde está rodando: em `localhost`, fala com a API local (`http://localhost:8787`); publicado (GitHub Pages ou qualquer outro domínio), fala com a API de produção. Se a API de produção estiver fora do ar, o botão **Entrar** mostra "Falha de conexão com o servidor" — as páginas de conteúdo (Sobre, Funcionalidades, etc.) continuam funcionando normalmente.
 
-**Conta de demonstração** (botão **Entrar** no menu, abre o modal de login em `index.html`):
+**Conta de demonstração** (o endereço principal, `index.html`, já abre a tela de login):
 
 | Perfil | E-mail | Senha | Abre |
 | --- | --- | --- | --- |
@@ -24,11 +24,12 @@ As contas de **Administração** (`admin@sunfood.com`, abre o dashboard de venda
 
 ## Como navegar
 
-A home (`index.html`) traz o menu principal, de onde se chega a todas as páginas do site:
+O endereço principal (`index.html`, ou seja, https://sunfood.app.br/) é a **tela de login** do sistema. A página institucional fica em `inicio.html` e traz o menu principal, de onde se chega a todas as páginas do site:
 
 | Página | Arquivo | Conteúdo |
 | --- | --- | --- |
-| Início | `index.html` | Chamada principal, prévia do app do cliente e índice das demais páginas |
+| Entrar | `index.html` | Tela de login (endereço principal): cliente, cozinha e administração entram por ela |
+| Início | `inicio.html` | Chamada principal, prévia do app do cliente e índice das demais páginas |
 | Funcionalidades | `funcionalidades.html` | Benefícios do sistema para o quiosque |
 | Como funciona | `como-funciona.html` | O fluxo em três passos, do guarda-sol à cozinha |
 | Perfis de acesso | `perfis.html` | O que cliente, cozinha e administração enxergam |
@@ -40,7 +41,7 @@ A home (`index.html`) traz o menu principal, de onde se chega a todas as página
 | Política de Privacidade | `privacidade.html` | Tratamento de dados pessoais, conforme a LGPD |
 | Redefinir senha | `redefinir-senha.html` | Segunda etapa do "esqueci minha senha" (o link do e-mail cai aqui) |
 
-O botão **Entrar**, no menu fixo de todas as páginas, abre o login (direto na home, ou via `index.html?login=1` a partir de qualquer outra página) — com links reais para cadastro e recuperação de senha. Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração ou cozinha); login incorreto mostra "Credenciais inválidas". `prototipo-completo.html` e `support.js` são arquivos de apoio carregados pelas páginas acima.
+O botão **Entrar**, no menu fixo de todas as páginas, leva à tela de login do endereço principal, com links reais para cadastro, recuperação de senha e Google. Quem já entrou naquele aparelho vai direto para o seu módulo. Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração ou cozinha); login incorreto mostra "Credenciais inválidas". `prototipo-completo.html` e `support.js` são arquivos de apoio carregados pelas páginas acima.
 
 ## Rodando localmente
 
