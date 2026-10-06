@@ -37,6 +37,16 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Escala geral: tudo um pouco menor que o tamanho "cru" do CSS, para as telas
+   não parecerem ampliadas (pedido do Dárlley, 2026-10-06). As alturas de tela
+   cheia usam calc(100vh / var(--sfz)) porque o zoom também encolhe o vh.
+   No celular e no tablet os campos ficam com 16px reais na tela, senão o
+   iPhone dá zoom sozinho ao tocar num campo. */
+:root{--sfz:.86}
+@media (max-width:1100px){:root{--sfz:.92}}
+html{zoom:var(--sfz)}
+@media (max-width:1100px){input,select,textarea{font-size:calc(16px / var(--sfz)) !important}}
+
 /* Mesmo visual da tela de login do app (app-cliente.dc.html): areia, mar e sol. */
 *{box-sizing:border-box}
 body{margin:0;background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;color:#12232E;-webkit-font-smoothing:antialiased}
@@ -52,7 +62,7 @@ a{color:#0B6670}
 .muted{color:#5A6670}
 .brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
 .brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.auth{min-height:100vh;display:flex}
+.auth{min-height:calc(100vh / var(--sfz));display:flex}
 .auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
 .auth-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
 .auth-box{width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px}
@@ -155,6 +165,9 @@ a{color:#0B6670}
   .auth-mobile{display:flex}
   .auth-main{justify-content:flex-start;padding:24px 18px 40px}
 }
+
+/* Links de texto: área de toque maior no celular sem mudar o desenho. */
+@media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}.foot{gap:0 12px;margin-top:20px}.foot a{padding:12px 4px}}
 </style>
 </head>
 <body>

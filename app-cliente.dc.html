@@ -22,6 +22,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Escala geral: tudo um pouco menor que o tamanho "cru" do CSS, para as telas
+   não parecerem ampliadas (pedido do Dárlley, 2026-10-06). As alturas de tela
+   cheia usam calc(100vh / var(--sfz)) porque o zoom também encolhe o vh.
+   No celular e no tablet os campos ficam com 16px reais na tela, senão o
+   iPhone dá zoom sozinho ao tocar num campo. */
+:root{--sfz:.86}
+@media (max-width:1100px){:root{--sfz:.92}}
+html{zoom:var(--sfz)}
+@media (max-width:1100px){input,select,textarea{font-size:calc(16px / var(--sfz)) !important}}
+
 /* ===== Sunfood · visual "pé na areia" =====
    Cores: areia #F6F3EC (fundo), tinta #12232E (texto), mar #0B6670
    (ação secundária), sol #FFB21E (ação principal). Títulos em Bricolage
@@ -92,7 +102,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .toggle span{position:absolute;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 
 /* ===== Cliente ===== */
-.sfc{min-height:100vh;display:flex;flex-direction:column;background:#F6F3EC}
+.sfc{min-height:calc(100vh / var(--sfz));display:flex;flex-direction:column;background:#F6F3EC}
 .topbar{position:sticky;top:0;z-index:25;background:rgba(246,243,236,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid #E3DDD0}
 .topbar-in{max-width:1320px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;cursor:pointer;color:#12232E;text-decoration:none}
@@ -113,9 +123,9 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .cols{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
 .col-main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px}
 .col-side{flex:1 1 320px;max-width:420px;display:flex;flex-direction:column;gap:16px}
-.hero{position:relative;overflow:hidden;border-radius:28px;background:#0B6670;color:#fff;padding:clamp(26px,5vw,52px);margin-bottom:28px}
-.hero h1{margin:0;font-size:clamp(34px,5.4vw,60px);max-width:640px}
-.hero p{margin:16px 0 22px;font-size:18px;line-height:1.5;color:#DDF1F2;max-width:620px;position:relative}
+.hero{position:relative;overflow:hidden;border-radius:28px;background:#0B6670;color:#fff;padding:clamp(22px,4vw,40px);margin-bottom:24px}
+.hero h1{margin:0;font-size:clamp(30px,4.2vw,46px);max-width:600px}
+.hero p{margin:14px 0 18px;font-size:17px;line-height:1.5;color:#DDF1F2;max-width:620px;position:relative}
 .cats{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:18px}
@@ -129,7 +139,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .cartpanel{position:sticky;top:96px}
 .mobilebar{display:none}
 .bottomnav{display:none}
-.auth{min-height:100vh;display:flex}
+.auth{min-height:calc(100vh / var(--sfz));display:flex}
 .auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
 .auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}
 .auth-box{width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px}
@@ -177,8 +187,8 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 }
 
 /* ===== Admin ===== */
-.adm{min-height:100vh;display:flex;background:#F6F3EC;width:100%}
-.adm-side{width:240px;flex-shrink:0;background:#12232E;color:#fff;display:flex;flex-direction:column;padding:24px 14px 18px;gap:6px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.adm{min-height:calc(100vh / var(--sfz));display:flex;background:#F6F3EC;width:100%}
+.adm-side{width:240px;flex-shrink:0;background:#12232E;color:#fff;display:flex;flex-direction:column;padding:24px 14px 18px;gap:6px;position:sticky;top:0;height:calc(100vh / var(--sfz));overflow-y:auto}
 .adm-brand{display:flex;align-items:center;gap:10px;padding:0 10px 18px}
 .adm-brand b{font:800 21px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
 .adm-brand small{font:500 14px 'DM Sans',sans-serif;color:#9FB2BA;margin-left:2px}
@@ -218,27 +228,43 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .tr.th{border-top:0;border-bottom:1px solid #E3DDD0;font:700 13px 'DM Sans',sans-serif;color:#5A6670;padding-top:12px;padding-bottom:12px;white-space:nowrap}
 .tr.th + .tr{border-top:0}
 .tblwrap{background:#fff;border:1px solid #E3DDD0;border-radius:20px;overflow-x:auto}
+/* No celular as tabelas de Pedidos e Pagamentos viram cartões (sem arrastar
+   para os lados): cada linha mostra os campos com o nome em cima. */
+@media (max-width:640px){
+  .tbl-cards{min-width:0 !important}
+  .tbl-cards .tr.th{display:none}
+  .tbl-cards .tr{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:10px 12px;padding:14px 16px}
+  .tbl-cards .tr > div{text-align:left !important;min-width:0}
+  .tbl-cards .tr > [data-l]::before{content:attr(data-l);display:block;font:600 12px 'DM Sans',sans-serif;color:#6B6458;margin-bottom:3px}
+  .tbl-cards .tr > .wide{grid-column:1/-1}
+  .tbl-cards .tr > .wide:empty{display:none}
+  .tbl-cards .tr > div > span{display:inline-block;max-width:100%;white-space:normal}
+}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
 .tile{border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;transition:transform .15s}
 .tile:hover{transform:translateY(-2px)}
 .mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 @media (max-width:1100px){ .grid2{grid-template-columns:1fr} }
+/* No celular/tablet o menu do admin vira um botão "Menu" que abre a lista
+   em grade (antes era uma faixa que precisava arrastar para os lados). */
+.adm-menubtn{display:none}
 @media (max-width:900px){
   .adm{flex-direction:column}
-  .adm-side{width:100%;height:auto;position:sticky;top:0;z-index:20;flex-direction:row;align-items:center;overflow-x:auto;padding:10px 12px;gap:4px}
-  .adm-brand{padding:0 8px 0 4px}
-  .adm-brand small{display:none}
-  .adm-item{padding:9px 12px;font-size:14px}
-  .adm-item svg{display:none}
-  .adm-sep{width:1px;height:24px;margin:0 4px}
-  .adm-foot{margin:0 0 0 8px;padding:0;flex-direction:row;align-items:center}
-  .adm-foot .em{display:none}
+  .adm-side{width:100%;height:auto;position:sticky;top:0;z-index:20;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible;padding:10px 12px;gap:8px}
+  .adm-brand{flex:1;padding:0 4px;min-height:44px}
+  .adm-brand small{display:inline}
+  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid #2A3F4B;color:#EAF2F3;font:700 15px 'DM Sans',sans-serif;cursor:pointer;user-select:none}
+  .adm-side:not(.open) .adm-item,.adm-side:not(.open) .adm-sep,.adm-side:not(.open) .adm-foot{display:none}
+  .adm-side.open .adm-item{flex:1 1 calc(50% - 8px);min-height:46px;padding:10px 12px;font-size:15px}
+  .adm-side.open .adm-sep{display:none}
+  .adm-side.open .adm-foot{width:100%;margin:4px 0 0;padding:8px 0 0;border-top:1px solid #2A3F4B;flex-direction:row;align-items:center;justify-content:space-between}
+  .adm-side.open .adm-foot .em{display:block;padding:0 4px;min-width:0}
   .adm-main{padding:20px 16px 40px}
 }
 
 /* ===== Cozinha (tema escuro, pensado pra tela na parede) ===== */
-.kz{min-height:100vh;background:#0F1C24;color:#EAF2F3;width:100%;display:flex;flex-direction:column}
+.kz{min-height:calc(100vh / var(--sfz));background:#0F1C24;color:#EAF2F3;width:100%;display:flex;flex-direction:column}
 .kz-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 28px;border-bottom:1px solid #22343F}
 .kz-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;background:#1A2F3B;font:600 14px 'DM Sans',sans-serif;white-space:nowrap}
 .kz-btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;border-radius:12px;border:1px solid #2A3F4B;background:transparent;color:#EAF2F3;font:700 14px 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
@@ -262,10 +288,13 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 @media (max-width:640px){.cartrow{flex-wrap:wrap}.cartrow .cr-info{flex:1 1 calc(100% - 80px)}.cartrow .stepper{margin-left:78px}.cartrow .cr-price{flex:1;width:auto}}
 @media (max-width:640px){.bars{gap:3px}.bar .bl{font-size:10px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{padding:14px!important}.kpi .v{font-size:22px}.kpi .k{font-size:13px}}
 @media (max-width:640px){.pcard .stepper .sb{width:32px;height:32px;font-size:18px}.pcard .stepper .sq{min-width:20px}}
+
+/* Links de texto: área de toque maior no celular sem mudar o desenho. */
+@media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}}
 </style>
 </helmet>
 
-<div style="min-height:100vh;position:relative;background:#F6F3EC">
+<div style="min-height:calc(100vh / var(--sfz));position:relative;background:#F6F3EC">
       <sc-if value="{{ isCliente }}" hint-placeholder-val="{{ true }}">
       <div class="sfc">
 
@@ -422,7 +451,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
         </sc-if>
 
         <sc-if value="{{ showApp }}" hint-placeholder-val="{{ true }}">
-          <div style="flex:1;display:flex;flex-direction:column;min-height:100vh">
+          <div style="flex:1;display:flex;flex-direction:column;min-height:calc(100vh / var(--sfz))">
             <div class="topbar">
               <div class="topbar-in">
                 <div onClick="{{ goHome }}" class="brand"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
@@ -997,8 +1026,8 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                       <p class="muted" style="font-size:15px;line-height:1.55;margin:8px 0 0">Av. Beira-Mar, s/n, em frente ao posto 4. Aberto todos os dias, 9h às 18h.</p>
                     </div>
                     <div style="display:flex;gap:10px">
-                      <div class="btn btn-sun" style="flex:1">Abrir no mapa</div>
-                      <div class="btn btn-ghost" style="flex:1">Ligar</div>
+                      <a href="https://www.google.com/maps/search/?api=1&amp;query=Av.%20Beira-Mar%20posto%204%20Praia%20do%20Forte" target="_blank" rel="noopener" class="btn btn-sun" style="flex:1;text-decoration:none">Abrir no mapa</a>
+                      <a href="./#fale-conosco" class="btn btn-ghost" style="flex:1;text-decoration:none">Fale conosco</a>
                     </div>
                   </div>
                 </div>
@@ -1038,8 +1067,9 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 
       <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
       <div class="adm">
-        <div class="adm-side">
+        <div class="adm-side {{ admMenuCls }}">
           <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>admin</small></div>
+          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ adminSide }}" as="it" hint-placeholder-count="7">
             <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
           </sc-for>
@@ -1137,17 +1167,17 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
               </div>
               <div class="tblwrap">
                 <sc-if value="{{ hasAdminOrders }}" hint-placeholder-val="{{ true }}">
-                  <div class="tbl" style="min-width:900px">
+                  <div class="tbl tbl-cards" style="min-width:900px">
                     <div class="tr th" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px"><div>Pedido</div><div>Mesa</div><div>Hora</div><div>Itens</div><div style="text-align:right">Total</div><div>Pagamento</div><div>Status</div></div>
                     <sc-for list="{{ adminOrders }}" as="r" hint-placeholder-count="6">
                       <div class="tr" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px">
-                        <div style="font-weight:800;color:#0B6670">{{ r.id }}</div>
-                        <div style="font-weight:700">{{ r.table }}</div>
-                        <div class="muted" style="white-space:nowrap">{{ r.clock }}</div>
-                        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ r.itemsStr }}">{{ r.itemsStr }}</div>
-                        <div style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
-                        <div><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
-                        <div><span style="{{ r.stStyle }}">{{ r.status }}</span></div>
+                        <div data-l="Pedido" style="font-weight:800;color:#0B6670">{{ r.id }}</div>
+                        <div data-l="Mesa" style="font-weight:700">{{ r.table }}</div>
+                        <div data-l="Hora" class="muted" style="white-space:nowrap">{{ r.clock }}</div>
+                        <div data-l="Itens" class="wide" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ r.itemsStr }}">{{ r.itemsStr }}</div>
+                        <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
+                        <div data-l="Pagamento"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
+                        <div data-l="Status"><span style="{{ r.stStyle }}">{{ r.status }}</span></div>
                       </div>
                     </sc-for>
                   </div>
@@ -1171,16 +1201,16 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
               </sc-if>
               <div class="tblwrap">
                 <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ true }}">
-                  <div class="tbl" style="min-width:980px">
+                  <div class="tbl tbl-cards" style="min-width:980px">
                     <div class="tr th" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px"><div>Pedido</div><div>Mesa</div><div>Quando</div><div>Status</div><div>Pagamento</div><div>Recebimento</div><div style="text-align:right">Total</div></div>
                     <sc-for list="{{ payRows }}" as="r" hint-placeholder-count="6">
                       <div class="tr" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px">
-                          <div style="font-weight:800;color:#0B6670">{{ r.id }}</div>
-                          <div style="font-weight:700">{{ r.table }}</div>
-                          <div class="muted" style="white-space:nowrap">{{ r.when }}</div>
-                          <div>{{ r.status }}</div>
-                          <div><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
-                          <div>
+                          <div data-l="Pedido" style="font-weight:800;color:#0B6670">{{ r.id }}</div>
+                          <div data-l="Mesa" style="font-weight:700">{{ r.table }}</div>
+                          <div data-l="Quando" class="muted" style="white-space:nowrap">{{ r.when }}</div>
+                          <div data-l="Status">{{ r.status }}</div>
+                          <div data-l="Pagamento"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
+                          <div class="wide">
                             <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
                               <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                                 <span class="muted" style="font-size:13px">Recebido em:</span>
@@ -1193,7 +1223,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                               <span onClick="{{ r.undo }}" class="chip" style="background:#fff;border:1px solid #D6CFBF;color:#5A6670;padding:7px 11px;cursor:pointer">Desfazer</span>
                             </sc-if>
                           </div>
-                          <div style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
+                          <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
                       </div>
                     </sc-for>
                   </div>
@@ -2243,6 +2273,7 @@ class Component extends DCLogic {
         body:JSON.stringify({paused: !this.state.paused})
       });
       if(res.ok){ const data = await res.json(); this.setState({paused:data.paused}); }
+      else this.flash('Não foi possível mudar a pausa. Tente de novo.');
     } catch(e){ this.flash('Falha de conexão com o servidor.'); }
   }
 
@@ -2383,7 +2414,10 @@ class Component extends DCLogic {
       const res = await fetch(API_BASE + '/orders/mine', {headers:{Authorization:'Bearer ' + tok}});
       if(!res.ok) return;
       const data = await res.json();
-      this.setState({history: data.map(historyEntryFromApi)});
+      // Pedido ainda em andamento (ex.: o celular recarregou a página): volta
+      // a acompanhar, senão a aba "Pedido" não teria o que mostrar.
+      const live = !this.state.order && data.find(o => o.status !== 'Entregue' && o.status !== 'Cancelado');
+      this.setState(live ? {history: data.map(historyEntryFromApi), order: orderFromApi(live)} : {history: data.map(historyEntryFromApi)});
     } catch(e){}
   }
 
@@ -2575,7 +2609,7 @@ class Component extends DCLogic {
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
   go(screen, module){
-    this.setState(s => ({screen, module: module || s.module, toast:''}));
+    this.setState(s => ({screen, module: module || s.module, toast:'', admMenu:false}));
     if(screen === 'reports' && this.state.token){ this.loadReport(); this.loadLatestDayReport(); }
     if(screen === 'messages' && this.state.token) this.loadMessages();
     try { window.scrollTo(0, 0); } catch(e){}
@@ -2800,7 +2834,10 @@ class Component extends DCLogic {
     v.navItems = [['menu','Cardápio','menu'],['status','Pedido','clock'],['history','Histórico','receipt'],['profile','Perfil','user']].map(([k, label, ic]) => ({
       key:k, label,
       icPath:UI[ic],
-      go:() => this.go(k === 'history' && !s.history.length ? 'historyEmpty' : (k === 'status' && !s.order ? 'menu' : k)),
+      go:() => {
+        if(k === 'status' && !s.order){ this.go(s.history.length ? 'history' : 'historyEmpty'); this.flash('Você não tem pedido em andamento.'); return; }
+        this.go(k === 'history' && !s.history.length ? 'historyEmpty' : k);
+      },
       style:"display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font:700 12px 'DM Sans',sans-serif;min-width:64px;color:" +
         (meta.nav === k ? '#0B6670' : '#6B6458')
     }));
@@ -3054,7 +3091,8 @@ class Component extends DCLogic {
     v.fpErr = s.fpErr; v.hasFpErr = !!s.fpErr;
     v.fpOk = s.fpMode === 'cpf' ? isValidCpf(s.fpCpf) : /@/.test(s.fpEmail);
     v.fpBlocked = !v.fpOk;
-    v.sendFp = () => v.fpOk && this.submitForgotPassword();
+    v.sendFp = () => v.fpOk ? this.submitForgotPassword()
+      : this.setState({fpErr: s.fpMode === 'cpf' ? 'Informe um CPF válido.' : 'Informe o e-mail da sua conta.'});
 
     // admin — tudo abaixo lê s.dashboard/s.opsMetrics/s.adminOrders, carregados
     // de verdade por loadAdminData() (nada é mock; adminLogin/adminForgot saíram
@@ -3062,6 +3100,10 @@ class Component extends DCLogic {
     const sideOn = s.screen === 'pause' ? 'tables' : s.screen === 'closeDay' ? 'dashboard' : s.screen;
     v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio'],['reports','Vendas'],['perfOps','Operação'],['tables','Quiosque e mesas']]
       .map(([k, label]) => ({label, ic:ADM_IC[k], cls:sideOn === k ? 'on' : '', go:() => this.go(k, 'admin')}));
+    v.admMenuCls = s.admMenu ? 'open' : '';
+    v.admMenuLabel = s.admMenu ? 'Fechar' : 'Menu';
+    v.admMenuIc = s.admMenu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16';
+    v.toggleAdmMenu = () => this.setState({admMenu:!s.admMenu});
     v.goPayments = () => this.go('payments', 'admin');
     v.goCloseDay = () => this.go('closeDay', 'admin');
     v.is_kioskPage = s.screen === 'tables' || s.screen === 'pause';
