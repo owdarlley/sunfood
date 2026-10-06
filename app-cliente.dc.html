@@ -1979,6 +1979,12 @@ class Component extends DCLogic {
   startSession(token, user){
     try { localStorage.setItem(SESSION_KEY, JSON.stringify({token, user})); } catch(e){}
     this.setState({token, authUser:user});
+    // Cozinha e administração também podem entrar por esta tela: vão para o
+    // módulo delas, como no login da página inicial.
+    if(user.role === 'admin' || user.role === 'cozinha'){
+      window.location.href = user.role === 'admin' ? 'app-cliente.dc.html?module=admin&screen=dashboard' : 'app-cliente.dc.html?module=cozinha&screen=kanban';
+      return;
+    }
     this.loadHistory(token);
     if(user.profileComplete === false) this.askCompleteProfile(user);
     else this.go('menu');
@@ -2338,8 +2344,8 @@ class Component extends DCLogic {
 
   logout(){
     try { localStorage.removeItem(SESSION_KEY); } catch(e){}
-    // Admin/cozinha não têm mais uma tela de login própria dentro do app (o
-    // acesso é só pelo modal do index.html) — sair manda de volta pra lá.
+    // Admin/cozinha não têm uma tela de login própria dentro do app: sair
+    // manda de volta para a tela de login do endereço principal (index.html).
     if(this.state.module === 'admin' || this.state.module === 'cozinha'){ window.location.href = 'index.html'; return; }
     this.setState({token:null, authUser:null, order:null, history:[], cart:[], pass:'', screen:'login'});
   }

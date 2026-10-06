@@ -41,7 +41,7 @@
       <div style="padding:26px 24px;display:flex;flex-direction:column;gap:14px;text-align:center">
         <p style="font:400 13.5px/1.6 'DM Sans',sans-serif;color:#5A6670;margin:0">{{ invalidMsg }}</p>
         <a href="app-cliente.dc.html?module=cliente&amp;screen=forgot" style="background:#FFB21E;color:#12232E;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Bricolage Grotesque',sans-serif">Pedir um novo link</a>
-        <a href="index.html?login=1" style="text-align:center;font:600 12.5px 'DM Sans',sans-serif">Voltar ao login</a>
+        <a href="./" style="text-align:center;font:600 12.5px 'DM Sans',sans-serif">Voltar ao login</a>
       </div>
     </sc-if>
 
@@ -49,7 +49,7 @@
       <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
         <div style="padding:26px 24px;display:flex;flex-direction:column;gap:14px;text-align:center">
           <p style="font:400 13.5px/1.6 'DM Sans',sans-serif;color:#5A6670;margin:0">Senha redefinida com sucesso. Já dá pra entrar com a nova senha.</p>
-          <a href="index.html?login=1" style="background:#FFB21E;color:#12232E;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Bricolage Grotesque',sans-serif">Ir para o login</a>
+          <a href="./" style="background:#FFB21E;color:#12232E;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Bricolage Grotesque',sans-serif">Ir para o login</a>
         </div>
       </sc-if>
       <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}">

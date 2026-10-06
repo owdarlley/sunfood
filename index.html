@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<title>Sunfood · Entrar</title>
+<meta name="description" content="Entre no Sunfood para pedir do seu guarda-sol. Cliente, cozinha e administração usam o mesmo login.">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0E2A30">
+<meta name="theme-color" content="#0B6670">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -13,448 +14,193 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Sunfood">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<script src="./pwa.js" defer></script>
 <script>
-// Link de "esqueci minha senha" que caiu na página inicial: manda pra tela de nova senha.
+// Esta é a página do endereço principal (sunfood.app.br): a tela de login.
+// Link de "esqueci minha senha" que caiu aqui: manda pra tela de nova senha.
 if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefinir-senha.html' + location.hash);
+// Quem já entrou neste aparelho vai direto para o seu módulo do app.
+(function () {
+  var DEST = {
+    cliente: 'app-cliente.dc.html?module=cliente&screen=menu',
+    admin: 'app-cliente.dc.html?module=admin&screen=dashboard',
+    cozinha: 'app-cliente.dc.html?module=cozinha&screen=kanban'
+  };
+  window.SUNFOOD_DEST = DEST;
+  try {
+    var s = JSON.parse(localStorage.getItem('sunfood_session') || 'null');
+    if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash)) location.replace(DEST[s.user.role] || DEST.cliente);
+  } catch (e) {}
+})();
 </script>
-</head>
-<body>
-<x-dc>
-<helmet>
+<script src="./pwa.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body { margin:0; background:#F6F3EC; -webkit-font-smoothing:antialiased; }
-  a { color:#0B6670; text-decoration:none; }
-  a:hover { color:#0B6670; }
-  ::selection { background:#FFE9B8; color:#12232E; }
-  @media (max-width: 680px) {
-    .site-header-inner { flex-wrap: wrap; row-gap: 10px; }
-    .site-entrar { order: 2; }
-    .site-nav { order: 3; flex-basis: 100%; justify-content: center !important; }
-  }
+/* Mesmo visual da tela de login do app (app-cliente.dc.html): areia, mar e sol. */
+*{box-sizing:border-box}
+body{margin:0;background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;color:#12232E;-webkit-font-smoothing:antialiased}
+a{color:#0B6670}
+@keyframes sfspin{to{transform:rotate(360deg)}}
+@keyframes sfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sfwave{0%,100%{transform:translateX(0)}50%{transform:translateX(-24px)}}
+.sun{animation:sfspin 24s linear infinite;transform-origin:50% 50%}
+.wave{animation:sfwave 7s ease-in-out infinite}
+.rise{animation:sfup .35s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
+.tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.05}
+.muted{color:#5A6670}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
+.brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+.auth{min-height:100vh;display:flex}
+.auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
+.auth-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
+.auth-box{width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px}
+.auth-mobile{display:none}
+.lbl{display:block;font:700 14px 'DM Sans',sans-serif;color:#12232E;margin-bottom:6px}
+.inp{width:100%;min-height:48px;border:1px solid #D6CFBF;border-radius:14px;padding:12px 14px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.inp:focus{border-color:#0B6670;box-shadow:0 0 0 3px rgba(11,102,112,.16)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:0 20px;border-radius:16px;font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;transition:background .2s,transform .15s}
+.btn:active{transform:scale(.98)}
+.btn-dark{background:#12232E;color:#fff}
+.btn-dark:hover{background:#1E3642}
+.btn-dark[disabled]{opacity:.6;cursor:wait}
+.btn-ghost{background:#fff;color:#0B6670;border:1px solid #0B6670;font-weight:700}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;border-radius:14px;border:1px solid #D6CFBF;background:#fff;font:700 16px 'DM Sans',sans-serif;cursor:pointer;color:#12232E}
+.gbtn:hover{border-color:#12232E}
+.divider{display:flex;align-items:center;gap:12px;color:#6B6458;font:500 13px 'DM Sans',sans-serif}
+.divider span{flex:1;height:1px;background:#E3DDD0;display:block}
+.link{font:700 14px 'DM Sans',sans-serif;color:#0B6670;text-decoration:underline;text-underline-offset:3px}
+.link:hover{color:#084C53}
+.alert{border-radius:14px;padding:12px 14px;font:600 14px/1.45 'DM Sans',sans-serif}
+.alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
+.alert-ok{background:#E7F7ED;color:#14532D;border:1px solid #BFE3CB}
+.foot{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;margin-top:28px;font:500 14px 'DM Sans',sans-serif}
+.foot a{color:#5A6670;text-decoration:none}
+.foot a:hover{color:#0B6670}
+[hidden]{display:none !important}
+@media (max-width:920px){
+  .auth{flex-direction:column}
+  .auth-art{display:none}
+  .auth-mobile{display:flex}
+  .auth-main{justify-content:flex-start;padding:24px 18px 40px}
+}
 </style>
-</helmet>
-
-<div style="font-family:'DM Sans',sans-serif;color:#12232E;overflow-x:clip">
-
-  <header style="position:sticky;top:0;z-index:40;background:rgba(14,42,48,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.09)">
-    <div class="site-header-inner" style="max-width:1180px;margin:0 auto;padding:12px clamp(16px,4vw,28px);display:flex;align-items:center;gap:clamp(14px,2.5vw,28px)">
-      <div style="display:flex;align-items:center;gap:8px;margin-right:auto;flex-shrink:0">
-        <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#FFB21E" stroke-width="2.8" stroke-linecap="round" style="display:block;flex-shrink:0"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
-        <span style="font:800 21px/1 'Bricolage Grotesque',sans-serif;letter-spacing:.02em;color:#fff">SUNFOOD</span>
-      </div>
-      <nav class="site-nav" style="display:flex;align-items:center;column-gap:clamp(12px,1.6vw,22px);row-gap:8px;flex-wrap:wrap;justify-content:flex-end;min-width:0">
-        <a href="funcionalidades.html" style="font:500 clamp(12.5px,1.15vw,13.5px) 'DM Sans',sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Funcionalidades</a>
-        <a href="como-funciona.html" style="font:500 clamp(12.5px,1.15vw,13.5px) 'DM Sans',sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Como funciona</a>
-        <a href="perfis.html" style="font:500 clamp(12.5px,1.15vw,13.5px) 'DM Sans',sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Perfis de acesso</a>
-        <a href="prototipo.html" style="font:500 clamp(12.5px,1.15vw,13.5px) 'DM Sans',sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Protótipo completo</a>
-        <a href="sobre.html" style="font:500 clamp(12.5px,1.15vw,13.5px) 'DM Sans',sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Sobre nós</a>
-        <a href="contato.html" style="font:500 clamp(12.5px,1.15vw,13.5px) 'DM Sans',sans-serif;color:rgba(255,255,255,.66);white-space:nowrap" style-hover="color:#fff">Fale conosco</a>
-      </nav>
-      <div onClick="{{ openLogin }}" class="site-entrar" style="background:#FFB21E;color:#12232E;font:700 14px 'Bricolage Grotesque',sans-serif;padding:10px 20px;border-radius:12px;white-space:nowrap;flex-shrink:0;box-shadow:0 6px 18px -8px rgba(255,178,30,.9);cursor:pointer" style-hover="background:#F5A300;color:#12232E">Entrar</div>
+</head>
+<body>
+<div class="auth">
+  <div class="auth-art">
+    <a class="brand" href="inicio.html"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
+    <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
+    <div style="position:relative;max-width:460px">
+      <div class="tt" style="font-size:clamp(34px,3.6vw,48px)">Peça direto do seu guarda-sol.</div>
+      <p style="font-size:18px;line-height:1.5;color:#DDF1F2;margin:16px 0 0">Entre com sua conta para ver o cardápio, pagar pelo celular e acompanhar o pedido até a sua mesa.</p>
     </div>
-  </header>
-
-  <section style="background:#0E2A30;background-image:radial-gradient(circle at 6% 0%,rgba(23,150,160,.20),transparent 44%),radial-gradient(circle at 96% 96%,rgba(23,150,160,.14),transparent 46%);color:#fff;padding:clamp(36px,5vh,68px) clamp(18px,4vw,28px) clamp(40px,6vh,76px)">
-    <div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(26px,4vw,56px);align-items:center">
+    <div style="position:relative;font:500 14px 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
+    <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
+  </div>
+  <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:22px 18px 20px;flex-direction:column;gap:12px">
+    <a class="brand" href="inicio.html"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></a>
+    <div style="font:500 15px/1.45 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">Peça direto do seu guarda-sol.</div>
+  </div>
+  <main class="auth-main">
+    <form id="login" class="auth-box rise" novalidate>
       <div>
-        <div style="display:inline-block;font:600 11px 'DM Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#FFE3A3;border:1px solid rgba(255,227,163,.32);border-radius:99px;padding:6px 13px">Pedidos digitais para quiosques de praia</div>
-        <h1 style="font:800 clamp(36px,4.2vw,58px)/1.06 'Bricolage Grotesque',sans-serif;margin:18px 0 0;letter-spacing:-.01em;text-wrap:pretty">Peça direto do seu guarda-sol.</h1>
-        <p style="font:400 clamp(14.5px,1.25vw,17.5px)/1.6 'DM Sans',sans-serif;color:rgba(255,255,255,.74);margin:18px 0 0;max-width:520px;text-wrap:pretty">Em quiosque de praia o pedido ainda vive no bloco de papel: o cliente espera o garçom para pedir, espera de novo para pagar e o gestor não sabe o que está vendendo. O Sunfood põe o cardápio, o pagamento e a fila da cozinha na mesma tela, em tempo real.</p>
-        <div style="display:flex;gap:14px;margin-top:clamp(22px,3vh,34px);flex-wrap:wrap">
-          <a href="app-cliente.dc.html?module=cliente&screen=menu" style="background:#FFB21E;color:#12232E;font:700 16px 'Bricolage Grotesque',sans-serif;padding:15px 30px;border-radius:13px;box-shadow:0 14px 30px -12px rgba(255,178,30,.95)" style-hover="background:#F5A300;color:#12232E">Ver o cardápio</a>
-          <div onClick="{{ openLogin }}" style="border:1.5px solid rgba(255,255,255,.26);color:#fff;font:700 16px 'Bricolage Grotesque',sans-serif;padding:15px 26px;border-radius:13px;cursor:pointer" style-hover="border-color:#0B6670;color:#fff">Entrar</div>
-        </div>
-        <div style="display:flex;gap:34px;margin-top:clamp(26px,3.5vh,44px);flex-wrap:wrap">
-          <div>
-            <div style="font:800 25px 'Bricolage Grotesque',sans-serif;color:#FFB21E">3 perfis</div>
-            <div style="font:500 12.5px 'DM Sans',sans-serif;color:rgba(255,255,255,.5);margin-top:3px">Cliente, cozinha e gestão</div>
-          </div>
-          <div>
-            <div style="font:800 25px 'Bricolage Grotesque',sans-serif;color:#FFB21E">Zero fila</div>
-            <div style="font:500 12.5px 'DM Sans',sans-serif;color:rgba(255,255,255,.5);margin-top:3px">Pedido e pagamento pelo celular</div>
-          </div>
-          <div>
-            <div style="font:800 25px 'Bricolage Grotesque',sans-serif;color:#FFB21E">PWA</div>
-            <div style="font:500 12.5px 'DM Sans',sans-serif;color:rgba(255,255,255,.5);margin-top:3px">Acesso por QR Code, sem instalar</div>
-          </div>
-        </div>
+        <h1 class="tt" style="font-size:36px;margin:0">Bem-vindo de volta</h1>
+        <div class="muted" style="font-size:16px;margin-top:6px">Novo por aqui? <a class="link" style="font-size:16px" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Cadastre-se</a></div>
       </div>
-
-      <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
-        <div style="display:flex;align-items:center;gap:8px;font:600 11.5px 'DM Sans',sans-serif;color:#FFE3A3;border:1px solid rgba(255,227,163,.3);border-radius:99px;padding:6px 14px">
-          <span style="width:7px;height:7px;border-radius:99px;background:#FFC24D;display:block"></span>
-          Protótipo interativo — toque nos itens para navegar
-        </div>
-        <a href="prototipo.html" style="font:700 13.5px 'Bricolage Grotesque',sans-serif;color:#fff;border:1.5px solid rgba(255,255,255,.26);border-radius:11px;padding:10px 18px;order:3" style-hover="border-color:#0B6670;color:#FFE3A3">Ver o protótipo completo · 38 telas →</a>
-        <div id="phone-frame" style="width:min(338px,100%);aspect-ratio:412/812;overflow:hidden;flex-shrink:0">
-          <iframe src="app-cliente.dc.html" title="App do cliente Sunfood — protótipo navegável" style="display:block;width:412px;height:812px;border:0;background:transparent;transform:scale(.82);transform-origin:top left;flex-shrink:0"></iframe>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section style="background:#F6F3EC;padding:clamp(44px,6vw,76px) clamp(18px,4vw,28px)">
-    <div style="max-width:1180px;margin:0 auto">
-      <div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap">
-        <div style="flex:1;min-width:260px">
-          <div style="font:600 11px 'DM Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0B6670">Benefícios</div>
-          <h2 style="font:800 clamp(26px,2.8vw,38px)/1.15 'Bricolage Grotesque',sans-serif;margin:12px 0 0;max-width:600px;text-wrap:pretty">O que o quiosque ganha ao trocar o bloco de papel</h2>
-        </div>
-        <a href="funcionalidades.html" style="font:700 14px 'Bricolage Grotesque',sans-serif;color:#0B6670;border:1.5px solid #E3DDD0;border-radius:11px;padding:11px 18px;white-space:nowrap" style-hover="border-color:#0B6670">Ver todas as funcionalidades →</a>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:clamp(26px,3.5vh,38px)">
-        <sc-for list="{{ resumoBeneficios }}" as="b" hint-placeholder-count="3">
-          <div style="background:#fff;border:1.5px solid #E3DDD0;border-radius:18px;padding:22px 20px">
-            <div style="font:800 13px 'Bricolage Grotesque',sans-serif;color:#0B6670;letter-spacing:.1em">{{ b.n }}</div>
-            <div style="font:700 18px 'Bricolage Grotesque',sans-serif;margin-top:11px">{{ b.t }}</div>
-            <div style="font:400 14px/1.6 'DM Sans',sans-serif;color:#5A6670;margin-top:6px;text-wrap:pretty">{{ b.d }}</div>
-          </div>
-        </sc-for>
-      </div>
-    </div>
-  </section>
-
-  <section style="background:#F6F3EC;padding:0 clamp(18px,4vw,28px) clamp(44px,6vw,76px)">
-    <div style="max-width:1180px;margin:0 auto;border-top:1px solid #EFE3D2;padding-top:clamp(40px,5vw,60px)">
-      <div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap">
-        <div style="flex:1;min-width:260px">
-          <div style="font:600 11px 'DM Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0B6670">Como funciona</div>
-          <h2 style="font:800 clamp(26px,2.8vw,38px)/1.15 'Bricolage Grotesque',sans-serif;margin:12px 0 0">Do guarda-sol à cozinha em três passos</h2>
-        </div>
-        <a href="como-funciona.html" style="font:700 14px 'Bricolage Grotesque',sans-serif;color:#0B6670;border:1.5px solid #E3DDD0;border-radius:11px;padding:11px 18px;white-space:nowrap" style-hover="border-color:#0B6670">Ver o fluxo completo →</a>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:clamp(26px,3.5vh,38px)">
-        <sc-for list="{{ resumoPassos }}" as="p" hint-placeholder-count="3">
-          <div style="display:flex;gap:14px;align-items:flex-start;border-top:2px solid rgba(255,178,30,.55);padding-top:16px">
-            <div style="font:800 26px 'Bricolage Grotesque',sans-serif;color:#0B6670;line-height:1">{{ p.n }}</div>
-            <div>
-              <div style="font:700 17px 'Bricolage Grotesque',sans-serif;color:#12232E">{{ p.t }}</div>
-              <div style="font:400 13.5px/1.6 'DM Sans',sans-serif;color:#5A6670;margin-top:5px;text-wrap:pretty">{{ p.d }}</div>
-            </div>
-          </div>
-        </sc-for>
-      </div>
-      <div style="display:flex;gap:26px;flex-wrap:wrap;margin-top:clamp(30px,4vh,46px);padding-top:clamp(24px,3vh,34px);border-top:1px solid #EFE3D2;align-items:center">
-        <div style="font:400 14.5px/1.6 'DM Sans',sans-serif;color:#5A6670;flex:1;min-width:260px;text-wrap:pretty">O mesmo pedido é visto de três lugares diferentes: o celular do cliente, a tela da cozinha e o painel de gestão.</div>
-        <a href="perfis.html" style="font:700 14px 'Bricolage Grotesque',sans-serif;color:#0B6670;border:1.5px solid #E3DDD0;border-radius:11px;padding:11px 18px;white-space:nowrap" style-hover="border-color:#0B6670">Ver os perfis de acesso →</a>
-        <a href="prototipo.html" style="font:700 14px 'Bricolage Grotesque',sans-serif;color:#0B6670;border:1.5px solid #E3DDD0;border-radius:11px;padding:11px 18px;white-space:nowrap" style-hover="border-color:#0B6670">Navegar as 38 telas →</a>
-      </div>
-    </div>
-  </section>
-
-
-  
-
-  <sc-if value="{{ showDepoimento }}" hint-placeholder-val="{{ true }}">
-  <section style="background:#F6F3EC;padding:clamp(44px,6.5vw,76px) clamp(18px,4vw,28px)">
-    <div style="max-width:820px;margin:0 auto;text-align:center">
-      <div style="font:600 11px 'DM Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0B6670">Piloto de validação</div>
-      <blockquote style="font:600 clamp(19px,3.2vw,27px)/1.45 'Bricolage Grotesque',sans-serif;margin:20px 0 0;color:#12232E;text-wrap:pretty">“No fim de semana de carnaval a gente atendia 40 guarda-sóis com dois garçons. Com o pedido saindo do celular do cliente, a cozinha passou a receber tudo na ordem certa e parou de errar mesa.”</blockquote>
-      <div style="display:flex;align-items:center;justify-content:center;gap:11px;margin-top:24px">
-        <div style="width:38px;height:38px;border-radius:99px;background:#FFE9B8;color:#8A3A12;font:700 15px/38px 'Bricolage Grotesque',sans-serif;text-align:center">RS</div>
-        <div style="text-align:left">
-          <div style="font:600 14px 'DM Sans',sans-serif">Rogério Santana</div>
-          <div style="font:400 12.5px 'DM Sans',sans-serif;color:#7A858C">Quiosque Maré Alta · cenário de validação do projeto</div>
-        </div>
-      </div>
-    </div>
-  </section>
-  </sc-if>
-
-  <section style="background:#0E2A30;background-image:radial-gradient(circle at 50% 120%,rgba(23,150,160,.24),transparent 55%);color:#fff;padding:clamp(46px,6.5vw,78px) clamp(18px,4vw,28px);text-align:center">
-    <h2 style="font:800 clamp(27px,4.8vw,42px)/1.12 'Bricolage Grotesque',sans-serif;margin:0;max-width:640px;margin-left:auto;margin-right:auto;text-wrap:pretty">Pronto para atender a praia inteira sem bloco de papel?</h2>
-    <p style="font:400 clamp(14.5px,1.5vw,16.5px)/1.6 'DM Sans',sans-serif;color:rgba(255,255,255,.68);max-width:520px;margin:16px auto 0">Entre com sua conta de cliente, cozinha ou gestão e acompanhe o pedido do guarda-sol até a entrega.</p>
-    <div style="display:flex;gap:14px;justify-content:center;margin-top:32px;flex-wrap:wrap">
-      <div onClick="{{ openLogin }}" style="background:#FFB21E;color:#12232E;font:700 16px 'Bricolage Grotesque',sans-serif;padding:15px 32px;border-radius:13px;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,178,30,.95)" style-hover="background:#084C53">Entrar</div>
-      <a href="prototipo.html" style="border:1.5px solid rgba(255,255,255,.26);color:#fff;font:700 16px 'Bricolage Grotesque',sans-serif;padding:15px 26px;border-radius:13px" style-hover="border-color:#0B6670">Navegar as 38 telas</a>
-      <a href="sobre.html" style="border:1.5px solid rgba(255,255,255,.26);color:#fff;font:700 16px 'Bricolage Grotesque',sans-serif;padding:15px 26px;border-radius:13px" style-hover="border-color:#0B6670">Sobre nós</a>
-    </div>
-  </section>
-
-  <footer style="background:#0B1425;color:rgba(255,255,255,.6);padding:clamp(38px,6vw,52px) clamp(18px,4vw,28px) 38px;border-top:1px solid rgba(255,255,255,.08)">
-    <div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:36px">
+      <button type="button" id="google" class="gbtn">
+        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
+      </button>
+      <div class="divider"><span></span>ou com e-mail<span></span></div>
       <div>
-        <div style="display:flex;align-items:center;gap:9px">
-          <svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="#FFB21E" stroke-width="2.8" stroke-linecap="round" style="display:block"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
-          <span style="font:800 18px 'Bricolage Grotesque',sans-serif;color:#fff">SUNFOOD</span>
-        </div>
-        <div style="font:400 13.5px/1.65 'DM Sans',sans-serif;margin-top:12px;max-width:300px">Sistema de pedidos online para quiosques de praia. Projeto Final de Curso — Análise e Projeto de Sistemas II.</div>
+        <label class="lbl" for="email">E-mail</label>
+        <input class="inp" id="email" type="email" autocomplete="email" placeholder="voce@email.com">
       </div>
       <div>
-        <div style="font:600 11px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FFB21E">Páginas</div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="funcionalidades.html">Funcionalidades</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="como-funciona.html">Como funciona</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="perfis.html">Perfis de acesso</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="prototipo.html">Protótipo completo</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="sobre.html">Sobre nós</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="contato.html">Fale conosco</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="mapa.html">Mapa do sistema</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="termos.html">Termos de Uso</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:8px"><a href="privacidade.html">Política de Privacidade</a></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><label class="lbl" for="pass">Senha</label><a class="link" style="font-weight:600" href="app-cliente.dc.html?module=cliente&amp;screen=forgot">Esqueci minha senha</a></div>
+        <input class="inp" id="pass" type="password" autocomplete="current-password" placeholder="••••••••">
       </div>
-      <div>
-        <div style="font:600 11px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FFB21E">Equipe</div>
-        <div style="font:600 13.5px 'DM Sans',sans-serif;color:#fff;margin-top:12px">Dárlley Alves de Almeida</div>
-        <div style="font:400 12.5px 'DM Sans',sans-serif;margin-top:3px">Full-stack · Product Owner · Requisitos</div>
-        <div style="font:400 12.5px 'DM Sans',sans-serif;margin-top:3px">RGM 42298415</div>
-      </div>
-      <div>
-        <div style="font:600 11px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FFB21E">Contato</div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:12px"><a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a></div>
-        <div style="font:400 13.5px 'DM Sans',sans-serif;margin-top:6px">Docente: Cristiano S. Negrão</div>
-      </div>
-      <div>
-        <div style="font:600 11px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FFB21E">Redes</div>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
-          <a href="https://wa.me/5513999990000" style="font:400 13.5px 'DM Sans',sans-serif;display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 20.5l1.8-5.2A8.4 8.4 0 1 1 21 11.5z"></path></svg>WhatsApp</a>
-          <a href="https://instagram.com/sunfood.app" style="font:400 13.5px 'DM Sans',sans-serif;display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:block;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><path d="M17.5 6.5h.01"></path></svg>Instagram</a>
-          <a href="https://facebook.com/sunfood.app" style="font:400 13.5px 'DM Sans',sans-serif;display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0"><path d="M14 8.5h2.5V5.5H14c-2 0-3.5 1.4-3.5 3.4V11H8v3h2.5v6.5H14V14h2.5l.5-3H14V9.3c0-.5.4-.8 1-.8z"></path></svg>Facebook</a>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <sc-if value="{{ loginOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeLogin }}" style="position:fixed;inset:0;z-index:80;background:rgba(11,15,26,.72);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:24px">
-      <div onClick="{{ stop }}" style="width:404px;max-width:100%;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 40px 80px -24px rgba(0,0,0,.6)">
-        <div style="background:linear-gradient(165deg,#0E3A40 0%,#0B6670 40%,#FFB21E 100%);color:#fff;padding:26px 24px 22px;text-align:center;position:relative">
-          <div onClick="{{ closeLogin }}" style="position:absolute;top:14px;right:16px;font:600 18px 'DM Sans',sans-serif;color:rgba(255,255,255,.7);cursor:pointer" style-hover="color:#fff">×</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:9px">
-            <svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" style="display:block"><path d="M16 24a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11 11l3.5 3.5 M33.5 33.5 37 37 M37 11l-3.5 3.5 M14.5 33.5 11 37"></path></svg>
-            <span style="font:800 23px 'Bricolage Grotesque',sans-serif">SUNFOOD</span>
-          </div>
-          <div style="font:500 12.5px 'DM Sans',sans-serif;color:rgba(255,255,255,.78);margin-top:5px">Peça direto do seu guarda-sol</div>
-        </div>
-        <div style="padding:24px;display:flex;flex-direction:column;gap:14px">
-          <div>
-            <span style="display:block;font:600 10.5px 'DM Sans',sans-serif;color:#5A6670;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">E-mail</span>
-            <input value="{{ email }}" onChange="{{ setEmail }}" placeholder="voce@email.com" style="width:100%;box-sizing:border-box;border:1.5px solid #E3DDD0;border-radius:12px;padding:12px 13px;font:400 14px 'DM Sans',sans-serif;color:#12232E;outline:none" style-focus="border-color:#0B6670">
-          </div>
-          <div>
-            <span style="display:block;font:600 10.5px 'DM Sans',sans-serif;color:#5A6670;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Senha</span>
-            <input type="password" value="{{ pass }}" onChange="{{ setPass }}" placeholder="••••••••" style="width:100%;box-sizing:border-box;border:1.5px solid #E3DDD0;border-radius:12px;padding:12px 13px;font:400 14px 'DM Sans',sans-serif;color:#12232E;outline:none" style-focus="border-color:#0B6670">
-          </div>
-          <sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}">
-            <div style="{{ msgStyle }}">{{ msg }}</div>
-          </sc-if>
-          <div onClick="{{ doLogin }}" style="background:#FFB21E;color:#12232E;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Bricolage Grotesque',sans-serif;cursor:pointer" style-hover="background:#084C53">Entrar</div>
-          <div style="display:flex;align-items:center;gap:10px;color:#9A9384;font:500 11px 'DM Sans',sans-serif">
-            <span style="flex:1;height:1px;background:#E3DDD0;display:block"></span>ou<span style="flex:1;height:1px;background:#E3DDD0;display:block"></span>
-          </div>
-          <div onClick="{{ googleLogin }}" style="border:1.5px solid #E3DDD0;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;font:600 13px 'DM Sans',sans-serif;color:#12232E;cursor:pointer" style-hover="border-color:#FFB21E">
-            <svg viewBox="0 0 48 48" width="17" height="17" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar ou criar conta com Google
-          </div>
-          <sc-if value="{{ ok }}" hint-placeholder-val="{{ false }}">
-            <a href="{{ dest }}" style="display:block;background:#12232E;color:#fff;border-radius:12px;padding:14px;text-align:center;font:700 15px 'Bricolage Grotesque',sans-serif" style-hover="background:#0B6670;color:#fff">Continuar →</a>
-          </sc-if>
-          <div style="display:flex;justify-content:space-between;font:600 12px 'DM Sans',sans-serif">
-            <a href="app-cliente.dc.html?module=cliente&amp;screen=forgot" style="color:#0B6670">Esqueci minha senha</a>
-            <a href="app-cliente.dc.html?module=cliente&amp;screen=signup" style="color:#0B6670">Criar conta</a>
-          </div>
-          <div style="text-align:center;font:400 11.5px/1.7 'DM Sans',sans-serif;color:#7A858C">
-            Conta de demonstração (cliente):<br>
-            <strong style="color:#0B6670">ana@email.com</strong> · <strong style="color:#0B6670">praia2026</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-  </sc-if>
-
+      <div id="msg" class="alert alert-err" role="alert" hidden></div>
+      <button type="button" id="resend" class="btn btn-ghost" hidden>Reenviar e-mail de confirmação</button>
+      <button type="submit" id="entrar" class="btn btn-dark" style="margin-top:4px">Entrar</button>
+      <div class="muted" style="text-align:center;font-size:14px">Equipe da cozinha e administração usam este mesmo login.</div>
+    </form>
+    <nav class="foot">
+      <a href="inicio.html">Conheça o Sunfood</a>
+      <a href="contato.html">Fale conosco</a>
+      <a href="termos.html">Termos de uso</a>
+      <a href="privacidade.html">Privacidade</a>
+    </nav>
+  </main>
 </div>
-</x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;showDepoimento&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Seções&quot;}}">
-const THUMB = (a, b) => 'width:52px;height:52px;flex-shrink:0;border-radius:12px;background:linear-gradient(140deg,' + a + ',' + b + ')';
+<script>
 // Local (python -m http.server) fala com a API local; publicado (GitHub
 // Pages ou qualquer outro domínio) fala com a API de produção na Vercel.
-const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+var API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:8787'
   : 'https://sunfood-api-nine.vercel.app';
+var $ = function (id) { return document.getElementById(id); };
+var busy = false;
 
-class Component extends DCLogic {
-  state = { loginOpen: false, email: '', pass: '', msg: '', ok: false, dest: '',
-            screen: 'login', cat: 'Todos', cart: [], pay: 'pix', step: 0 };
-
-  componentWillUnmount() {
-    clearInterval(this.timer);
-    clearTimeout(this._retry);
-    if (this._ro) this._ro.disconnect();
-    window.removeEventListener('resize', this._onResize);
-    window.removeEventListener('orientationchange', this._onResize);
-  }
-
-  componentDidMount() {
-    this._onResize = () => this.fitPhone();
-    window.addEventListener('resize', this._onResize);
-    window.addEventListener('orientationchange', this._onResize);
-    this.fitPhone();
-    if (/[?&]login=1/.test(window.location.search)) this.setState({ loginOpen: true });
-  }
-
-  fmt = n => 'R$ ' + n.toFixed(2).replace('.', ',');
-
-  addItem = p => this.setState(s => {
-    const i = s.cart.findIndex(c => c.name === p.name);
-    if (i >= 0) { const cart = s.cart.slice(); cart[i] = Object.assign({}, cart[i], { qty: cart[i].qty + 1 }); return { cart }; }
-    return { cart: s.cart.concat([{ name: p.name, price: p.value, qty: 1 }]) };
-  });
-
-  bump = (name, d) => this.setState(s => ({
-    cart: s.cart.map(c => c.name === name ? Object.assign({}, c, { qty: c.qty + d }) : c).filter(c => c.qty > 0)
-  }));
-
-  runStatus = () => {
-    clearInterval(this.timer);
-    this.setState({ step: 0 });
-    this.timer = setInterval(() => this.setState(s => {
-      if (s.step >= 2) { clearInterval(this.timer); return null; }
-      return { step: s.step + 1 };
-    }), 1600);
-  };
-
-  fitPhone = () => {
-    const box = document.getElementById('phone-frame');
-    const el = box && box.querySelector('iframe');
-    if (!el || !box.clientWidth) { clearTimeout(this._retry); this._retry = setTimeout(this.fitPhone, 250); return; }
-    if (!this._ro && window.ResizeObserver) { this._ro = new ResizeObserver(() => this.fitPhone()); this._ro.observe(box); }
-    el.style.transform = 'scale(' + Math.min(box.clientWidth / 412, 1) + ')';
-  };
-
-  renderVals() {
-    setTimeout(this.fitPhone, 0);
-    const set = k => e => this.setState({ [k]: e.target.value, msg: '' });
-    const { cart, cat, pay, step } = this.state;
-    const phone = this.state.screen || 'login';
-    const total = cart.reduce((a, c) => a + c.price * c.qty, 0);
-    const count = cart.reduce((a, c) => a + c.qty, 0);
-    const items = [
-      { name: 'Água de Coco Gelada', desc: 'Fresquinha, direto do coco', value: 8, cat: 'Bebidas', thumb: THUMB('#7FD8C4', '#2F9E8F') },
-      { name: 'Caipirinha de Limão', desc: 'Cachaça, limão e gelo', value: 22, cat: 'Bebidas', thumb: THUMB('#CDE86B', '#82A81E') },
-      { name: 'Wrap de Frango Grelhado', desc: 'Frango, alface e molho da casa', value: 28, cat: 'Lanches', thumb: THUMB('#FFD9A0', '#E08A2E') },
-      { name: 'Batata Rústica c/ Cheddar', desc: 'Porção com bacon crocante', value: 24, cat: 'Lanches', thumb: THUMB('#FFC46B', '#D9761F') }
-    ];
-    const chip = on => 'font:600 11.5px DM Sans,sans-serif;padding:6px 13px;border-radius:99px;cursor:pointer;' +
-      (on ? 'background:#FFB21E;color:#12232E' : 'background:#fff;color:#5A6670;border:1px solid #E3DDD0');
-    const payRow = on => 'display:flex;flex-direction:column;gap:2px;padding:12px 13px;border-radius:14px;cursor:pointer;background:#fff;border:1.5px solid ' + (on ? '#FFB21E' : '#EFEADF');
-    const stepRow = i => 'display:flex;gap:11px;align-items:center;padding:12px 13px;border-radius:14px;' +
-      (i <= step ? 'background:#FFF1E8;color:#8A3A12' : 'background:#fff;border:1.5px solid #E3DDD0;color:#7A858C');
-    const stepDot = i => 'width:11px;height:11px;border-radius:99px;flex-shrink:0;background:' + (i <= step ? '#FFB21E' : '#E3DDD0');
-    const cta = { menu: count ? 'Ver carrinho' : 'Escolha um item', cart: 'Ir para pagamento', pay: 'Confirmar pagamento', status: 'Voltar ao cardápio' }[phone];
-    const ctaOn = !(phone === 'menu' && !count) && !(phone === 'cart' && !count);
-    return {
-      isLogin: phone === 'login',
-      isMenu: phone === 'menu', isCart: phone === 'cart', isPay: phone === 'pay', isStatus: phone === 'status',
-      showChrome: phone !== 'login',
-      canBack: phone !== 'menu' && phone !== 'login',
-      phoneTitle: { menu: 'Cardápio · Mesa 9', cart: 'Meu carrinho', pay: 'Pagamento', status: 'Status do pedido' }[phone],
-      cartLabel: count === 1 ? '1 item' : count + ' itens',
-      cats: ['Todos', 'Bebidas', 'Lanches'].map(c => ({ label: c, style: chip(c === cat), pick: () => this.setState({ cat: c }) })),
-      menu: items.filter(p => cat === 'Todos' || p.cat === cat)
-        .map(p => Object.assign({}, p, { price: this.fmt(p.value), add: () => this.addItem(p) })),
-      cart: cart.map(c => ({ name: c.name, qty: c.qty, line: this.fmt(c.price * c.qty),
-        inc: () => this.bump(c.name, 1), dec: () => this.bump(c.name, -1) })),
-      cartEmpty: !cart.length,
-      pays: [
-        { label: 'PIX', hint: 'Confirmação na hora', style: payRow(pay === 'pix'), pick: () => this.setState({ pay: 'pix' }) },
-        { label: 'Cartão de crédito', hint: 'Visa, Master e Elo', style: payRow(pay === 'cartao'), pick: () => this.setState({ pay: 'cartao' }) }
-      ],
-      payHint: pay === 'pix' ? 'Aponte a câmera do seu banco para o código' : 'Maquininha virtual: o garçom não precisa ir à mesa',
-      total: this.fmt(total),
-      orderId: '#1042',
-      steps: [
-        { t: 'Na fila', d: 'A cozinha recebeu seu pedido', style: stepRow(0), dot: stepDot(0) },
-        { t: 'Em preparo', d: 'Saiu da fila e está na chapa', style: stepRow(1), dot: stepDot(1) },
-        { t: 'Pronto', d: 'Saindo para a mesa 9', style: stepRow(2), dot: stepDot(2) }
-      ],
-      footLabel: phone === 'status' ? 'Pedido' : 'Subtotal',
-      footValue: phone === 'status' ? this.fmt(total) + ' · pago' : this.fmt(total),
-      ctaLabel: cta,
-      ctaStyle: 'font:700 14px \'Baloo 2\',sans-serif;padding:11px 18px;border-radius:12px;flex-shrink:0;' +
-        (ctaOn ? 'background:#FFB21E;color:#12232E;cursor:pointer' : 'background:#EFEADF;color:#A79C8C'),
-      phoneBack: () => this.setState(s => ({ phone: s.phone === 'status' ? 'menu' : s.phone === 'pay' ? 'cart' : 'menu' })),
-      phoneNext: () => {
-        if (phone === 'login') return this.setState({ screen: 'menu' });
-        if (phone === 'menu') return count && this.setState({ screen: 'cart' });
-        if (phone === 'cart') return count && this.setState({ screen: 'pay' });
-        if (phone === 'pay') { this.setState({ screen: 'status' }); return this.runStatus(); }
-        this.setState({ screen: 'menu', cart: [], step: 0 });
-      },
-      resumoBeneficios: [
-        { n: '01', t: 'Pedido sem espera', d: 'QR Code da mesa, carrinho no celular e pedido enviado sem chamar o garçom.' },
-        { n: '02', t: 'Pagamento na hora', d: 'PIX ou cartão na mesma tela, sem esperar o garçom.' },
-        { n: '03', t: 'Operação sob controle', d: 'Cozinha em kanban e gestão vendo vendas e estoque em tempo real.' }
-      ],
-      resumoPassos: [
-        { n: '1', t: 'Escaneie', d: 'Cada mesa e guarda-sol tem seu código, aberto no navegador.' },
-        { n: '2', t: 'Peça e pague', d: 'Cardápio por categorias e pagamento via PIX ou cartão.' },
-        { n: '3', t: 'Acompanhe', d: 'Na fila, em preparo e pronto, até a entrega na mesa certa.' }
-      ],
-      showDepoimento: this.props.showDepoimento ?? true,
-      loginOpen: this.state.loginOpen,
-      email: this.state.email,
-      pass: this.state.pass,
-      msg: this.state.msg,
-      hasMsg: !!this.state.msg,
-      ok: this.state.ok,
-      dest: this.state.dest,
-      msgStyle: this.state.ok
-        ? 'background:#E7F7ED;color:#16A34A;font:600 12.5px DM Sans,sans-serif;padding:10px 12px;border-radius:10px'
-        : 'background:#FDECEA;color:#B42318;font:600 12.5px DM Sans,sans-serif;padding:10px 12px;border-radius:10px',
-      setEmail: set('email'),
-      setPass: set('pass'),
-      openLogin: () => this.setState({ loginOpen: true, msg: '', ok: false, dest: '' }),
-      closeLogin: () => this.setState({ loginOpen: false }),
-      stop: e => e.stopPropagation(),
-      // Abre o app do cliente já pedindo o login com Google (?google=1): é lá
-      // que fica o fluxo do Google, que cria a conta (se não existir), entra e
-      // pede telefone/CPF/nascimento/termos na primeira vez.
-      googleLogin: () => { window.location.href = 'app-cliente.dc.html?google=1'; },
-      doLogin: async () => {
-        const { email, pass } = this.state;
-        if (!email || !pass) return this.setState({ msg: 'Preencha e-mail e senha.', ok: false });
-        try {
-          const res = await fetch(API_BASE + '/auth/login', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password: pass })
-          });
-          const data = await res.json();
-          if (!res.ok) return this.setState({ msg: data.error || 'Credenciais inválidas.', ok: false, dest: '' });
-          try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, user: data.user })); } catch (e) {}
-          const ROLE_DEST = {
-            cliente: { perfil: 'cardápio da mesa', dest: 'app-cliente.dc.html?module=cliente&screen=menu' },
-            admin: { perfil: 'painel de administração', dest: 'app-cliente.dc.html?module=admin&screen=dashboard' },
-            cozinha: { perfil: 'kanban de pedidos', dest: 'app-cliente.dc.html?module=cozinha&screen=kanban' }
-          };
-          const info = ROLE_DEST[data.user.role] || ROLE_DEST.cliente;
-          this.setState({ msg: 'Bem-vindo(a), ' + data.user.name + '! Abrindo o ' + info.perfil + '…', ok: true, dest: info.dest });
-        } catch (e) {
-          this.setState({ msg: 'Falha de conexão com o servidor. Confira se a API está rodando.', ok: false, dest: '' });
-        }
-      },
-      beneficios: [
-        { n: '01', t: 'Pedido sem espera', d: 'O cliente escaneia o QR Code da mesa, monta o carrinho e envia o pedido sem depender do garçom.' },
-        { n: '02', t: 'Pagamento no celular', d: 'PIX ou cartão na própria tela, sem fila e sem maquininha.' },
-        { n: '03', t: 'Cozinha organizada', d: 'Cada pedido entra num quadro kanban com Na Fila, Em Preparo e Pronto, na ordem em que chegou.' },
-        { n: '04', t: 'Gestão em tempo real', d: 'O gestor vê vendas do dia, itens esgotados e fila de preparo sem somar comanda de papel.' }
-      ],
-      passos: [
-        { n: 'PASSO 1', t: 'Escaneie o QR Code', d: 'Cada mesa e guarda-sol tem seu código. A abertura é no navegador, sem instalar aplicativo.' },
-        { n: 'PASSO 2', t: 'Monte e pague o pedido', d: 'Cardápio por categorias, observações por item e pagamento via PIX ou cartão na mesma tela.' },
-        { n: 'PASSO 3', t: 'Acompanhe até chegar', d: 'O status muda de Na Fila para Em Preparo e Pronto, e a entrega sai para a mesa correta.' }
-      ],
-      perfis: [
-        { tag: 'PWA no celular', t: 'Cliente', top: 'background:#FFB21E;color:#12232E;padding:24px 22px',
-          items: ['Cardápio digital por categorias', 'Carrinho com observações por item', 'Pagamento por PIX ou cartão', 'Status do pedido e histórico'] },
-        { tag: 'Web · tela de apoio', t: 'Cozinha', top: 'background:#12232E;color:#fff;padding:24px 22px',
-          items: ['Kanban de pedidos em tempo real', 'Marcação de item indisponível', 'Alerta de pedido atrasado', 'Observações do cliente visíveis'] },
-        { tag: 'Web · gestão', t: 'Administração', top: 'background:#0B6670;color:#fff;padding:24px 22px',
-          items: ['Dashboard de vendas do dia', 'Gestão de cardápio e preços', 'Controle de mesas e guarda-sóis', 'Fechamento de caixa'] }
-      ]
-    };
-  }
+function show(text, ok) {
+  $('msg').textContent = text;
+  $('msg').className = 'alert ' + (ok ? 'alert-ok' : 'alert-err');
+  $('msg').hidden = !text;
 }
+
+// O fluxo do Google fica no app do cliente (cria a conta se não existir e
+// pede telefone/CPF/nascimento/termos na primeira vez); ?google=1 já segue
+// direto para o Google.
+$('google').addEventListener('click', function () { location.href = 'app-cliente.dc.html?google=1'; });
+
+$('login').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  if (busy) return;
+  var email = $('email').value.trim(), password = $('pass').value;
+  $('resend').hidden = true;
+  if (!email || !password) return show('Preencha e-mail e senha.');
+  busy = true; $('entrar').disabled = true; $('entrar').textContent = 'Entrando...'; show('');
+  try {
+    var res = await fetch(API_BASE + '/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password })
+    });
+    var data = await res.json();
+    if (!res.ok) {
+      show(data.error || 'E-mail ou senha inválidos.');
+      $('resend').hidden = data.code !== 'email_not_confirmed';
+      return;
+    }
+    try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, user: data.user })); } catch (err) {}
+    show('Bem-vindo(a), ' + data.user.name + '! Abrindo o Sunfood…', true);
+    location.href = window.SUNFOOD_DEST[data.user.role] || window.SUNFOOD_DEST.cliente;
+  } catch (err) {
+    show('Falha de conexão com o servidor. Confira sua internet e tente de novo.');
+  } finally {
+    busy = false; $('entrar').disabled = false; $('entrar').textContent = 'Entrar';
+  }
+});
+
+// Aparece só quando o login falhou porque o e-mail ainda não foi confirmado.
+$('resend').addEventListener('click', async function () {
+  if (busy) return;
+  busy = true;
+  try {
+    var res = await fetch(API_BASE + '/auth/resend-confirmation', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: $('email').value.trim() })
+    });
+    var data = await res.json();
+    if (!res.ok) return show(data.error || 'Não foi possível reenviar o e-mail.');
+    $('resend').hidden = true;
+    show('Enviamos um novo link de confirmação. Confira também o spam.', true);
+  } catch (err) {
+    show('Falha de conexão com o servidor.');
+  } finally {
+    busy = false;
+  }
+});
 </script>
 </body>
 </html>

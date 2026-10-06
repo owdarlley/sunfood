@@ -88,10 +88,10 @@ await step('chamadas da API não passam pelo cache', async () => {
 
 await step('sem internet: página já visitada abre do cache', async () => {
   online = false;
-  await page.goto(BASE + 'index.html?login=1');
+  await page.goto(BASE);
   await page.waitForTimeout(1500);
   const body = await page.locator('body').innerText();
-  check('sem internet: página já visitada abre do cache', body.includes('Funcionalidades'), body.slice(0, 120));
+  check('sem internet: página já visitada abre do cache', body.includes('Bem-vindo de volta'), body.slice(0, 120));
 });
 
 await step('sem internet: página nunca visitada mostra aviso', async () => {
