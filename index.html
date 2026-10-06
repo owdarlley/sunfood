@@ -168,6 +168,12 @@ a{color:#0B6670}
 
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
 @media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}.foot{gap:0 12px;margin-top:20px}.foot a{padding:12px 4px}}
+
+/* Sem "tracinho" de digitação piscando ao clicar em botões ou texto: o cursor
+   de texto só aparece em campos editáveis. */
+body{caret-color:transparent}
+input,textarea,select,[contenteditable="true"]{caret-color:auto}
+button,.btn,.gbtn,.tab,.info-close,.brand{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 </style>
 </head>
 <body>

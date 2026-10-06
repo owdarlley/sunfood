@@ -74,6 +74,12 @@ html{zoom:var(--sfz)}
     .auth-mobile{display:flex}
     .auth-main{align-items:flex-start;padding:24px 18px 40px}
   }
+
+/* Sem "tracinho" de digitação piscando ao clicar em botões ou texto: o cursor
+   de texto só aparece em campos editáveis. */
+body{caret-color:transparent}
+input,textarea,select,[contenteditable="true"]{caret-color:auto}
+button,.btn,.gbtn,.tab,.info-close,.brand{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 </style>
 </helmet>
 

@@ -98,6 +98,17 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
   }
 }
 
+await step('tracinho de digitação', async () => {
+  // Ao tocar/clicar num botão não pode aparecer o cursor de texto piscando; nos campos, sim.
+  for (const [path, role, botao, campo] of [['index.html', null, '#entrar', '#email'], ['app-cliente.dc.html?module=cliente&screen=forgot', null, 'text=Enviar link', 'input'], ['app-cliente.dc.html?module=admin&screen=tables', 'admin', 'text=Menu', 'input']]) {
+    const p = await open(path, role);
+    const b = await p.locator(botao).first().evaluate(e => [getComputedStyle(e).caretColor, getComputedStyle(e).userSelect]);
+    const c = await p.locator(campo).first().evaluate(e => getComputedStyle(e).caretColor);
+    check(`${path.split('?')[1] || path}: botão sem cursor de texto e sem selecionar, campo com cursor`, b[0] === 'rgba(0, 0, 0, 0)' && b[1] === 'none' && c !== 'rgba(0, 0, 0, 0)', JSON.stringify([b, c]));
+    await p.context().close();
+  }
+});
+
 await browser.close(); server.close();
 const failed = results.filter(r => !r.ok);
 console.log(`\n${results.length - failed.length} de ${results.length} checagens passaram.`);
