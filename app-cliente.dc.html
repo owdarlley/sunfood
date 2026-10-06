@@ -124,7 +124,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .col-main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px}
 .col-side{flex:1 1 320px;max-width:420px;display:flex;flex-direction:column;gap:16px}
 .hero{position:relative;overflow:hidden;border-radius:28px;background:#0B6670;color:#fff;padding:clamp(22px,4vw,40px);margin-bottom:24px}
-.hero h1{margin:0;font-size:clamp(30px,4.2vw,46px);max-width:600px}
+.hero h1{margin:0 0 18px;position:relative;font-size:clamp(30px,4.2vw,46px);max-width:600px}
 .hero p{margin:14px 0 18px;font-size:17px;line-height:1.5;color:#DDF1F2;max-width:620px;position:relative}
 .cats{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
@@ -514,7 +514,6 @@ input,textarea,select,[contenteditable="true"]{caret-color:auto}
                     <div style="position:relative">
                       <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.14);font:600 14px 'DM Sans',sans-serif;margin-bottom:16px"><span style="{{ heroDotStyle }}"></span>{{ heroChip }}</span>
                       <h1 class="tt">Peça da mesa. A gente leva até a areia.</h1>
-                      <p>{{ heroSub }}</p>
                     </div>
                   </div>
 
@@ -3035,7 +3034,6 @@ class Component extends DCLogic {
     v.menuDayClosed = s.dayClosed && !s.paused;
     v.heroChip = s.paused ? 'Pedidos pausados agora' : s.dayClosed ? 'Quiosque fechado por hoje' : 'Quiosque aberto agora';
     v.heroDotStyle = 'width:8px;height:8px;border-radius:50%;display:inline-block;background:' + (s.paused || s.dayClosed ? '#FFB21E' : '#7CF29A');
-    v.heroSub = (s.minOrder > 0 ? 'Pedido mínimo de ' + f(s.minOrder) + ' · ' : '') + 'taxa de serviço de 10% · pague com PIX, cartão ou na entrega.';
     v.cartCount = s.cart.reduce((a, c) => a + c.qty, 0);
     v.hasCart = v.cartCount > 0;
     v.showCartPill = v.hasCart && ['menu','cart','table','payment'].indexOf(s.screen) < 0;
