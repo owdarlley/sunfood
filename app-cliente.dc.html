@@ -1960,6 +1960,45 @@ function buildReportExport(rep, adminOrders){
   };
 }
 
+// Resumo por escrito: as mesmas métricas em frases, para ler ou colar num e-mail.
+function reportNarrative(d){
+  const n = (k, um, varios) => k + ' ' + (k === 1 ? um : varios);
+  const r = d.rep, out = [];
+  const lead = ({hoje:'Hoje', '7d':'Nos últimos 7 dias', '30d':'Nos últimos 30 dias'}[r.period] || 'No período') + ' (' + d.range + ')';
+  if(!r.orders){
+    out.push(lead + ', o quiosque não teve nenhuma venda paga.');
+  } else {
+    out.push(lead + ', o quiosque fez ' + n(r.orders, 'venda', 'vendas') + ', com faturamento de ' + brMoney(r.revenue) + '.');
+    out.push('O ticket médio foi de ' + brMoney(r.avgTicket) + ' por pedido e foram vendidos ' + n(r.itemsSold, 'item', 'itens') + '.');
+    if(r.byDay.length > 1){
+      const best = r.byDay.reduce((a, x) => (x.revenue > a.revenue ? x : a));
+      const withSales = r.byDay.filter(x => x.orders > 0).length;
+      out.push('O melhor dia foi ' + brDate(best.date) + ', com ' + brMoney(best.revenue) + ' em ' + n(best.orders, 'pedido', 'pedidos') + '. Houve venda em ' + withSales + ' de ' + r.byDay.length + ' dias, uma média de ' + brMoney(r.revenue / r.byDay.length) + ' por dia.');
+    }
+    const peak = d.hours.reduce((a, h) => (!a || h.orders > a.orders ? h : a), null);
+    if(peak){
+      const ties = d.hours.filter(h => h.orders === peak.orders).map(h => 'das ' + h.hour + 'h às ' + (h.hour + 1) + 'h');
+      out.push('O horário de mais movimento foi ' + ties.join(', ') + ', com ' + n(peak.orders, 'pedido', 'pedidos') + (ties.length > 1 ? ' em cada' : '') + '.');
+    }
+    const top = r.topProducts;
+    if(top.length) out.push('O produto mais vendido foi ' + top[0].name + ' (' + n(top[0].qty, 'unidade', 'unidades') + ', ' + brMoney(top[0].revenue) + ')' +
+      (top.length > 1 ? ', seguido de ' + top.slice(1, 3).map(p => p.name + ' (' + n(p.qty, 'unidade', 'unidades') + ')').join(' e ') : '') + '.');
+  }
+  const sold = d.orders.filter(o => o.counts);
+  if(sold.length){
+    const by = {};
+    sold.forEach(o => { by[o.method] = (by[o.method] || 0) + 1; });
+    out.push('Formas de pagamento das vendas: ' + Object.keys(by).map(k => k + ' ' + by[k]).join(', ') + '.');
+  }
+  if(d.orders.length){
+    const cancelled = d.orders.filter(o => o.status === 'Cancelado' || /Estornado/.test(o.payment)).length;
+    const unpaid = d.orders.length - sold.length - cancelled;
+    out.push('Ao todo, ' + n(d.orders.length, 'pedido foi feito', 'pedidos foram feitos') + ' no período' +
+      (cancelled || unpaid ? ': ' + [cancelled ? n(cancelled, 'cancelado ou estornado', 'cancelados ou estornados') : '', unpaid ? n(unpaid, 'ficou sem pagamento', 'ficaram sem pagamento') : ''].filter(Boolean).join(' e ') + ', e não entram nas vendas.' : ', e todos entram nas vendas.'));
+  }
+  return out;
+}
+
 // CSV no jeito do Excel em português: separador ";", vírgula decimal e BOM
 // (para os acentos aparecerem certos).
 function reportCsv(d){
@@ -1970,6 +2009,9 @@ function reportCsv(d){
     ['Período', d.periodName + ' (' + d.range + ')'],
     ['Gerado em', d.generatedAt],
     ['Regra', 'Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.'],
+    [],
+    ['RESUMO POR ESCRITO'],
+    ...reportNarrative(d).map(t => [t]),
     [],
     ['RESUMO'],
     ['Faturamento (R$)', num(d.rep.revenue)],
@@ -2011,15 +2053,16 @@ function reportPrintHtml(d, autoPrint){
     '.page{max-width:960px;margin:0 auto;padding:24px 16px 40px}.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}' +
     '.bar button{min-height:46px;padding:0 18px;border-radius:12px;border:0;font:800 15px inherit;font-family:inherit;cursor:pointer;background:#12232E;color:#fff}.bar button.g{background:#fff;color:#12232E;border:1px solid #D6CFBF}' +
     '.sheet{background:#fff;border-radius:20px;padding:24px}h1{font-size:24px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 10px}.muted{color:#5A6670;font-size:13px;margin:0}' +
-    '.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.kpi{border:1px solid #E6DFD1;border-radius:14px;padding:12px}.kpi .k{color:#5A6670;font-size:13px}.kpi .v{font-size:20px;font-weight:800;margin-top:2px}' +
+    '.story{background:#F6F1E7;border-radius:14px;padding:14px 16px}.story p{margin:0 0 8px;font-size:15px}.story p:last-child{margin:0}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.kpi{border:1px solid #E6DFD1;border-radius:14px;padding:12px}.kpi .k{color:#5A6670;font-size:13px}.kpi .v{font-size:20px;font-weight:800;margin-top:2px}' +
     '.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #EEE8DC;vertical-align:top}th{background:#F6F1E7;font-weight:800;white-space:nowrap}td.r,th.r{text-align:right;white-space:nowrap}tr.off td{color:#8A949B}' +
     '.orders td:nth-child(5){min-width:180px}' +
     '@media (max-width:640px){.sheet{padding:16px;border-radius:16px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:20px}.orders table{min-width:760px}}' +
-    '@media print{@page{size:A4;margin:12mm}body{background:#fff;font-size:12px}.bar{display:none}.page{padding:0;max-width:none}.sheet{padding:0;border-radius:0}.tw{overflow:visible}.orders table{min-width:0}table{font-size:10.5px}tr{break-inside:avoid}h2{break-after:avoid}.kpi{break-inside:avoid}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
+    '@media print{@page{size:A4;margin:12mm}body{background:#fff;font-size:12px}.bar{display:none}.page{padding:0;max-width:none}.sheet{padding:0;border-radius:0}.tw{overflow:visible}.orders table{min-width:0}table{font-size:10.5px}tr{break-inside:avoid}h2{break-after:avoid}.story{-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}.story p{font-size:12.5px}.kpi{break-inside:avoid}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
     '</style></head><body><div class="page"><div class="bar"><button onclick="window.print()">Imprimir ou salvar como PDF</button><button class="g" onclick="window.close()">Fechar</button></div><div class="sheet">' +
     '<h1>Relatório de vendas · Sunfood</h1><p class="muted">' + escHtml(d.periodName + ' (' + d.range + ') · gerado em ' + d.generatedAt) + '</p>' +
     '<p class="muted">Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.</p>' +
-    '<div class="kpis">' + kpis.map(([k, v]) => '<div class="kpi"><div class="k">' + escHtml(k) + '</div><div class="v">' + escHtml(v) + '</div></div>').join('') + '</div>' +
+    '<h2>Resumo por escrito</h2><div class="story">' + reportNarrative(d).map(t => '<p>' + escHtml(t) + '</p>').join('') + '</div>' +
+    '<h2>Números</h2><div class="kpis">' + kpis.map(([k, v]) => '<div class="kpi"><div class="k">' + escHtml(k) + '</div><div class="v">' + escHtml(v) + '</div></div>').join('') + '</div>' +
     (d.rep.byDay.length > 1 ? '<h2>Vendas por dia</h2>' + table(['Data', 'Pedidos', 'Faturamento'], d.rep.byDay.map(x => ({cells:[brDate(x.date), x.orders, brMoney(x.revenue)]})), [1, 2]) : '') +
     '<h2>Horários de pico</h2>' + (d.hours.length ? table(['Horário', 'Pedidos', 'Faturamento'], d.hours.map(h => ({cells:[h.hour + 'h às ' + (h.hour + 1) + 'h', h.orders, brMoney(h.revenue)]})), [1, 2]) : empty('Sem pedidos nesse período.')) +
     '<h2>Mais vendidos</h2>' + (d.rep.topProducts.length ? table(['#', 'Produto', 'Unidades', 'Receita'], d.rep.topProducts.map((p, i) => ({cells:[(i + 1) + 'º', p.name, p.qty + ' un.', brMoney(p.revenue)]})), [2, 3]) : empty('Nenhuma venda paga nesse período.')) +
