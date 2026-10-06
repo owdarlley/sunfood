@@ -1191,6 +1191,39 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
             </div>
           </sc-if>
 
+          <sc-if value="{{ is_messages }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:14px" class="rise">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <sc-for list="{{ msgFilters }}" as="mf" hint-placeholder-count="3">
+                  <div onClick="{{ mf.pick }}" class="fpill {{ mf.cls }}">{{ mf.label }}</div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ hasMsgErr }}" hint-placeholder-val="{{ false }}">
+                <div class="alert alert-err">{{ msgErr }}</div>
+              </sc-if>
+              <sc-for list="{{ msgRows }}" as="m" hint-placeholder-count="3">
+                <div class="card" style="{{ m.cardStyle }}">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span style="font:800 16px 'Bricolage Grotesque',sans-serif">{{ m.name }}</span>
+                    <span class="muted" style="font-size:14px">{{ m.contact }}</span>
+                    <span class="chip" style="background:#E7F1F1;color:#084C53">{{ m.reason }}</span>
+                    <span style="flex:1"></span>
+                    <span class="muted" style="font-size:13px">{{ m.protocol }} · {{ m.when }}</span>
+                  </div>
+                  <div style="font:400 15px/1.55 'DM Sans',sans-serif;color:#12232E;margin-top:10px;white-space:pre-wrap">{{ m.message }}</div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+                    <span class="chip" style="{{ m.statusStyle }}">{{ m.statusLabel }}</span>
+                    <span style="flex:1"></span>
+                    <span onClick="{{ m.toggle }}" class="chip" style="padding:8px 14px;cursor:pointer;{{ m.toggleStyle }}">{{ m.toggleLabel }}</span>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ noMsgRows }}" hint-placeholder-val="{{ false }}">
+                <div class="card muted" style="padding:40px;text-align:center">{{ msgEmptyText }}</div>
+              </sc-if>
+            </div>
+          </sc-if>
+
           <sc-if value="{{ is_productForm }}" hint-placeholder-val="{{ false }}">
             <div class="cols rise" style="gap:20px">
               <div class="col-main">
@@ -1744,6 +1777,7 @@ const ADM_IC = {
   dashboard:'M4 4h7v7H4z M13 4h7v4h-7z M13 10h7v10h-7z M4 13h7v7H4z',
   orders:'M7 3h10v18l-2.5-1.5L12 21l-2.5-1.5L7 21z M10 8h4 M10 12h4',
   payments:'M3 7h18v10H3z M3 11h18 M7 15h3',
+  messages:'M4 5h16v11H8l-4 4z M8 9h8 M8 12h5',
   productForm:'M4 6h16 M4 12h10 M4 18h13',
   reports:'M4 20h16 M7 16v-5 M11 16V8 M15 16v-3 M19 16V6',
   perfOps:'M12 13V9 M9 2h6 M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16z',
@@ -1774,7 +1808,7 @@ const SCREENS = {
   ],
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Painel de hoje'],
-    ['orders','Pedidos'],['payments','Pagamentos'],['productForm','Cardápio e estoque'],['tables','Quiosque e mesas'],
+    ['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens (Fale conosco)'],['productForm','Cardápio e estoque'],['tables','Quiosque e mesas'],
     ['pause','Quiosque e mesas'],['reports','Relatórios'],['perfOps','Desempenho — Operação'],
     ['closeDay','Encerrar o dia']
   ],
@@ -1847,6 +1881,8 @@ class Component extends DCLogic {
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
     // Relatórios (GET /reports/sales): período escolhido e último resultado.
     reportPeriod:'hoje', report:null, reportErr:'', reportAt:0,
+    // Mensagens do Fale conosco (GET /contact): lista, filtro e último erro.
+    contactMsgs:null, msgFilter:'novo', msgErr:'', msgAt:0,
     pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'',
     // Admin: filtro/busca da lista de pedidos e filtro do cardápio.
     admFilter:'Todos', admSearch:'', admCat:'Todos',
@@ -2103,6 +2139,7 @@ class Component extends DCLogic {
       } catch(e){}
       // Na tela de relatórios, atualiza sozinho a cada 30 s (não a cada 3 s).
       if(this.state.screen === 'reports' && Date.now() - this.state.reportAt > 30000) this.loadReport();
+      if(this.state.screen === 'messages' && Date.now() - this.state.msgAt > 30000) this.loadMessages();
     }
   }
 
@@ -2129,6 +2166,30 @@ class Component extends DCLogic {
         osc.start(t0 + dt); osc.stop(t0 + dt + 0.17);
       });
     } catch(e){}
+  }
+
+  async loadMessages(){
+    this.setState({msgAt:Date.now()});
+    try {
+      const res = await fetch(API_BASE + '/contact', {headers:{Authorization:'Bearer ' + this.state.token}});
+      if(res.ok) this.setState({contactMsgs: await res.json(), msgErr:''});
+      else this.setState({msgErr:'Não foi possível carregar as mensagens. Tente de novo em instantes.'});
+    } catch(e){
+      this.setState({msgErr:'Sem conexão com o servidor para carregar as mensagens.'});
+    }
+  }
+
+  async setMessageStatus(id, status){
+    try {
+      const res = await fetch(API_BASE + '/contact/' + encodeURIComponent(id) + '/status', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({status})
+      });
+      if(!res.ok) return this.flash('Não foi possível atualizar a mensagem.');
+      const upd = await res.json();
+      this.setState(s => ({contactMsgs:(s.contactMsgs || []).map(m => m.id === upd.id ? upd : m)}));
+      this.flash(status === 'respondido' ? 'Mensagem marcada como respondida.' : 'Mensagem voltou para Novas.');
+    } catch(e){ this.flash('Sem conexão com o servidor.'); }
   }
 
   async loadReport(period){
@@ -2471,6 +2532,7 @@ class Component extends DCLogic {
   go(screen, module){
     this.setState(s => ({screen, module: module || s.module, toast:''}));
     if(screen === 'reports' && this.state.token){ this.loadReport(); this.loadLatestDayReport(); }
+    if(screen === 'messages' && this.state.token) this.loadMessages();
     try { window.scrollTo(0, 0); } catch(e){}
   }
 
@@ -2944,7 +3006,7 @@ class Component extends DCLogic {
     // de verdade por loadAdminData() (nada é mock; adminLogin/adminForgot saíram
     // do menu porque a autenticação agora é só pelo modal do index.html).
     const sideOn = s.screen === 'pause' ? 'tables' : s.screen === 'closeDay' ? 'dashboard' : s.screen;
-    v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['productForm','Cardápio'],['reports','Vendas'],['perfOps','Operação'],['tables','Quiosque e mesas']]
+    v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio'],['reports','Vendas'],['perfOps','Operação'],['tables','Quiosque e mesas']]
       .map(([k, label]) => ({label, ic:ADM_IC[k], cls:sideOn === k ? 'on' : '', go:() => this.go(k, 'admin')}));
     v.goPayments = () => this.go('payments', 'admin');
     v.goCloseDay = () => this.go('closeDay', 'admin');
@@ -2955,6 +3017,7 @@ class Component extends DCLogic {
       dashboard:hojeStr.charAt(0).toUpperCase() + hojeStr.slice(1),
       orders:'Hoje e anteriores, do mais novo para o mais antigo',
       payments:'O que entrou e o que falta receber',
+      messages:'Recebidas pelo Fale conosco do site',
       productForm:s.products.length + ' produtos · ' + s.products.filter(p => p.soldOut).length + ' esgotado(s)',
       tables:'Regras que valem para todos os pedidos, conferidas no servidor',
       pause:'Regras que valem para todos os pedidos, conferidas no servidor',
@@ -2963,6 +3026,30 @@ class Component extends DCLogic {
       closeDay:'Fechamento do caixa'
     }[s.screen] || '';
 
+
+    // Mensagens do Fale conosco: novas primeiro no filtro padrão.
+    const msgs = s.contactMsgs || [];
+    const newCount = msgs.filter(m => m.status === 'novo').length;
+    v.msgFilters = [['novo','Novas (' + newCount + ')'],['respondido','Respondidas'],['todas','Todas']].map(([k, label]) => ({
+      label, cls:s.msgFilter === k ? 'on' : '', pick:() => this.setState({msgFilter:k})
+    }));
+    v.msgErr = s.msgErr; v.hasMsgErr = !!s.msgErr;
+    v.msgRows = msgs.filter(m => s.msgFilter === 'todas' || m.status === s.msgFilter).map(m => {
+      const isNew = m.status === 'novo';
+      const d = new Date(m.createdAt);
+      return {
+        name:m.name, contact:m.contact, reason:m.reason, message:m.message, protocol:m.protocol,
+        when:d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+        cardStyle:'padding:16px 20px' + (isNew ? ';border-left:4px solid #FFB21E' : ''),
+        statusLabel:isNew ? 'Nova' : 'Respondida',
+        statusStyle:isNew ? 'background:#FFF4DB;color:#7A4B00' : 'background:#E5F7EA;color:#1E6B36',
+        toggleLabel:isNew ? 'Marcar como respondida' : 'Voltar para novas',
+        toggleStyle:isNew ? 'background:#0B6670;color:#fff' : 'background:#fff;border:1px solid #D6CFBF;color:#5A6670',
+        toggle:() => this.setMessageStatus(m.id, isNew ? 'respondido' : 'novo')
+      };
+    });
+    v.noMsgRows = v.msgRows.length === 0;
+    v.msgEmptyText = s.contactMsgs === null ? 'Carregando…' : (s.msgFilter === 'novo' ? 'Nenhuma mensagem nova.' : 'Nenhuma mensagem aqui.');
 
     const dash = s.dashboard;
     v.kpis = dash ? [

@@ -117,6 +117,9 @@ await step('rodapé do login', async () => {
   await page.locator('.tab', { hasText: 'Termos de uso' }).click(); await page.waitForTimeout(300);
   check('painel: abas trocam de seção', page.url() === BASE + '#termos' && (await page.locator('#info').innerText()).includes('Natureza do serviço'));
   await page.locator('.tab', { hasText: 'Fale conosco' }).click(); await page.waitForTimeout(300);
+  // Os motivos do formulário precisam ser os mesmos aceitos pela API (CONTACT_REASONS no sunfood-backend).
+  const motivos = await page.locator('#c-motivo option').allInnerTexts();
+  check('fale conosco: motivos iguais aos aceitos pela API', JSON.stringify(motivos) === JSON.stringify(['Reservar mesa ou guarda-sol', 'Tirar dúvida sobre o cardápio', 'Dúvida sobre pagamento', 'Suporte com um pedido em andamento', 'Parceria com meu quiosque']), motivos.join(' | '));
   await page.fill('#c-nome', 'Bruna Lima');
   await page.fill('#c-contato', 'abc');
   await page.fill('#c-msg', 'Quero reservar uma mesa para 6 pessoas no sábado.');
@@ -197,7 +200,7 @@ await step('fluxo da cozinha', async () => {
 });
 
 // 4. Admin: todas as telas renderizam
-for (const sc of ['dashboard', 'orders', 'productForm', 'tables', 'pause', 'reports', 'perfOps', 'closeDay']) {
+for (const sc of ['dashboard', 'orders', 'payments', 'messages', 'productForm', 'tables', 'pause', 'reports', 'perfOps', 'closeDay']) {
   await step(`admin ${sc}`, async () => {
     const page = await open(`app-cliente.dc.html?module=admin&screen=${sc}`, { role: 'admin', seed: true });
     const err = page.jsErrors.join(' | ') || await renderError(page);
@@ -224,6 +227,22 @@ await step('admin relatórios', async () => {
   check('relatórios: troca para 30 dias', page.api.db.lastReportPeriod === '30d' && t.includes('150 un.'));
   check('relatórios: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
   await page.close();
+});
+
+// 6. Mensagens do Fale conosco (enviadas pelo painel do login, ver 1c): o admin lê e marca como respondida
+await step('fale conosco', async () => {
+  const admin = await open('app-cliente.dc.html?module=admin&screen=messages', { role: 'admin' });
+  admin.api.db.contacts.push({ id: 'c1', protocol: 'SF-100001', name: 'Bruna Lima', contact: '(13) 98888-7777', reason: 'Reservar mesa ou guarda-sol', message: 'Mesa para 6 no sábado.', status: 'novo', createdAt: new Date().toISOString() });
+  await click(admin, 'Pagamentos', true); await click(admin, 'Mensagens', true);
+  let a = await text(admin);
+  check('admin mensagens: mostra a mensagem nova', a.includes('Bruna Lima') && a.includes('Mesa para 6 no sábado.') && a.includes('Novas (1)'), a.slice(0, 500));
+  await click(admin, 'Marcar como respondida');
+  a = await text(admin);
+  check('admin mensagens: marca como respondida', admin.api.db.contacts[0].status === 'respondido' && a.includes('Nenhuma mensagem nova.'));
+  await click(admin, 'Respondidas');
+  check('admin mensagens: aparece em Respondidas', (await text(admin)).includes('Bruna Lima'));
+  check('admin mensagens: sem erro de JavaScript', admin.jsErrors.length === 0 && !(await renderError(admin)), admin.jsErrors.join(' | '));
+  await admin.close();
 });
 
 await browser.close();
