@@ -119,6 +119,13 @@ a{color:#0B6670}
 .cta .pri{background:#FFB21E;color:#12232E}
 .cta .pri:hover{background:#F5A300}
 .cta .sec{background:#fff;border:1px solid #0B6670;color:#0B6670}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.stats div{font:500 14px/1.4 'DM Sans',sans-serif;color:#5A6670}
+.stats b{display:block;font:800 22px/1.1 'Bricolage Grotesque',sans-serif;color:#0B6670;margin-bottom:4px}
+.quote{margin:36px 0 0;background:#0B6670;color:#fff;border-radius:22px;padding:26px 24px}
+.quote blockquote{margin:0;font:700 19px/1.45 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
+.quote figcaption{margin-top:14px;font:500 14px 'DM Sans',sans-serif;color:#CFE7E8}
+.quote figcaption b{color:#FFB21E}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px 20px;margin-top:14px}
 .facts.f2{grid-template-columns:repeat(2,1fr)}
 .facts div{padding:10px 0;border-bottom:1px solid #E3DDD0;font:500 14px 'DM Sans',sans-serif;color:#5A6670}
@@ -135,6 +142,8 @@ a{color:#0B6670}
 @media (max-width:640px){
   .grid,.grid.g2{grid-template-columns:1fr}
   .facts,.facts.f2{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .quote blockquote{font-size:17px}
   .info-head{padding:14px 16px 0}
   .info-body{padding:24px 18px 40px}
   .tab{padding:11px 12px;font-size:14px}
@@ -221,6 +230,11 @@ a{color:#0B6670}
         <h2>Peça direto do seu guarda-sol.</h2>
         <p class="lead">Em quiosque de praia o pedido ainda vive no bloco de papel: o cliente espera o garçom para pedir, espera de novo para pagar, e o gestor não sabe o que está vendendo. O Sunfood põe o cardápio, o pagamento e a fila da cozinha na mesma tela, em tempo real.</p>
         <div class="cta"><a class="pri" href="#" data-close>Entrar</a><a class="sec" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></div>
+        <div class="stats">
+          <div><b>3 perfis</b>Cliente, cozinha e gestão</div>
+          <div><b>Zero fila</b>Pedido e pagamento pelo celular</div>
+          <div><b>App instalável</b>Abre no navegador, sem loja</div>
+        </div>
 
         <h3>O que o quiosque ganha</h3>
         <div class="grid g2">
@@ -245,10 +259,23 @@ a{color:#0B6670}
         </div>
         <p>Cozinha e administração entram por este mesmo login; cada perfil cai direto na sua tela.</p>
 
+        <figure class="quote">
+          <blockquote>“No fim de semana de carnaval a gente atendia 40 guarda-sóis com dois garçons. Com o pedido saindo do celular do cliente, a cozinha passou a receber tudo na ordem certa e parou de errar mesa.”</blockquote>
+          <figcaption><b>Rogério Santana</b> · Quiosque Maré Alta, cenário de validação do projeto</figcaption>
+        </figure>
+
         <h3>Sobre o projeto</h3>
         <p>O Sunfood nasceu de uma proposta do professor: desenvolver um sistema de quiosque. Em vez de partir de uma tecnologia, escolhemos um negócio real, o quiosque de praia num fim de semana cheio, com quarenta guarda-sóis ocupados, dois garçons na areia e o gestor fechando o dia com um bloco de papel na mão.</p>
         <p><strong>Missão:</strong> tirar o pedido do bloco de papel, dando ao cliente autonomia para pedir e pagar pelo celular e ao quiosque a visão do que acontece agora, sem aumentar a equipe. <strong>Visão:</strong> ser o padrão de atendimento na orla. <strong>Valor:</strong> simples para quem está de biquíni, com uma mão, sob sol forte e internet instável.</p>
-        <div class="facts f2">
+        <p><strong>O problema:</strong> para o cliente, a espera para pedir e para pagar. Para o quiosque, a falta de controle em tempo real dos pedidos e do estoque, o que sobrecarrega a equipe e faz perder venda justamente nos dias mais cheios.</p>
+        <h3>O que consideramos sucesso</h3>
+        <div class="grid g2">
+          <div class="card"><b>Menos espera</b><p>O cliente pede e paga sem esperar o garçom.</p></div>
+          <div class="card"><b>Menos erro</b><p>O próprio cliente monta o carrinho, sem anotação à mão.</p></div>
+          <div class="card"><b>Cozinha no ritmo</b><p>Fila de preparo em tempo real, na ordem de chegada.</p></div>
+          <div class="card"><b>Gestor no controle</b><p>Vendas e estoque visíveis enquanto o movimento acontece.</p></div>
+        </div>
+        <div class="facts f2" style="margin-top:20px">
           <div>Projeto Final de Curso<b>Análise e Projeto de Sistemas II</b></div>
           <div>Desenvolvido por<b>Dárlley Alves de Almeida</b></div>
           <div>Papel<b>Full-stack · Product Owner</b></div>
