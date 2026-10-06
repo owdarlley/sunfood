@@ -12,6 +12,7 @@ Testam o app de ponta a ponta **sem deixar nada gravado em produção**.
 | `conta.mjs` | Cadastro (com CPF validado), login com e-mail não confirmado (botão Reenviar), pedido mínimo, dia encerrado e excluir conta | `node fluxo/conta.mjs` |
 | `localizacao.mjs` | Localização do quiosque: o admin muda nome, endereço e horário em "Quiosque e mesas" e o cliente vê na tela Localização, com o mapa e o "Abrir no mapa" do Google Maps saindo do endereço (celular, tablet e computador) | `node fluxo/localizacao.mjs` |
 | `sessao.mjs` | Sessão que não cai sozinha: token vencido é renovado com o refreshToken (antes de chamar a API e ao receber 401), cozinha/admin seguem atualizando, sessão encerrada de vez volta ao login com aviso, e quem já entrou não abre na tela de login | `node fluxo/sessao.mjs` |
+| `excluir-produto.mjs` | Excluir item do cardápio: botão Excluir em "Cardápio e estoque", confirmação (Cancelar não apaga nada), item some da lista e cabe na tela no celular, tablet e computador | `node fluxo/excluir-produto.mjs` |
 | `mesas.mjs` | Quantidade de mesas: o admin escolhe quantas mesas existem (celular, tablet e computador) e o cliente só consegue pedir de 1 até esse número | `node fluxo/mesas.mjs` |
 
 Os testes abrem um Chromium de verdade, mas todas as chamadas para a API são respondidas por `fake-api.mjs`, uma API falsa em memória: nada chega ao servidor nem ao banco.
