@@ -1123,10 +1123,16 @@ input,textarea,select,[contenteditable="true"]{caret-color:auto}
               <div onClick="{{ newProduct }}" class="btn btn-sun btn-sm" style="min-height:48px">+ Novo produto</div>
             </sc-if>
             <sc-if value="{{ is_reports }}" hint-placeholder-val="{{ false }}">
-              <div class="seg">
-                <sc-for list="{{ reportPeriods }}" as="rp" hint-placeholder-count="3">
-                  <div onClick="{{ rp.pick }}" class="{{ rp.cls }}">{{ rp.label }}</div>
-                </sc-for>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;max-width:100%">
+                <div class="seg" style="max-width:100%;overflow-x:auto">
+                  <sc-for list="{{ reportPeriods }}" as="rp" hint-placeholder-count="3">
+                    <div onClick="{{ rp.pick }}" class="{{ rp.cls }}">{{ rp.label }}</div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <div onClick="{{ exportReportCsv }}" class="btn btn-ghost btn-sm" style="{{ reportExportStyle }}" role="button" title="Baixa um arquivo .csv que abre no Excel ou no Google Planilhas"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z M4 10h16 M4 15h16 M10 4v16"></path></svg>Exportar planilha</div>
+                  <div onClick="{{ exportReportPdf }}" class="btn btn-dark btn-sm" style="{{ reportExportStyle }}" role="button" title="Abre a versão para imprimir ou salvar como PDF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z M14 3v5h5 M10 13h6 M10 17h6"></path></svg>Exportar PDF</div>
+                </div>
               </div>
             </sc-if>
             <sc-if value="{{ is_perfOps }}" hint-placeholder-val="{{ false }}">
@@ -1420,6 +1426,9 @@ input,textarea,select,[contenteditable="true"]{caret-color:auto}
           <sc-if value="{{ is_reports }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:16px" class="rise">
               <div class="muted" style="font-size:14px">{{ reportRange }} · Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.</div>
+              <sc-if value="{{ hasReportExportMsg }}" hint-placeholder-val="{{ false }}">
+                <div class="alert alert-warn">{{ reportExportMsg }}</div>
+              </sc-if>
               <sc-if value="{{ hasReportErr }}" hint-placeholder-val="{{ false }}">
                 <div class="alert alert-err">{{ reportErr }}</div>
               </sc-if>
@@ -1837,6 +1846,114 @@ function adminOrderFromApi(o){
   };
 }
 
+// ---- Exportar relatório (planilha .csv e versão para PDF) ----
+// Dia do pedido no horário de São Paulo, igual à conta do relatório no banco.
+const spDate = iso => new Date(iso).toLocaleDateString('en-CA', {timeZone:'America/Sao_Paulo'});
+const spTime = iso => new Date(iso).toLocaleTimeString('pt-BR', {timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit'});
+const brDate = ymd => ymd.slice(8, 10) + '/' + ymd.slice(5, 7) + '/' + ymd.slice(0, 4);
+const brMoney = n => 'R$ ' + Number(n || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const PAY_METHOD = {pix:'PIX', cartao:'Cartão', entrega:'Na entrega'};
+// Mesma regra do relatório (sales_report): pago ou "pagar na entrega", sem cancelado nem estorno.
+const countsAsSale = o => o.status !== 'Cancelado' && o.paymentStatus !== 'refunded' && o.paymentStatus !== 'cancelled' &&
+  (o.paymentStatus === 'approved' || o.paymentMethod === 'entrega');
+
+function buildReportExport(rep, adminOrders){
+  const periodName = {hoje:'Hoje', '7d':'Últimos 7 dias', '30d':'Últimos 30 dias'}[rep.period] || rep.period;
+  const range = rep.from === rep.to ? brDate(rep.from) : brDate(rep.from) + ' a ' + brDate(rep.to);
+  const orders = (adminOrders || [])
+    .filter(o => o.createdAt && spDate(o.createdAt) >= rep.from && spDate(o.createdAt) <= rep.to)
+    .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1))
+    .map(o => ({
+      code:o.id, date:brDate(spDate(o.createdAt)), time:spTime(o.createdAt), table:o.table, items:o.itemsStr,
+      total:o.total, status:o.status, method:PAY_METHOD[o.paymentMethod] || o.paymentMethod,
+      payment:String(o.payLabel || '').replace(/ · R\$.*$/, ''), counts:countsAsSale(o)
+    }));
+  const now = new Date();
+  return {
+    rep, periodName, range, orders,
+    generatedAt:now.toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'}) + ' ' + spTime(now.toISOString()),
+    hours:rep.byHour.filter(h => h.orders > 0),
+    fileBase:'sunfood-relatorio-' + (rep.from === rep.to ? rep.from : rep.from + '-a-' + rep.to)
+  };
+}
+
+// CSV no jeito do Excel em português: separador ";", vírgula decimal e BOM
+// (para os acentos aparecerem certos).
+function reportCsv(d){
+  const num = n => Number(n || 0).toFixed(2).replace('.', ',');
+  const cell = v => { const t = String(v == null ? '' : v); return /[";\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const rows = [
+    ['Relatório de vendas Sunfood'],
+    ['Período', d.periodName + ' (' + d.range + ')'],
+    ['Gerado em', d.generatedAt],
+    ['Regra', 'Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.'],
+    [],
+    ['RESUMO'],
+    ['Faturamento (R$)', num(d.rep.revenue)],
+    ['Pedidos', d.rep.orders],
+    ['Ticket médio (R$)', num(d.rep.avgTicket)],
+    ['Itens vendidos', d.rep.itemsSold],
+    [],
+    ['VENDAS POR DIA'],
+    ['Data', 'Pedidos', 'Faturamento (R$)'],
+    ...d.rep.byDay.map(x => [brDate(x.date), x.orders, num(x.revenue)]),
+    [],
+    ['HORÁRIOS (pedidos por hora)'],
+    ['Horário', 'Pedidos', 'Faturamento (R$)'],
+    ...(d.hours.length ? d.hours.map(h => [h.hour + 'h às ' + (h.hour + 1) + 'h', h.orders, num(h.revenue)]) : [['Sem pedidos no período']]),
+    [],
+    ['MAIS VENDIDOS'],
+    ['Posição', 'Produto', 'Unidades', 'Receita (R$)'],
+    ...(d.rep.topProducts.length ? d.rep.topProducts.map((p, i) => [i + 1, p.name, p.qty, num(p.revenue)]) : [['Nenhuma venda no período']]),
+    [],
+    ['PEDIDOS DO PERÍODO'],
+    ['Código', 'Data', 'Hora', 'Mesa', 'Itens', 'Total (R$)', 'Status', 'Forma de pagamento', 'Pagamento', 'Entra nas vendas'],
+    ...(d.orders.length ? d.orders.map(o => [o.code, o.date, o.time, o.table, o.items, num(o.total), o.status, o.method, o.payment, o.counts ? 'Sim' : 'Não'])
+      : [['Nenhum pedido no período']])
+  ];
+  return '﻿' + rows.map(r => r.map(cell).join(';')).join('\r\n') + '\r\n';
+}
+
+const escHtml = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+
+// Página para imprimir / salvar como PDF (responsiva: tabelas viram rolagem no celular).
+function reportPrintHtml(d, autoPrint){
+  const table = (head, rows, right) => '<div class="tw"><table><thead><tr>' + head.map((h, i) => '<th' + (right.includes(i) ? ' class="r"' : '') + '>' + escHtml(h) + '</th>').join('') +
+    '</tr></thead><tbody>' + rows.map(r => '<tr' + (r.cls ? ' class="' + r.cls + '"' : '') + '>' + r.cells.map((c, i) => '<td' + (right.includes(i) ? ' class="r"' : '') + '>' + escHtml(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>';
+  const empty = t => '<p class="muted">' + escHtml(t) + '</p>';
+  const kpis = [['Faturamento', brMoney(d.rep.revenue)], ['Pedidos', d.rep.orders], ['Ticket médio', brMoney(d.rep.avgTicket)], ['Itens vendidos', d.rep.itemsSold]];
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>' + escHtml(d.fileBase) + '</title><style>' +
+    '*{box-sizing:border-box}body{margin:0;background:#F6F1E7;color:#12232E;font:15px/1.45 "DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}' +
+    '.page{max-width:960px;margin:0 auto;padding:24px 16px 40px}.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}' +
+    '.bar button{min-height:46px;padding:0 18px;border-radius:12px;border:0;font:800 15px inherit;font-family:inherit;cursor:pointer;background:#12232E;color:#fff}.bar button.g{background:#fff;color:#12232E;border:1px solid #D6CFBF}' +
+    '.sheet{background:#fff;border-radius:20px;padding:24px}h1{font-size:24px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 10px}.muted{color:#5A6670;font-size:13px;margin:0}' +
+    '.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.kpi{border:1px solid #E6DFD1;border-radius:14px;padding:12px}.kpi .k{color:#5A6670;font-size:13px}.kpi .v{font-size:20px;font-weight:800;margin-top:2px}' +
+    '.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #EEE8DC;vertical-align:top}th{background:#F6F1E7;font-weight:800;white-space:nowrap}td.r,th.r{text-align:right;white-space:nowrap}tr.off td{color:#8A949B}' +
+    '.orders td:nth-child(5){min-width:180px}' +
+    '@media (max-width:640px){.sheet{padding:16px;border-radius:16px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:20px}.orders table{min-width:760px}}' +
+    '@media print{@page{size:A4;margin:12mm}body{background:#fff;font-size:12px}.bar{display:none}.page{padding:0;max-width:none}.sheet{padding:0;border-radius:0}.tw{overflow:visible}.orders table{min-width:0}table{font-size:10.5px}tr{break-inside:avoid}h2{break-after:avoid}.kpi{break-inside:avoid}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
+    '</style></head><body><div class="page"><div class="bar"><button onclick="window.print()">Imprimir ou salvar como PDF</button><button class="g" onclick="window.close()">Fechar</button></div><div class="sheet">' +
+    '<h1>Relatório de vendas · Sunfood</h1><p class="muted">' + escHtml(d.periodName + ' (' + d.range + ') · gerado em ' + d.generatedAt) + '</p>' +
+    '<p class="muted">Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.</p>' +
+    '<div class="kpis">' + kpis.map(([k, v]) => '<div class="kpi"><div class="k">' + escHtml(k) + '</div><div class="v">' + escHtml(v) + '</div></div>').join('') + '</div>' +
+    (d.rep.byDay.length > 1 ? '<h2>Vendas por dia</h2>' + table(['Data', 'Pedidos', 'Faturamento'], d.rep.byDay.map(x => ({cells:[brDate(x.date), x.orders, brMoney(x.revenue)]})), [1, 2]) : '') +
+    '<h2>Horários de pico</h2>' + (d.hours.length ? table(['Horário', 'Pedidos', 'Faturamento'], d.hours.map(h => ({cells:[h.hour + 'h às ' + (h.hour + 1) + 'h', h.orders, brMoney(h.revenue)]})), [1, 2]) : empty('Sem pedidos nesse período.')) +
+    '<h2>Mais vendidos</h2>' + (d.rep.topProducts.length ? table(['#', 'Produto', 'Unidades', 'Receita'], d.rep.topProducts.map((p, i) => ({cells:[(i + 1) + 'º', p.name, p.qty + ' un.', brMoney(p.revenue)]})), [2, 3]) : empty('Nenhuma venda paga nesse período.')) +
+    '<h2>Pedidos do período (' + d.orders.length + ')</h2><p class="muted" style="margin-bottom:8px">Em cinza, os pedidos que não entram nas vendas (cancelados, estornados ou sem pagamento).</p>' +
+    (d.orders.length ? '<div class="orders">' + table(['Código', 'Data', 'Hora', 'Mesa', 'Itens', 'Total', 'Status', 'Pagamento'],
+      d.orders.map(o => ({cls:o.counts ? '' : 'off', cells:[o.code, o.date, o.time, o.table, o.items, brMoney(o.total), o.status, o.method + ' · ' + o.payment]})), [5]) + '</div>' : empty('Nenhum pedido nesse período.')) +
+    '</div></div>' + (autoPrint ? '<script>window.addEventListener("load",function(){setTimeout(function(){window.print()},400)})<\/script>' : '') + '</body></html>';
+}
+
+function downloadFile(name, content, type){
+  const url = URL.createObjectURL(new Blob([content], {type}));
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.style.display = 'none';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000);
+}
+
 // Selo de pagamento no kanban e na lista do admin: a cozinha precisa saber se
 // já está pago no app ou se o garçom cobra na entrega.
 // Cores dos selos (fundo claro no admin; a cozinha usa a versão escura).
@@ -1985,7 +2102,7 @@ class Component extends DCLogic {
     // opsMetrics), carregado em loadAdminData()/pollAdminData() — nada é mock.
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
     // Relatórios (GET /reports/sales): período escolhido e último resultado.
-    reportPeriod:'hoje', report:null, reportErr:'', reportAt:0,
+    reportPeriod:'hoje', report:null, reportErr:'', reportAt:0, reportExportMsg:'',
     // Mensagens do Fale conosco (GET /contact): lista, filtro e último erro.
     contactMsgs:null, msgFilter:'novo', msgErr:'', msgAt:0,
     pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'',
@@ -2309,6 +2426,36 @@ class Component extends DCLogic {
     } catch(e){
       this.setState({reportErr:'Sem conexão com o servidor para carregar o relatório.'});
     }
+  }
+
+  // Exportar relatório: o período escolhido na tela (hoje, 7 ou 30 dias),
+  // com resumo, vendas por dia, horários, mais vendidos e a lista de pedidos.
+  reportExportData(){
+    const s = this.state;
+    const rep = s.report && s.report.period === s.reportPeriod ? s.report : null;
+    if(!rep){ this.setState({reportExportMsg:'Espere o relatório carregar para exportar.'}); return null; }
+    this.setState({reportExportMsg:''});
+    return buildReportExport(rep, s.adminOrders);
+  }
+
+  exportReportCsv(){
+    const data = this.reportExportData();
+    if(!data) return;
+    downloadFile(data.fileBase + '.csv', reportCsv(data), 'text/csv;charset=utf-8');
+  }
+
+  exportReportPdf(){
+    const data = this.reportExportData();
+    if(!data) return;
+    // Abre numa aba nova (o próprio navegador oferece "Salvar como PDF" na
+    // impressão). Se o navegador bloquear a aba, imprime por um quadro oculto.
+    const win = window.open('', '_blank');
+    if(win){ win.document.open(); win.document.write(reportPrintHtml(data, true)); win.document.close(); return; }
+    const frame = document.createElement('iframe');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+    document.body.appendChild(frame);
+    frame.contentDocument.open(); frame.contentDocument.write(reportPrintHtml(data, false)); frame.contentDocument.close();
+    setTimeout(() => { frame.contentWindow.focus(); frame.contentWindow.print(); setTimeout(() => frame.remove(), 60000); }, 300);
   }
 
   async loadLatestDayReport(){
@@ -3361,6 +3508,10 @@ class Component extends DCLogic {
     }));
     v.reportRange = rep ? (rep.from === rep.to ? ddmm(rep.from) : ddmm(rep.from) + ' a ' + ddmm(rep.to)) : 'carregando…';
     v.reportErr = s.reportErr; v.hasReportErr = !!s.reportErr;
+    v.exportReportCsv = () => this.exportReportCsv();
+    v.exportReportPdf = () => this.exportReportPdf();
+    v.reportExportStyle = 'min-height:46px' + (rep ? '' : ';opacity:.5');
+    v.reportExportMsg = s.reportExportMsg; v.hasReportExportMsg = !!s.reportExportMsg;
     v.reportKpis = [
       {lbl:'Faturamento', val:rep ? f(rep.revenue) : '—', sub:rep ? rep.orders + ' pedido(s)' : 'carregando…'},
       {lbl:'Pedidos', val:rep ? String(rep.orders) : '—', sub:'pagos ou na entrega'},
