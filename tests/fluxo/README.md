@@ -9,6 +9,7 @@ Testam o app de ponta a ponta **sem deixar nada gravado em produção**.
 | `senha.mjs` | Esqueci minha senha: pedir o link (por e-mail ou CPF), trocar a senha pela tela `redefinir-senha.html`, link expirado e link que cai na página inicial ou no app | `node fluxo/senha.mjs` |
 | `google.mjs` | Entrar com Google: pelo Supabase e direto no Google (id_token trocado no Supabase), volta com o token, tela "Falta pouco" (telefone, CPF, nascimento 18+ e termos), Google cancelado e pedido recusado por cadastro incompleto | `node fluxo/google.mjs` |
 | `conta.mjs` | Cadastro (com CPF validado), login com e-mail não confirmado (botão Reenviar), pedido mínimo, dia encerrado e excluir conta | `node fluxo/conta.mjs` |
+| `mesas.mjs` | Quantidade de mesas: o admin escolhe quantas mesas existem (celular, tablet e computador) e o cliente só consegue pedir de 1 até esse número | `node fluxo/mesas.mjs` |
 
 Os testes abrem um Chromium de verdade, mas todas as chamadas para a API são respondidas por `fake-api.mjs`, uma API falsa em memória: nada chega ao servidor nem ao banco.
 
