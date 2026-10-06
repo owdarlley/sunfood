@@ -3,6 +3,9 @@
 // Página de checkout do Mercado Pago de mentira (o teste responde ela sem rede).
 export const FAKE_CHECKOUT_URL = 'https://www.mercadopago.com.br/checkout/teste';
 
+// Endereço das fotos enviadas (o teste serve uma imagem pequena nele).
+export const FAKE_PHOTO_BASE = 'https://teste.supabase.co/storage/v1/object/public/produtos/';
+
 export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
   const now = () => new Date().toISOString();
   const db = {
@@ -27,6 +30,13 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     const req = route.request();
     const url = new URL(req.url());
     const p = url.pathname, m = req.method();
+    // Envio de foto vem como arquivo (binário), não JSON.
+    if (url.pathname === '/products/images' && req.method() === 'POST') {
+      const buf = req.postDataBuffer();
+      db.uploads = (db.uploads || []).concat([{ type: req.headers()['content-type'], size: buf.length, jpeg: buf[0] === 0xff && buf[1] === 0xd8 }]);
+      return route.fulfill({ status: 201, contentType: 'application/json',
+        body: JSON.stringify({ url: FAKE_PHOTO_BASE + 'foto' + db.uploads.length + '.jpg' }) });
+    }
     const body = req.postData() ? JSON.parse(req.postData()) : {};
     const json = (status, data) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
     db.log = (db.log || []).concat(m + ' ' + p);
@@ -62,6 +72,15 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     if ((r = p.match(/^\/orders\/([^/]+)\/cancel$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = 'Cancelado'; return json(200, o); }
     if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now(); return json(200, o); }
     if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, db.orders.find(o => o.id === r[1]));
+    if ((r = p.match(/^\/products\/([^/]+)$/)) && m === 'PUT') { const pr = db.products.find(x => x.id === r[1]);
+      db.lastProductBody = body;
+      Object.assign(pr, { name: body.name, price: body.price, category: body.category, description: body.description },
+        body.stockQty !== undefined ? { stockQty: body.stockQty } : {}, body.imageUrl !== undefined ? { imageUrl: body.imageUrl } : {});
+      return json(200, pr); }
+    if (p === '/products' && m === 'POST') { db.lastProductBody = body;
+      const pr = { id: 'p' + (db.products.length + 1), category: body.category, name: body.name, description: body.description, price: body.price,
+        imageKey: null, imageUrl: body.imageUrl || null, stockQty: body.stockQty ?? null, soldOut: false, tags: [] };
+      db.products.push(pr); return json(201, pr); }
     if ((r = p.match(/^\/products\/([^/]+)\/sold-out$/))) { const pr = db.products.find(x => x.id === r[1]); pr.soldOut = body.soldOut; return json(200, pr); }
     if (p === '/dashboard') return json(200, { revenueToday: 0, ordersToday: 0, avgTicket: 0, topProducts: [], salesByHour: Array.from({ length: 24 }, (_, hour) => ({ hour, revenue: 0 })) });
     if (p === '/ops-metrics') return json(200, { lateOrders: 0, avgPrepSeconds: null, cancelledToday: 0, avgQueueSeconds: null, soldOutProducts: [], ordersInQueueOrPrep: 1 });
