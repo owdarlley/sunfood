@@ -12,13 +12,12 @@
 //
 // Ao mudar a lista abaixo ou a lógica deste arquivo, aumente a VERSAO para
 // o navegador trocar o cache antigo.
-const VERSAO = 'v3';
+const VERSAO = 'v4';
 const CACHE = 'sunfood-' + VERSAO;
 
 const PRECACHE = [
   './',
   './index.html',
-  './inicio.html',
   './app-cliente.dc.html',
   './redefinir-senha.html',
   './support.js',
