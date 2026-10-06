@@ -360,6 +360,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                           <p class="muted" style="font-size:16px;line-height:1.5;margin:8px 0 0">Informe o e-mail da sua conta. Enviaremos um link para criar uma senha nova, válido por 1 hora.</p>
                         </div>
                         <div><span class="lbl">E-mail</span><input class="inp" type="email" value="{{ fpEmail }}" onChange="{{ setFp }}" placeholder="voce@email.com"></div>
+                        <sc-if value="{{ hasFpErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ fpErr }}</div></sc-if>
                         <div onClick="{{ sendFp }}" class="btn btn-dark">Enviar link</div>
                         <div onClick="{{ goLogin }}" class="link" style="text-align:center">Voltar ao login</div>
                       </div>
@@ -1822,7 +1823,7 @@ class Component extends DCLogic {
     email:'', pass:'', loginErr:'', loginNeedsConfirm:false,
     token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'',
-    fpEmail:'', fpSent:false,
+    fpEmail:'', fpSent:false, fpErr:'',
     cat:'Todos', menuSearch:'', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
@@ -2426,16 +2427,24 @@ class Component extends DCLogic {
   async submitForgotPassword(){
     if(this.state.busy) return;
     if(!/@/.test(this.state.fpEmail)) return;
-    this.setState({busy:'forgot'});
+    this.setState({busy:'forgot', fpErr:''});
     try {
-      await fetch(API_BASE + '/auth/forgot-password', {
+      const res = await fetch(API_BASE + '/auth/forgot-password', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email:this.state.fpEmail})
+        body:JSON.stringify({email:this.state.fpEmail.trim()})
       });
-    } catch(e){}
-    // Sempre mostra a mesma confirmação, exista ou não o e-mail — o backend
-    // já responde assim de propósito, pra não revelar quais contas existem.
-    this.setState({fpSent:true, busy:null});
+      // O servidor avisa quando o e-mail não tem conta ou a conta é só do Google.
+      if(!res.ok){
+        const data = await res.json().catch(() => ({}));
+        this.setState({fpErr: data.error || 'Não foi possível enviar o link. Tente de novo.'});
+        return;
+      }
+      this.setState({fpSent:true});
+    } catch(e){
+      this.setState({fpErr:'Falha de conexão com o servidor.'});
+    } finally {
+      this.setState({busy:null});
+    }
   }
 
   // roteamento pós-login: o site abre o app já no módulo e na tela do perfil
@@ -2919,7 +2928,8 @@ class Component extends DCLogic {
     v.completeBtnLabel = s.busy === 'complete' ? 'Salvando...' : 'Salvar e continuar';
     v.completeBusyOpacity = s.busy === 'complete' ? '.6' : '1';
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
-    v.setFp = e => this.setState({fpEmail:e.target.value});
+    v.setFp = e => this.setState({fpEmail:e.target.value, fpErr:''});
+    v.fpErr = s.fpErr; v.hasFpErr = !!s.fpErr;
     v.fpOk = /@/.test(s.fpEmail);
     v.fpBlocked = !v.fpOk;
     v.sendFp = () => v.fpOk && this.submitForgotPassword();
