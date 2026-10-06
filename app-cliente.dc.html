@@ -344,7 +344,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                     </div>
                     <div style="display:flex;align-items:flex-start;gap:10px">
                       <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:#0B6670;cursor:pointer">
-                      <span onClick="{{ toggleSuTerms }}" style="font:500 14px/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="termos.html" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="privacidade.html" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
+                      <span onClick="{{ toggleSuTerms }}" style="font:500 14px/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
                     <div onClick="{{ doSignup }}" class="btn btn-sun" style="opacity:{{ signupBusyOpacity }}">{{ signupBtnLabel }}</div>
@@ -394,7 +394,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                     <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}"></div>
                     <div style="display:flex;align-items:flex-start;gap:10px">
                       <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:#0B6670;cursor:pointer">
-                      <span onClick="{{ toggleSuTerms }}" style="font:500 14px/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="termos.html" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="privacidade.html" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
+                      <span onClick="{{ toggleSuTerms }}" style="font:500 14px/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
                     <div onClick="{{ doCompleteProfile }}" class="btn btn-sun" style="opacity:{{ completeBusyOpacity }}">{{ completeBtnLabel }}</div>
@@ -1006,7 +1006,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
             <div class="footer">
               <div class="footer-in">
                 <span>Sunfood · quiosque pé na areia</span>
-                <span style="display:flex;gap:18px;flex-wrap:wrap"><span onClick="{{ goLocation }}" class="link" style="font-weight:600">Onde estamos</span><a href="termos.html" target="_blank" class="link" style="font-weight:600">Termos</a><a href="privacidade.html" target="_blank" class="link" style="font-weight:600">Privacidade</a></span>
+                <span style="display:flex;gap:18px;flex-wrap:wrap"><span onClick="{{ goLocation }}" class="link" style="font-weight:600">Onde estamos</span><a href="./#termos" target="_blank" class="link" style="font-weight:600">Termos</a><a href="./#privacidade" target="_blank" class="link" style="font-weight:600">Privacidade</a></span>
               </div>
             </div>
 

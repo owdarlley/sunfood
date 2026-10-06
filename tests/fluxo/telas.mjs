@@ -90,8 +90,9 @@ await step('login no endereço principal', async () => {
   await salvo.close();
 
   const inicio = await open('inicio.html');
-  await click(inicio, 'Entrar', true);
-  check('inicio.html: botão Entrar leva à tela de login', inicio.url() === BASE && (await text(inicio)).includes('Bem-vindo de volta'), inicio.url());
+  check('inicio.html: endereço antigo abre Conheça o Sunfood no login', inicio.url() === BASE + '#conheca' && (await text(inicio)).includes('Um sistema, três telas de trabalho'), inicio.url());
+  await inicio.locator('#info').getByText('Entrar', { exact: true }).click(); await inicio.waitForTimeout(300);
+  check('Conheça o Sunfood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Bem-vindo de volta'), inicio.url());
   await inicio.close();
 
   const app = await open('app-cliente.dc.html', { role: 'admin', session: false });
@@ -101,6 +102,49 @@ await step('login no endereço principal', async () => {
   await app.waitForTimeout(800);
   check('login do app: admin vai para o painel', app.url().includes('module=admin&screen=dashboard'), app.url());
   await app.close();
+});
+
+// 1c. Links do rodapé do login abrem o conteúdo no próprio login
+await step('rodapé do login', async () => {
+  const page = await open('');
+  for (const [link, trecho, hash] of [['Conheça o Sunfood', 'O que o quiosque ganha', '#conheca'], ['Termos de uso', 'Cancelamento de pedidos', '#termos'], ['Privacidade', 'Seus direitos como titular', '#privacidade'], ['Fale conosco', 'Dúvida, reserva ou suporte?', '#fale-conosco']]) {
+    await page.locator('nav.foot').getByText(link, { exact: true }).click();
+    await page.waitForTimeout(300);
+    const t = await page.locator('#info').innerText();
+    check(`rodapé: ${link} abre no login`, page.url() === BASE + hash && t.includes(trecho), page.url());
+    if (hash !== '#fale-conosco') { await page.keyboard.press('Escape'); await page.waitForTimeout(200); }
+  }
+  await page.locator('.tab', { hasText: 'Termos de uso' }).click(); await page.waitForTimeout(300);
+  check('painel: abas trocam de seção', page.url() === BASE + '#termos' && (await page.locator('#info').innerText()).includes('Natureza do serviço'));
+  await page.locator('.tab', { hasText: 'Fale conosco' }).click(); await page.waitForTimeout(300);
+  await page.fill('#c-nome', 'Bruna Lima');
+  await page.fill('#c-contato', 'abc');
+  await page.fill('#c-msg', 'Quero reservar uma mesa para 6 pessoas no sábado.');
+  await click(page, 'Enviar mensagem', true);
+  check('fale conosco: contato inválido não envia', page.api.db.contacts.length === 0 && (await text(page)).includes('Informe um e-mail válido'));
+  await page.fill('#c-contato', '(13) 98888-7777');
+  await click(page, 'Enviar mensagem', true);
+  await page.waitForTimeout(400);
+  const t = await text(page);
+  check('fale conosco: mensagem gravada pela API', page.api.db.contacts.length === 1 && page.api.db.contacts[0].name === 'Bruna Lima' && page.api.db.contacts[0].reason === 'Reservar mesa ou guarda-sol', JSON.stringify(page.api.db.contacts));
+  check('fale conosco: mostra o protocolo do servidor', t.includes('Recebemos sua mensagem, Bruna') && t.includes('SF-100001'));
+  await page.keyboard.press('Escape');
+  check('rodapé: Esc fecha o painel', page.url() === BASE && await page.locator('#info').isHidden());
+  check('rodapé: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
+  await page.close();
+
+  const fora = await open('#fale-conosco');
+  await fora.unroute('http://localhost:8787/**');
+  await fora.route('http://localhost:8787/**', r => r.abort());
+  await fora.fill('#c-nome', 'Bruna'); await fora.fill('#c-contato', 'bruna@email.com'); await fora.fill('#c-msg', 'Mensagem com servidor fora do ar.');
+  await click(fora, 'Enviar mensagem', true);
+  check('fale conosco: avisa quando o servidor está fora do ar', (await text(fora)).includes('Sem conexão com o servidor'));
+  await fora.close();
+
+  // Quem já entrou e abre os termos pelo app vê os termos, não é mandado para o app.
+  const logado = await open('termos.html', { role: 'cozinha' });
+  check('termos.html: abre os termos mesmo com sessão salva', logado.url() === BASE + '#termos' && (await text(logado)).includes('Legislação aplicável e foro'), logado.url());
+  await logado.close();
 });
 
 // 2. Cliente: login -> cardápio -> carrinho -> mesa -> PIX -> confirmação

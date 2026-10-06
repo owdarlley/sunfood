@@ -28,7 +28,7 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
   window.SUNFOOD_DEST = DEST;
   try {
     var s = JSON.parse(localStorage.getItem('sunfood_session') || 'null');
-    if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash)) location.replace(DEST[s.user.role] || DEST.cliente);
+    if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash) && !/^#(conheca|fale-conosco|termos|privacidade)$/.test(location.hash)) location.replace(DEST[s.user.role] || DEST.cliente);
   } catch (e) {}
 })();
 </script>
@@ -78,6 +78,67 @@ a{color:#0B6670}
 .foot{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;margin-top:28px;font:500 14px 'DM Sans',sans-serif}
 .foot a{color:#5A6670;text-decoration:none}
 .foot a:hover{color:#0B6670}
+/* Painel "Conheça o Sunfood / Fale conosco / Termos / Privacidade": abre por
+   cima do login (gaveta à direita no computador, tela cheia no celular). */
+.info{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end}
+.info-bg{position:absolute;inset:0;background:rgba(18,35,46,.45);animation:sffade .2s ease both}
+.info-sheet{position:relative;width:min(760px,100%);height:100%;background:#F6F3EC;display:flex;flex-direction:column;box-shadow:-24px 0 60px -20px rgba(18,35,46,.35);animation:sfslide .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes sffade{from{opacity:0}}
+@keyframes sfslide{from{transform:translateX(40px);opacity:0}}
+.info-head{flex:none;background:#0B6670;color:#fff;padding:18px 28px 0}
+.info-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.info-close{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.info-close:hover{background:rgba(255,255,255,.12)}
+.tabs{display:flex;gap:4px;margin-top:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:12px 14px;border-radius:12px 12px 0 0;font:700 15px 'DM Sans',sans-serif;color:#CFE7E8;text-decoration:none;white-space:nowrap}
+.tab:hover{color:#fff}
+.tab[aria-current="page"]{background:#F6F3EC;color:#12232E}
+.info-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:32px 28px 48px;outline:none}
+.info-body section{max-width:640px;margin:0 auto}
+.info-body .eyebrow{font:800 12px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#0B6670;margin:0 0 8px}
+.info-body h2{font:800 clamp(28px,4vw,38px)/1.08 'Bricolage Grotesque',sans-serif;letter-spacing:-.025em;margin:0}
+.info-body h3{font:800 21px/1.2 'Bricolage Grotesque',sans-serif;letter-spacing:-.015em;margin:36px 0 12px}
+.info-body p,.info-body li{font:400 16px/1.65 'DM Sans',sans-serif;color:#3D4A53}
+.info-body p{margin:12px 0 0}
+.info-body ul{margin:10px 0 0;padding-left:20px}
+.info-body li+li{margin-top:6px}
+.info-body strong{color:#12232E}
+.lead{font-size:18px !important;color:#12232E !important}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}
+.grid.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:#fff;border:1px solid #E3DDD0;border-radius:18px;padding:18px}
+.card b{display:block;font:800 17px/1.25 'Bricolage Grotesque',sans-serif;color:#12232E}
+.card p{font-size:15px !important;margin-top:6px !important}
+.num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#FFB21E;color:#12232E;font:800 14px 'DM Sans',sans-serif;margin-bottom:10px}
+.tag{font:800 12px 'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#0B6670;margin-bottom:6px}
+.card ul{padding-left:18px}
+.card li{font-size:15px !important}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.cta a{display:inline-flex;align-items:center;min-height:48px;padding:0 18px;border-radius:14px;font:700 15px 'DM Sans',sans-serif;text-decoration:none}
+.cta .pri{background:#FFB21E;color:#12232E}
+.cta .pri:hover{background:#F5A300}
+.cta .sec{background:#fff;border:1px solid #0B6670;color:#0B6670}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px 20px;margin-top:14px}
+.facts.f2{grid-template-columns:repeat(2,1fr)}
+.facts div{padding:10px 0;border-bottom:1px solid #E3DDD0;font:500 14px 'DM Sans',sans-serif;color:#5A6670}
+.facts b{display:block;font:700 15px 'DM Sans',sans-serif;color:#12232E}
+.note{background:#FFF4DB;border:1px solid #F5DDA4;border-radius:16px;padding:16px 18px;margin-top:28px}
+.note p{margin:0 !important;font-size:15px !important;color:#5A4210 !important}
+.form{display:flex;flex-direction:column;gap:14px;margin-top:20px}
+.form textarea.inp{min-height:130px;resize:vertical;line-height:1.5}
+.form select.inp{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235A6670' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px}
+.ferr{font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:6px}
+.inp[aria-invalid="true"]{border-color:#B42318}
+.hint{font:500 13px 'DM Sans',sans-serif;color:#6B6458;margin-top:6px}
+@media (max-width:920px){.info-sheet{width:100%}}
+@media (max-width:640px){
+  .grid,.grid.g2{grid-template-columns:1fr}
+  .facts,.facts.f2{grid-template-columns:1fr}
+  .info-head{padding:14px 16px 0}
+  .info-body{padding:24px 18px 40px}
+  .tab{padding:11px 12px;font-size:14px}
+}
 [hidden]{display:none !important}
 @media (max-width:920px){
   .auth{flex-direction:column}
@@ -90,7 +151,7 @@ a{color:#0B6670}
 <body>
 <div class="auth">
   <div class="auth-art">
-    <a class="brand" href="inicio.html"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
+    <a class="brand" href="#conheca"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
     <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
     <div style="position:relative;max-width:460px">
       <div class="tt" style="font-size:clamp(34px,3.6vw,48px)">Peça direto do seu guarda-sol.</div>
@@ -100,7 +161,7 @@ a{color:#0B6670}
     <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
   </div>
   <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:22px 18px 20px;flex-direction:column;gap:12px">
-    <a class="brand" href="inicio.html"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></a>
+    <a class="brand" href="#conheca"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></a>
     <div style="font:500 15px/1.45 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">Peça direto do seu guarda-sol.</div>
   </div>
   <main class="auth-main">
@@ -126,13 +187,191 @@ a{color:#0B6670}
       </button>
       <div class="muted" style="text-align:center;font-size:14px">Equipe da cozinha e administração usam este mesmo login.</div>
     </form>
-    <nav class="foot">
-      <a href="inicio.html">Conheça o Sunfood</a>
-      <a href="contato.html">Fale conosco</a>
-      <a href="termos.html">Termos de uso</a>
-      <a href="privacidade.html">Privacidade</a>
+    <nav class="foot" aria-label="Sobre o Sunfood">
+      <a href="#conheca">Conheça o Sunfood</a>
+      <a href="#fale-conosco">Fale conosco</a>
+      <a href="#termos">Termos de uso</a>
+      <a href="#privacidade">Privacidade</a>
     </nav>
   </main>
+</div>
+<!-- Conteúdo institucional (antes em inicio.html, sobre.html, contato.html,
+     termos.html, privacidade.html...): abre por cima do login pelos links do
+     rodapé. Cada aba tem endereço próprio (#conheca, #fale-conosco, #termos,
+     #privacidade), então os endereços antigos redirecionam para cá. -->
+<div id="info" class="info" role="dialog" aria-modal="true" aria-labelledby="info-title" hidden>
+  <div class="info-bg" data-close></div>
+  <div class="info-sheet">
+    <div class="info-head">
+      <div class="info-top">
+        <span class="brand" id="info-title"><svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><g fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></span>
+        <button type="button" class="info-close" data-close aria-label="Fechar e voltar ao login"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+      </div>
+      <nav class="tabs" aria-label="Seções">
+        <a class="tab" href="#conheca">Conheça o Sunfood</a>
+        <a class="tab" href="#fale-conosco">Fale conosco</a>
+        <a class="tab" href="#termos">Termos de uso</a>
+        <a class="tab" href="#privacidade">Privacidade</a>
+      </nav>
+    </div>
+    <div class="info-body" id="info-body" tabindex="-1">
+
+      <section data-sec="conheca">
+        <p class="eyebrow">Pedidos digitais para quiosques de praia</p>
+        <h2>Peça direto do seu guarda-sol.</h2>
+        <p class="lead">Em quiosque de praia o pedido ainda vive no bloco de papel: o cliente espera o garçom para pedir, espera de novo para pagar, e o gestor não sabe o que está vendendo. O Sunfood põe o cardápio, o pagamento e a fila da cozinha na mesma tela, em tempo real.</p>
+        <div class="cta"><a class="pri" href="#" data-close>Entrar</a><a class="sec" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></div>
+
+        <h3>O que o quiosque ganha</h3>
+        <div class="grid g2">
+          <div class="card"><b>Pedido sem espera</b><p>O cliente monta o carrinho no celular e envia o pedido sem chamar o garçom.</p></div>
+          <div class="card"><b>Pagamento no celular</b><p>PIX ou cartão na própria tela, sem fila e sem maquininha.</p></div>
+          <div class="card"><b>Cozinha organizada</b><p>Cada pedido entra num quadro com Na fila, Em preparo e Pronto, na ordem em que chegou.</p></div>
+          <div class="card"><b>Gestão em tempo real</b><p>Vendas do dia, mais vendidos, horários de pico e estoque sem somar comanda de papel.</p></div>
+        </div>
+
+        <h3>Como funciona</h3>
+        <div class="grid">
+          <div class="card"><span class="num">1</span><b>Abra o Sunfood</b><p>Pelo QR Code do quiosque ou em sunfood.app.br, no navegador. Dá para instalar como app, sem loja.</p></div>
+          <div class="card"><span class="num">2</span><b>Peça e pague</b><p>Escolha no cardápio, informe o número da sua mesa e pague por PIX ou cartão.</p></div>
+          <div class="card"><span class="num">3</span><b>Acompanhe</b><p>O status muda de Na fila para Em preparo e Pronto, e a entrega vai até a sua mesa.</p></div>
+        </div>
+
+        <h3>Um sistema, três telas de trabalho</h3>
+        <div class="grid">
+          <div class="card"><div class="tag">Celular</div><b>Cliente</b><ul><li>Cardápio por categorias</li><li>Carrinho com observações</li><li>PIX ou cartão</li><li>Status e histórico</li></ul></div>
+          <div class="card"><div class="tag">Tablet</div><b>Cozinha</b><ul><li>Fila de pedidos em tempo real</li><li>Item esgotado com um toque</li><li>Alerta de pedido atrasado</li></ul></div>
+          <div class="card"><div class="tag">Computador</div><b>Administração</b><ul><li>Painel de vendas do dia</li><li>Cardápio, preços e estoque</li><li>Mesas e pedido mínimo</li><li>Relatórios e fechamento</li></ul></div>
+        </div>
+        <p>Cozinha e administração entram por este mesmo login; cada perfil cai direto na sua tela.</p>
+
+        <h3>Sobre o projeto</h3>
+        <p>O Sunfood nasceu de uma proposta do professor: desenvolver um sistema de quiosque. Em vez de partir de uma tecnologia, escolhemos um negócio real, o quiosque de praia num fim de semana cheio, com quarenta guarda-sóis ocupados, dois garçons na areia e o gestor fechando o dia com um bloco de papel na mão.</p>
+        <p><strong>Missão:</strong> tirar o pedido do bloco de papel, dando ao cliente autonomia para pedir e pagar pelo celular e ao quiosque a visão do que acontece agora, sem aumentar a equipe. <strong>Visão:</strong> ser o padrão de atendimento na orla. <strong>Valor:</strong> simples para quem está de biquíni, com uma mão, sob sol forte e internet instável.</p>
+        <div class="facts f2">
+          <div>Projeto Final de Curso<b>Análise e Projeto de Sistemas II</b></div>
+          <div>Desenvolvido por<b>Dárlley Alves de Almeida</b></div>
+          <div>Papel<b>Full-stack · Product Owner</b></div>
+          <div>Docente<b>Cristiano S. Negrão</b></div>
+        </div>
+        <div class="cta"><a class="sec" href="prototipo-completo.html">Ver o protótipo completo · 38 telas</a><a class="sec" href="prototipo.html">Protótipo interativo</a></div>
+      </section>
+
+      <section data-sec="fale-conosco">
+        <p class="eyebrow">Fale conosco</p>
+        <h2>Dúvida, reserva ou suporte?</h2>
+        <p class="lead">Deixe seu nome, um e-mail ou telefone e o motivo. A administração do quiosque lê cada mensagem e responde no contato informado.</p>
+        <form id="contact" class="form" novalidate>
+          <div>
+            <label class="lbl" for="c-nome">Nome</label>
+            <input class="inp" id="c-nome" autocomplete="name" placeholder="Como podemos te chamar">
+            <div class="ferr" id="e-nome" hidden>Informe seu nome para a equipe saber com quem falar.</div>
+          </div>
+          <div>
+            <label class="lbl" for="c-contato">E-mail ou telefone</label>
+            <input class="inp" id="c-contato" autocomplete="email" placeholder="seu@email.com ou (13) 99999-0000">
+            <div class="ferr" id="e-contato" hidden>Informe um e-mail válido ou um telefone com DDD.</div>
+          </div>
+          <div>
+            <label class="lbl" for="c-motivo">Motivo</label>
+            <select class="inp" id="c-motivo">
+              <option>Reservar mesa ou guarda-sol</option>
+              <option>Tirar dúvida sobre o cardápio</option>
+              <option>Dúvida sobre pagamento</option>
+              <option>Suporte com um pedido em andamento</option>
+              <option>Parceria com meu quiosque</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl" for="c-msg">Mensagem</label>
+            <textarea class="inp" id="c-msg" placeholder="Ex.: quero reservar dois guarda-sóis para sábado às 11h, somos 4 pessoas."></textarea>
+            <div class="ferr" id="e-msg" hidden>Escreva pelo menos algumas palavras sobre o que precisa.</div>
+          </div>
+          <div id="c-alert" class="alert alert-err" role="alert" hidden></div>
+          <button type="submit" id="c-enviar" class="btn btn-dark">Enviar mensagem</button>
+        </form>
+        <div id="c-ok" class="card" hidden style="margin-top:20px;padding:24px">
+          <b id="c-ok-title" style="font-size:22px">Recebemos sua mensagem</b>
+          <p>Protocolo de atendimento <strong id="c-prot"></strong>. Guarde o número: ele identifica sua mensagem caso precise falar com a equipe no quiosque.</p>
+          <button type="button" id="c-nova" class="btn btn-ghost" style="margin-top:16px">Enviar outra mensagem</button>
+        </div>
+        <div class="facts" style="margin-top:28px">
+          <div>E-mail<b><a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a></b></div>
+          <div>Atendimento no quiosque<b>Todos os dias, 9h às 19h</b></div>
+          <div>Resposta em<b>Até 1 dia útil</b></div>
+        </div>
+      </section>
+
+      <section data-sec="termos">
+        <p class="eyebrow">Documento legal</p>
+        <h2>Termos de uso</h2>
+        <p>Última atualização: 6 de outubro de 2026. Ao acessar o cardápio digital, criar uma conta ou fazer um pedido pelo Sunfood, você concorda com as regras descritas abaixo.</p>
+        <h3>1. Natureza do serviço</h3>
+        <p>O Sunfood é um sistema de pedidos online desenvolvido para operar em um quiosque de praia específico. O acesso é feito pelo navegador do próprio celular do cliente, a partir do QR Code fixado no quiosque ou do endereço sunfood.app.br, e abre o cardápio, o carrinho e o pagamento. O Sunfood não é uma plataforma multi-tenant nem um marketplace que conecta vários estabelecimentos independentes: cada instância do sistema pertence e é operada por um único quiosque.</p>
+        <h3>2. Cadastro e conta de usuário</h3>
+        <p>Para fazer um pedido, o cliente cria uma conta informando nome, e-mail, senha, telefone, CPF e data de nascimento, ou entra com a conta Google e completa esses dados no primeiro acesso. A senha é armazenada apenas em formato criptografado (hash), nunca em texto puro, e é de responsabilidade do usuário mantê-la em sigilo. O usuário é responsável pela veracidade dos dados informados no cadastro e por qualquer atividade realizada com sua conta, devendo comunicar imediatamente o quiosque em caso de suspeita de uso indevido. Contas de administração e de cozinha são criadas e geridas exclusivamente pelo quiosque, para uso interno da operação.</p>
+        <h3>3. Pedidos e pagamento</h3>
+        <p>Cada pedido é vinculado ao número da mesa ou guarda-sol informado pelo cliente ao fazer o pedido. O quiosque pode estabelecer um valor mínimo de pedido, exibido no carrinho antes da confirmação. O pagamento é processado por meio da plataforma Mercado Pago, aceitando PIX e cartão de crédito. O Sunfood não armazena, processa ou tem acesso a números de cartão, CVV ou dados sensíveis de pagamento: essas informações são inseridas diretamente na interface do Mercado Pago e ficam sob a responsabilidade exclusiva dessa instituição, sujeitas aos próprios termos e políticas dela. O Sunfood recebe apenas a confirmação do status do pagamento (aprovado, recusado ou pendente).</p>
+        <h3>4. Cancelamento de pedidos</h3>
+        <p>O cancelamento de um pedido pelo cliente só é permitido enquanto o status do pedido estiver como <strong>"Na fila"</strong>, ou seja, antes de a cozinha iniciar o preparo. Uma vez que o pedido avança para "Em preparo" ou "Pronto", o cancelamento pelo próprio cliente não é mais possível pelo aplicativo, sendo necessário buscar diretamente o atendimento do quiosque, que avaliará o caso conforme sua política interna de estorno. Em caso de cancelamento aprovado após o pagamento, o eventual estorno segue as regras e prazos da forma de pagamento utilizada (PIX ou cartão) e da plataforma Mercado Pago.</p>
+        <h3>5. Responsabilidades do quiosque</h3>
+        <p>O quiosque é responsável por manter o cardápio atualizado, incluindo preços, disponibilidade e descrição dos itens; por preparar e entregar os pedidos recebidos; pela qualidade e segurança dos alimentos e bebidas comercializados; e por informações claras sobre alérgenos, quando aplicável. O quiosque também é responsável pela precisão dos dados de contato e de funcionamento exibidos no sistema.</p>
+        <h3>6. Responsabilidades do cliente</h3>
+        <p>Cabe ao cliente conferir o pedido antes de confirmá-lo, incluindo itens, quantidades e eventuais observações (restrições alimentares, ponto de preparo etc.), informar corretamente a mesa ou guarda-sol em que se encontra, efetuar o pagamento pelos meios disponibilizados e tratar com respeito a equipe do quiosque. O uso do sistema para fins fraudulentos, para prejudicar o funcionamento da plataforma ou para inserir dados falsos é expressamente proibido.</p>
+        <h3>7. Alterações destes termos</h3>
+        <p>Estes Termos de Uso podem ser atualizados a qualquer momento, para refletir mudanças no serviço, na legislação aplicável ou nas práticas do quiosque. A versão vigente é sempre a publicada aqui, com a respectiva data de atualização indicada no topo. O uso continuado do sistema após uma alteração implica concordância com os novos termos.</p>
+        <h3>8. Legislação aplicável e foro</h3>
+        <p>Estes termos são regidos pelas leis da República Federativa do Brasil, em especial o Código de Defesa do Consumidor (Lei nº 8.078/1990) e a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Fica eleito o foro da comarca do domicílio do quiosque operador do sistema para dirimir eventuais controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja, salvo disposição legal em contrário que garanta foro mais favorável ao consumidor.</p>
+        <div class="note"><p>Dúvidas sobre estes Termos de Uso podem ser enviadas para <a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a> ou pelo <a href="#fale-conosco">Fale conosco</a>. Veja também a <a href="#privacidade">Política de Privacidade</a>.</p></div>
+      </section>
+
+      <section data-sec="privacidade">
+        <p class="eyebrow">Documento legal · LGPD</p>
+        <h2>Política de privacidade</h2>
+        <p>Última atualização: 6 de outubro de 2026. Este documento explica quais dados pessoais o Sunfood coleta, para que servem e quais direitos você tem sobre eles, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
+        <h3>1. Quais dados coletamos</h3>
+        <p>Para o funcionamento do sistema, coletamos e armazenamos:</p>
+        <ul>
+          <li><strong>Nome</strong>: informado no cadastro, para identificação e atendimento personalizado.</li>
+          <li><strong>E-mail</strong>: usado como identificador de login e canal de contato sobre pedidos.</li>
+          <li><strong>Telefone e data de nascimento</strong>: informados no cadastro, para contato sobre o pedido e identificação do cliente.</li>
+          <li><strong>CPF</strong>: informado no cadastro, para identificar o cliente com segurança e evitar contas duplicadas ou falsas. Não é exibido a outros usuários nem usado para publicidade.</li>
+          <li><strong>Senha, em formato de hash</strong>: a senha original nunca é armazenada; apenas um resumo criptográfico usado para validar o login. Quem entra com a conta Google não cria senha no Sunfood; recebemos do Google apenas nome e e-mail.</li>
+          <li><strong>Número da mesa ou guarda-sol</strong>: informado pelo cliente ao fazer o pedido, para direcioná-lo corretamente.</li>
+          <li><strong>Histórico de pedidos</strong>: itens, valores, status e horários de pedidos já realizados.</li>
+          <li><strong>Mensagens do Fale conosco</strong>: nome, contato, motivo e texto enviados, para a administração responder.</li>
+        </ul>
+        <p><strong>O que não coletamos:</strong> o Sunfood não coleta nem armazena número de cartão de crédito, código de segurança (CVV), data de validade ou qualquer outro dado sensível de pagamento. Essas informações são digitadas diretamente na interface do Mercado Pago e permanecem sob a guarda exclusiva dessa instituição.</p>
+        <h3>2. Finalidade e base legal de cada dado</h3>
+        <p>Os dados de cadastro são tratados com base na <strong>execução de contrato</strong> (art. 7º, V, da LGPD): sem eles não é possível criar a conta necessária para fazer um pedido. O número da mesa ou guarda-sol e o histórico de pedidos também têm base na execução do contrato, viabilizando a entrega correta e o suporte a pedidos anteriores. Quando o cadastro envolve o uso de cookies não essenciais ou comunicações de marketing (por exemplo, ofertas por e-mail), a base legal passa a ser o <strong>consentimento</strong> (art. 7º, I), sempre solicitado de forma destacada e revogável a qualquer momento.</p>
+        <h3>3. Por quanto tempo os dados são guardados</h3>
+        <p>Os dados de cadastro e o histórico de pedidos são mantidos enquanto a conta estiver ativa, e por período adicional necessário para cumprir obrigações legais, fiscais e contábeis do quiosque (por exemplo, comprovação de vendas). Após a exclusão da conta solicitada pelo titular, os dados pessoais são removidos ou anonimizados, ressalvado o que a lei exigir manter por prazo determinado.</p>
+        <h3>4. Com quem os dados são compartilhados</h3>
+        <p>Os dados pessoais podem ser compartilhados com:</p>
+        <ul>
+          <li><strong>Mercado Pago</strong>: para processar o pagamento dos pedidos (PIX e cartão). Dados de pagamento são inseridos diretamente nessa plataforma e regidos pela política de privacidade dela.</li>
+          <li><strong>Supabase</strong>: atua como operador de dados, hospedando o banco de dados e a infraestrutura do sistema (cadastro de usuários, pedidos e cardápio) em nome do quiosque, sem uso próprio dessas informações para outras finalidades.</li>
+          <li><strong>Google</strong>: somente para quem escolhe entrar com a conta Google, que confirma a identidade e informa nome e e-mail.</li>
+        </ul>
+        <p>Não vendemos nem alugamos dados pessoais a terceiros para fins de publicidade.</p>
+        <h3>5. Cookies e armazenamento local</h3>
+        <p>Após o login, o token de sessão é guardado no armazenamento local (localStorage) do navegador do próprio dispositivo, permitindo manter o usuário conectado sem exigir login a cada tela. Esse token fica salvo apenas no aparelho do cliente e pode ser removido a qualquer momento limpando os dados do site no navegador ou saindo da conta. Não usamos cookies de rastreamento de terceiros para publicidade.</p>
+        <h3>6. Seus direitos como titular dos dados</h3>
+        <p>Conforme o artigo 18 da LGPD, você pode solicitar a qualquer momento:</p>
+        <ul>
+          <li><strong>Acesso</strong> aos dados pessoais que temos sobre você;</li>
+          <li><strong>Correção</strong> de dados incompletos, inexatos ou desatualizados;</li>
+          <li><strong>Exclusão</strong> dos dados pessoais tratados com base no consentimento, ou encerramento da conta;</li>
+          <li><strong>Portabilidade</strong> dos dados a outro fornecedor de serviço, mediante requisição expressa;</li>
+          <li>Informação sobre com quem seus dados são compartilhados e revogação do consentimento dado.</li>
+        </ul>
+        <p>Para exercer qualquer um desses direitos, envie uma solicitação para <a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a>, informando o nome e o e-mail usados no cadastro. O pedido será respondido em prazo razoável, conforme previsto na LGPD.</p>
+        <div class="note"><p><strong>Aviso importante:</strong> este texto é um modelo de referência, escrito para descrever de forma honesta como o Sunfood trata dados pessoais hoje. Antes do lançamento comercial real, esta Política de Privacidade e os Termos de Uso devem ser revisados por um advogado especializado em proteção de dados.</p></div>
+        <p>Dúvidas podem ser enviadas para <a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a> ou pelo <a href="#fale-conosco">Fale conosco</a>. Veja também os <a href="#termos">Termos de uso</a>.</p>
+      </section>
+
+    </div>
+  </div>
 </div>
 <script>
 // Local (python -m http.server) fala com a API local; publicado (GitHub
@@ -200,6 +439,83 @@ $('resend').addEventListener('click', async function () {
   } finally {
     busy = false;
   }
+});
+
+// ---- Painéis do rodapé: Conheça o Sunfood, Fale conosco, Termos, Privacidade ----
+var SECOES = ['conheca', 'fale-conosco', 'termos', 'privacidade'];
+var TITULOS = { conheca: 'Conheça o Sunfood', 'fale-conosco': 'Fale conosco', termos: 'Termos de uso', privacidade: 'Privacidade' };
+var info = $('info'), voltarFoco = null;
+
+function abrirSecao() {
+  var sec = location.hash.slice(1);
+  if (SECOES.indexOf(sec) < 0) {
+    if (!info.hidden) {
+      info.hidden = true; document.body.style.overflow = ''; document.title = 'Sunfood · Entrar';
+      if (voltarFoco && voltarFoco.focus) voltarFoco.focus();
+    }
+    return;
+  }
+  if (info.hidden) { voltarFoco = document.activeElement; info.hidden = false; document.body.style.overflow = 'hidden'; }
+  info.querySelectorAll('[data-sec]').forEach(function (el) { el.hidden = el.getAttribute('data-sec') !== sec; });
+  info.querySelectorAll('.tab').forEach(function (a) {
+    if (a.getAttribute('href') === '#' + sec) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
+  $('info-body').scrollTop = 0;
+  $('info-body').focus({ preventScroll: true });
+  document.title = 'Sunfood · ' + TITULOS[sec];
+}
+
+function fecharSecao() {
+  // Tira o #secao do endereço sem criar outra entrada no histórico.
+  history.replaceState(null, '', location.pathname + location.search);
+  abrirSecao();
+}
+
+info.addEventListener('click', function (e) {
+  if (e.target.closest('[data-close]')) { e.preventDefault(); fecharSecao(); }
+});
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !info.hidden) fecharSecao(); });
+window.addEventListener('hashchange', abrirSecao);
+abrirSecao();
+
+// Fale conosco: grava a mensagem pela API (POST /contact) e mostra o protocolo.
+var enviando = false;
+function erroCampo(id, inp, mostrar) { $(id).hidden = !mostrar; $(inp).setAttribute('aria-invalid', mostrar ? 'true' : 'false'); }
+$('contact').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  if (enviando) return;
+  var nome = $('c-nome').value.trim(), contato = $('c-contato').value.trim(), msg = $('c-msg').value.trim();
+  var okContato = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(contato) || contato.replace(/\D/g, '').length >= 10;
+  erroCampo('e-nome', 'c-nome', nome.length < 2);
+  erroCampo('e-contato', 'c-contato', !okContato);
+  erroCampo('e-msg', 'c-msg', msg.length < 10);
+  $('c-alert').hidden = true;
+  if (nome.length < 2 || !okContato || msg.length < 10) return;
+  enviando = true; $('c-enviar').disabled = true; $('c-enviar').textContent = 'Enviando…';
+  try {
+    var res = await fetch(API_BASE + '/contact', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: nome, contact: contato, reason: $('c-motivo').value, message: msg })
+    });
+    var body = await res.json().catch(function () { return {}; });
+    if (!res.ok || !body.protocol) {
+      var det = body.details && body.details[0] ? body.details[0].message : '';
+      $('c-alert').textContent = det || body.error || 'Não foi possível enviar agora. Tente de novo ou escreva para darlley1997@gmail.com.';
+      $('c-alert').hidden = false;
+      return;
+    }
+    $('c-ok-title').textContent = 'Recebemos sua mensagem, ' + nome.split(' ')[0];
+    $('c-prot').textContent = body.protocol;
+    $('contact').hidden = true; $('c-ok').hidden = false;
+  } catch (err) {
+    $('c-alert').textContent = 'Sem conexão com o servidor. Confira sua internet ou escreva para darlley1997@gmail.com.';
+    $('c-alert').hidden = false;
+  } finally {
+    enviando = false; $('c-enviar').disabled = false; $('c-enviar').textContent = 'Enviar mensagem';
+  }
+});
+$('c-nova').addEventListener('click', function () {
+  $('contact').reset(); $('c-ok').hidden = true; $('contact').hidden = false; $('c-nome').focus();
 });
 </script>
 </body>

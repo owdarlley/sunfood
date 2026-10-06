@@ -18,6 +18,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     tables: [1, 2, 3, 4, 5].map(number => ({ number, active: number !== 2, seats: 4 })),
     kiosk: { paused: false, dayClosed: false, cancelWindowMinutes: 0 },
     orders: [],
+    contacts: [],
     paymentsConfigured,
   };
   const user = { id: 'u1', email: role + '@teste', name: 'Teste', role };
@@ -64,6 +65,14 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     if ((r = p.match(/^\/products\/([^/]+)\/sold-out$/))) { const pr = db.products.find(x => x.id === r[1]); pr.soldOut = body.soldOut; return json(200, pr); }
     if (p === '/dashboard') return json(200, { revenueToday: 0, ordersToday: 0, avgTicket: 0, topProducts: [], salesByHour: Array.from({ length: 24 }, (_, hour) => ({ hour, revenue: 0 })) });
     if (p === '/ops-metrics') return json(200, { lateOrders: 0, avgPrepSeconds: null, cancelledToday: 0, avgQueueSeconds: null, soldOutProducts: [], ordersInQueueOrPrep: 1 });
+    if (p === '/contact' && m === 'POST') {
+      // Mesma validação mínima do servidor: contato precisa ser e-mail ou telefone.
+      if (!/@/.test(body.contact) && String(body.contact).replace(/\D/g, '').length < 10) return json(400, { error: 'Dados inválidos.', details: [{ message: 'Informe um e-mail ou telefone com DDD.' }] });
+      const c = { id: 'c' + (db.contacts.length + 1), protocol: 'SF-' + (100001 + db.contacts.length), ...body, status: 'novo', createdAt: now() };
+      db.contacts.unshift(c); return json(201, { protocol: c.protocol });
+    }
+    if (p === '/contact' && m === 'GET') return json(200, db.contacts);
+    if ((r = p.match(/^\/contact\/([^/]+)\/status$/))) { const c = db.contacts.find(c => c.id === r[1]); c.status = body.status; return json(200, c); }
     if (p === '/reports/sales') {
       // Relatório de mentira: 12h é o pico; período de 1, 7 ou 30 dias.
       const period = url.searchParams.get('period') || 'hoje';
