@@ -383,7 +383,7 @@ class Component extends DCLogic {
       },
       resumoBeneficios: [
         { n: '01', t: 'Pedido sem espera', d: 'QR Code da mesa, carrinho no celular e pedido enviado sem chamar o garçom.' },
-        { n: '02', t: 'Pagamento na hora', d: 'PIX ou cartão na mesma tela, com a conta dividida entre o grupo.' },
+        { n: '02', t: 'Pagamento na hora', d: 'PIX ou cartão na mesma tela, sem esperar o garçom.' },
         { n: '03', t: 'Operação sob controle', d: 'Cozinha em kanban e gestão vendo vendas e estoque em tempo real.' }
       ],
       resumoPassos: [
@@ -435,7 +435,7 @@ class Component extends DCLogic {
       },
       beneficios: [
         { n: '01', t: 'Pedido sem espera', d: 'O cliente escaneia o QR Code da mesa, monta o carrinho e envia o pedido sem depender do garçom.' },
-        { n: '02', t: 'Pagamento no celular', d: 'PIX ou cartão na própria tela, com divisão da conta entre as pessoas do guarda-sol.' },
+        { n: '02', t: 'Pagamento no celular', d: 'PIX ou cartão na própria tela, sem fila e sem maquininha.' },
         { n: '03', t: 'Cozinha organizada', d: 'Cada pedido entra num quadro kanban com Na Fila, Em Preparo e Pronto, na ordem em que chegou.' },
         { n: '04', t: 'Gestão em tempo real', d: 'O gestor vê vendas do dia, itens esgotados e fila de preparo sem somar comanda de papel.' }
       ],
@@ -446,7 +446,7 @@ class Component extends DCLogic {
       ],
       perfis: [
         { tag: 'PWA no celular', t: 'Cliente', top: 'background:#FFB21E;color:#12232E;padding:24px 22px',
-          items: ['Cardápio digital por categorias', 'Carrinho com observações por item', 'Pagamento PIX, cartão e divisão da conta', 'Status do pedido e histórico'] },
+          items: ['Cardápio digital por categorias', 'Carrinho com observações por item', 'Pagamento por PIX ou cartão', 'Status do pedido e histórico'] },
         { tag: 'Web · tela de apoio', t: 'Cozinha', top: 'background:#12232E;color:#fff;padding:24px 22px',
           items: ['Kanban de pedidos em tempo real', 'Marcação de item indisponível', 'Alerta de pedido atrasado', 'Observações do cliente visíveis'] },
         { tag: 'Web · gestão', t: 'Administração', top: 'background:#0B6670;color:#fff;padding:24px 22px',
