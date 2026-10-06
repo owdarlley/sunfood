@@ -98,6 +98,13 @@ await step('planilha de hoje', async () => {
   check('planilha: lista os 3 pedidos de hoje (horário de São Paulo)', rows.length === 3 && rows[0].startsWith('#101;05/10/2026;12:30;3;2x Batata Frita;50,00;Entregue;PIX;Pago no app (PIX);Sim'), rows.join(' | '));
   check('planilha: cancelado/estornado aparece com "Não" e aspas no item com ;', rows[1] === '#102;05/10/2026;15:10;3;"1x Caipirinha; ""da casa""";22,00;Cancelado;PIX;Estornado (PIX);Não', rows[1]);
   check('planilha: pedido das 23h30 de SP conta no dia 05/10', rows[2].startsWith('#103;05/10/2026;23:30') && rows[2].includes(';1234,50;') && rows[2].endsWith('Cobrar na entrega;Sim'), rows[2]);
+  check('planilha: resumo por escrito com vendas, faturamento e ticket', lines.includes('RESUMO POR ESCRITO') &&
+    lines.includes('Hoje (05/10/2026), o quiosque fez 3 vendas, com faturamento de R$ 120,00.') &&
+    lines.includes('O ticket médio foi de R$ 40,00 por pedido e foram vendidos 6 itens.'), lines.slice(4, 14).join(' | '));
+  check('planilha: resumo por escrito com pico, mais vendido e pagamentos', lines.includes('O horário de mais movimento foi das 12h às 13h, com 2 pedidos.') &&
+    lines.includes('O produto mais vendido foi Batata Frita (5 unidades, R$ 125,00), seguido de Água de Coco (2 unidades).') &&
+    lines.includes('Formas de pagamento das vendas: PIX 1, Na entrega 1.') &&
+    lines.includes('Ao todo, 3 pedidos foram feitos no período: 1 cancelado ou estornado, e não entram nas vendas.'), lines.slice(4, 14).join(' | '));
   check('planilha: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.context().close();
 });
@@ -128,6 +135,8 @@ for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tabl
     const win = await openPdf(page);
     const w = await win.locator('body').innerText();
     check(`pdf ${nome}: título, período e resumo`, w.includes('Relatório de vendas · Sunfood') && w.includes('Últimos 7 dias (29/09/2026 a 05/10/2026)') && w.includes('R$ 360,00'), w.slice(0, 300));
+    check(`pdf ${nome}: resumo por escrito com melhor dia e média`, w.includes('Resumo por escrito') && w.includes('Nos últimos 7 dias (29/09/2026 a 05/10/2026), o quiosque fez 9 vendas, com faturamento de R$ 360,00.') &&
+      w.includes('O melhor dia foi 05/10/2026, com R$ 120,00 em 3 pedidos. Houve venda em 7 de 7 dias, uma média de R$ 51,43 por dia.'), w.slice(0, 900));
     check(`pdf ${nome}: vendas por dia, horários e mais vendidos`, w.includes('Vendas por dia') && w.includes('12h às 13h') && w.includes('Batata Frita'));
     check(`pdf ${nome}: lista os 4 pedidos do período`, w.includes('Pedidos do período (4)') && w.includes('#104') && w.includes('R$ 1.234,50') && !w.includes('#105'));
     check(`pdf ${nome}: abre a impressão (salvar como PDF)`, await win.evaluate(() => window.__printed) === 1);
