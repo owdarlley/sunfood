@@ -166,7 +166,7 @@ await step('fale conosco', async () => {
 
   const admin = await open('app-cliente.dc.html?module=admin&screen=messages', { role: 'admin' });
   admin.api.db.contacts.push({ id: 'c1', protocol: 'SF-100001', name: 'Bruna Lima', contact: '(13) 98888-7777', reason: 'Reservar mesa ou guarda-sol', message: 'Mesa para 6 no sábado.', status: 'novo', createdAt: new Date().toISOString() });
-  await click(admin, 'Pagamentos'); await click(admin, 'Mensagens (Fale conosco)');
+  await click(admin, 'Pagamentos', true); await click(admin, 'Mensagens', true);
   let a = await text(admin);
   check('admin mensagens: mostra a mensagem nova', a.includes('Bruna Lima') && a.includes('Mesa para 6 no sábado.') && a.includes('Novas (1)'), a.slice(0, 500));
   await click(admin, 'Marcar como respondida');
