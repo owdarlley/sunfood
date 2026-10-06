@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node fluxo/telas.mjs && node fluxo/pagamentos.mjs && node fluxo/senha.mjs && node fluxo/conta.mjs && node fluxo/google.mjs && node fluxo/pwa.mjs"
+    "test": "node fluxo/telas.mjs && node fluxo/pagamentos.mjs && node fluxo/senha.mjs && node fluxo/conta.mjs && node fluxo/google.mjs && node fluxo/pwa.mjs && node fluxo/mesas.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"

@@ -682,7 +682,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                     <span style="font:700 13px 'DM Sans',sans-serif;color:#5A6670;text-transform:uppercase;letter-spacing:.08em">Nº da mesa ou guarda-sol</span>
                     <div style="width:150px;height:150px;border-radius:50%;background:#0B6670;box-shadow:0 0 0 8px #F6F3EC,0 0 0 11px #FBD58A;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:10px 0">
                       <span style="font:700 14px 'DM Sans',sans-serif;color:#CFE7E8">Mesa</span>
-                      <input value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" placeholder="00" aria-label="Número da mesa" style="width:110px;border:none;outline:none;text-align:center;font:800 54px 'Bricolage Grotesque',sans-serif;color:#fff;background:transparent;padding:0;line-height:1">
+                      <input value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" placeholder="00" aria-label="Número da mesa" style="width:150px;max-width:100%;border:none;outline:none;text-align:center;font:800 54px 'Bricolage Grotesque',sans-serif;color:#fff;background:transparent;padding:0;line-height:1">
                     </div>
                     <div class="muted" style="font-size:15px;line-height:1.5;max-width:420px">O número está na plaquinha de madeira do guarda-sol. {{ activeTablesHint }}</div>
                   </div>
@@ -1331,6 +1331,15 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                   <div><h2 style="margin:0">Mesas</h2><div class="muted" style="font-size:14px;margin-top:4px">Mesa desativada não aceita pedidos. Toque para ligar ou desligar.</div></div>
                   <b style="font-size:16px">{{ activeTables }}</b>
                 </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+                  <label for="tableCountInp" style="font:700 14px 'DM Sans',sans-serif">Quantidade de mesas</label>
+                  <div style="display:flex;gap:8px;flex:1;min-width:220px;max-width:360px">
+                    <input id="tableCountInp" class="inp" value="{{ tableCountInput }}" onChange="{{ setTableCountInput }}" placeholder="{{ tableCountPlaceholder }}" inputmode="numeric" style="flex:1;min-width:0" />
+                    <div onClick="{{ saveTableCount }}" class="btn btn-dark btn-sm" style="min-height:48px">Salvar</div>
+                  </div>
+                </div>
+                <div class="muted" style="font-size:14px;margin-bottom:14px">Numeradas de 1 até esse número. Mesa nova já entra ativa.</div>
+                <sc-if value="{{ hasTableCountMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 14px 'DM Sans',sans-serif;color:#0B6670;margin:-6px 0 14px">{{ tableCountMsg }}</div></sc-if>
                 <div class="tiles">
                   <sc-for list="{{ tableTiles }}" as="t" hint-placeholder-count="12">
                     <div onClick="{{ t.toggle }}" class="tile" style="{{ t.tileStyle }}">
@@ -1888,6 +1897,7 @@ class Component extends DCLogic {
     paused:false, dayClosed:false,
     // Prazo (min) pro cliente cancelar — vem de GET /kiosk-settings; 0 = sem prazo.
     cancelWindow:0, cancelWindowInput:'', cancelWindowMsg:'',
+    tableCountInput:'', tableCountMsg:'',
     // Pedido mínimo (R$) — vem de GET /kiosk-settings; 10 é só o padrão até carregar.
     minOrder:10, minOrderInput:'', minOrderMsg:'',
     // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
@@ -2265,6 +2275,23 @@ class Component extends DCLogic {
       if(!res.ok) return this.setState({minOrderMsg: (data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
       this.setState({minOrder:data.minOrder, minOrderInput:'', minOrderMsg:'Pedido mínimo atualizado.'});
     } catch(e){ this.setState({minOrderMsg:'Falha de conexão com o servidor.'}); }
+  }
+
+  async saveTableCount(){
+    const raw = String(this.state.tableCountInput || '').trim();
+    const count = Number(raw);
+    if(!/^\d+$/.test(raw) || count < 1 || count > 500) return this.setState({tableCountMsg:'Digite um número de 1 a 500.'});
+    try {
+      const res = await fetch(API_BASE + '/kiosk-settings/table-count', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({count})
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({tableCountMsg:(data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
+      const tablesRes = await fetch(API_BASE + '/tables');
+      const tables = tablesRes.ok ? (await tablesRes.json()).map(t => ({n:t.number, active:t.active, seats:t.seats})) : this.state.tables;
+      this.setState({tables, tableCountInput:'', tableCountMsg:'Agora o quiosque tem ' + data.tableCount + (data.tableCount === 1 ? ' mesa.' : ' mesas.')});
+    } catch(e){ this.setState({tableCountMsg:'Falha de conexão com o servidor.'}); }
   }
 
   async toggleTableActive(number, active){
@@ -2869,13 +2896,13 @@ class Component extends DCLogic {
 
     // table
     v.tableInput = s.tableInput; v.tableErr = s.tableErr; v.hasTableErr = !!s.tableErr;
-    v.setTable = e => this.setState({tableInput:e.target.value.replace(/\D/g, '').slice(0, 2), tableErr:''});
+    v.setTable = e => this.setState({tableInput:e.target.value.replace(/\D/g, '').slice(0, 3), tableErr:''});
     v.tableFilled = s.tableInput.length > 0;
     v.activeTablesHint = activeTablesText(s.tables);
     v.confirmTable = () => {
       const n = parseInt(s.tableInput, 10);
       const t = s.tables.find(x => x.n === n);
-      if(!t) return this.setState({tableErr:'Mesa ' + s.tableInput + ' não existe. Confira a plaquinha do guarda-sol.'});
+      if(!t) return this.setState({tableErr:'Mesa ' + s.tableInput + ' não existe' + (s.tables.length ? ' (o quiosque tem mesas de 1 a ' + s.tables.length + ')' : '') + '. Confira a plaquinha do guarda-sol.'});
       if(!t.active) return this.setState({tableErr:'Mesa ' + n + ' está inativa no Admin. Procure um atendente.'});
       this.setState({table:n, tableErr:'', screen:'payment'});
     };
@@ -3149,6 +3176,11 @@ class Component extends DCLogic {
     }));
     v.activeTables = s.tables.filter(t => t.active).length + ' de ' + s.tables.length + ' ativas';
 
+    v.tableCountInput = s.tableCountInput;
+    v.tableCountPlaceholder = 'Hoje: ' + s.tables.length;
+    v.setTableCountInput = e => this.setState({tableCountInput:e.target.value.replace(/\D/g, '').slice(0, 3), tableCountMsg:''});
+    v.saveTableCount = () => this.saveTableCount();
+    v.tableCountMsg = s.tableCountMsg; v.hasTableCountMsg = !!s.tableCountMsg;
     v.togglePause = () => this.togglePauseKiosk();
     v.cancelWindowStr = s.cancelWindow ? s.cancelWindow + ' min depois do pedido' : 'sem prazo (pode cancelar enquanto estiver na fila)';
     v.cancelWindowInput = s.cancelWindowInput;
