@@ -75,11 +75,12 @@ html{zoom:var(--sfz)}
     .auth-main{align-items:flex-start;padding:24px 18px 40px}
   }
 
-/* Sem "tracinho" de digitação piscando ao clicar em botões ou texto: o cursor
-   de texto só aparece em campos editáveis. */
-body{caret-color:transparent}
-input,textarea,select,[contenteditable="true"]{caret-color:auto}
-button,.btn,.gbtn,.tab,.info-close,.brand{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+/* Clicar ou tocar perto de um texto não seleciona nada nem mostra o cursor de
+   texto (o "tracinho"): só os campos de digitação são selecionáveis e
+   mostram o cursor de texto. */
+body{caret-color:transparent;-webkit-user-select:none;user-select:none;cursor:default;-webkit-tap-highlight-color:transparent}
+input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable="true"]{caret-color:auto;-webkit-user-select:text;user-select:text;cursor:text}
+select{caret-color:auto}
 </style>
 </helmet>
 

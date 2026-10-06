@@ -308,12 +308,12 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
 @media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}}
 
-/* Sem "tracinho" de digitação piscando ao tocar/clicar em botões: o cursor de
-   texto só aparece em campos editáveis, e botões/itens clicáveis não
-   selecionam o próprio texto (toque longo ou clique duplo). */
-body{caret-color:transparent}
-input,textarea,select,[contenteditable="true"]{caret-color:auto}
-.btn,.stepper .sb,.toggle,.brand,.toplink,.cartpill,.backbtn,.pcard,.addbtn,.gbtn,.payopt,.orow,.menurow,.adm-item,.adm-brand,.adm-menubtn,.fpill,.seg div,.tile,.kz-btn,.kz-act,.chip,[role="button"],[style*="cursor:pointer"]{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+/* Clicar ou tocar perto de um texto não seleciona nada nem mostra o cursor de
+   texto (o "tracinho"): só os campos de digitação são selecionáveis e
+   mostram o cursor de texto. */
+body{caret-color:transparent;-webkit-user-select:none;user-select:none;cursor:default;-webkit-tap-highlight-color:transparent}
+input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable="true"]{caret-color:auto;-webkit-user-select:text;user-select:text;cursor:text}
+select{caret-color:auto}
 </style>
 </helmet>
 
