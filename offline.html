@@ -7,6 +7,16 @@
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 <title>Sunfood — sem conexão</title>
 <style>
+/* Escala geral: tudo um pouco menor que o tamanho "cru" do CSS, para as telas
+   não parecerem ampliadas (pedido do Dárlley, 2026-10-06). As alturas de tela
+   cheia usam calc(100vh / var(--sfz)) porque o zoom também encolhe o vh.
+   No celular e no tablet os campos ficam com 16px reais na tela, senão o
+   iPhone dá zoom sozinho ao tocar num campo. */
+:root{--sfz:.86}
+@media (max-width:1100px){:root{--sfz:.92}}
+html{zoom:var(--sfz)}
+@media (max-width:1100px){input,select,textarea{font-size:calc(16px / var(--sfz)) !important}}
+
   html,body{margin:0;height:100%}
   body{display:flex;align-items:center;justify-content:center;background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;color:#12232E;padding:24px;box-sizing:border-box;text-align:center}
   .box{max-width:340px}
