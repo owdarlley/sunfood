@@ -152,7 +152,7 @@ await step('rodapé do login', async () => {
 
 // 1c. Logo do Sunfood: sem login leva à tela de login; logado, ao início de cada perfil
 await step('logo do Sunfood', async () => {
-  const logo = page => page.locator('.brand:visible, .adm-brand:visible, .kz-head > div:first-child').first();
+  const logo = page => page.locator('.brand:visible, .adm-brand:visible').first();
   const anon = await open('app-cliente.dc.html?module=cliente&screen=signup');
   await logo(anon).click(); await anon.waitForTimeout(800);
   check('logo sem login: vai para a tela de login', anon.url() === BASE && (await text(anon)).includes('Bem-vindo de volta'), anon.url());
