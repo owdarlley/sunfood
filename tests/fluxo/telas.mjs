@@ -150,6 +150,36 @@ await step('rodapé do login', async () => {
   await logado.close();
 });
 
+// 1c. Logo do Sunfood: sem login leva à tela de login; logado, ao início de cada perfil
+await step('logo do Sunfood', async () => {
+  const logo = page => page.locator('.brand:visible, .adm-brand:visible, .kz-head > div:first-child').first();
+  const anon = await open('app-cliente.dc.html?module=cliente&screen=signup');
+  await logo(anon).click(); await anon.waitForTimeout(800);
+  check('logo sem login: vai para a tela de login', anon.url() === BASE && (await text(anon)).includes('Bem-vindo de volta'), anon.url());
+  await anon.close();
+
+  const cli = await open('app-cliente.dc.html');
+  await cli.getByPlaceholder('voce@email.com').fill('ana@email.com');
+  await cli.getByPlaceholder('••••••••').fill('senha');
+  await click(cli, 'Entrar', true);
+  await click(cli, 'Perfil', true);
+  await logo(cli).click(); await cli.waitForTimeout(500);
+  check('logo do cliente logado: volta ao cardápio', (await text(cli)).includes('Batata Frita'), (await text(cli)).slice(0, 160));
+  await cli.close();
+
+  for (const [role, dest] of [['admin', 'module=admin&screen=dashboard'], ['cozinha', 'module=cozinha&screen=kanban']]) {
+    const p = await open(`app-cliente.dc.html?module=${role}&screen=${role === 'admin' ? 'orders' : 'kanban'}`, { role, seed: true });
+    await logo(p).click(); await p.waitForTimeout(1200);
+    check(`logo de ${role} logado: vai para o início do módulo`, p.url().includes(dest), p.url());
+    await p.close();
+  }
+
+  const ini = await open('#termos');
+  await ini.locator('#info-title').click(); await ini.waitForTimeout(600);
+  check('logo do painel do rodapé: volta ao login', ini.url() === BASE && await ini.locator('#info').isHidden(), ini.url());
+  await ini.close();
+});
+
 // 2. Cliente: login -> cardápio -> carrinho -> mesa -> PIX -> confirmação
 await step('fluxo do cliente', async () => {
   const page = await open('app-cliente.dc.html');
