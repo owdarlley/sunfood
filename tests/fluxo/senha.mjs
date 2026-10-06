@@ -45,6 +45,8 @@ async function open(path) {
     const json = (status, data) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
     if (p === '/auth/forgot-password') {
       if (body.email === 'ana@emial.com') return json(404, { error: 'Não encontramos uma conta com este e-mail. Confira se digitou certo ou crie uma conta.', code: 'email_not_found' });
+      if (body.cpf === '11144477735') return json(404, { error: 'Não encontramos uma conta com este CPF. Confira os números ou crie uma conta.', code: 'cpf_not_found' });
+      if (body.cpf) return json(200, { message: 'Enviamos um link de redefinição para a*a@email.com.', sentTo: 'a*a@email.com' });
       if (body.email === 'bia@gmail.com') return json(400, { error: 'Esta conta foi criada com o Google e não tem senha. Use o botão "Entrar com Google".', code: 'google_account' });
       return json(200, { message: 'ok' });
     }
@@ -97,6 +99,45 @@ await step('pedir link com e-mail errado', async () => {
   check('e-mail errado: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();
 });
+
+// 1c. Não lembra o e-mail: pede pelo CPF e vê o e-mail mascarado
+await step('pedir link pelo CPF', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=login');
+  await click(page, 'Esqueci minha senha');
+  await page.getByText('CPF', { exact: true }).first().click(); await page.waitForTimeout(300);
+  const input = page.getByPlaceholder('000.000.000-00').last();
+  await input.fill('12345678900');
+  let t = await text(page);
+  check('CPF: avisa CPF inválido na hora', t.includes('CPF inválido'));
+  await click(page, 'Enviar link');
+  check('CPF: CPF inválido não chama a API', !page.calls.some(c => c.p === '/auth/forgot-password'));
+  await input.fill('111.444.777-35');
+  check('CPF: pontua enquanto digita', (await input.inputValue()) === '111.444.777-35', await input.inputValue());
+  await click(page, 'Enviar link');
+  t = await text(page);
+  check('CPF sem conta: avisa e continua na tela', t.includes('Não encontramos uma conta com este CPF') && !t.includes('Link enviado'));
+  await input.fill('529.982.247-25');
+  await click(page, 'Enviar link');
+  const call = page.calls.filter(c => c.p === '/auth/forgot-password').at(-1);
+  check('CPF: manda só os dígitos, sem e-mail', call?.body.cpf === '52998224725' && !('email' in call.body), JSON.stringify(call?.body));
+  t = await text(page);
+  check('CPF: mostra o e-mail mascarado', t.includes('Link enviado') && t.includes('a*a@email.com'), t.slice(0, 400));
+  check('CPF: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
+  await page.close();
+});
+
+// 1d. Tela de recuperar senha cabe no celular, tablet e computador
+for (const [nome, width, height] of [['celular', 360, 740], ['tablet', 820, 1100], ['computador', 1366, 820]]) {
+  await step(`responsivo ${nome}`, async () => {
+    const page = await open('app-cliente.dc.html?module=cliente&screen=forgot');
+    await page.setViewportSize({ width, height }); await page.waitForTimeout(300);
+    await page.getByText('CPF', { exact: true }).first().click(); await page.waitForTimeout(300);
+    const sobra = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    check(`recuperar senha (${nome}): sem rolagem lateral`, sobra <= 0, `sobra ${sobra}px`);
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/recuperar-cpf-${nome}.png` });
+    await page.close();
+  });
+}
 
 const LINK = '#access_token=tok-recuperacao&expires_in=3600&refresh_token=r&token_type=bearer&type=recovery';
 

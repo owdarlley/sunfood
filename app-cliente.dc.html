@@ -357,9 +357,23 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                       <div style="display:flex;flex-direction:column;gap:14px">
                         <div>
                           <div class="tt" style="font-size:36px">Recuperar senha</div>
-                          <p class="muted" style="font-size:16px;line-height:1.5;margin:8px 0 0">Informe o e-mail da sua conta. Enviaremos um link para criar uma senha nova, válido por 1 hora.</p>
+                          <p class="muted" style="font-size:16px;line-height:1.5;margin:8px 0 0">Informe o e-mail ou o CPF da sua conta. Enviaremos um link para criar uma senha nova, válido por 1 hora.</p>
                         </div>
-                        <div><span class="lbl">E-mail</span><input class="inp" type="email" value="{{ fpEmail }}" onChange="{{ setFp }}" placeholder="voce@email.com"></div>
+                        <div class="seg" style="display:flex">
+                          <div onClick="{{ fpByEmail }}" class="{{ fpEmailTabCls }}" style="flex:1;text-align:center">E-mail</div>
+                          <div onClick="{{ fpByCpf }}" class="{{ fpCpfTabCls }}" style="flex:1;text-align:center">CPF</div>
+                        </div>
+                        <sc-if value="{{ fpModeEmail }}" hint-placeholder-val="{{ true }}">
+                          <div><span class="lbl">E-mail</span><input class="inp" type="email" value="{{ fpEmail }}" onChange="{{ setFp }}" placeholder="voce@email.com"></div>
+                        </sc-if>
+                        <sc-if value="{{ fpModeCpf }}" hint-placeholder-val="{{ false }}">
+                          <div>
+                            <span class="lbl">CPF</span>
+                            <input class="inp" value="{{ fpCpf }}" onChange="{{ setFpCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="border-color:{{ fpCpfBorder }}">
+                            <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:5px">CPF inválido. Confira os números.</span></sc-if>
+                            <span class="muted" style="display:block;font-size:14px;line-height:1.5;margin-top:6px">Não lembra o e-mail do cadastro? Mandamos o link para o e-mail ligado a este CPF.</span>
+                          </div>
+                        </sc-if>
                         <sc-if value="{{ hasFpErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ fpErr }}</div></sc-if>
                         <div onClick="{{ sendFp }}" class="btn btn-dark">Enviar link</div>
                         <div onClick="{{ goLogin }}" class="link" style="text-align:center">Voltar ao login</div>
@@ -369,7 +383,7 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                       <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px" class="rise">
                         <span style="width:76px;height:76px;border-radius:50%;background:#E7F1F1;display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0B6670" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg></span>
                         <div class="tt" style="font-size:30px">Link enviado</div>
-                        <p class="muted" style="font-size:16px;line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:#12232E">{{ fpEmail }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
+                        <p class="muted" style="font-size:16px;line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:#12232E;word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
                         <div onClick="{{ goLogin }}" class="btn btn-dark" style="width:100%;margin-top:8px">Voltar ao login</div>
                       </div>
                     </sc-if>
@@ -1857,7 +1871,7 @@ class Component extends DCLogic {
     email:'', pass:'', loginErr:'', loginNeedsConfirm:false,
     token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'',
-    fpEmail:'', fpSent:false, fpErr:'',
+    fpEmail:'', fpCpf:'', fpMode:'email', fpSentTo:'', fpSent:false, fpErr:'',
     cat:'Todos', menuSearch:'', products:PRODUCTS.map(p => Object.assign({}, p)),
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
@@ -2493,12 +2507,15 @@ class Component extends DCLogic {
 
   async submitForgotPassword(){
     if(this.state.busy) return;
-    if(!/@/.test(this.state.fpEmail)) return;
+    const byCpf = this.state.fpMode === 'cpf';
+    if(byCpf ? !isValidCpf(this.state.fpCpf) : !/@/.test(this.state.fpEmail)) return;
     this.setState({busy:'forgot', fpErr:''});
     try {
+      // Com CPF, o servidor acha a conta e devolve o e-mail dela mascarado
+      // (d*****7@gmail.com) pra pessoa saber em qual caixa procurar.
       const res = await fetch(API_BASE + '/auth/forgot-password', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email:this.state.fpEmail.trim()})
+        body:JSON.stringify(byCpf ? {cpf:cpfDigits(this.state.fpCpf)} : {email:this.state.fpEmail.trim()})
       });
       // O servidor avisa quando o e-mail não tem conta ou a conta é só do Google.
       if(!res.ok){
@@ -2506,7 +2523,8 @@ class Component extends DCLogic {
         this.setState({fpErr: data.error || 'Não foi possível enviar o link. Tente de novo.'});
         return;
       }
-      this.setState({fpSent:true});
+      const data = await res.json().catch(() => ({}));
+      this.setState({fpSent:true, fpSentTo: byCpf ? (data.sentTo || 'e-mail da sua conta') : this.state.fpEmail.trim()});
     } catch(e){
       this.setState({fpErr:'Falha de conexão com o servidor.'});
     } finally {
@@ -2996,9 +3014,18 @@ class Component extends DCLogic {
     v.completeBtnLabel = s.busy === 'complete' ? 'Salvando...' : 'Salvar e continuar';
     v.completeBusyOpacity = s.busy === 'complete' ? '.6' : '1';
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
+    v.fpSentTo = s.fpSentTo;
+    v.fpModeEmail = s.fpMode !== 'cpf'; v.fpModeCpf = s.fpMode === 'cpf';
+    v.fpEmailTabCls = v.fpModeEmail ? 'on' : ''; v.fpCpfTabCls = v.fpModeCpf ? 'on' : '';
+    v.fpByEmail = () => this.setState({fpMode:'email', fpErr:''});
+    v.fpByCpf = () => this.setState({fpMode:'cpf', fpErr:''});
+    v.fpCpf = s.fpCpf;
+    v.setFpCpf = e => this.setState({fpCpf:formatCpf(e.target.value), fpErr:''});
+    v.fpCpfBad = cpfDigits(s.fpCpf).length === 11 && !isValidCpf(s.fpCpf);
+    v.fpCpfBorder = v.fpCpfBad ? '#B42318' : '#E3DDD0';
     v.setFp = e => this.setState({fpEmail:e.target.value, fpErr:''});
     v.fpErr = s.fpErr; v.hasFpErr = !!s.fpErr;
-    v.fpOk = /@/.test(s.fpEmail);
+    v.fpOk = s.fpMode === 'cpf' ? isValidCpf(s.fpCpf) : /@/.test(s.fpEmail);
     v.fpBlocked = !v.fpOk;
     v.sendFp = () => v.fpOk && this.submitForgotPassword();
 
