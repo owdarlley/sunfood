@@ -11,6 +11,7 @@ Testam o app de ponta a ponta **sem deixar nada gravado em produção**.
 | `celular.mjs` | Celular com toque (360 e 390 px): aba Pedido depois de recarregar, Enviar link sem e-mail/CPF, botões da Localização, menu do admin pelo botão Menu (sem arrastar para os lados), tabela de pedidos em cartões e telas sem rolagem lateral | `node fluxo/celular.mjs` |
 | `conta.mjs` | Cadastro (com CPF validado), login com e-mail não confirmado (botão Reenviar), pedido mínimo, dia encerrado e excluir conta | `node fluxo/conta.mjs` |
 | `localizacao.mjs` | Localização do quiosque: o admin muda nome, endereço e horário em "Quiosque e mesas" e o cliente vê na tela Localização, com o mapa e o "Abrir no mapa" do Google Maps saindo do endereço (celular, tablet e computador) | `node fluxo/localizacao.mjs` |
+| `excluir-produto.mjs` | Excluir item do cardápio: botão Excluir em "Cardápio e estoque", confirmação (Cancelar não apaga nada), item some da lista e cabe na tela no celular, tablet e computador | `node fluxo/excluir-produto.mjs` |
 | `relatorios.mjs` | Exportar relatórios do admin: planilha `.csv` (abre no Excel, com `;` e vírgula decimal) e versão para imprimir/salvar como PDF, do período escolhido (hoje, 7 ou 30 dias), com a lista de pedidos no horário de São Paulo (celular, tablet e computador) | `node fluxo/relatorios.mjs` |
 | `mesas.mjs` | Quantidade de mesas: o admin escolhe quantas mesas existem (celular, tablet e computador) e o cliente só consegue pedir de 1 até esse número | `node fluxo/mesas.mjs` |
 
