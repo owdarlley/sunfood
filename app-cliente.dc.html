@@ -648,7 +648,6 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                       <div class="alert alert-warn">{{ minWarnText }}</div>
                     </sc-if>
                     <div onClick="{{ goTable }}" class="btn btn-sun">Ir para pagamento</div>
-                    <div onClick="{{ goSplit }}" class="btn btn-ghost">Dividir a conta com amigos</div>
                   </div>
                 </div>
               </sc-if>
@@ -787,26 +786,6 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                     <div onClick="{{ goCart }}" class="btn btn-ghost">Voltar ao carrinho</div>
                   </div>
                   <div class="muted" style="font-size:13px">Pagamentos processados com segurança pelo Mercado Pago.</div>
-                </div>
-              </sc-if>
-
-              <sc-if value="{{ is_split }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;gap:12px">
-                  <div style="background:#0B6670;color:#fff;border-radius:22px;padding:22px;text-align:center">
-                    <span style="font:500 14px 'DM Sans',sans-serif;color:#CFE7E8">Total da mesa · 3 pessoas</span>
-                    <div class="tt" style="font-size:36px;margin-top:4px">{{ splitTotalStr }}</div>
-                  </div>
-                  <div class="card" style="overflow:hidden">
-                    <sc-for list="{{ people }}" as="p" hint-placeholder-count="3">
-                      <div class="orow" style="cursor:default">
-                        <span style="{{ p.avStyle }}">{{ p.ini }}</span>
-                        <div><div style="font:700 16px 'DM Sans',sans-serif">{{ p.nm }}</div><div class="muted" style="font-size:14px">{{ p.amt }}</div></div>
-                        <span style="{{ p.stStyle }}">{{ p.st }}</span>
-                      </div>
-                    </sc-for>
-                  </div>
-                  <div class="btn btn-ghost" style="border-style:dashed;color:#5A6670">+ Convidar mais alguém pelo link</div>
-                  <div onClick="{{ goPayment }}" class="btn btn-sun">Pagar minha parte</div>
                 </div>
               </sc-if>
 
@@ -1785,7 +1764,7 @@ const SCREENS = {
     ['login','Login'],['signup','Cadastro'],['forgot','Recuperar Senha'],
     ['menu','Cardápio'],['product','Detalhe do Produto'],['cart','Carrinho'],['cartEmpty','Carrinho Vazio'],
     ['table','Informar Mesa'],['payment','Escolha de Pagamento'],['pix','Pagamento via PIX'],['card','Pagamento via Cartão'],
-    ['confirm','Confirmação do Pedido'],['payFail','Falha no Pagamento'],['split','Dividir Conta'],
+    ['confirm','Confirmação do Pedido'],['payFail','Falha no Pagamento'],
     ['status','Status em Tempo Real'],['cancelAsk','Cancelar Pedido — Permitido'],['cancelDone','Cancelamento Confirmado'],
     ['cancelBlocked','Cancelamento Bloqueado'],['history','Histórico de Pedidos'],['historyEmpty','Histórico Vazio'],
     ['orderDetail','Detalhe de Pedido'],['profile','Perfil'],['deleteAccount','Excluir Conta'],
@@ -1816,7 +1795,6 @@ const META = {
   card:{t:'Pagamento com cartão',back:'payment',w:'narrow'},
   confirm:{t:'',back:null,w:'narrow'},
   payFail:{t:'',back:null,w:'narrow'},
-  split:{t:'Dividir a Conta',back:'cart',w:'narrow'},
   status:{t:'Meu Pedido',sub:'Atualiza sozinho enquanto a cozinha prepara',back:null,nav:'status',w:'mid'},
   cancelAsk:{t:'Cancelar Pedido',back:'status',w:'narrow'},
   cancelDone:{t:'',back:null,w:'narrow'},
@@ -2895,16 +2873,6 @@ class Component extends DCLogic {
     v.askCancel = () => this.go(v.canCancel ? 'cancelAsk' : 'cancelBlocked');
     v.doCancel = () => this.cancelOrder();
 
-    // split bill
-    v.splitTotalStr = o ? f(o.total) : v.totalStr;
-    const per = (o ? o.total : this.subtotal() * 1.1) / 3;
-    v.people = [['Ana Souza','A','#0B6670','Pago'],['Bruno Lima','B','#12232E','Pendente'],['Carla Dias','C','#7A3E8F','Pendente']].map(([nm, ini, bg, st]) => ({
-      nm, ini:ini === 'A' ? '' : ini, amt:f(per) + ' · 1/3 da conta',
-      avStyle:"width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font:800 15px 'DM Sans',sans-serif;flex-shrink:0;" +
-        (ini === 'A' ? 'background-image:url(' + AVATAR + ');background-size:cover;background-position:center' : 'background:' + bg),
-      st, stStyle:'margin-left:auto;' + pillStyle(st === 'Pago' ? 'ok' : 'warn')
-    }));
-
     // history
     const histLive = st => st !== 'Entregue' && st !== 'Cancelado';
     v.historyRows = s.history.map((h, i) => ({
@@ -3319,7 +3287,6 @@ class Component extends DCLogic {
     v.firstName = v.profileName.split(' ')[0];
     v.initials = v.profileName.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
 
-    v.goSplit = () => this.go('split');
     v.goLocation = () => this.go('location');
     v.goDelete = () => this.go('deleteAccount');
     v.confirmDelete = () => this.deleteAccount();
