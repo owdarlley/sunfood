@@ -240,6 +240,13 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
   .tbl-cards .tr > .wide:empty{display:none}
   .tbl-cards .tr > div > span{display:inline-block;max-width:100%;white-space:normal}
 }
+/* Mapa da Localização (Google Maps sem chave de API, a partir do endereço). */
+.locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:24px;overflow:hidden;background:#CFE7E8;border:1px solid #E3DDD0}
+.locmap iframe{display:block;width:100%;height:100%;border:0}
+@media (max-width:640px){.locmap{height:260px}}
+.locform{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:10px}
+.locform .wide{grid-column:span 2}
+@media (max-width:640px){.locform .wide{grid-column:auto}}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
 .tile{border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;transition:transform .15s}
@@ -1014,19 +1021,17 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 
               <sc-if value="{{ is_location }}" hint-placeholder-val="{{ false }}">
                 <div class="cols rise">
-                  <div style="flex:1 1 380px;min-width:0;height:340px;border-radius:24px;position:relative;overflow:hidden;background:linear-gradient(180deg,#CFE7E8 0%,#CFE7E8 55%,#F3E3BF 55%,#F3E3BF 100%)">
-                    <svg style="position:absolute;left:0;right:0;top:48%;width:100%;height:40px" viewBox="0 0 1200 40" preserveAspectRatio="none"><path d="M0 20 C150 0 300 40 450 20 S750 0 900 20 S1100 40 1200 20 V40 H0Z" fill="#F3E3BF"></path></svg>
-                    <div style="position:absolute;top:58%;left:50%;transform:translate(-50%,-100%)">
-                      <div style="width:44px;height:44px;border-radius:50% 50% 50% 0;background:#0B6670;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,.25)"><svg width="22" height="22" viewBox="0 0 36 36" style="transform:rotate(45deg)"><g fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="6" fill="#FFB21E"></circle><path d="M18 4v4M18 28v4M4 18h4M28 18h4"></path></g></svg></div>
-                    </div>
+                  <div class="locmap">
+                    <iframe src="{{ locEmbedUrl }}" title="Mapa do quiosque" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen=""></iframe>
                   </div>
                   <div class="col-side" style="flex:1 1 320px">
                     <div class="card" style="padding:22px">
-                      <div class="tt" style="font-size:26px">Quiosque Sunfood · Praia do Forte</div>
-                      <p class="muted" style="font-size:15px;line-height:1.55;margin:8px 0 0">Av. Beira-Mar, s/n, em frente ao posto 4. Aberto todos os dias, 9h às 18h.</p>
+                      <div class="tt" style="font-size:26px">{{ locName }}</div>
+                      <p class="muted" style="font-size:15px;line-height:1.55;margin:8px 0 0">{{ locAddress }}</p>
+                      <sc-if value="{{ hasLocHours }}" hint-placeholder-val="{{ true }}"><p class="muted" style="font-size:15px;line-height:1.55;margin:4px 0 0">{{ locHours }}</p></sc-if>
                     </div>
                     <div style="display:flex;gap:10px">
-                      <a href="https://www.google.com/maps/search/?api=1&amp;query=Av.%20Beira-Mar%20posto%204%20Praia%20do%20Forte" target="_blank" rel="noopener" class="btn btn-sun" style="flex:1;text-decoration:none">Abrir no mapa</a>
+                      <a href="{{ locMapUrl }}" target="_blank" rel="noopener" class="btn btn-sun" style="flex:1;text-decoration:none">Abrir no mapa</a>
                       <a href="./#fale-conosco" class="btn btn-ghost" style="flex:1;text-decoration:none">Fale conosco</a>
                     </div>
                   </div>
@@ -1355,6 +1360,19 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
                   <div class="alert {{ mpAlertCls }}" style="flex-direction:column;gap:2px"><b>{{ mpTitle }}</b><span style="font-weight:500">{{ mpText }}</span></div>
                   <div class="muted" style="font-size:14px;margin-top:12px;line-height:1.45">Pagar na entrega: o garçom marca o recebimento em <span onClick="{{ goPayments }}" class="link" style="font-size:14px">Pagamentos</span>.</div>
                 </div>
+              </div>
+              <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+                <div><h2 style="margin:0">Localização do quiosque</h2><div class="muted" style="font-size:14px;margin-top:4px;line-height:1.4">Aparece para o cliente em "Localização do quiosque". O mapa e o botão "Abrir no mapa" usam o endereço.</div></div>
+                <div class="locform">
+                  <div><label for="locNameInp" class="lbl">Nome do local</label><input id="locNameInp" class="inp" value="{{ locNameInput }}" onChange="{{ setLocNameInput }}" placeholder="Ex.: Sunfood na Faculdade" maxlength="80" /></div>
+                  <div class="wide"><label for="locAddressInp" class="lbl">Endereço</label><input id="locAddressInp" class="inp" value="{{ locAddressInput }}" onChange="{{ setLocAddressInput }}" placeholder="Rua, número, bairro, cidade - UF" maxlength="200" /></div>
+                  <div><label for="locHoursInp" class="lbl">Horário (opcional)</label><input id="locHoursInp" class="inp" value="{{ locHoursInput }}" onChange="{{ setLocHoursInput }}" placeholder="Ex.: Seg. a sex., 8h às 22h." maxlength="120" /></div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                  <div onClick="{{ saveLocation }}" class="btn btn-dark btn-sm" style="min-height:48px">Salvar localização</div>
+                  <a href="{{ locPreviewUrl }}" target="_blank" rel="noopener" class="link" style="font-size:14px">Conferir no Google Maps</a>
+                </div>
+                <sc-if value="{{ hasLocMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 14px 'DM Sans',sans-serif;color:#0B6670">{{ locMsg }}</div></sc-if>
               </div>
               <div class="panel">
                 <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
@@ -1928,6 +1946,10 @@ class Component extends DCLogic {
     // Prazo (min) pro cliente cancelar — vem de GET /kiosk-settings; 0 = sem prazo.
     cancelWindow:0, cancelWindowInput:'', cancelWindowMsg:'',
     tableCountInput:'', tableCountMsg:'',
+    // Onde fica o quiosque — vem de GET /kiosk-settings (o admin muda em
+    // "Quiosque e mesas"). locInput: null = campo ainda não mexido.
+    location:{name:'Quiosque Sunfood · Praia do Forte', address:'Av. Beira-Mar, s/n, em frente ao posto 4', hours:'Aberto todos os dias, 9h às 18h.'},
+    locInput:{name:null, address:null, hours:null}, locMsg:'',
     // Pedido mínimo (R$) — vem de GET /kiosk-settings; 10 é só o padrão até carregar.
     minOrder:10, minOrderInput:'', minOrderMsg:'',
     // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
@@ -2159,7 +2181,8 @@ class Component extends DCLogic {
         products: products.map(apiProductToState),
         tables: tables.map(t => ({n:t.number, active:t.active, seats:t.seats})),
         paused: kiosk.paused, dayClosed: kiosk.dayClosed,
-        minOrder: typeof kiosk.minOrder === 'number' ? kiosk.minOrder : this.state.minOrder
+        minOrder: typeof kiosk.minOrder === 'number' ? kiosk.minOrder : this.state.minOrder,
+        location: kiosk.location && kiosk.location.address ? kiosk.location : this.state.location
       });
     } catch(e){
       // API fora do ar: mantém os dados de exemplo já carregados no estado inicial.
@@ -2188,7 +2211,7 @@ class Component extends DCLogic {
         const updates = {};
         if(dashRes.ok) updates.dashboard = await dashRes.json();
         if(opsRes.ok) updates.opsMetrics = await opsRes.json();
-        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; if(typeof k.minOrder === 'number') updates.minOrder = k.minOrder; }
+        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; if(typeof k.minOrder === 'number') updates.minOrder = k.minOrder; if(k.location && k.location.address) updates.location = k.location; }
         this.setState(updates);
       } catch(e){}
       // Na tela de relatórios, atualiza sozinho a cada 30 s (não a cada 3 s).
@@ -2306,6 +2329,23 @@ class Component extends DCLogic {
       if(!res.ok) return this.setState({minOrderMsg: (data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
       this.setState({minOrder:data.minOrder, minOrderInput:'', minOrderMsg:'Pedido mínimo atualizado.'});
     } catch(e){ this.setState({minOrderMsg:'Falha de conexão com o servidor.'}); }
+  }
+
+  async saveLocation(){
+    const cur = this.state.location, inp = this.state.locInput;
+    const val = k => String(inp[k] === null ? cur[k] : inp[k]).trim();
+    const body = {name:val('name'), address:val('address'), hours:val('hours')};
+    if(!body.name) return this.setState({locMsg:'Digite o nome do local.'});
+    if(body.address.length < 5) return this.setState({locMsg:'Digite o endereço completo.'});
+    try {
+      const res = await fetch(API_BASE + '/kiosk-settings/location', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify(body)
+      });
+      const data = await res.json();
+      if(!res.ok) return this.setState({locMsg:(data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
+      this.setState({location:data.location, locInput:{name:null, address:null, hours:null}, locMsg:'Localização atualizada.'});
+    } catch(e){ this.setState({locMsg:'Falha de conexão com o servidor.'}); }
   }
 
   async saveTableCount(){
@@ -3230,6 +3270,19 @@ class Component extends DCLogic {
     v.saveCancelWindow = () => this.saveCancelWindow();
     v.cancelWindowMsg = s.cancelWindowMsg; v.hasCancelWindowMsg = !!s.cancelWindowMsg;
     v.minOrderStr = f(s.minOrder);
+    // Localização: o mapa e o link saem do endereço (Google Maps, sem chave de API).
+    const mapsQ = a => encodeURIComponent(a);
+    v.locName = s.location.name; v.locAddress = s.location.address;
+    v.locHours = s.location.hours; v.hasLocHours = !!s.location.hours;
+    v.locEmbedUrl = 'https://maps.google.com/maps?q=' + mapsQ(s.location.address) + '&z=16&output=embed';
+    v.locMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + mapsQ(s.location.address);
+    const locVal = k => s.locInput[k] === null ? s.location[k] : s.locInput[k];
+    v.locNameInput = locVal('name'); v.locAddressInput = locVal('address'); v.locHoursInput = locVal('hours');
+    const setLoc = k => e => this.setState(x => ({locInput:{...x.locInput, [k]:e.target.value}, locMsg:''}));
+    v.setLocNameInput = setLoc('name'); v.setLocAddressInput = setLoc('address'); v.setLocHoursInput = setLoc('hours');
+    v.locPreviewUrl = 'https://www.google.com/maps/search/?api=1&query=' + mapsQ(String(locVal('address')).trim());
+    v.saveLocation = () => this.saveLocation();
+    v.locMsg = s.locMsg; v.hasLocMsg = !!s.locMsg;
     v.minOrderInput = s.minOrderInput;
     v.setMinOrderInput = e => this.setState({minOrderInput:e.target.value, minOrderMsg:''});
     v.saveMinOrder = () => this.saveMinOrder();
