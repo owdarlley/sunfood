@@ -1727,6 +1727,78 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_17jaSzYyesdQZm7WK7esPQ_eVwdnuu1
 const GOOGLE_CLIENT_ID = '620747293875-mg22eu690lh33k7bb1cdk8ti03iea2mp.apps.googleusercontent.com';
 const GOOGLE_LOGIN_KEY = 'sunfood_google_login';
 
+// Sessão que não cai sozinha: o access_token do Supabase vale só 1 hora.
+// Antes o app guardava só ele e, passada a hora, tudo começava a falhar
+// como se a pessoa tivesse saído. Agora guardamos também o refreshToken e
+// toda chamada autenticada passa por authFetch(), que renova o token antes
+// de vencer (ou ao receber 401) e repete a chamada, sem pedir senha de novo.
+function readSession(){
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){ return null; }
+}
+function saveSession(patch){
+  const s = Object.assign({}, readSession() || {}, patch);
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch(e){}
+  return s;
+}
+// Validade (em ms) do access_token, lida do próprio JWT; null se não der pra ler.
+function tokenExpiresAt(token){
+  try {
+    const part = String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const exp = JSON.parse(atob(part + '==='.slice((part.length + 3) % 4))).exp;
+    return exp ? exp * 1000 : null;
+  } catch(e){ return null; }
+}
+// O app avisa por aqui quando o token muda (pra atualizar a tela) ou quando
+// a sessão acabou de vez (refresh recusado: aí sim volta para o login).
+const sessionEvents = {onToken:null, onLost:null};
+let refreshing = null;
+function refreshSession(oldToken){
+  if(refreshing) return refreshing;
+  refreshing = (async () => {
+    const s = readSession();
+    if(!s || !s.token) return null;
+    // Outra aba já renovou: só usa o token novo.
+    if(oldToken && s.token !== oldToken) return s.token;
+    if(!s.refreshToken){ if(sessionEvents.onLost) sessionEvents.onLost(); return null; }
+    let res;
+    try {
+      res = await fetch(API_BASE + '/auth/refresh', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({refreshToken:s.refreshToken})
+      });
+    } catch(e){ return null; } // sem internet: não desloga, tenta de novo depois
+    if(!res.ok){
+      // Pode ter sido outra aba renovando ao mesmo tempo (o refreshToken é de uso único).
+      const again = readSession();
+      if(again && again.token && again.token !== s.token) return again.token;
+      if(res.status === 401 || res.status === 400){ if(sessionEvents.onLost) sessionEvents.onLost(); }
+      return null;
+    }
+    const data = await res.json();
+    saveSession({token:data.token, refreshToken:data.refreshToken});
+    if(sessionEvents.onToken) sessionEvents.onToken(data.token);
+    return data.token;
+  })().finally(() => { refreshing = null; });
+  return refreshing;
+}
+// fetch() para a API com o token sempre válido. Chamadas sem Authorization
+// (login, cadastro, cardápio) passam direto, como um fetch comum.
+async function authFetch(url, opts){
+  opts = opts || {};
+  const headers = Object.assign({}, opts.headers || {});
+  if(!headers.Authorization) return fetch(url, opts);
+  const s = readSession();
+  let token = (s && s.token) || headers.Authorization.replace(/^Bearer /, '');
+  const exp = tokenExpiresAt(token);
+  if(exp && exp - Date.now() < 60000) token = (await refreshSession(token)) || token;
+  headers.Authorization = 'Bearer ' + token;
+  const res = await fetch(url, Object.assign({}, opts, {headers}));
+  if(res.status !== 401) return res;
+  const fresh = await refreshSession(token);
+  if(!fresh) return res;
+  headers.Authorization = 'Bearer ' + fresh;
+  return fetch(url, Object.assign({}, opts, {headers}));
+}
+
 function randomToken(){
   const b = new Uint8Array(16);
   crypto.getRandomValues(b);
@@ -1999,6 +2071,12 @@ class Component extends DCLogic {
 
 
   componentDidMount(){
+    sessionEvents.onToken = token => this.setState({token});
+    sessionEvents.onLost = () => {
+      if(!this.state.token) return;
+      this.logout();
+      setTimeout(() => this.flash('Sua sessão expirou. Entre de novo.'), 0);
+    };
     this.aplicarRota();
     if(!this.handleGoogleCallback()) this.restoreSession();
     // Veio do botão do Google da página inicial: já segue para o Google.
@@ -2023,6 +2101,15 @@ class Component extends DCLogic {
     try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){ saved = null; }
     if(!saved || !saved.token) return;
     this.setState({token:saved.token, authUser:saved.user, email:saved.user.email});
+    // Já entrou: não fica parado na tela de login quando o app abre sem
+    // ?module=…&screen=… na URL (ex.: volta do Google, link "Voltar ao login"
+    // ou o celular recarregando a aba) — isso parecia que tinha deslogado.
+    const rota = new URLSearchParams(window.location.search);
+    const mod = rota.get('module');
+    if(!mod || !SCREENS[mod] || (mod === 'cliente' && ['login','signup','forgot'].indexOf(rota.get('screen')) >= 0)){
+      if(saved.user.role === 'admin' || saved.user.role === 'cozinha'){ this.startSession(saved.token, saved.user); return; }
+      this.setState({module:'cliente', screen:'menu'});
+    }
     if(saved.user.role === 'cliente'){
       this.loadHistory(saved.token);
       if(saved.user.profileComplete === false) this.askCompleteProfile(saved.user);
@@ -2072,7 +2159,7 @@ class Component extends DCLogic {
       });
       const data = await res.json();
       if(!res.ok || !data.access_token) return fail();
-      this.completeGoogleLogin(data.access_token);
+      this.completeGoogleLogin(data.access_token, data.refresh_token);
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
     }
@@ -2107,18 +2194,20 @@ class Component extends DCLogic {
       return true;
     }
     const accessToken = hash.get('access_token');
+    const refreshToken = hash.get('refresh_token');
     if(!accessToken) return false;
     // Tira o token da barra de endereço antes de qualquer outra coisa — ele
     // não deve ficar visível nem salvo no histórico do navegador.
     history.replaceState(null, '', window.location.pathname + window.location.search);
-    this.completeGoogleLogin(accessToken);
+    this.completeGoogleLogin(accessToken, refreshToken);
     return true;
   }
 
   // Guarda a sessão e decide a primeira tela: quem entrou pelo Google (ou
   // conta antiga) sem telefone/CPF/nascimento/termos completa o cadastro antes.
-  startSession(token, user){
-    try { localStorage.setItem(SESSION_KEY, JSON.stringify({token, user})); } catch(e){}
+  startSession(token, user, refreshToken){
+    const keep = readSession();
+    saveSession({token, user, refreshToken: refreshToken || (keep && keep.token === token ? keep.refreshToken : null)});
     this.setState({token, authUser:user});
     // Cozinha e administração também podem entrar por esta tela: vão para o
     // módulo delas, como no login da página inicial.
@@ -2146,13 +2235,13 @@ class Component extends DCLogic {
     if(!s.suTerms) return this.setState({suErr:'É preciso aceitar os termos de uso e a política de privacidade.'});
     this.setState({suErr:'', busy:'complete'});
     try {
-      const res = await fetch(API_BASE + '/auth/complete-profile', {
+      const res = await authFetch(API_BASE + '/auth/complete-profile', {
         method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + s.token},
         body:JSON.stringify({name:s.suName.trim(), phone:s.suPhone.trim(), cpf:cpfDigits(s.suCpf), birthDate:s.suBirth, termsAccepted:s.suTerms})
       });
       const data = await res.json();
       if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível salvar seu cadastro.'}); return; }
-      try { localStorage.setItem(SESSION_KEY, JSON.stringify({token:s.token, user:data.user})); } catch(e){}
+      saveSession({user:data.user});
       this.setState({authUser:data.user});
       this.go(s.cart.length ? 'cart' : 'menu');
       this.flash('Cadastro completo. Bom apetite!');
@@ -2163,13 +2252,13 @@ class Component extends DCLogic {
     }
   }
 
-  async completeGoogleLogin(accessToken){
+  async completeGoogleLogin(accessToken, refreshToken){
     try {
       const res = await fetch(API_BASE + '/auth/me', { headers:{Authorization:'Bearer ' + accessToken} });
       const data = await res.json();
       if(!res.ok){ this.flash(data.error || 'Não foi possível entrar com Google.'); return; }
       this.setState({email:data.user.email});
-      this.startSession(accessToken, data.user);
+      this.startSession(accessToken, data.user, refreshToken);
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
     }
@@ -2177,7 +2266,7 @@ class Component extends DCLogic {
 
   async loadPaymentsStatus(){
     try {
-      const res = await fetch(API_BASE + '/payments/status');
+      const res = await authFetch(API_BASE + '/payments/status');
       if(!res.ok) return;
       const data = await res.json();
       const online = !!data.configured;
@@ -2187,7 +2276,7 @@ class Component extends DCLogic {
 
   async markPaymentReceived(apiId, receivedWith){
     try {
-      const res = await fetch(API_BASE + '/orders/' + apiId + '/payment-received', {
+      const res = await authFetch(API_BASE + '/orders/' + apiId + '/payment-received', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({receivedWith})
       });
@@ -2223,7 +2312,7 @@ class Component extends DCLogic {
     if(!this.state.token) return;
     const headers = {Authorization:'Bearer ' + this.state.token};
     try {
-      const ordersRes = await fetch(API_BASE + '/orders', {headers});
+      const ordersRes = await authFetch(API_BASE + '/orders', {headers});
       if(ordersRes.ok){
         const adminOrders = (await ordersRes.json()).map(adminOrderFromApi);
         this.setState({adminOrders});
@@ -2233,8 +2322,8 @@ class Component extends DCLogic {
     if(this.state.authUser && this.state.authUser.role === 'admin'){
       try {
         const [dashRes, opsRes, kioskRes] = await Promise.all([
-          fetch(API_BASE + '/dashboard', {headers}),
-          fetch(API_BASE + '/ops-metrics', {headers}),
+          authFetch(API_BASE + '/dashboard', {headers}),
+          authFetch(API_BASE + '/ops-metrics', {headers}),
           fetch(API_BASE + '/kiosk-settings')
         ]);
         const updates = {};
@@ -2277,7 +2366,7 @@ class Component extends DCLogic {
   async loadMessages(){
     this.setState({msgAt:Date.now()});
     try {
-      const res = await fetch(API_BASE + '/contact', {headers:{Authorization:'Bearer ' + this.state.token}});
+      const res = await authFetch(API_BASE + '/contact', {headers:{Authorization:'Bearer ' + this.state.token}});
       if(res.ok) this.setState({contactMsgs: await res.json(), msgErr:''});
       else this.setState({msgErr:'Não foi possível carregar as mensagens. Tente de novo em instantes.'});
     } catch(e){
@@ -2287,7 +2376,7 @@ class Component extends DCLogic {
 
   async setMessageStatus(id, status){
     try {
-      const res = await fetch(API_BASE + '/contact/' + encodeURIComponent(id) + '/status', {
+      const res = await authFetch(API_BASE + '/contact/' + encodeURIComponent(id) + '/status', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({status})
       });
@@ -2302,7 +2391,7 @@ class Component extends DCLogic {
     period = period || this.state.reportPeriod;
     this.setState({reportPeriod:period, reportAt:Date.now()});
     try {
-      const res = await fetch(API_BASE + '/reports/sales?period=' + encodeURIComponent(period), {headers:{Authorization:'Bearer ' + this.state.token}});
+      const res = await authFetch(API_BASE + '/reports/sales?period=' + encodeURIComponent(period), {headers:{Authorization:'Bearer ' + this.state.token}});
       if(this.state.reportPeriod !== period) return; // trocou de período no meio
       if(res.ok) this.setState({report: await res.json(), reportErr:''});
       else this.setState({reportErr:'Não foi possível carregar o relatório. Tente de novo em instantes.'});
@@ -2313,14 +2402,14 @@ class Component extends DCLogic {
 
   async loadLatestDayReport(){
     try {
-      const res = await fetch(API_BASE + '/day-reports/latest', {headers:{Authorization:'Bearer ' + this.state.token}});
+      const res = await authFetch(API_BASE + '/day-reports/latest', {headers:{Authorization:'Bearer ' + this.state.token}});
       if(res.ok) this.setState({lastDayReport: await res.json()});
     } catch(e){}
   }
 
   async togglePauseKiosk(){
     try {
-      const res = await fetch(API_BASE + '/kiosk-settings/pause', {
+      const res = await authFetch(API_BASE + '/kiosk-settings/pause', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({paused: !this.state.paused})
       });
@@ -2335,7 +2424,7 @@ class Component extends DCLogic {
     if(!raw || !Number.isInteger(minutes) || minutes < 0 || minutes > 120)
       return this.setState({cancelWindowMsg:'Digite um número inteiro de minutos, de 0 a 120.'});
     try {
-      const res = await fetch(API_BASE + '/kiosk-settings/cancel-window', {
+      const res = await authFetch(API_BASE + '/kiosk-settings/cancel-window', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({minutes})
       });
@@ -2350,7 +2439,7 @@ class Component extends DCLogic {
     const value = Number(raw);
     if(!raw || !isFinite(value) || value < 0) return this.setState({minOrderMsg:'Digite um valor válido (ex: 15,00).'});
     try {
-      const res = await fetch(API_BASE + '/kiosk-settings/min-order', {
+      const res = await authFetch(API_BASE + '/kiosk-settings/min-order', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({minOrder: Math.round(value * 100) / 100})
       });
@@ -2367,7 +2456,7 @@ class Component extends DCLogic {
     if(!body.name) return this.setState({locMsg:'Digite o nome do local.'});
     if(body.address.length < 5) return this.setState({locMsg:'Digite o endereço completo.'});
     try {
-      const res = await fetch(API_BASE + '/kiosk-settings/location', {
+      const res = await authFetch(API_BASE + '/kiosk-settings/location', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify(body)
       });
@@ -2382,13 +2471,13 @@ class Component extends DCLogic {
     const count = Number(raw);
     if(!/^\d+$/.test(raw) || count < 1 || count > 500) return this.setState({tableCountMsg:'Digite um número de 1 a 500.'});
     try {
-      const res = await fetch(API_BASE + '/kiosk-settings/table-count', {
+      const res = await authFetch(API_BASE + '/kiosk-settings/table-count', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({count})
       });
       const data = await res.json();
       if(!res.ok) return this.setState({tableCountMsg:(data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
-      const tablesRes = await fetch(API_BASE + '/tables');
+      const tablesRes = await authFetch(API_BASE + '/tables');
       const tables = tablesRes.ok ? (await tablesRes.json()).map(t => ({n:t.number, active:t.active, seats:t.seats})) : this.state.tables;
       this.setState({tables, tableCountInput:'', tableCountMsg:'Agora o quiosque tem ' + data.tableCount + (data.tableCount === 1 ? ' mesa.' : ' mesas.')});
     } catch(e){ this.setState({tableCountMsg:'Falha de conexão com o servidor.'}); }
@@ -2396,7 +2485,7 @@ class Component extends DCLogic {
 
   async toggleTableActive(number, active){
     try {
-      const res = await fetch(API_BASE + '/tables/' + number + '/active', {
+      const res = await authFetch(API_BASE + '/tables/' + number + '/active', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({active})
       });
@@ -2409,7 +2498,7 @@ class Component extends DCLogic {
 
   async toggleProductSoldOut(id, soldOut){
     try {
-      const res = await fetch(API_BASE + '/products/' + id + '/sold-out', {
+      const res = await authFetch(API_BASE + '/products/' + id + '/sold-out', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({soldOut})
       });
@@ -2432,7 +2521,7 @@ class Component extends DCLogic {
     // carregado no formulário sobrescreveria as baixas dos pedidos feitos nesse meio-tempo.
     if(!pf.id || stockTrim !== String(pf.stockOrig || '').trim()) body.stockQty = stockTrim ? Number(stockTrim) : null;
     try {
-      const res = await fetch(API_BASE + '/products' + (pf.id ? '/' + pf.id : ''), {
+      const res = await authFetch(API_BASE + '/products' + (pf.id ? '/' + pf.id : ''), {
         method: pf.id ? 'PUT' : 'POST',
         headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify(body)
@@ -2451,7 +2540,7 @@ class Component extends DCLogic {
 
   async advanceOrderStatus(apiId, nextStatus){
     try {
-      const res = await fetch(API_BASE + '/orders/' + apiId + '/status', {
+      const res = await authFetch(API_BASE + '/orders/' + apiId + '/status', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({status:nextStatus})
       });
@@ -2462,7 +2551,7 @@ class Component extends DCLogic {
 
   async closeDayReal(){
     try {
-      const res = await fetch(API_BASE + '/close-day', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
+      const res = await authFetch(API_BASE + '/close-day', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
       const data = await res.json();
       if(!res.ok) return this.flash(data.error || 'Não foi possível encerrar o dia.');
       this.setState({dayClosed:true, lastDayReport:data});
@@ -2471,7 +2560,7 @@ class Component extends DCLogic {
 
   async reopenDayReal(){
     try {
-      const res = await fetch(API_BASE + '/reopen-day', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
+      const res = await authFetch(API_BASE + '/reopen-day', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
       if(res.ok) this.setState({dayClosed:false});
     } catch(e){ this.flash('Falha de conexão com o servidor.'); }
   }
@@ -2480,7 +2569,7 @@ class Component extends DCLogic {
     const tok = token || this.state.token;
     if(!tok) return;
     try {
-      const res = await fetch(API_BASE + '/orders/mine', {headers:{Authorization:'Bearer ' + tok}});
+      const res = await authFetch(API_BASE + '/orders/mine', {headers:{Authorization:'Bearer ' + tok}});
       if(!res.ok) return;
       const data = await res.json();
       // Pedido ainda em andamento (ex.: o celular recarregou a página): volta
@@ -2492,7 +2581,7 @@ class Component extends DCLogic {
 
   async pollOrder(apiId, token){
     try {
-      const res = await fetch(API_BASE + '/orders/' + apiId, {headers:{Authorization:'Bearer ' + (token || this.state.token)}});
+      const res = await authFetch(API_BASE + '/orders/' + apiId, {headers:{Authorization:'Bearer ' + (token || this.state.token)}});
       if(!res.ok) return;
       const data = await res.json();
       this.setState({order: orderFromApi(data)});
@@ -2508,7 +2597,7 @@ class Component extends DCLogic {
     if(!email || !password) return this.setState({loginErr:'Preencha e-mail e senha.'});
     this.setState({loginErr:'', loginNeedsConfirm:false, busy:'login'});
     try {
-      const res = await fetch(API_BASE + '/auth/login', {
+      const res = await authFetch(API_BASE + '/auth/login', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({email, password})
       });
@@ -2518,7 +2607,7 @@ class Component extends DCLogic {
         return;
       }
       this.setState({loginErr:''});
-      this.startSession(data.token, data.user);
+      this.startSession(data.token, data.user, data.refreshToken);
     } catch(e){
       this.setState({loginErr:'Falha de conexão com o servidor. Confira se a API está rodando.'});
     } finally {
@@ -2532,7 +2621,7 @@ class Component extends DCLogic {
     if(this.state.busy) return;
     this.setState({busy:'resend'});
     try {
-      const res = await fetch(API_BASE + '/auth/resend-confirmation', {
+      const res = await authFetch(API_BASE + '/auth/resend-confirmation', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({email:this.state.email})
       });
@@ -2561,7 +2650,7 @@ class Component extends DCLogic {
     if(!o || !o._apiId) return;
     this.setState({busy:'cancel'});
     try {
-      const res = await fetch(API_BASE + '/orders/' + o._apiId + '/cancel', {
+      const res = await authFetch(API_BASE + '/orders/' + o._apiId + '/cancel', {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
       });
       const data = await res.json();
@@ -2580,7 +2669,7 @@ class Component extends DCLogic {
     if(this.state.busy) return;
     this.setState({busy:'delete'});
     try {
-      const res = await fetch(API_BASE + '/auth/delete-account', {
+      const res = await authFetch(API_BASE + '/auth/delete-account', {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
       });
       const data = await res.json().catch(() => ({}));
@@ -2608,7 +2697,7 @@ class Component extends DCLogic {
     if(!s.suTerms) return this.setState({suErr:'É preciso aceitar os termos de uso e a política de privacidade.'});
     this.setState({suErr:'', busy:'signup'});
     try {
-      const res = await fetch(API_BASE + '/auth/signup', {
+      const res = await authFetch(API_BASE + '/auth/signup', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           name:s.suName.trim(), email:s.suEmail.trim(), password:s.suPass,
@@ -2643,7 +2732,7 @@ class Component extends DCLogic {
     try {
       // Com CPF, o servidor acha a conta e devolve o e-mail dela mascarado
       // (d*****7@gmail.com) pra pessoa saber em qual caixa procurar.
-      const res = await fetch(API_BASE + '/auth/forgot-password', {
+      const res = await authFetch(API_BASE + '/auth/forgot-password', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify(byCpf ? {cpf:cpfDigits(this.state.fpCpf)} : {email:this.state.fpEmail.trim()})
       });
@@ -2721,7 +2810,7 @@ class Component extends DCLogic {
     const note = itemNotes.join(' · ');
     const items = this.state.cart.map(c => ({productId:c.id, qty:c.qty, note:c.note || ''}));
     try {
-      const res = await fetch(API_BASE + '/orders', {
+      const res = await authFetch(API_BASE + '/orders', {
         method:'POST',
         headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({tableNumber:this.state.table, items, note, paymentMethod})
@@ -2763,7 +2852,7 @@ class Component extends DCLogic {
     try {
       const created = await this.createOrderOnServer('pix');
       if(!created){ this.setState({payingPix:false}); return; }
-      const res = await fetch(API_BASE + '/payments/pix/' + created.id, {
+      const res = await authFetch(API_BASE + '/payments/pix/' + created.id, {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
       });
       const data = await res.json();
@@ -2806,7 +2895,7 @@ class Component extends DCLogic {
     if(this.state.busy || !o || !o._apiId) return;
     this.setState({busy:'card'});
     try {
-      const res = await fetch(API_BASE + '/payments/card/' + o._apiId, {
+      const res = await authFetch(API_BASE + '/payments/card/' + o._apiId, {
         method:'POST',
         headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({returnUrl:window.location.origin + window.location.pathname + '?module=cliente&screen=card'})

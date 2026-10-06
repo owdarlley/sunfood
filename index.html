@@ -456,7 +456,7 @@ $('login').addEventListener('submit', async function (e) {
       $('resend').hidden = data.code !== 'email_not_confirmed';
       return;
     }
-    try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, user: data.user })); } catch (err) {}
+    try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, refreshToken: data.refreshToken, user: data.user })); } catch (err) {}
     show('Bem-vindo(a), ' + data.user.name + '! Abrindo o Sunfood…', true);
     location.href = window.SUNFOOD_DEST[data.user.role] || window.SUNFOOD_DEST.cliente;
   } catch (err) {
