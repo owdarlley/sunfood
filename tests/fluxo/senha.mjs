@@ -43,7 +43,11 @@ async function open(path) {
     const body = req.postData() ? JSON.parse(req.postData()) : {};
     page.calls.push({ p, body });
     const json = (status, data) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
-    if (p === '/auth/forgot-password') return json(200, { message: 'ok' });
+    if (p === '/auth/forgot-password') {
+      if (body.email === 'ana@emial.com') return json(404, { error: 'Não encontramos uma conta com este e-mail. Confira se digitou certo ou crie uma conta.', code: 'email_not_found' });
+      if (body.email === 'bia@gmail.com') return json(400, { error: 'Esta conta foi criada com o Google e não tem senha. Use o botão "Entrar com Google".', code: 'google_account' });
+      return json(200, { message: 'ok' });
+    }
     if (p === '/auth/update-password') return body.accessToken === 'tok-recuperacao'
       ? json(200, { message: 'Senha redefinida com sucesso.' })
       : json(401, { error: 'Link de redefinição inválido ou expirado.' });
@@ -67,6 +71,30 @@ await step('pedir link', async () => {
   check('pedir link: chama /auth/forgot-password com o e-mail', call?.body.email === 'ana@email.com', JSON.stringify(page.calls));
   check('pedir link: mostra "Link enviado"', (await text(page)).includes('Link enviado'));
   check('pedir link: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
+  await page.close();
+});
+
+// 1b. E-mail sem conta ou conta só do Google: avisa e deixa corrigir
+await step('pedir link com e-mail errado', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=login');
+  await click(page, 'Esqueci minha senha');
+  const input = page.getByPlaceholder('voce@email.com').last();
+  await input.fill('ana@emial.com');
+  await click(page, 'Enviar link');
+  let t = await text(page);
+  check('e-mail errado: avisa que não tem conta', t.includes('Não encontramos uma conta com este e-mail'), t.slice(0, 300));
+  check('e-mail errado: continua na tela para corrigir', !t.includes('Link enviado') && t.includes('Recuperar senha'));
+  await input.fill('ana@email.co');
+  t = await text(page);
+  check('e-mail errado: aviso some ao digitar', !t.includes('Não encontramos uma conta'));
+  await input.fill('bia@gmail.com');
+  await click(page, 'Enviar link');
+  t = await text(page);
+  check('conta do Google: manda usar o botão do Google', t.includes('criada com o Google') && !t.includes('Link enviado'));
+  await input.fill('ana@email.com');
+  await click(page, 'Enviar link');
+  check('depois de corrigir: mostra "Link enviado"', (await text(page)).includes('Link enviado'));
+  check('e-mail errado: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();
 });
 

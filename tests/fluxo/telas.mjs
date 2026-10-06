@@ -18,8 +18,9 @@ const TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.jpg': '
 const server = createServer(async (req, res) => {
   try {
     const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-    const body = await readFile(join(ROOT, path === '/' ? 'index.html' : path));
-    res.writeHead(200, { 'Content-Type': TYPES[extname(path)] || 'application/octet-stream' }).end(body);
+    const file = path === '/' ? 'index.html' : path;
+    const body = await readFile(join(ROOT, file));
+    res.writeHead(200, { 'Content-Type': TYPES[extname(file)] || 'application/octet-stream' }).end(body);
   } catch { res.writeHead(404).end(); }
 }).listen(0, 'localhost');
 await new Promise(r => server.on('listening', r));
@@ -29,7 +30,7 @@ const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : 
 const results = [];
 const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`${ok ? 'ok   ' : 'FALHA'} ${name}${ok || !detail ? '' : ' -> ' + detail}`); };
 
-async function open(path, { role, seed } = {}) {
+async function open(path, { role, seed, session = true } = {}) {
   const page = await browser.newPage({ viewport: { width: 400, height: 860 }, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
@@ -42,7 +43,7 @@ async function open(path, { role, seed } = {}) {
   if (seed) api.seed();
   await page.route('http://localhost:8787/**', api);
   page.api = api;
-  if (role && role !== 'cliente') await page.addInitScript(r => localStorage.setItem('sunfood_session',
+  if (role && role !== 'cliente' && session) await page.addInitScript(r => localStorage.setItem('sunfood_session',
     JSON.stringify({ token: 'tok', user: { id: 'u1', email: r + '@teste', name: 'Teste', role: r } })), role);
   await page.goto(BASE + path);
   await page.waitForTimeout(1200);
@@ -54,11 +55,100 @@ const click = async (page, t, exact = false) => { await page.getByText(t, { exac
 async function step(name, fn) { try { await fn(); } catch (e) { check(name, false, e.message.split('\n')[0]); } }
 
 // 1. Páginas do site abrem sem erro de JavaScript
-for (const p of ['index.html', 'sobre.html', 'funcionalidades.html', 'como-funciona.html', 'perfis.html', 'mapa.html', 'contato.html', 'termos.html', 'privacidade.html', 'redefinir-senha.html']) {
+for (const p of ['index.html', 'inicio.html', 'sobre.html', 'funcionalidades.html', 'como-funciona.html', 'perfis.html', 'mapa.html', 'contato.html', 'termos.html', 'privacidade.html', 'redefinir-senha.html']) {
   const page = await open(p);
   check(`página ${p} abre sem erro`, page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();
 }
+
+// 1b. O endereço principal (index.html) é a tela de login, para os três perfis
+await step('login no endereço principal', async () => {
+  const page = await open('');
+  check('raiz: abre a tela de login', (await text(page)).includes('Bem-vindo de volta'));
+  await click(page, 'Entrar', true);
+  check('raiz: pede e-mail e senha', (await text(page)).includes('Preencha e-mail e senha.'));
+  await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
+  await page.getByPlaceholder('••••••••').fill('senha');
+  await click(page, 'Entrar', true);
+  await page.waitForTimeout(1200);
+  check('raiz: cliente cai no cardápio', page.url().includes('module=cliente&screen=menu') && (await text(page)).includes('Batata Frita'), page.url());
+  check('raiz: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
+  await page.close();
+
+  for (const [role, dest] of [['admin', 'module=admin&screen=dashboard'], ['cozinha', 'module=cozinha&screen=kanban']]) {
+    const p = await open('', { role, session: false });
+    await p.getByPlaceholder('voce@email.com').fill(role + '@teste');
+    await p.getByPlaceholder('••••••••').fill('senha');
+    await click(p, 'Entrar', true);
+    await p.waitForTimeout(800);
+    check(`raiz: ${role} cai no módulo certo`, p.url().includes(dest), p.url());
+    await p.close();
+  }
+
+  const salvo = await open('', { role: 'cozinha' });
+  check('raiz: quem já entrou vai direto para o seu módulo', salvo.url().includes('module=cozinha&screen=kanban'), salvo.url());
+  await salvo.close();
+
+  const inicio = await open('inicio.html');
+  check('inicio.html: endereço antigo abre Conheça o Sunfood no login', inicio.url() === BASE + '#conheca' && (await text(inicio)).includes('Um sistema, três telas de trabalho'), inicio.url());
+  await inicio.locator('#info').getByText('Entrar', { exact: true }).click(); await inicio.waitForTimeout(300);
+  check('Conheça o Sunfood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Bem-vindo de volta'), inicio.url());
+  await inicio.close();
+
+  const app = await open('app-cliente.dc.html', { role: 'admin', session: false });
+  await app.getByPlaceholder('voce@email.com').fill('admin@teste');
+  await app.getByPlaceholder('••••••••').fill('senha');
+  await click(app, 'Entrar', true);
+  await app.waitForTimeout(800);
+  check('login do app: admin vai para o painel', app.url().includes('module=admin&screen=dashboard'), app.url());
+  await app.close();
+});
+
+// 1c. Links do rodapé do login abrem o conteúdo no próprio login
+await step('rodapé do login', async () => {
+  const page = await open('');
+  for (const [link, trecho, hash] of [['Conheça o Sunfood', 'O que o quiosque ganha', '#conheca'], ['Termos de uso', 'Cancelamento de pedidos', '#termos'], ['Privacidade', 'Seus direitos como titular', '#privacidade'], ['Fale conosco', 'Dúvida, reserva ou suporte?', '#fale-conosco']]) {
+    await page.locator('nav.foot').getByText(link, { exact: true }).click();
+    await page.waitForTimeout(300);
+    const t = await page.locator('#info').innerText();
+    check(`rodapé: ${link} abre no login`, page.url() === BASE + hash && t.includes(trecho), page.url());
+    if (hash !== '#fale-conosco') { await page.keyboard.press('Escape'); await page.waitForTimeout(200); }
+  }
+  await page.locator('.tab', { hasText: 'Termos de uso' }).click(); await page.waitForTimeout(300);
+  check('painel: abas trocam de seção', page.url() === BASE + '#termos' && (await page.locator('#info').innerText()).includes('Natureza do serviço'));
+  await page.locator('.tab', { hasText: 'Fale conosco' }).click(); await page.waitForTimeout(300);
+  // Os motivos do formulário precisam ser os mesmos aceitos pela API (CONTACT_REASONS no sunfood-backend).
+  const motivos = await page.locator('#c-motivo option').allInnerTexts();
+  check('fale conosco: motivos iguais aos aceitos pela API', JSON.stringify(motivos) === JSON.stringify(['Reservar mesa ou guarda-sol', 'Tirar dúvida sobre o cardápio', 'Dúvida sobre pagamento', 'Suporte com um pedido em andamento', 'Parceria com meu quiosque']), motivos.join(' | '));
+  await page.fill('#c-nome', 'Bruna Lima');
+  await page.fill('#c-contato', 'abc');
+  await page.fill('#c-msg', 'Quero reservar uma mesa para 6 pessoas no sábado.');
+  await click(page, 'Enviar mensagem', true);
+  check('fale conosco: contato inválido não envia', page.api.db.contacts.length === 0 && (await text(page)).includes('Informe um e-mail válido'));
+  await page.fill('#c-contato', '(13) 98888-7777');
+  await click(page, 'Enviar mensagem', true);
+  await page.waitForTimeout(400);
+  const t = await text(page);
+  check('fale conosco: mensagem gravada pela API', page.api.db.contacts.length === 1 && page.api.db.contacts[0].name === 'Bruna Lima' && page.api.db.contacts[0].reason === 'Reservar mesa ou guarda-sol', JSON.stringify(page.api.db.contacts));
+  check('fale conosco: mostra o protocolo do servidor', t.includes('Recebemos sua mensagem, Bruna') && t.includes('SF-100001'));
+  await page.keyboard.press('Escape');
+  check('rodapé: Esc fecha o painel', page.url() === BASE && await page.locator('#info').isHidden());
+  check('rodapé: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
+  await page.close();
+
+  const fora = await open('#fale-conosco');
+  await fora.unroute('http://localhost:8787/**');
+  await fora.route('http://localhost:8787/**', r => r.abort());
+  await fora.fill('#c-nome', 'Bruna'); await fora.fill('#c-contato', 'bruna@email.com'); await fora.fill('#c-msg', 'Mensagem com servidor fora do ar.');
+  await click(fora, 'Enviar mensagem', true);
+  check('fale conosco: avisa quando o servidor está fora do ar', (await text(fora)).includes('Sem conexão com o servidor'));
+  await fora.close();
+
+  // Quem já entrou e abre os termos pelo app vê os termos, não é mandado para o app.
+  const logado = await open('termos.html', { role: 'cozinha' });
+  check('termos.html: abre os termos mesmo com sessão salva', logado.url() === BASE + '#termos' && (await text(logado)).includes('Legislação aplicável e foro'), logado.url());
+  await logado.close();
+});
 
 // 2. Cliente: login -> cardápio -> carrinho -> mesa -> PIX -> confirmação
 await step('fluxo do cliente', async () => {
@@ -139,31 +229,8 @@ await step('admin relatórios', async () => {
   await page.close();
 });
 
-// 6. Fale conosco grava pela API e o admin lê e marca como respondida
+// 6. Mensagens do Fale conosco (enviadas pelo painel do login, ver 1c): o admin lê e marca como respondida
 await step('fale conosco', async () => {
-  const page = await open('contato.html');
-  await page.fill('#c-nome', 'Bruna Lima');
-  await page.fill('#c-contato', 'abc');
-  await page.fill('#c-msg', 'Quero reservar uma mesa para 6 pessoas no sábado.');
-  await click(page, 'Enviar mensagem');
-  check('contato: contato inválido não envia', page.api.db.contacts.length === 0 && (await text(page)).includes('Informe um e-mail válido'));
-  await page.fill('#c-contato', '(13) 98888-7777');
-  await click(page, 'Enviar mensagem');
-  await page.waitForTimeout(400);
-  const t = await text(page);
-  check('contato: mensagem gravada pela API', page.api.db.contacts.length === 1 && page.api.db.contacts[0].name === 'Bruna Lima', JSON.stringify(page.api.db.contacts));
-  check('contato: mostra o protocolo devolvido pelo servidor', t.includes('Recebemos sua mensagem, Bruna') && t.includes('SF-100001'), t.slice(0, 400));
-  check('contato: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
-  await page.close();
-
-  const fora = await open('contato.html');
-  await fora.unroute('http://localhost:8787/**');
-  await fora.route('http://localhost:8787/**', r => r.abort());
-  await fora.fill('#c-nome', 'Bruna'); await fora.fill('#c-contato', 'bruna@email.com'); await fora.fill('#c-msg', 'Mensagem com servidor fora do ar.');
-  await click(fora, 'Enviar mensagem');
-  check('contato: avisa quando o servidor está fora do ar', (await text(fora)).includes('Sem conexão com o servidor'));
-  await fora.close();
-
   const admin = await open('app-cliente.dc.html?module=admin&screen=messages', { role: 'admin' });
   admin.api.db.contacts.push({ id: 'c1', protocol: 'SF-100001', name: 'Bruna Lima', contact: '(13) 98888-7777', reason: 'Reservar mesa ou guarda-sol', message: 'Mesa para 6 no sábado.', status: 'novo', createdAt: new Date().toISOString() });
   await click(admin, 'Pagamentos', true); await click(admin, 'Mensagens', true);
