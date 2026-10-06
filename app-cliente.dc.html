@@ -1306,12 +1306,24 @@ input,textarea,select,[contenteditable="true"]{caret-color:auto}
                       </div>
                       <div class="muted" style="font-size:14px;line-height:1.45;flex-grow:1">{{ p.desc }}</div>
                       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="{{ p.pillStyle }}">{{ p.pill }}</span><span class="muted" style="font-size:13px">{{ p.meta }}</span></div>
-                      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #EFEADF;padding-top:12px">
+                      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #EFEADF;padding-top:12px;flex-wrap:wrap;gap:10px">
                         <div style="display:flex;align-items:center;gap:10px;font:700 14px 'DM Sans',sans-serif">
                           <div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div>{{ p.availLabel }}
                         </div>
-                        <div onClick="{{ p.edit }}" class="btn btn-ghost btn-sm">Editar</div>
+                        <div style="display:flex;gap:8px;margin-left:auto">
+                          <div onClick="{{ p.askDelete }}" class="btn btn-danger-ghost btn-sm">Excluir</div>
+                          <div onClick="{{ p.edit }}" class="btn btn-ghost btn-sm">Editar</div>
+                        </div>
                       </div>
+                      <sc-if value="{{ p.confirming }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:14px;background:#FDECEA">
+                          <div style="font-size:14px;line-height:1.4;color:#7A1A12"><b>Excluir {{ p.name }}?</b> Ele sai do cardápio. Pedidos antigos e relatórios continuam como estão.</div>
+                          <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <div onClick="{{ p.doDelete }}" class="btn btn-danger btn-sm" style="flex:1;white-space:nowrap">{{ p.deleteLabel }}</div>
+                            <div onClick="{{ p.cancelDelete }}" class="btn btn-ghost btn-sm" style="flex:1;white-space:nowrap">Cancelar</div>
+                          </div>
+                        </div>
+                      </sc-if>
                     </div>
                   </sc-for>
                 </div>
@@ -1988,7 +2000,7 @@ class Component extends DCLogic {
     reportPeriod:'hoje', report:null, reportErr:'', reportAt:0,
     // Mensagens do Fale conosco (GET /contact): lista, filtro e último erro.
     contactMsgs:null, msgFilter:'novo', msgErr:'', msgAt:0,
-    pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'',
+    pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'', pfDeleting:null, pfDeletingBusy:false,
     // Admin: filtro/busca da lista de pedidos e filtro do cardápio.
     admFilter:'Todos', admSearch:'', admCat:'Todos',
     // Cozinha: som de pedido novo (o navegador só toca depois de um toque).
@@ -2447,6 +2459,27 @@ class Component extends DCLogic {
           pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}};
       });
     } catch(e){ this.setState({pfMsg:'Falha de conexão com o servidor.'}); }
+  }
+
+  // Sem pedidos o produto é apagado de vez; com pedidos a API só arquiva
+  // (some daqui e do cardápio, mas o histórico continua certo).
+  async deleteProduct(id){
+    if(this.state.pfDeletingBusy) return;
+    this.setState({pfDeletingBusy:true});
+    try {
+      const res = await fetch(API_BASE + '/products/' + id, {method:'DELETE', headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      // 404 = já tinha sido excluído (outra aba): tira da tela do mesmo jeito.
+      if(!res.ok && res.status !== 404) return this.flash(data.error || 'Não foi possível excluir o produto.');
+      this.setState(x => ({
+        products:x.products.filter(p => p.id !== id),
+        cart:x.cart.filter(c => c.id !== id),
+        pf:x.pf.id === id ? {id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''} : x.pf,
+        pfMsg:x.pf.id === id ? '' : x.pfMsg
+      }));
+      this.flash('Produto excluído do cardápio.');
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+    finally { this.setState({pfDeletingBusy:false, pfDeleting:null}); }
   }
 
   async advanceOrderStatus(apiId, nextStatus){
@@ -3443,6 +3476,11 @@ class Component extends DCLogic {
       availLabel:p.soldOut ? 'Esgotado' : 'Disponível',
       swStyle:'background:' + (p.soldOut ? '#B9B2A3' : '#2E9C6A'),
       knobStyle:'left:' + (p.soldOut ? '3px' : '23px'),
+      confirming:s.pfDeleting === p.id,
+      deleteLabel:s.pfDeletingBusy && s.pfDeleting === p.id ? 'Excluindo…' : 'Sim, excluir',
+      askDelete:() => this.setState({pfDeleting:p.id}),
+      cancelDelete:() => this.setState({pfDeleting:null}),
+      doDelete:() => this.deleteProduct(p.id),
       toggle:() => noStock(p) ? this.flash('Sem estoque. Edite o produto e reponha o estoque para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
 
       edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : '', stockOrig:p.stock != null ? String(p.stock) : ''}, pfMsg:''})
