@@ -188,7 +188,7 @@ await step('fluxo do cliente', async () => {
   await click(page, 'Entrar', true);
   let t = await text(page);
   check('cliente: login abre o cardápio', t.includes('Batata Frita') && t.includes('Água de Coco'));
-  check('cliente: item sem estoque aparece como Esgotado', /Açaí[\s\S]*Esgotado/.test(t));
+  check('cliente: item sem estoque some do cardápio (sem aviso de Esgotado)', !t.includes('Açaí') && !t.includes('Esgotado'));
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
   t = await text(page);

@@ -2265,6 +2265,13 @@ class Component extends DCLogic {
       if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue') this.pollOrder(o._apiId);
       if((this.state.module === 'admin' || this.state.module === 'cozinha') && this.state.token) this.loadAdminData();
     }, 3000);
+    // Cardápio do cliente acompanha a disponibilidade a cada 15 s e quando a
+    // aba volta a ficar visível (o celular costuma pausar abas em segundo plano).
+    this.menuTimer = setInterval(() => {
+      if(this.state.module === 'cliente' && !document.hidden) this.refreshProducts();
+    }, 15000);
+    this.onVisible = () => { if(this.state.module === 'cliente' && !document.hidden) this.refreshProducts(); };
+    document.addEventListener('visibilitychange', this.onVisible);
   }
 
   restoreSession(){
@@ -2472,10 +2479,37 @@ class Component extends DCLogic {
         paused: kiosk.paused, dayClosed: kiosk.dayClosed,
         minOrder: typeof kiosk.minOrder === 'number' ? kiosk.minOrder : this.state.minOrder,
         location: kiosk.location && kiosk.location.address ? kiosk.location : this.state.location
-      });
+      }, () => this.dropUnavailableFromCart());
     } catch(e){
       // API fora do ar: mantém os dados de exemplo já carregados no estado inicial.
     }
+  }
+
+  // Cliente: busca só os produtos de novo, para que um item marcado como
+  // indisponível pelo admin/cozinha suma do cardápio sem recarregar a página.
+  async refreshProducts(){
+    try {
+      const res = await fetch(API_BASE + '/products');
+      if(!res.ok) return;
+      const products = (await res.json()).map(apiProductToState);
+      this.setState({products}, () => this.dropUnavailableFromCart());
+    } catch(e){}
+  }
+
+  // Tira do carrinho o que ficou indisponível (ou saiu do cardápio) e avisa.
+  dropUnavailableFromCart(){
+    const s = this.state;
+    const ok = id => s.products.some(p => p.id === id && !p.soldOut);
+    const gone = s.cart.filter(c => !ok(c.id));
+    const leaveProduct = s.screen === 'product' && !ok(s.selId);
+    if(!gone.length && !leaveProduct) return;
+    const update = {cart:s.cart.filter(c => ok(c.id))};
+    if(leaveProduct) update.screen = 'menu';
+    if(gone.length && !update.cart.length && ['cart','table','payment'].indexOf(s.screen) >= 0) update.screen = 'menu';
+    this.setState(update);
+    const names = gone.map(c => c.name).filter((n, i, a) => a.indexOf(n) === i);
+    if(names.length) this.flash(names.join(', ') + (names.length > 1 ? ' acabaram e saíram' : ' acabou e saiu') + ' do seu carrinho.');
+    else this.flash('Esse item acabou e saiu do cardápio.');
   }
 
   // Admin/Cozinha: pedidos (kanban/lista) sempre; dashboard/operação só pro admin.
@@ -2985,7 +3019,10 @@ class Component extends DCLogic {
     this.setState({module:mod, screen});
   }
 
-  componentWillUnmount(){ clearInterval(this.timer); }
+  componentWillUnmount(){
+    clearInterval(this.timer); clearInterval(this.menuTimer);
+    document.removeEventListener('visibilitychange', this.onVisible);
+  }
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
   go(screen, module){
@@ -3235,7 +3272,10 @@ class Component extends DCLogic {
     }));
     const menuQuery = s.menuSearch.trim().toLowerCase();
     const inCartQty = id => s.cart.filter(c => c.id === id).reduce((a, c) => a + c.qty, 0);
+    // Indisponível/esgotado some do cardápio do cliente (admin e cozinha
+    // continuam vendo o item nas telas deles para poder reativar).
     v.menuItems = s.products
+      .filter(p => !p.soldOut)
       .filter(p => s.cat === 'Todos' || p.cat === s.cat)
       .filter(p => !menuQuery || p.name.toLowerCase().includes(menuQuery) || (p.desc || '').toLowerCase().includes(menuQuery))
       .map(p => {
