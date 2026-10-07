@@ -3,6 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+// Sem isto o support.js baixa esta página (1 MB) de novo logo depois de abrir
+// e remonta a tela inteira: gastava internet e travava os primeiros toques.
+window.__resources = window.__resources || {};
+</script>
+<link rel="preconnect" href="https://unpkg.com" crossorigin="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Cor de fundo já no começo (antes ficava branco até o app montar) e a tela
+   só aparece quando as fontes chegaram (ou depois de 1,5 s), para os textos
+   não trocarem de tamanho na frente da pessoa ao recarregar. */
+html,body{background:#F6F3EC;margin:0}
+html.sf-espera #dc-root{opacity:0}
+#dc-root{transition:opacity .12s}
+</style>
+<script>
+(function(){
+  var d = document.documentElement; d.classList.add('sf-espera');
+  var pronto = function(){ d.classList.remove('sf-espera'); };
+  setTimeout(pronto, 1500);
+  try {
+    Promise.all(['800 20px "Bricolage Grotesque"','500 16px "DM Sans"','700 16px "DM Sans"'].map(function(f){ return document.fonts.load(f); })).then(pronto, pronto);
+  } catch(e){ pronto(); }
+})();
+</script>
 <script src="./support.js"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B6670">
@@ -53,7 +80,7 @@ a:hover{color:#084C53}
 @keyframes sfpulse{50%{opacity:.4}}
 .sun{animation:sfspin 24s linear infinite;transform-origin:50% 50%}
 .wave{animation:sfwave 7s ease-in-out infinite}
-.rise{animation:sfup .35s cubic-bezier(.2,.8,.2,1) both}
+.rise{animation:sffade .15s ease-out both}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 
 .tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.05}
@@ -131,6 +158,10 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:18px}
 .pcard{background:#fff;border:1px solid #E3DDD0;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .25s,box-shadow .25s}
 .pcard:hover{transform:translateY(-4px);box-shadow:0 18px 36px -18px rgba(18,35,46,.35)}
+/* Cartões "vazios" enquanto o cardápio chega na primeira visita (em vez de
+   mostrar itens de exemplo e trocá-los na frente da pessoa). */
+.pcard.sk{cursor:default;pointer-events:none}
+.sk-box{background:#ECE7DC;animation:sfpulse 1.2s ease-in-out infinite}
 .pimg{position:relative;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .addbtn{height:44px;padding:0 16px;border-radius:999px;background:#0B6670;color:#fff;font:700 15px 'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;transition:background .2s,transform .15s}
 .addbtn:hover{background:#084C53}
@@ -579,6 +610,13 @@ select{caret-color:auto}
                           </div>
                         </sc-for>
                       </div>
+                      <sc-if value="{{ catalogPending }}" hint-placeholder-val="{{ false }}">
+                        <div class="grid" aria-busy="true" aria-label="Carregando o cardápio">
+                          <sc-for list="{{ skeletonCards }}" as="k" hint-placeholder-count="4">
+                            <div class="pcard sk"><div class="pimg sk-box"></div><div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:10px"><div class="sk-box" style="height:16px;width:70%;border-radius:8px"></div><div class="sk-box" style="height:12px;width:90%;border-radius:8px"></div><div class="sk-box" style="height:20px;width:40%;border-radius:8px;margin-top:8px"></div></div></div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
                       <sc-if value="{{ noMenuItems }}" hint-placeholder-val="{{ false }}">
                         <div class="card" style="padding:36px 20px;text-align:center" ><div style="font:700 17px 'DM Sans',sans-serif">Nada encontrado</div><div class="muted" style="margin-top:6px">Tente outra palavra ou outra categoria.</div></div>
                       </sc-if>
@@ -1832,6 +1870,22 @@ async function sha256Hex(text){
 // Estoque controlado e zerado: o item fica esgotado até alguém repor o saldo.
 function noStock(p){ return p.stock != null && p.stock <= 0; }
 
+// Último cardápio recebido da API, guardado no aparelho. Ao recarregar a
+// página o app já abre com ele e só atualiza o que mudou, em vez de mostrar
+// o cardápio de exemplo e trocar tudo quando a resposta chega (os cartões
+// "pulavam"). Na primeira visita mostra cartões vazios até a API responder.
+const CATALOG_KEY = 'sunfood_catalog';
+function readCatalogCache(){
+  try {
+    const c = JSON.parse(localStorage.getItem(CATALOG_KEY) || 'null');
+    if(c && Array.isArray(c.products) && Array.isArray(c.tables)) return c;
+  } catch(e){}
+  return null;
+}
+function saveCatalogCache(c){
+  try { localStorage.setItem(CATALOG_KEY, JSON.stringify(c)); } catch(e){}
+}
+
 function apiProductToState(p){
   return {id:p.id, cat:p.category, name:p.name, desc:p.description, price:p.price, mark:p.imageKey,
     soldOut:p.soldOut, stock:p.stockQty, long:p.longDescription, porcao:p.portion, tempo:p.prepTime, kcal:p.kcal,
@@ -2195,6 +2249,13 @@ const AUTH_ART = {
 };
 
 class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    const cached = readCatalogCache();
+    if(cached) Object.assign(this.state, cached);
+    else this.state.catalogPending = true;
+  }
+
   state = {
     module:'cliente', screen:'login',
     email:'', pass:'', loginErr:'', loginNeedsConfirm:false,
@@ -2471,17 +2532,20 @@ class Component extends DCLogic {
         fetch(API_BASE + '/tables'),
         fetch(API_BASE + '/kiosk-settings')
       ]);
-      if(!productsRes.ok || !tablesRes.ok || !kioskRes.ok) return;
+      if(!productsRes.ok || !tablesRes.ok || !kioskRes.ok) return this.setState({catalogPending:false});
       const [products, tables, kiosk] = await Promise.all([productsRes.json(), tablesRes.json(), kioskRes.json()]);
-      this.setState({
+      const catalog = {
         products: products.map(apiProductToState),
         tables: tables.map(t => ({n:t.number, active:t.active, seats:t.seats})),
         paused: kiosk.paused, dayClosed: kiosk.dayClosed,
         minOrder: typeof kiosk.minOrder === 'number' ? kiosk.minOrder : this.state.minOrder,
         location: kiosk.location && kiosk.location.address ? kiosk.location : this.state.location
-      }, () => this.dropUnavailableFromCart());
+      };
+      saveCatalogCache(catalog);
+      this.setState(Object.assign({catalogPending:false}, catalog), () => this.dropUnavailableFromCart());
     } catch(e){
-      // API fora do ar: mantém os dados de exemplo já carregados no estado inicial.
+      // API fora do ar: mostra o que já tinha (guardado ou de exemplo).
+      this.setState({catalogPending:false});
     }
   }
 
@@ -2492,6 +2556,10 @@ class Component extends DCLogic {
       const res = await fetch(API_BASE + '/products');
       if(!res.ok) return;
       const products = (await res.json()).map(apiProductToState);
+      // Nada mudou: não redesenha a tela (a consulta roda a cada 15 s).
+      if(JSON.stringify(products) === JSON.stringify(this.state.products)) return;
+      const cache = readCatalogCache();
+      if(cache) saveCatalogCache(Object.assign(cache, {products}));
       this.setState({products}, () => this.dropUnavailableFromCart());
     } catch(e){}
   }
@@ -2513,15 +2581,40 @@ class Component extends DCLogic {
   }
 
   // Admin/Cozinha: pedidos (kanban/lista) sempre; dashboard/operação só pro admin.
+  // Só troca no estado o que mudou de verdade: a atualização automática roda a
+  // cada 3 s e redesenhar a tela inteira sem necessidade deixava os toques lentos.
+  setChanged(updates){
+    const diff = {};
+    for(const k in updates){
+      const a = updates[k], b = this.state[k];
+      if(a === b) continue;
+      if(a && b && typeof a === 'object' && JSON.stringify(a) === JSON.stringify(b)) continue;
+      diff[k] = a;
+    }
+    if(Object.keys(diff).length) this.setState(diff);
+  }
+
   async loadAdminData(){
     if(!this.state.token) return;
+    // Internet lenta: não empilha uma consulta em cima da outra.
+    if(this._adminLoading) return;
+    this._adminLoading = true;
+    try { await this.loadAdminDataNow(); } finally { this._adminLoading = false; }
+  }
+
+  async loadAdminDataNow(){
     const headers = {Authorization:'Bearer ' + this.state.token};
+    // Se o admin/cozinha mexeu em algo enquanto a consulta ia e voltava, a
+    // resposta já está velha: ignora para a tela não "voltar atrás" por um instante.
+    const gen = this._writeGen || 0;
     try {
       const ordersRes = await authFetch(API_BASE + '/orders', {headers});
       if(ordersRes.ok){
         const adminOrders = (await ordersRes.json()).map(adminOrderFromApi);
-        this.setState({adminOrders});
-        this.ringOnNewOrder(adminOrders);
+        if(gen === (this._writeGen || 0)){
+          this.setChanged({adminOrders});
+          this.ringOnNewOrder(adminOrders);
+        }
       }
     } catch(e){}
     if(this.state.authUser && this.state.authUser.role === 'admin'){
@@ -2534,8 +2627,8 @@ class Component extends DCLogic {
         const updates = {};
         if(dashRes.ok) updates.dashboard = await dashRes.json();
         if(opsRes.ok) updates.opsMetrics = await opsRes.json();
-        if(kioskRes.ok){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; if(typeof k.minOrder === 'number') updates.minOrder = k.minOrder; if(k.location && k.location.address) updates.location = k.location; }
-        this.setState(updates);
+        if(kioskRes.ok && gen === (this._writeGen || 0)){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; if(typeof k.minOrder === 'number') updates.minOrder = k.minOrder; if(k.location && k.location.address) updates.location = k.location; }
+        this.setChanged(updates);
       } catch(e){}
       // Na tela de relatórios, atualiza sozinho a cada 30 s (não a cada 3 s).
       if(this.state.screen === 'reports' && Date.now() - this.state.reportAt > 30000) this.loadReport();
@@ -2643,14 +2736,18 @@ class Component extends DCLogic {
   }
 
   async togglePauseKiosk(){
+    const was = this.state.paused;
+    this._writeGen = (this._writeGen || 0) + 1;
+    this.setState({paused:!was});
     try {
       const res = await authFetch(API_BASE + '/kiosk-settings/pause', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
-        body:JSON.stringify({paused: !this.state.paused})
+        body:JSON.stringify({paused: !was})
       });
       if(res.ok){ const data = await res.json(); this.setState({paused:data.paused}); }
-      else this.flash('Não foi possível mudar a pausa. Tente de novo.');
-    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+      else { this.setState({paused:was}); this.flash('Não foi possível mudar a pausa. Tente de novo.'); }
+    } catch(e){ this.setState({paused:was}); this.flash('Falha de conexão com o servidor.'); }
+    this._writeGen++;
   }
 
   async saveCancelWindow(){
@@ -2719,6 +2816,8 @@ class Component extends DCLogic {
   }
 
   async toggleTableActive(number, active){
+    const before = this.state.tables;
+    this.setState(x => ({tables:x.tables.map(t => t.n === number ? Object.assign({}, t, {active}) : t)}));
     try {
       const res = await authFetch(API_BASE + '/tables/' + number + '/active', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
@@ -2727,11 +2826,13 @@ class Component extends DCLogic {
       if(res.ok){
         const row = await res.json();
         this.setState(x => ({tables:x.tables.map(t => t.n === number ? {n:row.number, active:row.active, seats:row.seats} : t)}));
-      }
-    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+      } else { this.setState({tables:before}); this.flash('Não foi possível mudar a mesa. Tente de novo.'); }
+    } catch(e){ this.setState({tables:before}); this.flash('Falha de conexão com o servidor.'); }
   }
 
   async toggleProductSoldOut(id, soldOut){
+    const before = this.state.products;
+    this.setState(x => ({products:x.products.map(prod => prod.id === id ? Object.assign({}, prod, {soldOut}) : prod)}));
     try {
       const res = await authFetch(API_BASE + '/products/' + id + '/sold-out', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
@@ -2740,8 +2841,8 @@ class Component extends DCLogic {
       if(res.ok){
         const p = await res.json();
         this.setState(x => ({products:x.products.map(prod => prod.id === id ? apiProductToState(p) : prod)}));
-      }
-    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+      } else { this.setState({products:before}); this.flash('Não foi possível mudar o item. Tente de novo.'); }
+    } catch(e){ this.setState({products:before}); this.flash('Falha de conexão com o servidor.'); }
   }
 
   async saveProduct(){
@@ -2794,15 +2895,21 @@ class Component extends DCLogic {
     finally { this.setState({pfDeletingBusy:false, pfDeleting:null}); }
   }
 
+  // O cartão muda de coluna na hora do toque; o servidor confirma por trás.
+  // Se ele recusar, a tela volta como estava e aparece o aviso.
   async advanceOrderStatus(apiId, nextStatus){
+    const before = this.state.adminOrders;
+    this._writeGen = (this._writeGen || 0) + 1;
+    this.setState(x => ({adminOrders:(x.adminOrders || []).map(o => o.apiId === apiId ? Object.assign({}, o, {status:nextStatus}) : o)}));
     try {
       const res = await authFetch(API_BASE + '/orders/' + apiId + '/status', {
         method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({status:nextStatus})
       });
-      if(res.ok) this.loadAdminData();
-      else { const data = await res.json(); this.flash(data.error || 'Não foi possível atualizar o pedido.'); }
-    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+      if(!res.ok){ const data = await res.json().catch(() => ({})); this.setState({adminOrders:before}); this.flash(data.error || 'Não foi possível atualizar o pedido.'); }
+    } catch(e){ this.setState({adminOrders:before}); this.flash('Falha de conexão com o servidor.'); }
+    this._writeGen++;
+    this.loadAdminData();
   }
 
   async closeDayReal(){
@@ -2840,7 +2947,7 @@ class Component extends DCLogic {
       const res = await authFetch(API_BASE + '/orders/' + apiId, {headers:{Authorization:'Bearer ' + (token || this.state.token)}});
       if(!res.ok) return;
       const data = await res.json();
-      this.setState({order: orderFromApi(data)});
+      this.setChanged({order: orderFromApi(data)});
       // Pagamento aprovado enquanto o cliente está vendo o QR: some com o QR
       // e confirma automaticamente — ninguém precisa "avisar" que pagou.
       if((this.state.screen === 'pix' || this.state.screen === 'card') && data.paymentStatus === 'approved') this.go('confirm');
@@ -3272,9 +3379,11 @@ class Component extends DCLogic {
     }));
     const menuQuery = s.menuSearch.trim().toLowerCase();
     const inCartQty = id => s.cart.filter(c => c.id === id).reduce((a, c) => a + c.qty, 0);
+    v.catalogPending = !!s.catalogPending;
+    v.skeletonCards = s.catalogPending ? [1, 2, 3, 4, 5, 6] : [];
     // Indisponível/esgotado some do cardápio do cliente (admin e cozinha
     // continuam vendo o item nas telas deles para poder reativar).
-    v.menuItems = s.products
+    v.menuItems = s.catalogPending ? [] : s.products
       .filter(p => !p.soldOut)
       .filter(p => s.cat === 'Todos' || p.cat === s.cat)
       .filter(p => !menuQuery || p.name.toLowerCase().includes(menuQuery) || (p.desc || '').toLowerCase().includes(menuQuery))
@@ -3291,8 +3400,8 @@ class Component extends DCLogic {
       add:e => { e.stopPropagation(); this.addToCart(p, 1, ''); },
       remove:e => { e.stopPropagation(); this.removeOneFromCart(p.id); }
     };});
-    v.noMenuItems = v.menuItems.length === 0;
-    v.countLabel = v.menuItems.length + (v.menuItems.length === 1 ? ' item' : ' itens');
+    v.noMenuItems = !s.catalogPending && v.menuItems.length === 0;
+    v.countLabel = s.catalogPending ? '' : v.menuItems.length + (v.menuItems.length === 1 ? ' item' : ' itens');
     v.paused = s.paused;
     v.menuDayClosed = s.dayClosed && !s.paused;
     v.heroChip = s.paused ? 'Pedidos pausados agora' : s.dayClosed ? 'Quiosque fechado por hoje' : 'Quiosque aberto agora';

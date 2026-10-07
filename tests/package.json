@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node fluxo/telas.mjs && node fluxo/pagamentos.mjs && node fluxo/senha.mjs && node fluxo/conta.mjs && node fluxo/google.mjs && node fluxo/pwa.mjs && node fluxo/mesas.mjs && node fluxo/celular.mjs && node fluxo/localizacao.mjs && node fluxo/excluir-produto.mjs && node fluxo/sessao.mjs && node fluxo/relatorios.mjs && node fluxo/indisponivel.mjs"
+    "test": "node fluxo/telas.mjs && node fluxo/pagamentos.mjs && node fluxo/senha.mjs && node fluxo/conta.mjs && node fluxo/google.mjs && node fluxo/pwa.mjs && node fluxo/mesas.mjs && node fluxo/celular.mjs && node fluxo/localizacao.mjs && node fluxo/excluir-produto.mjs && node fluxo/sessao.mjs && node fluxo/relatorios.mjs && node fluxo/desempenho.mjs && node fluxo/indisponivel.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"
