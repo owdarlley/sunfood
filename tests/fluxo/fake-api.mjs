@@ -21,17 +21,41 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     contacts: [],
     paymentsConfigured,
   };
-  const user = { id: 'u1', email: role + '@teste', name: 'Teste', role };
+  const user = { id: 'u1', email: role + '@teste', name: 'Teste', role, avatarUrl: null, avatarPreset: null, notifyReady: true, soundOn: true };
+  // Tela Perfil (GET/PATCH /auth/profile, foto e trocar senha). A senha atual certa é "senha-atual".
+  db.profile = { phone: '11999999999', birthDate: '2000-01-01', cpf: '529.***.***-25', hasPassword: true };
   const toApi = o => o;
   const handler = async route => {
     const req = route.request();
     const url = new URL(req.url());
     const p = url.pathname, m = req.method();
-    const body = req.postData() ? JSON.parse(req.postData()) : {};
+    const isJson = /json/.test(req.headers()['content-type'] || '');
+    const body = isJson && req.postData() ? JSON.parse(req.postData()) : {};
     const json = (status, data) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
     db.log = (db.log || []).concat(m + ' ' + p);
     if (p === '/auth/login') return json(200, { token: 'tok', user });
     if (p === '/auth/me') return json(200, { user });
+    if (p === '/auth/profile' && m === 'GET') return json(200, { user, ...db.profile });
+    if (p === '/auth/profile' && m === 'PATCH') {
+      const { phone, birthDate, ...rest } = body;
+      if (phone !== undefined) db.profile.phone = phone;
+      if (birthDate !== undefined) db.profile.birthDate = birthDate;
+      Object.assign(user, rest);
+      if (body.avatarPreset) user.avatarUrl = null;
+      return json(200, { user });
+    }
+    if (p === '/auth/avatar' && m === 'POST') {
+      db.avatarUpload = { type: req.headers()['content-type'], body: req.postDataBuffer() };
+      Object.assign(user, { avatarUrl: 'https://teste.supabase.co/storage/v1/object/public/avatares/foto.jpg', avatarPreset: null });
+      return json(201, { user });
+    }
+    if (p === '/auth/avatar' && m === 'DELETE') { Object.assign(user, { avatarUrl: null, avatarPreset: null }); return json(200, { user }); }
+    if (p === '/auth/change-password') {
+      if (!db.profile.hasPassword) return json(400, { error: 'Sua conta entra pelo Google e não tem senha no Sunfood.', code: 'google_account' });
+      if (body.currentPassword !== 'senha-atual') return json(400, { error: 'Senha atual incorreta.', code: 'wrong_password' });
+      db.newPassword = body.newPassword; return json(200, { message: 'Senha alterada.' });
+    }
+    if (p === '/auth/forgot-password') { db.resetFor = body.email; return json(200, { message: 'ok' }); }
     if (p === '/products' && m === 'GET') return json(200, db.products);
     if (p === '/tables') return json(200, db.tables);
     if (p === '/kiosk-settings/cancel-window') { db.kiosk.cancelWindowMinutes = body.minutes; return json(200, db.kiosk); }
@@ -100,6 +124,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
   // Faz o papel do webhook do Mercado Pago: o pagamento do pedido foi aprovado.
   handler.approvePayment = id => { db.orders.find(o => o.id === id).paymentStatus = 'approved'; };
   handler.db = db;
+  handler.user = user;
   handler.seed = () => db.orders.push({ id: 'o9', tableNumber: 1, status: 'Na Fila', subtotal: 25, total: 27.5, note: 'sem sal',
     paymentStatus: 'approved', createdAt: now(), updatedAt: now(), items: [{ productId: 'p1', name: 'Batata Frita', qty: 1, unitPrice: 25, note: '' }] });
   return handler;
