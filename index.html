@@ -37,19 +37,22 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Escala geral: tudo um pouco menor que o tamanho "cru" do CSS, para as telas
-   não parecerem ampliadas (pedido do Dárlley, 2026-10-06). As alturas de tela
-   cheia usam calc(100vh / var(--sfz)) porque o zoom também encolhe o vh.
-   No celular e no tablet os campos ficam com 16px reais na tela, senão o
-   iPhone dá zoom sozinho ao tocar num campo. */
-:root{--sfz:.86}
-@media (max-width:1100px){:root{--sfz:.92}}
-html{zoom:var(--sfz)}
-@media (max-width:1100px){input,select,textarea{font-size:calc(16px / var(--sfz)) !important}}
+/* Design system (2026-10-07): medidas reais na tela, sem zoom geral. Os mesmos
+   tokens do app (app-cliente.dc.html): margem lateral 16/24/32, espaço entre
+   itens 12/16/24, entre seções 24/32/48, padding de cards 16/20/24, campos e
+   botões 48 px no celular e 44 px no computador, cantos 12-16 (cards) e 8
+   (botões/campos), títulos 26/30/36 e texto 15/16 com line-height 1.5. */
+:root{
+  --px:16px;--gap:12px;--sec:24px;--cpad:16px;--ctl:48px;
+  --fs-h1:26px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;
+  --r-card:12px;--r-ctl:8px
+}
+@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px;--r-card:16px}}
+@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--ctl:44px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
 
 /* Mesmo visual da tela de login do app (app-cliente.dc.html): areia, mar e sol. */
 *{box-sizing:border-box}
-body{margin:0;background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;color:#12232E;-webkit-font-smoothing:antialiased}
+body{margin:0;background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;font-size:var(--fs-body);line-height:1.5;color:#12232E;-webkit-font-smoothing:antialiased}
 a{color:#0B6670}
 @keyframes sfspin{to{transform:rotate(360deg)}}
 @keyframes sfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -58,34 +61,34 @@ a{color:#0B6670}
 .wave{animation:sfwave 7s ease-in-out infinite}
 .rise{animation:sfup .35s cubic-bezier(.2,.8,.2,1) both}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
-.tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.05}
+.tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.1}
 .muted{color:#5A6670}
-.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
+.brand{display:flex;align-items:center;gap:8px;min-height:48px;color:#fff;text-decoration:none}
 .brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.auth{min-height:calc(100vh / var(--sfz));display:flex}
+.auth{min-height:100vh;display:flex}
 .auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
-.auth-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
-.auth-box{width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px}
+.auth-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--sec) var(--px)}
+.auth-box{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 .auth-mobile{display:none}
-.lbl{display:block;font:700 14px 'DM Sans',sans-serif;color:#12232E;margin-bottom:6px}
-.inp{width:100%;min-height:48px;border:1px solid #D6CFBF;border-radius:14px;padding:12px 14px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.lbl{display:block;font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#12232E;margin-bottom:8px}
+.inp{width:100%;min-height:var(--ctl);border:1px solid #D6CFBF;border-radius:var(--r-ctl);padding:8px 12px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
 .inp:focus{border-color:#0B6670;box-shadow:0 0 0 3px rgba(11,102,112,.16)}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:0 20px;border-radius:16px;font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;transition:background .2s,transform .15s}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-ctl);font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;transition:background .2s,transform .15s}
 .btn:active{transform:scale(.98)}
 .btn-dark{background:#12232E;color:#fff}
 .btn-dark:hover{background:#1E3642}
 .btn-dark[disabled]{opacity:.6;cursor:wait}
 .btn-ghost{background:#fff;color:#0B6670;border:1px solid #0B6670;font-weight:700}
-.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;border-radius:14px;border:1px solid #D6CFBF;background:#fff;font:700 16px 'DM Sans',sans-serif;cursor:pointer;color:#12232E}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:var(--ctl);border-radius:var(--r-ctl);border:1px solid #D6CFBF;background:#fff;font:700 16px 'DM Sans',sans-serif;cursor:pointer;color:#12232E}
 .gbtn:hover{border-color:#12232E}
-.divider{display:flex;align-items:center;gap:12px;color:#6B6458;font:500 13px 'DM Sans',sans-serif}
+.divider{display:flex;align-items:center;gap:12px;color:#6B6458;font:500 var(--fs-cap) 'DM Sans',sans-serif}
 .divider span{flex:1;height:1px;background:#E3DDD0;display:block}
-.link{font:700 14px 'DM Sans',sans-serif;color:#0B6670;text-decoration:underline;text-underline-offset:3px}
+.link{font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;text-decoration:underline;text-underline-offset:3px}
 .link:hover{color:#084C53}
-.alert{border-radius:14px;padding:12px 14px;font:600 14px/1.45 'DM Sans',sans-serif}
+.alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'DM Sans',sans-serif}
 .alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
 .alert-ok{background:#E7F7ED;color:#14532D;border:1px solid #BFE3CB}
-.foot{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;margin-top:28px;font:500 14px 'DM Sans',sans-serif}
+.foot{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;margin-top:var(--sec);font:500 var(--fs-sm) 'DM Sans',sans-serif}
 .foot a{color:#5A6670;text-decoration:none}
 .foot a:hover{color:#0B6670}
 /* Painel "Conheça o Sunfood / Fale conosco / Termos / Privacidade": abre por
@@ -95,79 +98,76 @@ a{color:#0B6670}
 .info-sheet{position:relative;width:min(760px,100%);height:100%;background:#F6F3EC;display:flex;flex-direction:column;box-shadow:-24px 0 60px -20px rgba(18,35,46,.35);animation:sfslide .28s cubic-bezier(.2,.8,.2,1) both}
 @keyframes sffade{from{opacity:0}}
 @keyframes sfslide{from{transform:translateX(40px);opacity:0}}
-.info-head{flex:none;background:#0B6670;color:#fff;padding:18px 28px 0}
+.info-head{flex:none;background:#0B6670;color:#fff;padding:16px var(--px) 0}
 .info-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.info-close{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.info-close{width:48px;height:48px;border-radius:var(--r-ctl);border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .info-close:hover{background:rgba(255,255,255,.12)}
-.tabs{display:flex;gap:4px;margin-top:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs{display:flex;gap:4px;margin-top:16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:none;padding:12px 14px;border-radius:12px 12px 0 0;font:700 15px 'DM Sans',sans-serif;color:#CFE7E8;text-decoration:none;white-space:nowrap}
+.tab{flex:none;padding:12px 16px;border-radius:var(--r-ctl) var(--r-ctl) 0 0;font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8;text-decoration:none;white-space:nowrap}
 .tab:hover{color:#fff}
 .tab[aria-current="page"]{background:#F6F3EC;color:#12232E}
-.info-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:32px 28px 48px;outline:none}
+.info-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:var(--sec) var(--px);outline:none}
 .info-body section{max-width:640px;margin:0 auto}
-.info-body .eyebrow{font:800 12px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#0B6670;margin:0 0 8px}
-.info-body h2{font:800 clamp(28px,4vw,38px)/1.08 'Bricolage Grotesque',sans-serif;letter-spacing:-.025em;margin:0}
-.info-body h3{font:800 21px/1.2 'Bricolage Grotesque',sans-serif;letter-spacing:-.015em;margin:36px 0 12px}
-.info-body p,.info-body li{font:400 16px/1.65 'DM Sans',sans-serif;color:#3D4A53}
+.info-body .eyebrow{font:800 var(--fs-cap) 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#0B6670;margin:0 0 8px}
+.info-body h2{font:800 var(--fs-h1)/1.1 'Bricolage Grotesque',sans-serif;letter-spacing:-.025em;margin:0}
+.info-body h3{font:800 var(--fs-h2)/1.2 'Bricolage Grotesque',sans-serif;letter-spacing:-.015em;margin:var(--sec) 0 12px}
+.info-body p,.info-body li{font:400 var(--fs-body)/1.5 'DM Sans',sans-serif;color:#3D4A53}
 .info-body p{margin:12px 0 0}
-.info-body ul{margin:10px 0 0;padding-left:20px}
-.info-body li+li{margin-top:6px}
+.info-body ul{margin:12px 0 0;padding-left:20px}
+.info-body li+li{margin-top:8px}
 .info-body strong{color:#12232E}
-.lead{font-size:18px !important;color:#12232E !important}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}
+.lead{font-size:var(--fs-h3) !important;color:#12232E !important}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);margin-top:4px}
 .grid.g2{grid-template-columns:repeat(2,1fr)}
-.card{background:#fff;border:1px solid #E3DDD0;border-radius:18px;padding:18px}
-.card b{display:block;font:800 17px/1.25 'Bricolage Grotesque',sans-serif;color:#12232E}
-.card p{font-size:15px !important;margin-top:6px !important}
-.num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#FFB21E;color:#12232E;font:800 14px 'DM Sans',sans-serif;margin-bottom:10px}
-.tag{font:800 12px 'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#0B6670;margin-bottom:6px}
+.card{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);padding:var(--cpad)}
+.card b{display:block;font:800 var(--fs-h3)/1.25 'Bricolage Grotesque',sans-serif;color:#12232E}
+.card p{font-size:var(--fs-sm) !important;margin-top:8px !important}
+.num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#FFB21E;color:#12232E;font:800 var(--fs-sm) 'DM Sans',sans-serif;margin-bottom:12px}
+.tag{font:800 var(--fs-cap) 'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#0B6670;margin-bottom:8px}
 .card ul{padding-left:18px}
-.card li{font-size:15px !important}
-.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
-.cta a{display:inline-flex;align-items:center;min-height:48px;padding:0 18px;border-radius:14px;font:700 15px 'DM Sans',sans-serif;text-decoration:none}
+.card li{font-size:var(--fs-sm) !important}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.cta a{display:inline-flex;align-items:center;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-ctl);font:700 var(--fs-body) 'DM Sans',sans-serif;text-decoration:none}
 .cta .pri{background:#FFB21E;color:#12232E}
 .cta .pri:hover{background:#F5A300}
 .cta .sec{background:#fff;border:1px solid #0B6670;color:#0B6670}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
-.stats div{font:500 14px/1.4 'DM Sans',sans-serif;color:#5A6670}
-.stats b{display:block;font:800 22px/1.1 'Bricolage Grotesque',sans-serif;color:#0B6670;margin-bottom:4px}
-.quote{margin:36px 0 0;background:#0B6670;color:#fff;border-radius:22px;padding:26px 24px}
-.quote blockquote{margin:0;font:700 19px/1.45 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
-.quote figcaption{margin-top:14px;font:500 14px 'DM Sans',sans-serif;color:#CFE7E8}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);margin-top:24px}
+.stats div{font:500 var(--fs-sm)/1.5 'DM Sans',sans-serif;color:#5A6670}
+.stats b{display:block;font:800 var(--fs-h2)/1.1 'Bricolage Grotesque',sans-serif;color:#0B6670;margin-bottom:4px}
+.quote{margin:var(--sec) 0 0;background:#0B6670;color:#fff;border-radius:var(--r-card);padding:var(--cpad)}
+.quote blockquote{margin:0;font:700 var(--fs-h3)/1.5 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
+.quote figcaption{margin-top:16px;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8}
 .quote figcaption b{color:#FFB21E}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px 20px;margin-top:14px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 24px;margin-top:16px}
 .facts.f2{grid-template-columns:repeat(2,1fr)}
-.facts div{padding:10px 0;border-bottom:1px solid #E3DDD0;font:500 14px 'DM Sans',sans-serif;color:#5A6670}
-.facts b{display:block;font:700 15px 'DM Sans',sans-serif;color:#12232E}
-.note{background:#FFF4DB;border:1px solid #F5DDA4;border-radius:16px;padding:16px 18px;margin-top:28px}
-.note p{margin:0 !important;font-size:15px !important;color:#5A4210 !important}
-.form{display:flex;flex-direction:column;gap:14px;margin-top:20px}
-.form textarea.inp{min-height:130px;resize:vertical;line-height:1.5}
+.facts div{padding:12px 0;border-bottom:1px solid #E3DDD0;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670}
+.facts b{display:block;font:700 var(--fs-body) 'DM Sans',sans-serif;color:#12232E}
+.note{background:#FFF4DB;border:1px solid #F5DDA4;border-radius:var(--r-card);padding:var(--cpad);margin-top:var(--sec)}
+.note p{margin:0 !important;font-size:var(--fs-sm) !important;color:#5A4210 !important}
+.form{display:flex;flex-direction:column;gap:16px;margin-top:24px}
+.form textarea.inp{min-height:128px;padding:12px;resize:vertical;line-height:1.5}
 .form select.inp{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235A6670' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px}
-.ferr{font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:6px}
+.ferr{font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:8px}
 .inp[aria-invalid="true"]{border-color:#B42318}
-.hint{font:500 13px 'DM Sans',sans-serif;color:#6B6458;margin-top:6px}
+.hint{font:500 13px 'DM Sans',sans-serif;color:#6B6458;margin-top:8px}
 @media (max-width:920px){.info-sheet{width:100%}}
-@media (max-width:640px){
+@media (max-width:767px){
   .grid,.grid.g2{grid-template-columns:1fr}
   .facts,.facts.f2{grid-template-columns:1fr}
   .stats{grid-template-columns:1fr 1fr}
-  .quote blockquote{font-size:17px}
-  .info-head{padding:14px 16px 0}
-  .info-body{padding:24px 18px 40px}
-  .tab{padding:11px 12px;font-size:14px}
+  .tab{padding:12px}
 }
 [hidden]{display:none !important}
 @media (max-width:920px){
   .auth{flex-direction:column}
   .auth-art{display:none}
   .auth-mobile{display:flex}
-  .auth-main{justify-content:flex-start;padding:24px 18px 40px}
+  .auth-main{justify-content:flex-start}
 }
 
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
-@media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}.foot{gap:0 12px;margin-top:20px}.foot a{padding:12px 4px}}
+@media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}.foot{gap:0 12px;margin-top:24px}.foot a{padding:12px 4px}}
 
 /* Clicar ou tocar perto de um texto não seleciona nada nem mostra o cursor de
    texto (o "tracinho"): só os campos de digitação são selecionáveis e
@@ -183,21 +183,21 @@ select{caret-color:auto}
     <a class="brand" href="./" aria-label="Sunfood: ir para o login"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
     <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
     <div style="position:relative;max-width:460px">
-      <div class="tt" style="font-size:clamp(34px,3.6vw,48px)">Peça direto do seu guarda-sol.</div>
-      <p style="font-size:18px;line-height:1.5;color:#DDF1F2;margin:16px 0 0">Entre com sua conta para ver o cardápio, pagar pelo celular e acompanhar o pedido até a sua mesa.</p>
+      <div class="tt" style="font-size:40px">Peça direto do seu guarda&#8209;sol.</div>
+      <p style="font-size:var(--fs-h3);line-height:1.5;color:#DDF1F2;margin:16px 0 0">Entre com sua conta para ver o cardápio, pagar pelo celular e acompanhar o pedido até a sua mesa.</p>
     </div>
-    <div style="position:relative;font:500 14px 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
+    <div style="position:relative;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
     <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
   </div>
-  <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:22px 18px 20px;flex-direction:column;gap:12px">
-    <a class="brand" href="./" aria-label="Sunfood: ir para o login"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></a>
-    <div style="font:500 15px/1.45 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">Peça direto do seu guarda-sol.</div>
+  <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:var(--cpad);flex-direction:column;gap:12px">
+    <a class="brand" href="./" aria-label="Sunfood: ir para o login"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></a>
+    <div style="font:500 var(--fs-body)/1.5 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">Peça direto do seu guarda-sol.</div>
   </div>
   <main class="auth-main">
     <form id="login" class="auth-box rise" novalidate>
       <div>
-        <h1 class="tt" style="font-size:36px;margin:0">Bem-vindo de volta</h1>
-        <div class="muted" style="font-size:16px;margin-top:6px">Novo por aqui? <a class="link" style="font-size:16px" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Cadastre-se</a></div>
+        <h1 class="tt" style="font-size:var(--fs-h1);margin:0">Bem-vindo de volta</h1>
+        <div class="muted" style="font-size:var(--fs-body);margin-top:8px">Novo por aqui? <a class="link" style="font-size:var(--fs-body)" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Cadastre-se</a></div>
       </div>
       <div>
         <label class="lbl" for="email">E-mail</label>
@@ -214,7 +214,7 @@ select{caret-color:auto}
       <button type="button" id="google" class="gbtn">
         <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
       </button>
-      <div class="muted" style="text-align:center;font-size:14px">Equipe da cozinha e administração usam este mesmo login.</div>
+      <div class="muted" style="text-align:center;font-size:var(--fs-sm)">Equipe da cozinha e administração usam este mesmo login.</div>
     </form>
     <nav class="foot" aria-label="Sobre o Sunfood">
       <a href="#conheca">Conheça o Sunfood</a>
@@ -233,7 +233,7 @@ select{caret-color:auto}
   <div class="info-sheet">
     <div class="info-head">
       <div class="info-top">
-        <a class="brand" href="./" id="info-title"><svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><g fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></a>
+        <a class="brand" href="./" id="info-title"><svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><g fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></a>
         <button type="button" class="info-close" data-close aria-label="Fechar e voltar ao login"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
       </div>
       <nav class="tabs" aria-label="Seções">
@@ -337,11 +337,11 @@ select{caret-color:auto}
           <button type="submit" id="c-enviar" class="btn btn-dark">Enviar mensagem</button>
         </form>
         <div id="c-ok" class="card" hidden style="margin-top:20px;padding:24px">
-          <b id="c-ok-title" style="font-size:22px">Recebemos sua mensagem</b>
+          <b id="c-ok-title" style="font-size:var(--fs-h3)">Recebemos sua mensagem</b>
           <p>Protocolo de atendimento <strong id="c-prot"></strong>. Guarde o número: ele identifica sua mensagem caso precise falar com a equipe no quiosque.</p>
           <button type="button" id="c-nova" class="btn btn-ghost" style="margin-top:16px">Enviar outra mensagem</button>
         </div>
-        <div class="facts" style="margin-top:28px">
+        <div class="facts" style="margin-top:32px">
           <div>E-mail<b><a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a></b></div>
           <div>Atendimento no quiosque<b>Todos os dias, 9h às 19h</b></div>
           <div>Resposta em<b>Até 1 dia útil</b></div>
