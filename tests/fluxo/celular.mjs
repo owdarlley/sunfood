@@ -110,6 +110,12 @@ await step('detalhe do produto', async () => {
   await tap(p, '+');
   await p.locator('.pd-add').tap(); await p.waitForTimeout(500);
   check('detalhe do produto 360px: Adicionar põe 2 itens no carrinho e volta ao cardápio', p.url().includes('screen=menu') && (await text(p)).includes('2 itens no carrinho'), p.url());
+  // Seta de voltar sobre a foto: volta ao cardápio sem adicionar nada.
+  await tap(p, 'Peixe Frito');
+  const seta = await p.evaluate(() => { const r = document.querySelector('.pd-back')?.getBoundingClientRect(); return !!r && r.height >= 44 && r.top >= 0; });
+  check('detalhe do produto 360px: seta de voltar aparece sobre a foto', seta);
+  await p.locator('.pd-back').tap(); await p.waitForTimeout(500);
+  check('detalhe do produto 360px: seta de voltar leva ao cardápio sem mudar o carrinho', (await p.locator('.pd-name').count()) === 0 && (await text(p)).includes('2 itens no carrinho'));
   await p.context().close();
 });
 
