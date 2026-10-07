@@ -1,0 +1,4 @@
+{
+  "regions": ["pdx1"],
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
+}
