@@ -49,15 +49,26 @@ html.sf-espera #dc-root{opacity:0}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Escala geral: tudo um pouco menor que o tamanho "cru" do CSS, para as telas
-   não parecerem ampliadas (pedido do Dárlley, 2026-10-06). As alturas de tela
-   cheia usam calc(100vh / var(--sfz)) porque o zoom também encolhe o vh.
-   No celular e no tablet os campos ficam com 16px reais na tela, senão o
-   iPhone dá zoom sozinho ao tocar num campo. */
-:root{--sfz:.86}
-@media (max-width:1100px){:root{--sfz:.92}}
-html{zoom:var(--sfz)}
-@media (max-width:1100px){input,select,textarea{font-size:calc(16px / var(--sfz)) !important}}
+/* ===== Design system (definido pelo Dárlley, 2026-10-07) =====
+   Medidas reais na tela, sem zoom geral (o zoom de antes deixava os
+   tamanhos finais diferentes do CSS). Grade de 8 pt; muda em 3 faixas:
+   celular (< 768 px), tablet (768-1024 px) e computador (> 1024 px).
+   --px  margem lateral da tela      16 / 24 / 32
+   --gap espaço entre cards e itens  12 / 16 / 24
+   --sec espaço entre seções         24 / 32 / 48
+   --cpad padding interno de cards   16 / 20 / 24
+   --ctl altura de campos e botões   48 / 48 / 44
+   Títulos: H1 26 / 30 / 36, H2 20 / 22 / 24, H3 18 / 18 / 20.
+   Texto 15 / 15 / 16 (line-height 1.5), texto menor 14, legenda 12.
+   Cantos: cards 12 (celular) / 16, botões e campos 8, pílulas 999. */
+:root{
+  --px:16px;--gap:12px;--sec:24px;--cpad:16px;--ctl:48px;
+  --fs-h1:26px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;
+  --r-card:12px;--r-ctl:8px;--maxw:1320px
+}
+@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px;--r-card:16px}}
+@media (min-width:1440px){:root{--maxw:1440px}}
+@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--ctl:44px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
 
 /* ===== Sunfood · visual "pé na areia" =====
    Cores: areia #F6F3EC (fundo), tinta #12232E (texto), mar #0B6670
@@ -65,7 +76,7 @@ html{zoom:var(--sfz)}
    Grotesque, texto em DM Sans. Tudo aqui é só aparência: a lógica fica
    no script lá embaixo. */
 html,body{margin:0;padding:0}
-body{background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;color:#12232E;-webkit-font-smoothing:antialiased}
+body{background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;font-size:var(--fs-body);line-height:1.5;color:#12232E;-webkit-font-smoothing:antialiased}
 *{box-sizing:border-box}
 input,textarea,button,select{font-family:inherit}
 a{color:#0B6670}
@@ -83,12 +94,12 @@ a:hover{color:#084C53}
 .rise{animation:sffade .15s ease-out both}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 
-.tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.05}
+.tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.1}
 .muted{color:#5A6670}
-.eyebrow{font:700 12px 'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#0B6670}
+.eyebrow{font:700 var(--fs-cap) 'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#0B6670}
 
-/* botões */
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:16px;font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;user-select:none;transition:background .2s,transform .15s,filter .2s,border-color .2s}
+/* botões: 48 px no celular, 44 px no computador; cantos de 8 px */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-ctl);font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;user-select:none;transition:background .2s,transform .15s,filter .2s,border-color .2s}
 .btn:active{transform:scale(.98)}
 .btn-sun{background:#FFB21E;color:#12232E}
 .btn-sun:hover{filter:brightness(.96)}
@@ -101,228 +112,236 @@ a:hover{color:#084C53}
 .btn-danger{background:#B42318;color:#fff}
 .btn-danger-ghost{background:#fff;color:#B42318;border:1px solid #F0C2BC;font-weight:700}
 .btn-danger-ghost:hover{background:#FDECEA}
-.btn-sm{min-height:40px;padding:0 14px;border-radius:12px;font-size:14px}
-.link{font:700 14px 'DM Sans',sans-serif;color:#0B6670;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.btn-sm{min-height:40px;padding:0 16px;border-radius:var(--r-ctl);font-size:var(--fs-sm)}
+.link{font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .link:hover{color:#084C53}
 
 /* cartões, campos, avisos */
-.card{background:#fff;border:1px solid #E3DDD0;border-radius:20px}
-.lbl{display:block;font:700 14px 'DM Sans',sans-serif;color:#12232E;margin-bottom:6px}
-.inp{width:100%;min-height:48px;border:1px solid #D6CFBF;border-radius:14px;padding:12px 14px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.card{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card)}
+.lbl{display:block;font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#12232E;margin-bottom:8px}
+.inp{width:100%;min-height:var(--ctl);border:1px solid #D6CFBF;border-radius:var(--r-ctl);padding:8px 12px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
 .inp:focus{border-color:#0B6670;box-shadow:0 0 0 3px rgba(11,102,112,.16)}
 .inp::placeholder{color:#9A958A}
-textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
-.alert{border-radius:14px;padding:12px 14px;font:600 14px/1.45 'DM Sans',sans-serif;display:flex;gap:10px;align-items:flex-start}
+textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
+.alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'DM Sans',sans-serif;display:flex;gap:12px;align-items:flex-start}
 .alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
 .alert-warn{background:#FFF4DB;color:#5C3900;border:1px solid #F0D9A8}
 .alert-ok{background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB}
 .alert-info{background:#E7F1F1;color:#084C53;border:1px solid #CFE7E8}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font:700 12px 'DM Sans',sans-serif;white-space:nowrap}
-.sumrow{display:flex;justify-content:space-between;gap:12px;font:500 15px 'DM Sans',sans-serif;color:#5A6670;padding:4px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font:700 var(--fs-cap) 'DM Sans',sans-serif;white-space:nowrap}
+.sumrow{display:flex;justify-content:space-between;gap:12px;font:500 var(--fs-body) 'DM Sans',sans-serif;color:#5A6670;padding:4px 0}
 .sumrow b{color:#12232E;font-weight:700}
-.sumtotal{display:flex;justify-content:space-between;gap:12px;font:800 20px 'Bricolage Grotesque',sans-serif;border-top:1px dashed #D6CFBF;margin-top:8px;padding-top:12px}
+.sumtotal{display:flex;justify-content:space-between;gap:12px;font:800 var(--fs-h2) 'Bricolage Grotesque',sans-serif;border-top:1px dashed #D6CFBF;margin-top:8px;padding-top:12px}
+/* +/− com área de toque de 48 px (o círculo desenhado é menor) */
 .stepper{display:flex;align-items:center;gap:4px;background:#F6F3EC;border-radius:999px;padding:4px}
-.stepper .sb{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 20px 'DM Sans',sans-serif;cursor:pointer;user-select:none;background:#fff;color:#12232E;border:1px solid #E3DDD0}
+.stepper .sb{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 20px 'DM Sans',sans-serif;cursor:pointer;user-select:none;background:#fff;color:#12232E;border:1px solid #E3DDD0;position:relative}
+.stepper .sb::after{content:'';position:absolute;inset:-4px}
 .stepper .sb.on{background:#0B6670;color:#fff;border-color:#0B6670}
-.stepper .sq{min-width:26px;text-align:center;font:800 16px 'DM Sans',sans-serif}
+.stepper .sq{min-width:24px;text-align:center;font:800 16px 'DM Sans',sans-serif}
 .toggle{width:48px;height:28px;border-radius:999px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s}
+.toggle::after{content:'';position:absolute;inset:-10px 0}
 .toggle span{position:absolute;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 
 /* ===== Cliente ===== */
-.sfc{min-height:calc(100vh / var(--sfz));display:flex;flex-direction:column;background:#F6F3EC}
+.sfc{min-height:100vh;display:flex;flex-direction:column;background:#F6F3EC}
 .topbar{position:sticky;top:0;z-index:25;background:rgba(246,243,236,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid #E3DDD0}
-.topbar-in{max-width:1320px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:10px;cursor:pointer;color:#12232E;text-decoration:none}
+.topbar-in{max-width:var(--maxw);margin:0 auto;padding:12px var(--px);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:8px;min-height:48px;cursor:pointer;color:#12232E;text-decoration:none}
 .brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.toplinks{display:flex;align-items:center;gap:6px}
-.toplink{padding:10px 14px;border-radius:999px;font:600 14px 'DM Sans',sans-serif;cursor:pointer;color:#12232E;white-space:nowrap}
+.toplinks{display:flex;align-items:center;gap:8px}
+.toplink{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;font:600 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer;color:#12232E;white-space:nowrap}
 .toplink:hover{background:#EFEADF}
 .toplink.on{background:#12232E;color:#fff}
-.mesachip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;background:#fff;border:1px solid #E3DDD0;font:600 14px 'DM Sans',sans-serif;white-space:nowrap}
-.cartpill{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;background:#12232E;color:#fff;font:800 15px 'DM Sans',sans-serif;cursor:pointer}
-.pagehead{max-width:1120px;width:100%;margin:0 auto;padding:22px 32px 4px;display:flex;align-items:center;gap:14px}
-.backbtn{width:44px;height:44px;border-radius:50%;background:#fff;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.mesachip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;border:1px solid #E3DDD0;font:600 var(--fs-sm) 'DM Sans',sans-serif;white-space:nowrap}
+.cartpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#12232E;color:#fff;font:800 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer}
+.pagehead{max-width:1120px;width:100%;margin:0 auto;padding:var(--sec) var(--px) 0;display:flex;align-items:center;gap:16px}
+.backbtn{width:48px;height:48px;border-radius:50%;background:#fff;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .backbtn:hover{border-color:#12232E}
-.wrap{width:100%;margin:0 auto;padding:20px 32px 48px;flex:1}
-.wrap-wide{max-width:1320px}
+.wrap{width:100%;margin:0 auto;padding:var(--gap) var(--px) var(--sec);flex:1}
+.wrap-wide{max-width:var(--maxw)}
 .wrap-mid{max-width:1120px}
 .wrap-narrow{max-width:640px}
-.cols{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
-.col-main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px}
-.col-side{flex:1 1 320px;max-width:420px;display:flex;flex-direction:column;gap:16px}
-.hero{position:relative;overflow:hidden;border-radius:28px;background:#0B6670;color:#fff;padding:clamp(22px,4vw,40px);margin-bottom:24px}
-.hero h1{margin:0 0 18px;position:relative;font-size:clamp(30px,4.2vw,46px);max-width:600px}
-.hero p{margin:14px 0 18px;font-size:17px;line-height:1.5;color:#DDF1F2;max-width:620px;position:relative}
-.cats{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.cols{display:flex;flex-wrap:wrap;gap:var(--gap);align-items:flex-start}
+.col-main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:var(--gap)}
+.col-side{flex:1 1 320px;max-width:400px;display:flex;flex-direction:column;gap:var(--gap)}
+.hero{position:relative;overflow:hidden;border-radius:var(--r-card);background:#0B6670;color:#fff;padding:calc(var(--cpad) + 8px) calc(var(--cpad) + 8px) 0;margin-bottom:var(--sec)}
+.hero h1{margin:0 0 48px;position:relative;font-size:var(--fs-h1);max-width:720px}
+.hero p{margin:12px 0 16px;font-size:var(--fs-body);line-height:1.5;color:#DDF1F2;max-width:620px;position:relative}
+.cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:18px}
-.pcard{background:#fff;border:1px solid #E3DDD0;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .25s,box-shadow .25s}
+/* Cardápio: 2 colunas no celular, 3 no tablet, 4 no computador e 5 em tela larga */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+@media (min-width:768px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1025px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1200px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (min-width:1500px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.pcard{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .25s,box-shadow .25s}
 .pcard:hover{transform:translateY(-4px);box-shadow:0 18px 36px -18px rgba(18,35,46,.35)}
+.pcard .pbody{padding:16px !important}
+@media (min-width:1025px){.pcard .pbody{padding:20px !important}}
 /* Cartões "vazios" enquanto o cardápio chega na primeira visita (em vez de
    mostrar itens de exemplo e trocá-los na frente da pessoa). */
 .pcard.sk{cursor:default;pointer-events:none}
 .sk-box{background:#ECE7DC;animation:sfpulse 1.2s ease-in-out infinite}
 .pimg{position:relative;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.addbtn{height:44px;padding:0 16px;border-radius:999px;background:#0B6670;color:#fff;font:700 15px 'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;transition:background .2s,transform .15s}
+.addbtn{height:44px;padding:0 16px;border-radius:999px;background:#0B6670;color:#fff;font:700 var(--fs-sm) 'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;transition:background .2s,transform .15s}
 .addbtn:hover{background:#084C53}
 .addbtn:active{transform:scale(.94)}
 .addbtn .plus{font-size:20px;line-height:1;font-weight:800}
 .cartpanel{position:sticky;top:96px}
 .mobilebar{display:none}
 .bottomnav{display:none}
-.auth{min-height:calc(100vh / var(--sfz));display:flex}
+.auth{min-height:100vh;display:flex}
 .auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
-.auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}
-.auth-box{width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px}
+.auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:var(--sec) var(--px)}
+.auth-box{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 .auth-mobile{display:none}
-.divider{display:flex;align-items:center;gap:12px;color:#6B6458;font:500 13px 'DM Sans',sans-serif}
+.divider{display:flex;align-items:center;gap:12px;color:#6B6458;font:500 var(--fs-cap) 'DM Sans',sans-serif}
 .divider span{flex:1;height:1px;background:#E3DDD0;display:block}
-.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border-radius:14px;border:1px solid #D6CFBF;background:#fff;font:700 16px 'DM Sans',sans-serif;cursor:pointer;color:#12232E}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;min-height:var(--ctl);border-radius:var(--r-ctl);border:1px solid #D6CFBF;background:#fff;font:700 16px 'DM Sans',sans-serif;cursor:pointer;color:#12232E}
 .gbtn:hover{border-color:#12232E}
-.payopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
-.payopt{display:flex;align-items:center;gap:12px;border-radius:16px;padding:16px;cursor:pointer;background:#fff;border:2px solid #E3DDD0;transition:border-color .15s,background .15s}
+.payopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--gap)}
+.payopt{display:flex;align-items:center;gap:12px;border-radius:var(--r-card);padding:var(--cpad);cursor:pointer;background:#fff;border:2px solid #E3DDD0;transition:border-color .15s,background .15s}
 .payopt:hover{border-color:#B9B2A3}
 .payopt.on{border-color:#0B6670;background:#E7F1F1}
-.radio{width:22px;height:22px;border-radius:50%;border:2px solid #B9B2A3;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.radio{width:20px;height:20px;border-radius:50%;border:2px solid #B9B2A3;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .payopt.on .radio{border-color:#0B6670;background:#0B6670}
 .payopt.on .radio::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
-.orow{display:flex;align-items:center;gap:14px;padding:16px 20px;border-top:1px solid #EFEADF;cursor:pointer}
+.orow{display:flex;align-items:center;gap:16px;padding:var(--cpad);border-top:1px solid #EFEADF;cursor:pointer}
 .orow:first-child{border-top:0}
 .orow:hover{background:#FBFAF6}
-.menurow{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-top:1px solid #EFEADF;font:600 15px 'DM Sans',sans-serif;cursor:pointer}
+.menurow{display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:12px 4px;border-top:1px solid #EFEADF;font:600 var(--fs-body) 'DM Sans',sans-serif;cursor:pointer}
 .menurow:hover{color:#0B6670}
 .footer{border-top:1px solid #E3DDD0}
-.footer-in{max-width:1320px;margin:0 auto;padding:22px 32px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between;font:500 14px 'DM Sans',sans-serif;color:#5A6670}
+.footer-in{max-width:var(--maxw);margin:0 auto;padding:var(--gap) var(--px);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;justify-content:space-between;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670}
 
 @media (max-width:920px){
   .cartpanel{display:none}
-  .mobilebar{display:flex;position:fixed;left:12px;right:12px;bottom:84px;z-index:20}
+  .mobilebar{display:flex;position:fixed;left:var(--px);right:var(--px);bottom:80px;z-index:20}
   .toplinks .toplink{display:none}
-  .bottomnav{display:flex;position:sticky;bottom:0;z-index:22;background:#fff;border-top:1px solid #E3DDD0;justify-content:space-around;padding:8px 0 calc(10px + env(safe-area-inset-bottom))}
+  /* barra de baixo: ícones de 24 px, cada aba com no mínimo 48 × 48 px de toque */
+  .bottomnav{display:flex;position:sticky;bottom:0;z-index:22;background:#fff;border-top:1px solid #E3DDD0;justify-content:space-around;padding:4px 0 calc(4px + env(safe-area-inset-bottom))}
+  .bottomnav > div{min-height:56px;min-width:64px;justify-content:center}
   .footer{display:none}
   .auth{flex-direction:column}
   .auth-art{display:none}
   .auth-mobile{display:flex}
-  .auth-main{align-items:flex-start;padding:24px 18px 40px}
+  .auth-main{align-items:flex-start}
+  .wrap{padding-bottom:120px}
 }
-@media (max-width:640px){
-  .topbar-in,.pagehead{padding-left:16px;padding-right:16px}
-  .wrap{padding:16px 16px 120px}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
-  .pcard .pbody{padding:12px !important}
-  .addbtn{height:40px;padding:0 12px;font-size:14px}
+@media (max-width:767px){
+  .addbtn{width:44px;padding:0;justify-content:center;font-size:var(--fs-sm)}
   .addbtn .lbltxt{display:none}
-  .hero{border-radius:22px;margin-bottom:20px}
-  .hero p{font-size:16px}
   .brand b{font-size:20px}
 }
 
 /* Detalhe do produto: no celular a foto fica menor e o botão Adicionar fica preso embaixo,
    para nome, preço, descrição e botão aparecerem sem rolar. */
 .pd .pd-col{flex:1 1 300px;min-width:0}
-.pd-info{display:flex;flex-direction:column;gap:14px}
-.pd-photo{border-radius:24px;overflow:hidden;aspect-ratio:4/3;max-height:calc(72vh / var(--sfz));display:flex;align-items:center;justify-content:center;position:relative}
+.pd-info{display:flex;flex-direction:column;gap:16px}
+.pd-photo{border-radius:var(--r-card);overflow:hidden;aspect-ratio:4/3;max-height:72vh;display:flex;align-items:center;justify-content:center;position:relative}
 .pd-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.pd-name{margin:6px 0 0;font-size:clamp(32px,4vw,46px)}
+.pd-name{margin:8px 0 0;font-size:var(--fs-h1)}
 .pd-mprice{display:none}
-.pd-desc{font-size:17px;line-height:1.55;color:#3D4A53;margin:12px 0 0}
+.pd-desc{font-size:var(--fs-body);line-height:1.5;color:#3D4A53;margin:12px 0 0}
 .pd-chips{display:flex;gap:8px;flex-wrap:wrap}
-.pd-ingr{font-size:15px;line-height:1.55}
-.pd-buy{border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.pd-ingr{font-size:var(--fs-sm);line-height:1.5}
+.pd-buy{border-radius:var(--r-card);padding:var(--cpad);display:flex;flex-direction:column;gap:16px}
 .pd-act{display:contents}
 .pd-row{order:1;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.pd-price{font-size:28px}
+.pd-price{font-size:var(--fs-h1)}
 .pd-note{order:2}
 .pd-alert{order:3}
 .pd-add{order:4}
 @media (max-width:760px){
   .pd{gap:16px}
-  .pd-photo{aspect-ratio:auto;height:calc(34vh / var(--sfz));min-height:150px;max-height:none;border-radius:20px}
+  .pd-photo{aspect-ratio:auto;height:34vh;min-height:150px;max-height:none}
   .pd-photo svg{width:96px;height:96px}
   .pd-info{gap:12px;padding-bottom:96px}
-  .pd-name{margin-top:4px;font-size:clamp(26px,7.5vw,32px)}
-  .pd-mprice{display:block;font-size:22px;white-space:nowrap;color:#0B6670}
-  .pd-desc{font-size:15.5px;line-height:1.5;margin-top:8px}
-  .pd-chips .chip{padding:6px 10px !important;font-size:13px !important}
-  .pd-ingr{font-size:14px;line-height:1.5}
-  .pd-buy{padding:16px;border-radius:18px}
+  .pd-name{margin-top:4px}
+  .pd-mprice{display:block;font-size:var(--fs-h2);white-space:nowrap;color:#0B6670}
+  .pd-desc{margin-top:8px}
+  .pd-chips .chip{padding:6px 12px !important;font-size:var(--fs-cap) !important}
   .pd-buy textarea.inp{min-height:64px}
-  .pd-act{display:flex;align-items:center;gap:10px;position:fixed;left:0;right:0;bottom:0;z-index:24;background:#fff;border-top:1px solid #E3DDD0;box-shadow:0 -6px 20px rgba(18,35,46,.08);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+  .pd-act{display:flex;align-items:center;gap:12px;position:fixed;left:0;right:0;bottom:0;z-index:24;background:#fff;border-top:1px solid #E3DDD0;box-shadow:0 -6px 20px rgba(18,35,46,.08);padding:8px var(--px) calc(8px + env(safe-area-inset-bottom))}
   .pd-row{flex-shrink:0}
   .pd-price{display:none}
   .pd-alert{flex:1;margin:0}
   .pd-add{flex:1;min-width:0;padding-left:12px;padding-right:12px;white-space:nowrap}
 }
-@media (max-width:640px){.pd-info{padding-bottom:0}}
+@media (max-width:767px){.pd-info{padding-bottom:0}}
 
 /* ===== Admin ===== */
-.adm{min-height:calc(100vh / var(--sfz));display:flex;background:#F6F3EC;width:100%}
-.adm-side{width:240px;flex-shrink:0;background:#12232E;color:#fff;display:flex;flex-direction:column;padding:24px 14px 18px;gap:6px;position:sticky;top:0;height:calc(100vh / var(--sfz));overflow-y:auto}
-.adm-brand{display:flex;align-items:center;gap:10px;padding:0 10px 18px}
-.adm-brand b{font:800 21px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.adm-brand small{font:500 14px 'DM Sans',sans-serif;color:#9FB2BA;margin-left:2px}
-.adm-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;font:600 16px 'DM Sans',sans-serif;cursor:pointer;color:#EAF2F3;white-space:nowrap;transition:background .15s}
+.adm{min-height:100vh;display:flex;background:#F6F3EC;width:100%}
+.adm-side{width:240px;flex-shrink:0;background:#12232E;color:#fff;display:flex;flex-direction:column;padding:24px 16px 16px;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.adm-brand{display:flex;align-items:center;gap:8px;padding:0 8px 16px}
+.adm-brand b{font:800 20px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+.adm-brand small{font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#9FB2BA;margin-left:2px}
+.adm-item{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border-radius:var(--r-ctl);font:600 15px 'DM Sans',sans-serif;cursor:pointer;color:#EAF2F3;white-space:nowrap;transition:background .15s}
 .adm-item:hover{background:#1E3642}
 .adm-item.on{background:#FFB21E;color:#12232E;font-weight:800}
-.adm-sep{height:1px;background:#2A3F4B;margin:10px 8px}
-.adm-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:14px}
-.adm-main{flex:1;min-width:0;padding:28px 32px 48px}
-.adm-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
-.adm-head h1{margin:2px 0 0;font-size:clamp(30px,3.6vw,44px)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
-.kpi{background:#fff;border:1px solid #E3DDD0;border-radius:20px;padding:18px 20px}
-.kpi .k{font:500 15px 'DM Sans',sans-serif;color:#5A6670}
-.kpi .v{font:800 32px 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;margin:8px 0 4px;line-height:1.05}
-.kpi .s{font:500 13px 'DM Sans',sans-serif;color:#1E6B36}
-.panel{background:#fff;border:1px solid #E3DDD0;border-radius:20px;padding:20px 22px}
-.panel h2{margin:0 0 14px;font:700 19px 'DM Sans',sans-serif}
-.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
-.bars{display:flex;align-items:flex-end;gap:10px;height:200px}
+.adm-sep{height:1px;background:#2A3F4B;margin:8px}
+.adm-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:16px}
+.adm-main{flex:1;min-width:0;max-width:calc(1440px + 2 * var(--px));margin:0 auto;padding:var(--sec) var(--px)}
+.adm-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:var(--sec)}
+.adm-head h1{margin:4px 0 0;font-size:var(--fs-h1)}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+@media (min-width:768px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1025px){.kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}}
+.kpi{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);padding:var(--cpad)}
+.kpi .k{font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670}
+.kpi .v{font:800 var(--fs-h1) 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;margin:8px 0 4px;line-height:1.1}
+.kpi .s{font:500 var(--fs-cap) 'DM Sans',sans-serif;color:#1E6B36}
+.panel{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);padding:var(--cpad)}
+.panel h2{margin:0 0 16px;font:700 var(--fs-h3) 'DM Sans',sans-serif}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:var(--gap)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:200px}
 .bar{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
-.bar .bv{font:500 11px 'DM Sans',sans-serif;color:#5A6670;margin-bottom:4px;white-space:nowrap;height:14px}
-.bar .bl{font:500 12px 'DM Sans',sans-serif;color:#5A6670;margin-top:8px;white-space:nowrap;height:15px}
+.bar .bv{font:500 var(--fs-cap) 'DM Sans',sans-serif;color:#5A6670;margin-bottom:4px;white-space:nowrap;height:16px}
+.bar .bl{font:500 var(--fs-cap) 'DM Sans',sans-serif;color:#5A6670;margin-top:8px;white-space:nowrap;height:16px}
 .prog{height:8px;border-radius:999px;background:#EFEADF;overflow:hidden}
 .prog > div{height:100%;border-radius:999px}
 .pills{display:flex;gap:8px;flex-wrap:wrap}
-.fpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;font:700 15px 'DM Sans',sans-serif;cursor:pointer;background:#fff;border:1px solid #E3DDD0;color:#12232E;white-space:nowrap}
+.fpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;font:700 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer;background:#fff;border:1px solid #E3DDD0;color:#12232E;white-space:nowrap}
 .fpill:hover{border-color:#12232E}
 .fpill.on{background:#12232E;border-color:#12232E;color:#fff}
-.fpill .n{display:inline-flex;min-width:22px;height:22px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;color:#12232E;font-size:12px;padding:0 6px}
+.fpill .n{display:inline-flex;min-width:20px;height:20px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;color:#12232E;font-size:var(--fs-cap);padding:0 6px}
 .fpill.on .n{background:#FFB21E}
-.seg{display:inline-flex;background:#EFEADF;border-radius:16px;padding:4px;gap:2px}
-.seg div{padding:9px 16px;border-radius:12px;font:700 15px 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.seg{display:inline-flex;background:#EFEADF;border-radius:var(--r-ctl);padding:4px;gap:4px}
+.seg div{display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border-radius:6px;font:700 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
 .seg div.on{background:#12232E;color:#fff}
 .tbl{width:100%}
-.tr{display:grid;gap:12px;align-items:center;padding:14px 18px;border-top:1px solid #EFEADF;font:500 14px 'DM Sans',sans-serif}
-.tr.th{border-top:0;border-bottom:1px solid #E3DDD0;font:700 13px 'DM Sans',sans-serif;color:#5A6670;padding-top:12px;padding-bottom:12px;white-space:nowrap}
+.tr{display:grid;gap:12px;align-items:center;padding:12px var(--cpad);border-top:1px solid #EFEADF;font:500 var(--fs-sm) 'DM Sans',sans-serif}
+.tr.th{border-top:0;border-bottom:1px solid #E3DDD0;font:700 var(--fs-cap) 'DM Sans',sans-serif;color:#5A6670;padding-top:12px;padding-bottom:12px;white-space:nowrap}
 .tr.th + .tr{border-top:0}
-.tblwrap{background:#fff;border:1px solid #E3DDD0;border-radius:20px;overflow-x:auto}
+.tblwrap{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);overflow-x:auto}
 /* No celular as tabelas de Pedidos e Pagamentos viram cartões (sem arrastar
    para os lados): cada linha mostra os campos com o nome em cima. */
-@media (max-width:640px){
+@media (max-width:767px){
   .tbl-cards{min-width:0 !important}
   .tbl-cards .tr.th{display:none}
-  .tbl-cards .tr{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:10px 12px;padding:14px 16px}
+  .tbl-cards .tr{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:12px;padding:16px}
   .tbl-cards .tr > div{text-align:left !important;min-width:0}
-  .tbl-cards .tr > [data-l]::before{content:attr(data-l);display:block;font:600 12px 'DM Sans',sans-serif;color:#6B6458;margin-bottom:3px}
+  .tbl-cards .tr > [data-l]::before{content:attr(data-l);display:block;font:600 var(--fs-cap) 'DM Sans',sans-serif;color:#6B6458;margin-bottom:4px}
   .tbl-cards .tr > .wide{grid-column:1/-1}
   .tbl-cards .tr > .wide:empty{display:none}
   .tbl-cards .tr > div > span{display:inline-block;max-width:100%;white-space:normal}
 }
 /* Mapa da Localização (Google Maps sem chave de API, a partir do endereço). */
-.locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:24px;overflow:hidden;background:#CFE7E8;border:1px solid #E3DDD0}
+.locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:var(--r-card);overflow:hidden;background:#CFE7E8;border:1px solid #E3DDD0}
 .locmap iframe{display:block;width:100%;height:100%;border:0}
-@media (max-width:640px){.locmap{height:260px}}
+@media (max-width:767px){.locmap{height:260px}}
 /* Responder Fale conosco: botões lado a lado; no celular, um embaixo do outro. */
-.msg-reply-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.msg-reply-actions{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
 .msg-reply-actions .btn{min-width:180px}
-@media (max-width:640px){.msg-reply-actions{flex-direction:column-reverse}.msg-reply-actions .btn{width:100%;min-width:0}}
-.locform{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:10px}
+@media (max-width:767px){.msg-reply-actions{flex-direction:column-reverse}.msg-reply-actions .btn{width:100%;min-width:0}}
+.locform{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px}
 .locform .wide{grid-column:span 2}
-@media (max-width:640px){.locform .wide{grid-column:auto}}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+@media (max-width:767px){.locform .wide{grid-column:auto}}
+/* Cardápio do admin: 1 coluna no celular, 2 no tablet, 3 a 4 no computador */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:var(--gap)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
-.tile{border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;transition:transform .15s}
+.tile{border-radius:var(--r-card);padding:16px 8px;text-align:center;cursor:pointer;transition:transform .15s}
 .tile:hover{transform:translateY(-2px)}
 .mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 @media (max-width:1100px){ .grid2{grid-template-columns:1fr} }
@@ -331,52 +350,53 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .adm-menubtn{display:none}
 @media (max-width:900px){
   .adm{flex-direction:column}
-  .adm-side{width:100%;height:auto;position:sticky;top:0;z-index:20;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible;padding:10px 12px;gap:8px}
-  .adm-brand{flex:1;padding:0 4px;min-height:44px}
+  .adm-side{width:100%;height:auto;position:sticky;top:0;z-index:20;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible;padding:8px var(--px);gap:8px}
+  .adm-brand{flex:1;padding:0;min-height:48px}
   .adm-brand small{display:inline}
-  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid #2A3F4B;color:#EAF2F3;font:700 15px 'DM Sans',sans-serif;cursor:pointer;user-select:none}
+  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid #2A3F4B;color:#EAF2F3;font:700 15px 'DM Sans',sans-serif;cursor:pointer;user-select:none}
   .adm-side:not(.open) .adm-item,.adm-side:not(.open) .adm-sep,.adm-side:not(.open) .adm-foot{display:none}
-  .adm-side.open .adm-item{flex:1 1 calc(50% - 8px);min-height:46px;padding:10px 12px;font-size:15px}
+  .adm-side.open .adm-item{flex:1 1 calc(50% - 8px);min-height:48px;padding:8px 12px;font-size:15px}
   .adm-side.open .adm-sep{display:none}
   .adm-side.open .adm-foot{width:100%;margin:4px 0 0;padding:8px 0 0;border-top:1px solid #2A3F4B;flex-direction:row;align-items:center;justify-content:space-between}
   .adm-side.open .adm-foot .em{display:block;padding:0 4px;min-width:0}
-  .adm-main{padding:20px 16px 40px}
+  .adm-main{width:100%}
 }
 
 /* ===== Cozinha (mesmo visual da administração: menu escuro, fundo areia e
    cartões brancos; letras grandes para ler de longe na parede) ===== */
-.kz-chip{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 14px;border-radius:12px;background:#fff;border:1px solid #E3DDD0;font:600 15px 'DM Sans',sans-serif;white-space:nowrap}
+.kz-chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;border:1px solid #E3DDD0;font:600 var(--fs-sm) 'DM Sans',sans-serif;white-space:nowrap}
 .kz-chip b{font:800 18px 'Bricolage Grotesque',sans-serif}
-.kz-clock{font:800 34px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;margin-left:4px}
-.kz-btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;border-radius:12px;border:1px solid #2A3F4B;background:transparent;color:#EAF2F3;font:700 14px 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.kz-clock{font:800 var(--fs-h1) 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;margin-left:4px}
+.kz-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid #2A3F4B;background:transparent;color:#EAF2F3;font:700 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
 .kz-btn:hover{border-color:#9FB2BA}
-.kz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,.9fr);gap:16px;align-items:start}
-.kz-col{background:#fff;border:1px solid #E3DDD0;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
-.kz-colhead{display:flex;align-items:center;justify-content:space-between;font:800 19px 'DM Sans',sans-serif;padding:2px 2px 4px;color:#12232E}
-.kz-n{display:inline-flex;min-width:30px;height:30px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;font:800 15px 'DM Sans',sans-serif;padding:0 8px}
-.kz-card{background:#FBFAF6;border-radius:16px;padding:16px;border:2px solid #EFEADF;display:flex;flex-direction:column;gap:10px}
+.kz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,.9fr);gap:var(--gap);align-items:start}
+.kz-col{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);padding:var(--cpad);display:flex;flex-direction:column;gap:12px}
+.kz-colhead{display:flex;align-items:center;justify-content:space-between;font:800 var(--fs-h3) 'DM Sans',sans-serif;padding:0 0 4px;color:#12232E}
+.kz-n{display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;font:800 var(--fs-sm) 'DM Sans',sans-serif;padding:0 8px}
+.kz-card{background:#FBFAF6;border-radius:var(--r-card);padding:16px;border:2px solid #EFEADF;display:flex;flex-direction:column;gap:12px}
 .kz-card.late{border-color:#D9432F;background:#FFF8F6}
-.kz-mesa{font:800 26px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:#12232E}
-.kz-time{font:800 15px 'DM Sans',sans-serif;padding:5px 11px;border-radius:999px;background:#EFEADF;color:#12232E;white-space:nowrap}
+.kz-mesa{font:800 var(--fs-h2) 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:#12232E}
+.kz-time{font:800 var(--fs-sm) 'DM Sans',sans-serif;padding:4px 12px;border-radius:999px;background:#EFEADF;color:#12232E;white-space:nowrap}
 .kz-card.late .kz-time{background:#FDECEA;color:#8A1C12}
-.kz-item{font:500 17px/1.4 'DM Sans',sans-serif;color:#12232E}
+.kz-item{font:500 16px/1.5 'DM Sans',sans-serif;color:#12232E}
 .kz-item b{color:#0B6670}
-.kz-obs{background:#FFF4DB;color:#7A4B00;border-radius:10px;padding:8px 10px;font:600 15px/1.4 'DM Sans',sans-serif}
-.kz-act{min-height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font:800 15px 'DM Sans',sans-serif;cursor:pointer;text-align:center;padding:0 14px}
-.kz-empty{color:#5A6670;font:500 15px/1.5 'DM Sans',sans-serif;text-align:center;padding:22px 8px}
-.kz-avail{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 4px;border-top:1px solid #EFEADF;font:500 16px 'DM Sans',sans-serif}
-.kz-sound{padding:14px 16px;border-radius:16px;background:#FFF4DB;border:1px solid #F3DDA6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.kz-obs{background:#FFF4DB;color:#7A4B00;border-radius:var(--r-ctl);padding:8px 12px;font:600 var(--fs-sm)/1.5 'DM Sans',sans-serif}
+.kz-act{min-height:48px;border-radius:var(--r-ctl);display:flex;align-items:center;justify-content:center;font:800 15px 'DM Sans',sans-serif;cursor:pointer;text-align:center;padding:0 16px}
+.kz-empty{color:#5A6670;font:500 var(--fs-body)/1.5 'DM Sans',sans-serif;text-align:center;padding:24px 8px}
+.kz-avail{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:8px 4px;border-top:1px solid #EFEADF;font:500 var(--fs-body) 'DM Sans',sans-serif}
+.kz-sound{padding:16px;border-radius:var(--r-card);background:#FFF4DB;border:1px solid #F3DDA6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--gap)}
 @media (max-width:1400px){
   .kz-board{grid-template-columns:repeat(3,minmax(0,1fr))}
   .kz-board > .kz-availcol{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));column-gap:24px;row-gap:0}
   .kz-board > .kz-availcol > .kz-colhead,.kz-board > .kz-availcol > .kz-sub{grid-column:1/-1}
   .kz-board > .kz-availcol > .kz-sub{margin:0 0 8px !important}
 }
-@media (max-width:1100px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
-@media (max-width:700px){ .kz-board{grid-template-columns:1fr} .kz-clock{font-size:26px} .kz-chip{min-height:42px;font-size:14px} }
-@media (max-width:640px){.cartrow{flex-wrap:wrap}.cartrow .cr-info{flex:1 1 calc(100% - 80px)}.cartrow .stepper{margin-left:78px}.cartrow .cr-price{flex:1;width:auto}}
-@media (max-width:640px){.bars{gap:3px}.bar .bl{font-size:10px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{padding:14px!important}.kpi .v{font-size:22px}.kpi .k{font-size:13px}}
-@media (max-width:640px){.pcard .stepper .sb{width:32px;height:32px;font-size:18px}.pcard .stepper .sq{min-width:20px}}
+@media (max-width:1024px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:767px){ .kz-board{grid-template-columns:1fr} }
+/* Carrinho no celular: foto e nome na primeira linha; +/− e preço embaixo. */
+@media (max-width:767px){.cartrow{flex-wrap:wrap;row-gap:12px}.cartrow .cr-info{flex:1 1 calc(100% - 80px) !important}.cartrow .stepper{margin-left:80px}.cartrow .cr-price{flex:1;width:auto !important}}
+@media (max-width:767px){.bars{gap:4px}.kpi .k{font-size:var(--fs-cap)}}
+@media (max-width:767px){.pcard .stepper .sb{width:36px;height:36px;font-size:18px}.pcard .stepper .sb::after{inset:-6px}.pcard .stepper .sq{min-width:20px}}
 
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
 @media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}}
@@ -390,7 +410,7 @@ select{caret-color:auto}
 </style>
 </helmet>
 
-<div style="min-height:calc(100vh / var(--sfz));position:relative;background:#F6F3EC">
+<div style="min-height:100vh;position:relative;background:#F6F3EC">
       <sc-if value="{{ isCliente }}" hint-placeholder-val="{{ true }}">
       <div class="sfc">
 
@@ -400,24 +420,24 @@ select{caret-color:auto}
               <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
               <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
               <div style="position:relative;max-width:460px">
-                <div class="tt" style="font-size:clamp(34px,3.6vw,48px)">{{ authArtTitle }}</div>
-                <p style="font-size:18px;line-height:1.5;color:#DDF1F2;margin:16px 0 0">{{ authArtSub }}</p>
+                <div class="tt" style="font-size:40px">{{ authArtTitle }}</div>
+                <p style="font-size:var(--fs-h3);line-height:1.5;color:#DDF1F2;margin:16px 0 0">{{ authArtSub }}</p>
               </div>
-              <div style="position:relative;font:500 14px 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
+              <div style="position:relative;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
               <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
             </div>
-            <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:22px 18px 20px;flex-direction:column;gap:12px;position:relative;overflow:hidden">
-              <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></div>
-              <div style="font:500 15px/1.45 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">{{ authArtTitle }}</div>
+            <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:var(--cpad);flex-direction:column;gap:12px;position:relative;overflow:hidden">
+              <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></div>
+              <div style="font:500 var(--fs-body)/1.5 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">{{ authArtTitle }}</div>
             </div>
             <div class="auth-main">
               <div class="auth-box rise">
 
                 <sc-if value="{{ is_login }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;flex-direction:column;gap:16px">
                     <div>
-                      <div class="tt" style="font-size:36px">Bem-vindo de volta</div>
-                      <div class="muted" style="font-size:16px;margin-top:6px">Novo por aqui? <span onClick="{{ goSignup }}" class="link" style="font-size:16px">Cadastre-se</span></div>
+                      <div class="tt" style="font-size:var(--fs-h1)">Bem-vindo de volta</div>
+                      <div class="muted" style="font-size:var(--fs-body);margin-top:8px">Novo por aqui? <span onClick="{{ goSignup }}" class="link" style="font-size:var(--fs-body)">Cadastre-se</span></div>
                     </div>
                     <div>
                       <span class="lbl">E-mail</span>
@@ -438,15 +458,15 @@ select{caret-color:auto}
                     <div onClick="{{ signInWithGoogle }}" class="gbtn">
                       <svg viewBox="0 0 48 48" width="20" height="20" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
                     </div>
-                    <div class="muted" style="text-align:center;font-size:14px">Equipe da cozinha e administração usam este mesmo login.</div>
+                    <div class="muted" style="text-align:center;font-size:var(--fs-sm)">Equipe da cozinha e administração usam este mesmo login.</div>
                   </div>
                 </sc-if>
 
                 <sc-if value="{{ is_signup }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;flex-direction:column;gap:16px">
                     <div>
-                      <div class="tt" style="font-size:36px">Criar conta</div>
-                      <div class="muted" style="font-size:16px;margin-top:6px">Já tem conta? <span onClick="{{ goLogin }}" class="link" style="font-size:16px">Entrar</span></div>
+                      <div class="tt" style="font-size:var(--fs-h1)">Criar conta</div>
+                      <div class="muted" style="font-size:var(--fs-body);margin-top:8px">Já tem conta? <span onClick="{{ goLogin }}" class="link" style="font-size:var(--fs-body)">Entrar</span></div>
                     </div>
                     <div onClick="{{ signInWithGoogle }}" class="gbtn">
                       <svg viewBox="0 0 48 48" width="20" height="20" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
@@ -454,22 +474,22 @@ select{caret-color:auto}
                     <div class="divider"><span></span>ou com e-mail<span></span></div>
                     <div><span class="lbl">Nome completo</span><input class="inp" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" placeholder="Ana Souza"></div>
                     <div><span class="lbl">E-mail</span><input class="inp" type="email" autocomplete="email" value="{{ suEmail }}" onChange="{{ setSuEmail }}" placeholder="voce@email.com"></div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
                       <div><span class="lbl">WhatsApp / telefone</span><input class="inp" type="tel" autocomplete="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" placeholder="(11) 91234-5678"></div>
                       <div>
                         <span class="lbl">CPF</span>
                         <input class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="border-color:{{ suCpfBorder }}">
-                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:5px">CPF inválido. Confira os números.</span></sc-if>
+                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                       </div>
                     </div>
                     <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}"></div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
                       <div><span class="lbl">Senha</span><input class="inp" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" placeholder="Mínimo 6 caracteres"></div>
                       <div><span class="lbl">Confirmar senha</span><input class="inp" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" placeholder="Repita a senha"></div>
                     </div>
-                    <div style="display:flex;align-items:flex-start;gap:10px">
-                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:#0B6670;cursor:pointer">
-                      <span onClick="{{ toggleSuTerms }}" style="font:500 14px/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
+                    <div style="display:flex;align-items:flex-start;gap:12px">
+                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#0B6670;cursor:pointer">
+                      <span onClick="{{ toggleSuTerms }}" style="font:500 var(--fs-sm)/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
                     <div onClick="{{ doSignup }}" class="btn btn-sun" style="opacity:{{ signupBusyOpacity }}">{{ signupBtnLabel }}</div>
@@ -477,12 +497,12 @@ select{caret-color:auto}
                 </sc-if>
 
                 <sc-if value="{{ is_forgot }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;flex-direction:column;gap:16px">
                     <sc-if value="{{ fpNotSent }}" hint-placeholder-val="{{ true }}">
-                      <div style="display:flex;flex-direction:column;gap:14px">
+                      <div style="display:flex;flex-direction:column;gap:16px">
                         <div>
-                          <div class="tt" style="font-size:36px">Recuperar senha</div>
-                          <p class="muted" style="font-size:16px;line-height:1.5;margin:8px 0 0">Informe o e-mail ou o CPF da sua conta. Enviaremos um link para criar uma senha nova, válido por 1 hora.</p>
+                          <div class="tt" style="font-size:var(--fs-h1)">Recuperar senha</div>
+                          <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:8px 0 0">Informe o e-mail ou o CPF da sua conta. Enviaremos um link para criar uma senha nova, válido por 1 hora.</p>
                         </div>
                         <div class="seg" style="display:flex">
                           <div onClick="{{ fpByEmail }}" class="{{ fpEmailTabCls }}" style="flex:1;text-align:center">E-mail</div>
@@ -495,8 +515,8 @@ select{caret-color:auto}
                           <div>
                             <span class="lbl">CPF</span>
                             <input class="inp" value="{{ fpCpf }}" onChange="{{ setFpCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="border-color:{{ fpCpfBorder }}">
-                            <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:5px">CPF inválido. Confira os números.</span></sc-if>
-                            <span class="muted" style="display:block;font-size:14px;line-height:1.5;margin-top:6px">Não lembra o e-mail do cadastro? Mandamos o link para o e-mail ligado a este CPF.</span>
+                            <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
+                            <span class="muted" style="display:block;font-size:var(--fs-sm);line-height:1.5;margin-top:8px">Não lembra o e-mail do cadastro? Mandamos o link para o e-mail ligado a este CPF.</span>
                           </div>
                         </sc-if>
                         <sc-if value="{{ hasFpErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ fpErr }}</div></sc-if>
@@ -505,10 +525,10 @@ select{caret-color:auto}
                       </div>
                     </sc-if>
                     <sc-if value="{{ fpSent }}" hint-placeholder-val="{{ false }}">
-                      <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px" class="rise">
+                      <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px" class="rise">
                         <span style="width:76px;height:76px;border-radius:50%;background:#E7F1F1;display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0B6670" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg></span>
-                        <div class="tt" style="font-size:30px">Link enviado</div>
-                        <p class="muted" style="font-size:16px;line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:#12232E;word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
+                        <div class="tt" style="font-size:var(--fs-h1)">Link enviado</div>
+                        <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:#12232E;word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
                         <div onClick="{{ goLogin }}" class="btn btn-dark" style="width:100%;margin-top:8px">Voltar ao login</div>
                       </div>
                     </sc-if>
@@ -516,24 +536,24 @@ select{caret-color:auto}
                 </sc-if>
 
                 <sc-if value="{{ is_completeProfile }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;flex-direction:column;gap:16px">
                     <div>
-                      <div class="tt" style="font-size:36px">Falta pouco</div>
-                      <p class="muted" style="font-size:16px;line-height:1.5;margin:8px 0 0">Complete seu cadastro para fazer pedidos.</p>
+                      <div class="tt" style="font-size:var(--fs-h1)">Falta pouco</div>
+                      <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:8px 0 0">Complete seu cadastro para fazer pedidos.</p>
                     </div>
                     <div><span class="lbl">Nome completo</span><input class="inp" value="{{ suName }}" onChange="{{ setSuName }}" placeholder="Ana Souza"></div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
                       <div><span class="lbl">WhatsApp / telefone</span><input class="inp" type="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" placeholder="(11) 91234-5678"></div>
                       <div>
                         <span class="lbl">CPF</span>
                         <input class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="border-color:{{ suCpfBorder }}">
-                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:5px">CPF inválido. Confira os números.</span></sc-if>
+                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                       </div>
                     </div>
                     <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}"></div>
-                    <div style="display:flex;align-items:flex-start;gap:10px">
-                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:#0B6670;cursor:pointer">
-                      <span onClick="{{ toggleSuTerms }}" style="font:500 14px/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
+                    <div style="display:flex;align-items:flex-start;gap:12px">
+                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#0B6670;cursor:pointer">
+                      <span onClick="{{ toggleSuTerms }}" style="font:500 var(--fs-sm)/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
                     <div onClick="{{ doCompleteProfile }}" class="btn btn-sun" style="opacity:{{ completeBusyOpacity }}">{{ completeBtnLabel }}</div>
@@ -547,7 +567,7 @@ select{caret-color:auto}
         </sc-if>
 
         <sc-if value="{{ showApp }}" hint-placeholder-val="{{ true }}">
-          <div style="flex:1;display:flex;flex-direction:column;min-height:calc(100vh / var(--sfz))">
+          <div style="flex:1;display:flex;flex-direction:column;min-height:100vh">
             <div class="topbar">
               <div class="topbar-in">
                 <div onClick="{{ goHome }}" class="brand"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
@@ -571,8 +591,8 @@ select{caret-color:auto}
                   <span onClick="{{ onBack }}" class="backbtn" aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12232E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></span>
                 </sc-if>
                 <div style="min-width:0">
-                  <div class="tt" style="font-size:clamp(26px,3vw,34px)">{{ hdrTitle }}</div>
-                  <sc-if value="{{ hasHdrSub }}" hint-placeholder-val="{{ false }}"><div class="muted" style="font-size:14px;margin-top:4px">{{ hdrSub }}</div></sc-if>
+                  <div class="tt" style="font-size:var(--fs-h1)">{{ hdrTitle }}</div>
+                  <sc-if value="{{ hasHdrSub }}" hint-placeholder-val="{{ false }}"><div class="muted" style="font-size:var(--fs-sm);margin-top:4px">{{ hdrSub }}</div></sc-if>
                 </div>
               </div>
             </sc-if>
@@ -585,7 +605,7 @@ select{caret-color:auto}
                     <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:90px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
                     <svg style="position:absolute;right:clamp(-70px,2vw,40px);top:-40px;width:clamp(150px,18vw,220px);height:clamp(150px,18vw,220px)" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
                     <div style="position:relative">
-                      <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.14);font:600 14px 'DM Sans',sans-serif;margin-bottom:16px"><span style="{{ heroDotStyle }}"></span>{{ heroChip }}</span>
+                      <span style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.14);font:600 var(--fs-sm) 'DM Sans',sans-serif;margin-bottom:16px"><span style="{{ heroDotStyle }}"></span>{{ heroChip }}</span>
                       <h1 class="tt">Peça da mesa. A gente leva até a areia.</h1>
                     </div>
                   </div>
@@ -599,8 +619,8 @@ select{caret-color:auto}
 
                   <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
                     <div class="mobilebar">
-                      <div onClick="{{ goCart }}" style="width:100%;height:60px;border-radius:18px;background:#12232E;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;cursor:pointer;box-shadow:0 16px 32px -12px rgba(18,35,46,.55);font:700 16px 'DM Sans',sans-serif">
-                        <span style="display:flex;align-items:center;gap:10px"><span style="display:inline-flex;min-width:30px;height:30px;align-items:center;justify-content:center;border-radius:999px;background:#FFB21E;color:#12232E;font-weight:800">{{ cartCount }}</span>{{ cartCountStr }}</span>
+                      <div onClick="{{ goCart }}" style="width:100%;height:56px;border-radius:var(--r-card);background:#12232E;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;cursor:pointer;box-shadow:0 16px 32px -12px rgba(18,35,46,.55);font:700 var(--fs-body) 'DM Sans',sans-serif">
+                        <span style="display:flex;align-items:center;gap:12px"><span style="display:inline-flex;min-width:30px;height:30px;align-items:center;justify-content:center;border-radius:var(--r-card);background:#FFB21E;color:#12232E;font-weight:800">{{ cartCount }}</span>{{ cartCountStr }}</span>
                         <span style="font-weight:800">{{ subtotalStr }}</span>
                       </div>
                     </div>
@@ -608,15 +628,15 @@ select{caret-color:auto}
 
                   <div class="cols">
                     <div class="col-main" style="gap:0">
-                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap">
-                        <h2 class="tt" style="margin:0;font-size:32px">Cardápio</h2>
-                        <span class="muted" style="font-size:14px">{{ countLabel }}</span>
+                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                        <h2 class="tt" style="margin:0;font-size:var(--fs-h1)">Cardápio</h2>
+                        <span class="muted" style="font-size:var(--fs-sm)">{{ countLabel }}</span>
                       </div>
-                      <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E3DDD0;border-radius:14px;padding:0 14px;min-height:48px;margin-bottom:14px">
+                      <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-ctl);padding:0 16px;min-height:48px;margin-bottom:16px">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6458" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
                         <input value="{{ menuSearch }}" onChange="{{ setMenuSearch }}" placeholder="Buscar no cardápio" style="flex:1;min-width:0;border:none;outline:none;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:transparent;min-height:46px">
                       </div>
-                      <div class="cats" style="margin-bottom:22px">
+                      <div class="cats" style="margin-bottom:24px">
                         <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
                           <div onClick="{{ c.go }}" class="fpill {{ c.cls }}">{{ c.c }}</div>
                         </sc-for>
@@ -627,13 +647,13 @@ select{caret-color:auto}
                             <div class="pimg" style="{{ p.tileStyle }}">
                               <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ p.photoStyle }}"></span></sc-if>
                               <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="64" height="64" fill="none" stroke="{{ p.iconColor }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ p.markPath }}"></path></svg></sc-if>
-                              <sc-if value="{{ p.hasPrep }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:12px;top:12px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.92);font:600 12px 'DM Sans',sans-serif;color:#12232E">{{ p.prep }}</span></sc-if>
+                              <sc-if value="{{ p.hasPrep }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:12px;top:12px;padding:4px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.92);font:600 12px 'DM Sans',sans-serif;color:#12232E">{{ p.prep }}</span></sc-if>
                             </div>
-                            <div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:6px;flex-grow:1">
-                              <div style="font:700 17px/1.25 'DM Sans',sans-serif">{{ p.name }}</div>
-                              <div class="muted" style="font-size:14px;line-height:1.45;flex-grow:1">{{ p.desc }}</div>
+                            <div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:8px;flex-grow:1">
+                              <div style="font:700 var(--fs-body)/1.25 'DM Sans',sans-serif">{{ p.name }}</div>
+                              <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;flex-grow:1">{{ p.desc }}</div>
                               <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:8px;gap:8px">
-                                <span style="font:700 19px 'Bricolage Grotesque',sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
+                                <span style="font:700 var(--fs-h3) 'Bricolage Grotesque',sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
                                 <sc-if value="{{ p.showAdd }}" hint-placeholder-val="{{ true }}">
                                   <div onClick="{{ p.add }}" class="addbtn" aria-label="Adicionar ao pedido"><span class="plus">+</span><span class="lbltxt">Adicionar</span></div>
                                 </sc-if>
@@ -655,31 +675,31 @@ select{caret-color:auto}
                       <sc-if value="{{ catalogPending }}" hint-placeholder-val="{{ false }}">
                         <div class="grid" aria-busy="true" aria-label="Carregando o cardápio">
                           <sc-for list="{{ skeletonCards }}" as="k" hint-placeholder-count="4">
-                            <div class="pcard sk"><div class="pimg sk-box"></div><div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:10px"><div class="sk-box" style="height:16px;width:70%;border-radius:8px"></div><div class="sk-box" style="height:12px;width:90%;border-radius:8px"></div><div class="sk-box" style="height:20px;width:40%;border-radius:8px;margin-top:8px"></div></div></div>
+                            <div class="pcard sk"><div class="pimg sk-box"></div><div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:12px"><div class="sk-box" style="height:16px;width:70%;border-radius:8px"></div><div class="sk-box" style="height:12px;width:90%;border-radius:8px"></div><div class="sk-box" style="height:20px;width:40%;border-radius:8px;margin-top:8px"></div></div></div>
                           </sc-for>
                         </div>
                       </sc-if>
                       <sc-if value="{{ noMenuItems }}" hint-placeholder-val="{{ false }}">
-                        <div class="card" style="padding:36px 20px;text-align:center" ><div style="font:700 17px 'DM Sans',sans-serif">Nada encontrado</div><div class="muted" style="margin-top:6px">Tente outra palavra ou outra categoria.</div></div>
+                        <div class="card" style="padding:40px 20px;text-align:center" ><div style="font:700 var(--fs-body) 'DM Sans',sans-serif">Nada encontrado</div><div class="muted" style="margin-top:8px">Tente outra palavra ou outra categoria.</div></div>
                       </sc-if>
                     </div>
 
                     <div class="col-side cartpanel">
-                      <div class="card" style="border-radius:24px;padding:24px">
+                      <div class="card" style="border-radius:var(--r-card);padding:24px">
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                          <h2 class="tt" style="margin:0;font-size:24px">Seu pedido</h2>
-                          <span style="display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:999px;background:#FFB21E;color:#12232E;font-weight:800;padding:0 10px">{{ cartCount }}</span>
+                          <h2 class="tt" style="margin:0;font-size:var(--fs-h2)">Seu pedido</h2>
+                          <span style="display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:var(--r-card);background:#FFB21E;color:#12232E;font-weight:800;padding:0 12px">{{ cartCount }}</span>
                         </div>
                         <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
-                          <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px">
+                          <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:16px">
                             <sc-for list="{{ cartRows }}" as="c" hint-placeholder-count="2">
-                              <div style="display:flex;align-items:center;gap:10px">
+                              <div style="display:flex;align-items:center;gap:12px">
                                 <div style="flex-grow:1;min-width:0">
                                   <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
-                                  <div class="muted" style="font-size:14px">{{ c.qty }} × {{ c.unitStr }}</div>
+                                  <div class="muted" style="font-size:var(--fs-sm)">{{ c.qty }} × {{ c.unitStr }}</div>
                                 </div>
-                                <span onClick="{{ c.dec }}" style="width:32px;height:32px;border-radius:50%;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">−</span>
-                                <span onClick="{{ c.inc }}" style="width:32px;height:32px;border-radius:50%;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">+</span>
+                                <span onClick="{{ c.dec }}" style="width:40px;height:40px;border-radius:50%;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">−</span>
+                                <span onClick="{{ c.inc }}" style="width:40px;height:40px;border-radius:50%;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">+</span>
                                 <div style="width:82px;text-align:right;font-weight:700;flex-shrink:0">{{ c.lineStr }}</div>
                               </div>
                             </sc-for>
@@ -689,14 +709,14 @@ select{caret-color:auto}
                             <div class="sumrow"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
                             <div class="sumtotal" style="border-top:0;margin-top:2px;padding-top:4px"><span>Total</span><span>{{ totalStr }}</span></div>
                           </div>
-                          <div style="margin-top:14px">
+                          <div style="margin-top:16px">
                             <div class="prog"><div style="{{ minProgStyle }}"></div></div>
                             <p class="muted" style="margin:8px 0 0;font-size:13px">{{ minHint }}</p>
                           </div>
                           <div onClick="{{ goCart }}" class="btn btn-sun" style="margin-top:16px">Fechar pedido · {{ totalStr }}</div>
                         </sc-if>
                         <sc-if value="{{ noCart }}" hint-placeholder-val="{{ true }}">
-                          <div class="muted" style="padding:26px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
+                          <div class="muted" style="padding:24px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#B9B2A3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg>
                             <p style="margin:0">Seu carrinho está vazio. Escolha algo gelado pra começar.</p>
                           </div>
@@ -727,7 +747,7 @@ select{caret-color:auto}
                     </div>
                     <div class="pd-chips">
                       <sc-for list="{{ pFacts }}" as="fc" hint-placeholder-count="2">
-                        <span class="chip" style="background:#fff;border:1px solid #E3DDD0;padding:8px 12px;font-size:14px;color:#12232E">{{ fc.t }}</span>
+                        <span class="chip" style="background:#fff;border:1px solid #E3DDD0;padding:8px 12px;font-size:var(--fs-sm);color:#12232E">{{ fc.t }}</span>
                       </sc-for>
                       <sc-for list="{{ pTags }}" as="tg" hint-placeholder-count="2">
                         <span class="chip" style="{{ tg.style }}">{{ tg.t }}</span>
@@ -769,28 +789,28 @@ select{caret-color:auto}
                     <div class="card" style="overflow:hidden">
                       <sc-for list="{{ cartRows }}" as="c" hint-placeholder-count="3">
                         <div class="orow cartrow" style="cursor:default">
-                          <span style="width:64px;height:64px;border-radius:14px;{{ c.tileStyle }};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+                          <span style="width:64px;height:64px;border-radius:var(--r-ctl);{{ c.tileStyle }};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
                             <sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ c.photoStyle }}"></span></sc-if>
                             <sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="{{ c.iconColor }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ c.markPath }}"></path></svg></sc-if>
                           </span>
                           <div class="cr-info" style="flex:1;min-width:0">
-                            <div style="font:700 16px 'DM Sans',sans-serif">{{ c.name }}</div>
-                            <div class="muted" style="font-size:14px;margin-top:2px">{{ c.sub }}</div>
+                            <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">{{ c.name }}</div>
+                            <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ c.sub }}</div>
                           </div>
                           <div class="stepper">
                             <span onClick="{{ c.dec }}" class="sb">−</span>
                             <span class="sq">{{ c.qty }}</span>
                             <span onClick="{{ c.inc }}" class="sb on">+</span>
                           </div>
-                          <div class="cr-price" style="width:92px;text-align:right;font:800 16px 'DM Sans',sans-serif;flex-shrink:0">{{ c.lineStr }}</div>
+                          <div class="cr-price" style="width:92px;text-align:right;font:800 var(--fs-body) 'DM Sans',sans-serif;flex-shrink:0">{{ c.lineStr }}</div>
                         </div>
                       </sc-for>
                     </div>
                     <div onClick="{{ goMenu }}" class="link" style="align-self:flex-start">+ Adicionar mais itens</div>
                   </div>
                   <div class="col-side">
-                    <div class="card" style="padding:20px 22px">
-                      <div style="font:700 18px 'DM Sans',sans-serif;margin-bottom:8px">Resumo</div>
+                    <div class="card" style="padding:var(--cpad)">
+                      <div style="font:700 var(--fs-h3) 'DM Sans',sans-serif;margin-bottom:8px">Resumo</div>
                       <div class="sumrow"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
                       <div class="sumrow"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
                       <div class="sumtotal"><span>Total a pagar</span><span>{{ totalStr }}</span></div>
@@ -804,23 +824,23 @@ select{caret-color:auto}
               </sc-if>
 
               <sc-if value="{{ is_cartEmpty }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:48px 10px">
+                <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:48px 12px">
                   <span style="width:96px;height:96px;border-radius:50%;background:#fff;border:1px dashed #D6CFBF;display:flex;align-items:center;justify-content:center"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#B9B2A3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg></span>
-                  <div class="tt" style="font-size:28px">Seu carrinho está vazio</div>
-                  <p class="muted" style="font-size:16px;line-height:1.5;margin:0;max-width:380px">Escolha alguma coisa gelada no cardápio e nós levamos até o seu guarda-sol.</p>
-                  <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:10px">Ver o cardápio</div>
+                  <div class="tt" style="font-size:var(--fs-h2)">Seu carrinho está vazio</div>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:380px">Escolha alguma coisa gelada no cardápio e nós levamos até o seu guarda-sol.</p>
+                  <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:12px">Ver o cardápio</div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_table }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
-                  <div class="card" style="padding:28px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px">
+                  <div class="card" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
                     <span style="font:700 13px 'DM Sans',sans-serif;color:#5A6670;text-transform:uppercase;letter-spacing:.08em">Nº da mesa ou guarda-sol</span>
-                    <div style="width:150px;height:150px;border-radius:50%;background:#0B6670;box-shadow:0 0 0 8px #F6F3EC,0 0 0 11px #FBD58A;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:10px 0">
-                      <span style="font:700 14px 'DM Sans',sans-serif;color:#CFE7E8">Mesa</span>
-                      <input value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" placeholder="00" aria-label="Número da mesa" style="width:150px;max-width:100%;border:none;outline:none;text-align:center;font:800 54px 'Bricolage Grotesque',sans-serif;color:#fff;background:transparent;padding:0;line-height:1">
+                    <div style="width:150px;height:150px;border-radius:50%;background:#0B6670;box-shadow:0 0 0 8px #F6F3EC,0 0 0 11px #FBD58A;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:12px 0">
+                      <span style="font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8">Mesa</span>
+                      <input value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" placeholder="00" aria-label="Número da mesa" style="width:150px;max-width:100%;border:none;outline:none;text-align:center;font:800 var(--fs-h1) 'Bricolage Grotesque',sans-serif;color:#fff;background:transparent;padding:0;line-height:1">
                     </div>
-                    <div class="muted" style="font-size:15px;line-height:1.5;max-width:420px">O número está na plaquinha de madeira do guarda-sol. {{ activeTablesHint }}</div>
+                    <div class="muted" style="font-size:var(--fs-body);line-height:1.5;max-width:420px">O número está na plaquinha de madeira do guarda-sol. {{ activeTablesHint }}</div>
                   </div>
                   <sc-if value="{{ hasTableErr }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-err rise">{{ tableErr }}</div>
@@ -828,11 +848,11 @@ select{caret-color:auto}
                   <div>
                     <span class="lbl">Observação para a cozinha</span>
                     <input class="inp" value="{{ orderNote }}" onChange="{{ setOrderNote }}" placeholder="Ex.: entregar tudo junto, sem talher de plástico...">
-                    <div class="muted" style="font-size:13px;line-height:1.5;margin-top:6px">A cozinha vê esta observação junto com o pedido, somada às observações de cada item.</div>
+                    <div class="muted" style="font-size:13px;line-height:1.5;margin-top:8px">A cozinha vê esta observação junto com o pedido, somada às observações de cada item.</div>
                   </div>
-                  <div class="card" style="padding:16px 20px">
+                  <div class="card" style="padding:var(--cpad)">
                     <div class="sumrow"><span>{{ cartCountStr }}</span><span>{{ subtotalStr }}</span></div>
-                    <div class="sumtotal" style="font-size:18px"><span>Total</span><span>{{ totalStr }}</span></div>
+                    <div class="sumtotal" style="font-size:var(--fs-h3)"><span>Total</span><span>{{ totalStr }}</span></div>
                   </div>
                   <div onClick="{{ confirmTable }}" class="btn btn-sun">Confirmar mesa</div>
                 </div>
@@ -841,65 +861,65 @@ select{caret-color:auto}
               <sc-if value="{{ is_payment }}" hint-placeholder-val="{{ false }}">
                 <div class="cols rise">
                   <div class="col-main">
-                    <div style="font:700 18px 'DM Sans',sans-serif">Forma de pagamento</div>
+                    <div style="font:700 var(--fs-h3) 'DM Sans',sans-serif">Forma de pagamento</div>
                     <div class="payopts">
                       <sc-for list="{{ payOpts }}" as="o" hint-placeholder-count="3">
                         <div onClick="{{ o.pick }}" class="payopt {{ o.cls }}">
                           <span class="radio"></span>
-                          <div style="min-width:0"><div style="font:700 17px 'DM Sans',sans-serif">{{ o.nm }}</div><div class="muted" style="font-size:13px;margin-top:2px">{{ o.sub }}</div></div>
+                          <div style="min-width:0"><div style="font:700 var(--fs-body) 'DM Sans',sans-serif">{{ o.nm }}</div><div class="muted" style="font-size:13px;margin-top:2px">{{ o.sub }}</div></div>
                         </div>
                       </sc-for>
                     </div>
                     <sc-if value="{{ payInfoOff }}" hint-placeholder-val="{{ false }}">
                       <div class="alert alert-info" style="font-weight:500">{{ payInfo }}</div>
                     </sc-if>
-                    <div onClick="{{ goPay }}" class="btn btn-sun" style="justify-content:space-between;padding:0 22px;min-height:56px;font-size:17px"><span>{{ payLabel }}</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+                    <div onClick="{{ goPay }}" class="btn btn-sun" style="justify-content:space-between;padding:0 24px;min-height:56px;font-size:var(--fs-body)"><span>{{ payLabel }}</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
                   </div>
                   <div class="col-side">
-                    <div class="card" style="padding:20px 22px">
-                      <div style="font:700 18px 'DM Sans',sans-serif;margin-bottom:10px">Total do pedido · Mesa {{ tableStr }}</div>
+                    <div class="card" style="padding:var(--cpad)">
+                      <div style="font:700 var(--fs-h3) 'DM Sans',sans-serif;margin-bottom:12px">Total do pedido · Mesa {{ tableStr }}</div>
                       <sc-for list="{{ cartRows }}" as="c" hint-placeholder-count="3">
-                        <div style="display:flex;justify-content:space-between;gap:12px;font:500 15px/1.35 'DM Sans',sans-serif;padding:5px 0"><span><b>{{ c.qty }}×</b> {{ c.name }}</span><b style="white-space:nowrap">{{ c.lineStr }}</b></div>
+                        <div style="display:flex;justify-content:space-between;gap:12px;font:500 var(--fs-body)/1.35 'DM Sans',sans-serif;padding:4px 0"><span><b>{{ c.qty }}×</b> {{ c.name }}</span><b style="white-space:nowrap">{{ c.lineStr }}</b></div>
                       </sc-for>
                       <div style="border-top:1px dashed #D6CFBF;margin-top:8px;padding-top:8px">
-                        <div class="sumrow" style="font-size:14px"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
-                        <div class="sumrow" style="font-size:14px"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
+                        <div class="sumrow" style="font-size:var(--fs-sm)"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
+                        <div class="sumrow" style="font-size:var(--fs-sm)"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
                       </div>
-                      <div class="sumtotal" style="border-top:0;margin-top:0;padding-top:6px"><span>Total</span><span>{{ totalStr }}</span></div>
+                      <div class="sumtotal" style="border-top:0;margin-top:0;padding-top:8px"><span>Total</span><span>{{ totalStr }}</span></div>
                     </div>
                   </div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_pix }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;gap:14px">
-                  <div class="card" style="padding:26px 22px;text-align:center">
+                <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+                  <div class="card" style="padding:var(--cpad);text-align:center">
                     <sc-if value="{{ hasPixQrImg }}" hint-placeholder-val="{{ false }}">
-                      <img src="{{ pixQrImg }}" alt="QR Code PIX" style="width:200px;height:200px;margin:0 auto 14px;padding:8px;background:#fff;border-radius:16px;box-shadow:0 0 0 1px #E3DDD0;display:block" />
+                      <img src="{{ pixQrImg }}" alt="QR Code PIX" style="width:200px;height:200px;margin:0 auto 16px;padding:8px;background:#fff;border-radius:var(--r-card);box-shadow:0 0 0 1px #E3DDD0;display:block" />
                     </sc-if>
                     <sc-if value="{{ noPixQrImg }}" hint-placeholder-val="{{ true }}">
-                      <div style="width:200px;height:200px;margin:0 auto 14px;border-radius:16px;background:#EFEADF;display:flex;align-items:center;justify-content:center;color:#B9B2A3"><svg viewBox="0 0 48 48" width="70" height="70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M24 6 42 24 24 42 6 24 24 6Z M17 24h14 M24 17v14"></path></svg></div>
+                      <div style="width:200px;height:200px;margin:0 auto 16px;border-radius:var(--r-card);background:#EFEADF;display:flex;align-items:center;justify-content:center;color:#B9B2A3"><svg viewBox="0 0 48 48" width="70" height="70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M24 6 42 24 24 42 6 24 24 6Z M17 24h14 M24 17v14"></path></svg></div>
                     </sc-if>
-                    <div class="muted" style="font-size:15px">Valor a pagar</div>
-                    <div class="tt" style="font-size:36px;margin-top:2px">{{ orderTotalStr }}</div>
-                    <div style="font:600 14px 'DM Sans',sans-serif;color:#0B6670;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px"><svg style="animation:sfspin .9s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>Aguardando confirmação do pagamento…</div>
+                    <div class="muted" style="font-size:var(--fs-body)">Valor a pagar</div>
+                    <div class="tt" style="font-size:var(--fs-h1);margin-top:2px">{{ orderTotalStr }}</div>
+                    <div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><svg style="animation:sfspin .9s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>Aguardando confirmação do pagamento…</div>
                   </div>
                   <div onClick="{{ copyPix }}" class="btn btn-dark">Copiar código PIX</div>
-                  <div class="muted" style="font-size:14px;line-height:1.6;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola. A cozinha recebe o pedido assim que o pagamento for confirmado, automaticamente, sem precisar avisar aqui.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola. A cozinha recebe o pedido assim que o pagamento for confirmado, automaticamente, sem precisar avisar aqui.</div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_card }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;gap:14px">
-                  <div class="card" style="padding:26px 22px;text-align:center">
+                <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+                  <div class="card" style="padding:var(--cpad);text-align:center">
                     <span style="width:72px;height:72px;margin:0 auto 12px;border-radius:50%;background:#E7F1F1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="#0B6670" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M11 13h26a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4Z M7 21h34 M14 29h7"></path></svg></span>
-                    <div class="muted" style="font-size:15px">Valor a pagar</div>
-                    <div class="tt" style="font-size:36px;margin-top:2px">{{ orderTotalStr }}</div>
+                    <div class="muted" style="font-size:var(--fs-body)">Valor a pagar</div>
+                    <div class="tt" style="font-size:var(--fs-h1);margin-top:2px">{{ orderTotalStr }}</div>
                     <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
-                      <div style="font:600 14px 'DM Sans',sans-serif;color:#0B6670;margin-top:10px">Aguardando confirmação do pagamento…</div>
+                      <div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;margin-top:12px">Aguardando confirmação do pagamento…</div>
                     </sc-if>
                   </div>
-                  <div class="muted" style="font-size:14px;line-height:1.6;text-align:center">Você vai para a página segura do Mercado Pago para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do Mercado Pago para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
                   <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
                     <div onClick="{{ openCardCheckout }}" class="btn btn-ghost">Abrir o pagamento de novo</div>
                   </sc-if>
@@ -913,10 +933,10 @@ select{caret-color:auto}
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
                   <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
                     <span style="width:88px;height:88px;border-radius:50%;background:#E5F7EA;display:flex;align-items:center;justify-content:center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#2E9C6A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></span>
-                    <div class="tt" style="font-size:34px">Pedido confirmado</div>
-                    <p class="muted" style="font-size:16px;line-height:1.5;margin:0;max-width:440px">{{ confirmMsg }}</p>
+                    <div class="tt" style="font-size:var(--fs-h1)">Pedido confirmado</div>
+                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:440px">{{ confirmMsg }}</p>
                   </div>
-                  <div class="card" style="padding:18px 22px">
+                  <div class="card" style="padding:var(--cpad)">
                     <div class="sumrow"><span>Pedido</span><b>{{ orderId }}</b></div>
                     <div class="sumrow"><span>Mesa</span><b>{{ orderTable }}</b></div>
                     <div class="sumrow"><span>Tempo estimado</span><b>{{ etaStr }}</b></div>
@@ -928,11 +948,11 @@ select{caret-color:auto}
               </sc-if>
 
               <sc-if value="{{ is_payFail }}" hint-placeholder-val="{{ false }}">
-                <div class="card rise" style="padding:32px 26px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;border-radius:28px">
+                <div class="card rise" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;border-radius:var(--r-card)">
                   <span style="width:88px;height:88px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
-                  <div class="tt" style="font-size:32px">Pagamento não aprovado</div>
-                  <p class="muted" style="font-size:16px;line-height:1.5;margin:0;max-width:420px">O pagamento com cartão não foi concluído e nada foi cobrado. Você pode tentar de novo ou pagar de outro jeito.</p>
-                  <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px">
+                  <div class="tt" style="font-size:var(--fs-h1)">Pagamento não aprovado</div>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:420px">O pagamento com cartão não foi concluído e nada foi cobrado. Você pode tentar de novo ou pagar de outro jeito.</p>
+                  <div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:8px">
                     <div onClick="{{ retryPay }}" class="btn btn-sun">Tentar de novo</div>
                     <div onClick="{{ goCart }}" class="btn btn-ghost">Voltar ao carrinho</div>
                   </div>
@@ -943,16 +963,16 @@ select{caret-color:auto}
               <sc-if value="{{ is_status }}" hint-placeholder-val="{{ false }}">
                 <div class="cols rise">
                   <div class="col-main">
-                    <div class="card" style="padding:20px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                    <div class="card" style="padding:var(--cpad);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
                       <div>
-                        <div class="tt" style="font-size:26px">{{ orderId }} · Mesa {{ orderTable }}</div>
-                        <div class="muted" style="font-size:14px;margin-top:4px">Estimativa: {{ etaStr }}</div>
+                        <div class="tt" style="font-size:var(--fs-h2)">{{ orderId }} · Mesa {{ orderTable }}</div>
+                        <div class="muted" style="font-size:var(--fs-sm);margin-top:4px">Estimativa: {{ etaStr }}</div>
                       </div>
                       <span style="{{ statusPillStyle }}">{{ orderStatus }}</span>
                     </div>
-                    <div class="card" style="padding:18px 22px">
+                    <div class="card" style="padding:var(--cpad)">
                       <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
-                        <div style="display:flex;gap:14px;padding:10px 0">
+                        <div style="display:flex;gap:16px;padding:12px 0">
                           <span style="{{ st.dotStyle }}">{{ st.mark }}</span>
                           <div><div style="{{ st.txtStyle }}">{{ st.t }}</div><div class="muted" style="font-size:13px;margin-top:2px">{{ st.d }}</div></div>
                         </div>
@@ -960,18 +980,18 @@ select{caret-color:auto}
                     </div>
                   </div>
                   <div class="col-side">
-                    <div class="card" style="padding:18px 22px">
-                      <div style="font:700 17px 'DM Sans',sans-serif;margin-bottom:8px">Itens</div>
+                    <div class="card" style="padding:var(--cpad)">
+                      <div style="font:700 var(--fs-body) 'DM Sans',sans-serif;margin-bottom:8px">Itens</div>
                       <sc-for list="{{ orderItems }}" as="it" hint-placeholder-count="3">
                         <div class="sumrow"><span>{{ it.n }}</span><span>{{ it.v }}</span></div>
                       </sc-for>
-                      <div class="sumtotal" style="font-size:18px"><span>{{ totalPaidLabel }}</span><span>{{ orderTotalStr }}</span></div>
+                      <div class="sumtotal" style="font-size:var(--fs-h3)"><span>{{ totalPaidLabel }}</span><span>{{ orderTotalStr }}</span></div>
                     </div>
                     <sc-if value="{{ hasOrderObs }}" hint-placeholder-val="{{ false }}">
                       <div class="alert alert-warn" style="flex-direction:column;gap:4px"><b style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">Observações enviadas</b><span style="font-weight:500">{{ orderObs }}</span></div>
                     </sc-if>
                     <sc-if value="{{ hasCancelHint }}" hint-placeholder-val="{{ false }}">
-                      <div class="muted" style="font-size:14px;text-align:center">{{ cancelHint }}</div>
+                      <div class="muted" style="font-size:var(--fs-sm);text-align:center">{{ cancelHint }}</div>
                     </sc-if>
                     <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ false }}">
                       <div onClick="{{ askCancel }}" class="btn btn-danger-ghost">Cancelar pedido</div>
@@ -981,36 +1001,36 @@ select{caret-color:auto}
               </sc-if>
 
               <sc-if value="{{ is_cancelAsk }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;gap:14px">
+                <div class="rise" style="display:flex;flex-direction:column;gap:16px">
                   <div class="alert alert-ok"><span>Cancelamento permitido: o pedido ainda está <b>Na Fila</b> e não entrou em preparo.</span></div>
-                  <div class="card" style="padding:18px 22px">
+                  <div class="card" style="padding:var(--cpad)">
                     <div class="sumrow"><span>Pedido</span><b>{{ orderId }}</b></div>
                     <div class="sumrow"><span>Estorno</span><b>{{ refundStr }}</b></div>
                     <div class="sumrow"><span>Prazo</span><b>{{ refundEta }}</b></div>
                   </div>
-                  <p class="muted" style="font-size:15px;line-height:1.55;margin:0">{{ cancelAskMsg }}</p>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ cancelAskMsg }}</p>
                   <div onClick="{{ doCancel }}" class="btn btn-danger">Confirmar cancelamento</div>
                   <div onClick="{{ goStatus }}" class="btn btn-ghost">Manter meu pedido</div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_cancelDone }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:40px 10px">
+                <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:40px 12px">
                   <span style="width:88px;height:88px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"></path><path d="M4 4v4h4"></path></svg></span>
-                  <div class="tt" style="font-size:30px">Pedido cancelado</div>
-                  <p class="muted" style="font-size:16px;line-height:1.5;margin:0">{{ cancelDoneMsg }}</p>
-                  <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:10px">Voltar ao cardápio</div>
+                  <div class="tt" style="font-size:var(--fs-h1)">Pedido cancelado</div>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ cancelDoneMsg }}</p>
+                  <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:12px">Voltar ao cardápio</div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_cancelBlocked }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;gap:14px">
+                <div class="rise" style="display:flex;flex-direction:column;gap:16px">
                   <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
                     <span style="width:88px;height:88px;border-radius:50%;background:#FFF4DB;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="38" height="38" fill="none" stroke="#B26B00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M16 21h16a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4v-9a4 4 0 0 1 4-4Z M18 21v-5a6 6 0 0 1 12 0v5 M24 27v4"></path></svg></span>
-                    <div class="tt" style="font-size:30px">Não é mais possível cancelar</div>
-                    <p class="muted" style="font-size:16px;line-height:1.5;margin:0">{{ cancelBlockedMsg }}</p>
+                    <div class="tt" style="font-size:var(--fs-h1)">Não é mais possível cancelar</div>
+                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ cancelBlockedMsg }}</p>
                   </div>
-                  <div class="card muted" style="padding:16px 20px;font-size:15px;line-height:1.55">Precisa de ajuda? Chame um atendente na mesa <b style="color:#12232E">{{ orderTable }}</b> ou fale com o balcão do quiosque.</div>
+                  <div class="card muted" style="padding:var(--cpad);font-size:var(--fs-body);line-height:1.5">Precisa de ajuda? Chame um atendente na mesa <b style="color:#12232E">{{ orderTable }}</b> ou fale com o balcão do quiosque.</div>
                   <div onClick="{{ goStatus }}" class="btn btn-sun">Voltar ao acompanhamento</div>
                 </div>
               </sc-if>
@@ -1021,34 +1041,34 @@ select{caret-color:auto}
                     <div onClick="{{ h.open }}" class="orow">
                       <span style="{{ h.dotStyle }}"></span>
                       <div style="flex:1;min-width:0">
-                        <div style="font:700 16px 'DM Sans',sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
+                        <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
                         <div class="muted" style="font-size:13px;margin-top:2px">{{ h.when }}</div>
                       </div>
                       <span style="{{ h.stStyle }}">{{ h.status }}</span>
-                      <span style="font:800 16px 'DM Sans',sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
+                      <span style="font:800 var(--fs-body) 'DM Sans',sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
                     </div>
                   </sc-for>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_historyEmpty }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:48px 10px">
+                <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:48px 12px">
                   <span style="width:96px;height:96px;border-radius:50%;background:#fff;border:1px dashed #D6CFBF;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="#B9B2A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M13 8h22v32l-5-3-6 3-6-3-5 3V8Z M19 18h10 M19 25h10"></path></svg></span>
-                  <div class="tt" style="font-size:28px">Nenhum pedido ainda</div>
-                  <p class="muted" style="font-size:16px;line-height:1.5;margin:0;max-width:380px">Quando você fizer o primeiro pedido, ele aparece aqui com os itens e o valor.</p>
-                  <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:10px">Ver o cardápio</div>
+                  <div class="tt" style="font-size:var(--fs-h2)">Nenhum pedido ainda</div>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:380px">Quando você fizer o primeiro pedido, ele aparece aqui com os itens e o valor.</p>
+                  <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:12px">Ver o cardápio</div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_orderDetail }}" hint-placeholder-val="{{ false }}">
-                <div class="rise" style="display:flex;flex-direction:column;gap:14px">
-                  <div class="card" style="padding:18px 22px">
+                <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+                  <div class="card" style="padding:var(--cpad)">
                     <div class="sumrow"><span>Quando</span><b>{{ hdWhen }}</b></div>
                     <div class="sumrow"><span>Mesa</span><b>{{ hdTable }}</b></div>
                     <div class="sumrow"><span>Situação</span><b>{{ hdStatus }}</b></div>
                   </div>
-                  <div class="card" style="padding:18px 22px">
-                    <div style="font:700 17px 'DM Sans',sans-serif;margin-bottom:8px">Itens</div>
+                  <div class="card" style="padding:var(--cpad)">
+                    <div style="font:700 var(--fs-body) 'DM Sans',sans-serif;margin-bottom:8px">Itens</div>
                     <sc-for list="{{ hdItems }}" as="it" hint-placeholder-count="3">
                       <div class="sumrow"><span>{{ it.n }}</span><span>{{ it.v }}</span></div>
                     </sc-for>
@@ -1060,29 +1080,29 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_profile }}" hint-placeholder-val="{{ false }}">
                 <div class="rise">
-                  <h1 class="tt" style="margin:0 0 22px;font-size:clamp(34px,4.4vw,48px)">Olá, {{ firstName }}</h1>
+                  <h1 class="tt" style="margin:0 0 24px;font-size:var(--fs-h1)">Olá, {{ firstName }}</h1>
                   <div class="cols">
                     <div class="col-side" style="max-width:380px">
-                      <div class="card" style="padding:20px 22px">
-                        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-                          <span style="width:56px;height:56px;border-radius:50%;background:#0B6670;color:#fff;display:flex;align-items:center;justify-content:center;font:800 20px 'Bricolage Grotesque',sans-serif;flex-shrink:0">{{ initials }}</span>
-                          <div style="min-width:0"><div style="font:700 18px 'DM Sans',sans-serif">{{ profileName }}</div><div class="muted" style="font-size:14px;overflow:hidden;text-overflow:ellipsis">{{ profileEmail }}</div></div>
+                      <div class="card" style="padding:var(--cpad)">
+                        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+                          <span style="width:56px;height:56px;border-radius:50%;background:#0B6670;color:#fff;display:flex;align-items:center;justify-content:center;font:800 var(--fs-h3) 'Bricolage Grotesque',sans-serif;flex-shrink:0">{{ initials }}</span>
+                          <div style="min-width:0"><div style="font:700 var(--fs-h3) 'DM Sans',sans-serif">{{ profileName }}</div><div class="muted" style="font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis">{{ profileEmail }}</div></div>
                         </div>
                         <div onClick="{{ goLocation }}" class="menurow">Localização do quiosque<span style="color:#B9B2A3">›</span></div>
                         <div onClick="{{ goHistory }}" class="menurow">Meus pedidos<span style="color:#B9B2A3">›</span></div>
                         <div onClick="{{ goOffline }}" class="menurow">Simular modo sem conexão<span style="color:#B9B2A3">›</span></div>
                         <div onClick="{{ goLogin }}" class="btn btn-ghost btn-sm" style="margin-top:12px">Sair da conta</div>
                       </div>
-                      <div class="card" style="padding:20px 22px;border-color:#F0C2BC">
-                        <div style="font:700 17px 'DM Sans',sans-serif">Excluir conta</div>
-                        <p class="muted" style="font-size:14px;line-height:1.5;margin:6px 0 12px">Seus dados pessoais são apagados (LGPD). Os pedidos continuam no histórico do quiosque, sem o seu nome.</p>
+                      <div class="card" style="padding:var(--cpad);border-color:#F0C2BC">
+                        <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">Excluir conta</div>
+                        <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:8px 0 12px">Seus dados pessoais são apagados (LGPD). Os pedidos continuam no histórico do quiosque, sem o seu nome.</p>
                         <div onClick="{{ goDelete }}" class="btn btn-danger-ghost btn-sm" style="align-self:flex-start;display:inline-flex">Excluir minha conta</div>
                       </div>
                     </div>
                     <div class="col-main">
                       <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
-                        <h2 class="tt" style="margin:0;font-size:28px">Meus pedidos</h2>
-                        <span class="muted" style="font-size:14px">{{ historyCountStr }}</span>
+                        <h2 class="tt" style="margin:0;font-size:var(--fs-h2)">Meus pedidos</h2>
+                        <span class="muted" style="font-size:var(--fs-sm)">{{ historyCountStr }}</span>
                       </div>
                       <sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
                         <div class="card" style="overflow:hidden">
@@ -1090,17 +1110,17 @@ select{caret-color:auto}
                             <div onClick="{{ h.open }}" class="orow">
                               <span style="{{ h.dotStyle }}"></span>
                               <div style="flex:1;min-width:0">
-                                <div style="font:700 16px 'DM Sans',sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
+                                <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
                                 <div class="muted" style="font-size:13px;margin-top:2px">{{ h.when }}</div>
                               </div>
                               <span style="{{ h.stStyle }}">{{ h.status }}</span>
-                              <span style="font:800 16px 'DM Sans',sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
+                              <span style="font:800 var(--fs-body) 'DM Sans',sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
                             </div>
                           </sc-for>
                         </div>
                       </sc-if>
                       <sc-if value="{{ noHistory }}" hint-placeholder-val="{{ true }}">
-                        <div class="card muted" style="padding:28px 20px;text-align:center;font-size:15px">Quando você fizer o primeiro pedido, ele aparece aqui.</div>
+                        <div class="card muted" style="padding:var(--cpad);text-align:center;font-size:var(--fs-body)">Quando você fizer o primeiro pedido, ele aparece aqui.</div>
                       </sc-if>
                     </div>
                   </div>
@@ -1109,10 +1129,10 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_deleteAccount }}" hint-placeholder-val="{{ false }}">
                 <div style="position:fixed;inset:0;z-index:60;background:rgba(18,35,46,.5);display:flex;align-items:center;justify-content:center;padding:16px;animation:sffade .2s ease">
-                  <div class="rise" style="width:100%;max-width:420px;background:#fff;border-radius:24px;padding:26px 24px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+                  <div class="rise" style="width:100%;max-width:420px;background:#fff;border-radius:var(--r-card);padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
                     <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
-                    <div class="tt" style="font-size:26px">Excluir sua conta?</div>
-                    <p class="muted" style="font-size:15px;line-height:1.55;margin:0">Seu cadastro e seus dados pessoais serão apagados. Os pedidos já feitos ficam no caixa do quiosque, sem o seu nome. Esta ação não pode ser desfeita.</p>
+                    <div class="tt" style="font-size:var(--fs-h2)">Excluir sua conta?</div>
+                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Seu cadastro e seus dados pessoais serão apagados. Os pedidos já feitos ficam no caixa do quiosque, sem o seu nome. Esta ação não pode ser desfeita.</p>
                     <div onClick="{{ confirmDelete }}" class="btn btn-danger" style="width:100%">{{ deleteLabel }}</div>
                     <div onClick="{{ goProfile }}" class="btn btn-ghost" style="width:100%">Manter minha conta</div>
                   </div>
@@ -1125,12 +1145,12 @@ select{caret-color:auto}
                     <iframe src="{{ locEmbedUrl }}" title="Mapa do quiosque" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen=""></iframe>
                   </div>
                   <div class="col-side" style="flex:1 1 320px">
-                    <div class="card" style="padding:22px">
-                      <div class="tt" style="font-size:26px">{{ locName }}</div>
-                      <p class="muted" style="font-size:15px;line-height:1.55;margin:8px 0 0">{{ locAddress }}</p>
-                      <sc-if value="{{ hasLocHours }}" hint-placeholder-val="{{ true }}"><p class="muted" style="font-size:15px;line-height:1.55;margin:4px 0 0">{{ locHours }}</p></sc-if>
+                    <div class="card" style="padding:24px">
+                      <div class="tt" style="font-size:var(--fs-h2)">{{ locName }}</div>
+                      <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:8px 0 0">{{ locAddress }}</p>
+                      <sc-if value="{{ hasLocHours }}" hint-placeholder-val="{{ true }}"><p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:4px 0 0">{{ locHours }}</p></sc-if>
                     </div>
-                    <div style="display:flex;gap:10px">
+                    <div style="display:flex;gap:12px">
                       <a href="{{ locMapUrl }}" target="_blank" rel="noopener" class="btn btn-sun" style="flex:1;text-decoration:none">Abrir no mapa</a>
                       <a href="./#fale-conosco" class="btn btn-ghost" style="flex:1;text-decoration:none">Fale conosco</a>
                     </div>
@@ -1140,11 +1160,11 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_offline }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
-                  <div style="padding:12px 16px;border-radius:14px;background:#12232E;color:#fff;display:flex;align-items:center;gap:12px;font:500 14px 'DM Sans',sans-serif"><svg style="animation:sfpulse 1.2s ease-in-out infinite;flex-shrink:0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB21E" stroke-width="2.2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg><span><b>Sem conexão.</b> Tentando reconectar…</span></div>
-                  <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:30px 10px">
-                    <div class="tt" style="font-size:30px">Você está offline</div>
-                    <p class="muted" style="font-size:16px;line-height:1.5;margin:0;max-width:420px">O sinal na praia oscila. Seu carrinho ficou salvo no aparelho e será enviado quando a conexão voltar.</p>
-                    <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:10px">Tentar novamente</div>
+                  <div style="padding:12px 16px;border-radius:var(--r-ctl);background:#12232E;color:#fff;display:flex;align-items:center;gap:12px;font:500 var(--fs-sm) 'DM Sans',sans-serif"><svg style="animation:sfpulse 1.2s ease-in-out infinite;flex-shrink:0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB21E" stroke-width="2.2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg><span><b>Sem conexão.</b> Tentando reconectar…</span></div>
+                  <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:32px 12px">
+                    <div class="tt" style="font-size:var(--fs-h1)">Você está offline</div>
+                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:420px">O sinal na praia oscila. Seu carrinho ficou salvo no aparelho e será enviado quando a conexão voltar.</p>
+                    <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:12px">Tentar novamente</div>
                   </div>
                 </div>
               </sc-if>
@@ -1154,7 +1174,7 @@ select{caret-color:auto}
             <div class="footer">
               <div class="footer-in">
                 <span>Sunfood · quiosque pé na areia</span>
-                <span style="display:flex;gap:18px;flex-wrap:wrap"><span onClick="{{ goLocation }}" class="link" style="font-weight:600">Onde estamos</span><a href="./#termos" target="_blank" class="link" style="font-weight:600">Termos</a><a href="./#privacidade" target="_blank" class="link" style="font-weight:600">Privacidade</a></span>
+                <span style="display:flex;gap:20px;flex-wrap:wrap"><span onClick="{{ goLocation }}" class="link" style="font-weight:600">Onde estamos</span><a href="./#termos" target="_blank" class="link" style="font-weight:600">Termos</a><a href="./#privacidade" target="_blank" class="link" style="font-weight:600">Privacidade</a></span>
               </div>
             </div>
 
@@ -1181,20 +1201,20 @@ select{caret-color:auto}
           <div class="adm-sep"></div>
           <div onClick="{{ goKanban }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M10 7h4"></path></svg>Tela da cozinha</div>
           <div class="adm-foot">
-            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
         <div class="adm-main">
           <div class="adm-head">
             <div>
-              <div class="muted" style="font-size:15px">{{ admEyebrow }}</div>
+              <div class="muted" style="font-size:var(--fs-body)">{{ admEyebrow }}</div>
               <h1 class="tt">{{ screenLabel }}</h1>
             </div>
             <sc-if value="{{ is_dashboard }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <div onClick="{{ togglePause }}" class="btn btn-ghost btn-sm" style="min-height:46px"><span style="{{ pauseDotStyle }}"></span>{{ pauseBtnLabel }}</div>
-                <div onClick="{{ goCloseDay }}" class="btn btn-dark btn-sm" style="min-height:46px">Encerrar o dia</div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <div onClick="{{ togglePause }}" class="btn btn-ghost btn-sm" style="min-height:var(--ctl)"><span style="{{ pauseDotStyle }}"></span>{{ pauseBtnLabel }}</div>
+                <div onClick="{{ goCloseDay }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Encerrar o dia</div>
               </div>
             </sc-if>
             <sc-if value="{{ is_orders }}" hint-placeholder-val="{{ false }}">
@@ -1204,23 +1224,23 @@ select{caret-color:auto}
               </div>
             </sc-if>
             <sc-if value="{{ is_productForm }}" hint-placeholder-val="{{ false }}">
-              <div onClick="{{ newProduct }}" class="btn btn-sun btn-sm" style="min-height:48px">+ Novo produto</div>
+              <div onClick="{{ newProduct }}" class="btn btn-sun btn-sm" style="min-height:var(--ctl)">+ Novo produto</div>
             </sc-if>
             <sc-if value="{{ is_reports }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;max-width:100%">
+              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;max-width:100%">
                 <div class="seg" style="max-width:100%;overflow-x:auto">
                   <sc-for list="{{ reportPeriods }}" as="rp" hint-placeholder-count="3">
                     <div onClick="{{ rp.pick }}" class="{{ rp.cls }}">{{ rp.label }}</div>
                   </sc-for>
                 </div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
                   <div onClick="{{ exportReportCsv }}" class="btn btn-ghost btn-sm" style="{{ reportExportStyle }}" role="button" title="Baixa um arquivo .csv que abre no Excel ou no Google Planilhas"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z M4 10h16 M4 15h16 M10 4v16"></path></svg>Exportar planilha</div>
                   <div onClick="{{ exportReportPdf }}" class="btn btn-dark btn-sm" style="{{ reportExportStyle }}" role="button" title="Abre a versão para imprimir ou salvar como PDF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z M14 3v5h5 M10 13h6 M10 17h6"></path></svg>Exportar PDF</div>
                 </div>
               </div>
             </sc-if>
             <sc-if value="{{ is_perfOps }}" hint-placeholder-val="{{ false }}">
-              <div onClick="{{ goKanban }}" class="btn btn-dark btn-sm" style="min-height:46px">Abrir tela da cozinha</div>
+              <div onClick="{{ goKanban }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Abrir tela da cozinha</div>
             </sc-if>
           </div>
 
@@ -1236,7 +1256,7 @@ select{caret-color:auto}
               </div>
               <div class="grid2">
                 <div class="panel">
-                  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2>Vendas por horário</h2><span class="muted" style="font-size:14px">{{ salesPeak }}</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2>Vendas por horário</h2><span class="muted" style="font-size:var(--fs-sm)">{{ salesPeak }}</span></div>
                   <div class="bars">
                     <sc-for list="{{ salesBars }}" as="b" hint-placeholder-count="12">
                       <div class="bar"><div class="bv">{{ b.top }}</div><div style="{{ b.style }}"></div><div class="bl">{{ b.lbl }}</div></div>
@@ -1246,10 +1266,10 @@ select{caret-color:auto}
                 <div class="panel">
                   <h2>Mais vendidos</h2>
                   <sc-if value="{{ hasTopSellers }}" hint-placeholder-val="{{ false }}">
-                    <div style="display:flex;flex-direction:column;gap:14px">
+                    <div style="display:flex;flex-direction:column;gap:16px">
                       <sc-for list="{{ topSellers }}" as="ts" hint-placeholder-count="4">
                         <div>
-                          <div style="display:flex;justify-content:space-between;gap:10px;font:700 15px 'DM Sans',sans-serif;margin-bottom:6px"><span>{{ ts.name }}</span><span class="muted" style="font-weight:500">{{ ts.n }} un.</span></div>
+                          <div style="display:flex;justify-content:space-between;gap:12px;font:700 var(--fs-body) 'DM Sans',sans-serif;margin-bottom:8px"><span>{{ ts.name }}</span><span class="muted" style="font-weight:500">{{ ts.n }} un.</span></div>
                           <div class="prog"><div style="{{ ts.barStyle }}"></div></div>
                         </div>
                       </sc-for>
@@ -1260,10 +1280,10 @@ select{caret-color:auto}
                   </sc-if>
                 </div>
               </div>
-              <div style="font:700 19px 'DM Sans',sans-serif;margin-top:4px">Operação agora</div>
+              <div style="font:700 var(--fs-h3) 'DM Sans',sans-serif;margin-top:4px">Operação agora</div>
               <div class="mini">
                 <sc-for list="{{ opsMini }}" as="m" hint-placeholder-count="5">
-                  <div class="kpi" style="padding:14px 16px"><div class="k" style="font-size:14px">{{ m.k }}</div><div class="v" style="{{ m.style }}">{{ m.v }}</div></div>
+                  <div class="kpi" style="padding:16px 16px"><div class="k" style="font-size:var(--fs-sm)">{{ m.k }}</div><div class="v" style="{{ m.style }}">{{ m.v }}</div></div>
                 </sc-for>
               </div>
             </div>
@@ -1294,7 +1314,7 @@ select{caret-color:auto}
                   </div>
                 </sc-if>
                 <sc-if value="{{ noAdminOrders }}" hint-placeholder-val="{{ false }}">
-                  <div class="muted" style="padding:44px;text-align:center">{{ ordersEmptyText }}</div>
+                  <div class="muted" style="padding:48px;text-align:center">{{ ordersEmptyText }}</div>
                 </sc-if>
               </div>
             </div>
@@ -1304,7 +1324,7 @@ select{caret-color:auto}
             <div style="display:flex;flex-direction:column;gap:16px" class="rise">
               <div class="kpis">
                 <sc-for list="{{ payKpis }}" as="k" hint-placeholder-count="4">
-                  <div class="kpi"><div class="k">{{ k.lbl }}</div><div class="v" style="font-size:28px">{{ k.val }}</div><div class="s" style="color:#5A6670">{{ k.sub }}</div></div>
+                  <div class="kpi"><div class="k">{{ k.lbl }}</div><div class="v" style="font-size:var(--fs-h2)">{{ k.val }}</div><div class="s" style="color:#5A6670">{{ k.sub }}</div></div>
                 </sc-for>
               </div>
               <sc-if value="{{ payOnlineOff }}" hint-placeholder-val="{{ false }}">
@@ -1323,15 +1343,15 @@ select{caret-color:auto}
                           <div data-l="Pagamento"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
                           <div class="wide">
                             <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
-                              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                                 <span class="muted" style="font-size:13px">Recebido em:</span>
-                                <span onClick="{{ r.recvCash }}" class="chip" style="background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB;padding:7px 11px;cursor:pointer">Dinheiro</span>
-                                <span onClick="{{ r.recvCard }}" class="chip" style="background:#E7F1F1;color:#084C53;border:1px solid #CFE7E8;padding:7px 11px;cursor:pointer">Cartão</span>
-                                <span onClick="{{ r.recvPix }}" class="chip" style="background:#FFF4DB;color:#7A4B00;border:1px solid #F0D9A8;padding:7px 11px;cursor:pointer">PIX</span>
+                                <span onClick="{{ r.recvCash }}" class="chip" style="background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB;padding:8px 12px;cursor:pointer">Dinheiro</span>
+                                <span onClick="{{ r.recvCard }}" class="chip" style="background:#E7F1F1;color:#084C53;border:1px solid #CFE7E8;padding:8px 12px;cursor:pointer">Cartão</span>
+                                <span onClick="{{ r.recvPix }}" class="chip" style="background:#FFF4DB;color:#7A4B00;border:1px solid #F0D9A8;padding:8px 12px;cursor:pointer">PIX</span>
                               </div>
                             </sc-if>
                             <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
-                              <span onClick="{{ r.undo }}" class="chip" style="background:#fff;border:1px solid #D6CFBF;color:#5A6670;padding:7px 11px;cursor:pointer">Desfazer</span>
+                              <span onClick="{{ r.undo }}" class="chip" style="background:#fff;border:1px solid #D6CFBF;color:#5A6670;padding:8px 12px;cursor:pointer">Desfazer</span>
                             </sc-if>
                           </div>
                           <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
@@ -1347,7 +1367,7 @@ select{caret-color:auto}
           </sc-if>
 
           <sc-if value="{{ is_messages }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:14px" class="rise">
+            <div style="display:flex;flex-direction:column;gap:16px" class="rise">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                 <sc-for list="{{ msgFilters }}" as="mf" hint-placeholder-count="3">
                   <div onClick="{{ mf.pick }}" class="fpill {{ mf.cls }}">{{ mf.label }}</div>
@@ -1358,22 +1378,22 @@ select{caret-color:auto}
               </sc-if>
               <sc-for list="{{ msgRows }}" as="m" hint-placeholder-count="3">
                 <div class="card" style="{{ m.cardStyle }}">
-                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                    <span style="font:800 16px 'Bricolage Grotesque',sans-serif">{{ m.name }}</span>
-                    <span class="muted" style="font-size:14px">{{ m.contact }}</span>
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    <span style="font:800 var(--fs-body) 'Bricolage Grotesque',sans-serif">{{ m.name }}</span>
+                    <span class="muted" style="font-size:var(--fs-sm)">{{ m.contact }}</span>
                     <span class="chip" style="background:#E7F1F1;color:#084C53">{{ m.reason }}</span>
                     <span style="flex:1"></span>
                     <span class="muted" style="font-size:13px">{{ m.protocol }} · {{ m.when }}</span>
                   </div>
-                  <div style="font:400 15px/1.55 'DM Sans',sans-serif;color:#12232E;margin-top:10px;white-space:pre-wrap">{{ m.message }}</div>
+                  <div style="font:400 var(--fs-body)/1.5 'DM Sans',sans-serif;color:#12232E;margin-top:12px;white-space:pre-wrap">{{ m.message }}</div>
                   <sc-if value="{{ m.hasReply }}" hint-placeholder-val="{{ false }}">
-                    <div style="margin-top:12px;padding:12px 14px;border-radius:14px;background:#E7F1F1;color:#084C53">
+                    <div style="margin-top:12px;padding:12px 16px;border-radius:var(--r-ctl);background:#E7F1F1;color:#084C53">
                       <div style="font:700 13px 'DM Sans',sans-serif;margin-bottom:4px">{{ m.replyInfo }}</div>
-                      <div style="font:400 15px/1.55 'DM Sans',sans-serif;white-space:pre-wrap;word-break:break-word">{{ m.reply }}</div>
+                      <div style="font:400 var(--fs-body)/1.5 'DM Sans',sans-serif;white-space:pre-wrap;word-break:break-word">{{ m.reply }}</div>
                     </div>
                   </sc-if>
                   <sc-if value="{{ m.replying }}" hint-placeholder-val="{{ false }}">
-                    <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+                    <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
                       <span class="lbl" style="margin:0">{{ m.replyHint }}</span>
                       <textarea class="inp" value="{{ replyText }}" onChange="{{ setReplyText }}" maxlength="4000" placeholder="Escreva sua resposta para {{ m.firstName }}…" style="min-height:120px"></textarea>
                       <sc-if value="{{ hasReplyErr }}" hint-placeholder-val="{{ false }}">
@@ -1389,9 +1409,9 @@ select{caret-color:auto}
                     <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
                       <span class="chip" style="{{ m.statusStyle }}">{{ m.statusLabel }}</span>
                       <span style="flex:1"></span>
-                      <span onClick="{{ m.toggle }}" class="chip" style="padding:8px 14px;cursor:pointer;{{ m.toggleStyle }}">{{ m.toggleLabel }}</span>
+                      <span onClick="{{ m.toggle }}" class="chip" style="padding:8px 16px;cursor:pointer;{{ m.toggleStyle }}">{{ m.toggleLabel }}</span>
                       <sc-if value="{{ m.canReply }}" hint-placeholder-val="{{ true }}">
-                        <span onClick="{{ m.openReply }}" class="chip" style="padding:8px 14px;cursor:pointer;background:#FFB21E;color:#12232E;font-weight:800">{{ m.replyBtnLabel }}</span>
+                        <span onClick="{{ m.openReply }}" class="chip" style="padding:8px 16px;cursor:pointer;background:#FFB21E;color:#12232E;font-weight:800">{{ m.replyBtnLabel }}</span>
                       </sc-if>
                     </div>
                   </sc-if>
@@ -1413,15 +1433,15 @@ select{caret-color:auto}
                 </div>
                 <div class="pgrid">
                   <sc-for list="{{ productRows }}" as="p" hint-placeholder-count="6">
-                    <div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;{{ p.cardStyle }}">
-                      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-                        <div style="min-width:0"><div class="eyebrow" style="font-size:11px">{{ p.cat }}</div><div style="font:700 17px/1.25 'DM Sans',sans-serif;margin-top:2px">{{ p.name }}</div></div>
-                        <span style="font:800 17px 'DM Sans',sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
+                    <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px;{{ p.cardStyle }}">
+                      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+                        <div style="min-width:0"><div class="eyebrow" style="font-size:12px">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'DM Sans',sans-serif;margin-top:2px">{{ p.name }}</div></div>
+                        <span style="font:800 var(--fs-body) 'DM Sans',sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
                       </div>
-                      <div class="muted" style="font-size:14px;line-height:1.45;flex-grow:1">{{ p.desc }}</div>
+                      <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;flex-grow:1">{{ p.desc }}</div>
                       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="{{ p.pillStyle }}">{{ p.pill }}</span><span class="muted" style="font-size:13px">{{ p.meta }}</span></div>
-                      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #EFEADF;padding-top:12px;flex-wrap:wrap;gap:10px">
-                        <div style="display:flex;align-items:center;gap:10px;font:700 14px 'DM Sans',sans-serif">
+                      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #EFEADF;padding-top:12px;flex-wrap:wrap;gap:12px">
+                        <div style="display:flex;align-items:center;gap:12px;font:700 var(--fs-sm) 'DM Sans',sans-serif">
                           <div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div>{{ p.availLabel }}
                         </div>
                         <div style="display:flex;gap:8px;margin-left:auto">
@@ -1430,8 +1450,8 @@ select{caret-color:auto}
                         </div>
                       </div>
                       <sc-if value="{{ p.confirming }}" hint-placeholder-val="{{ false }}">
-                        <div style="display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:14px;background:#FDECEA">
-                          <div style="font-size:14px;line-height:1.4;color:#7A1A12"><b>Excluir {{ p.name }}?</b> Ele sai do cardápio. Pedidos antigos e relatórios continuam como estão.</div>
+                        <div style="display:flex;flex-direction:column;gap:12px;padding:12px;border-radius:var(--r-ctl);background:#FDECEA">
+                          <div style="font-size:var(--fs-sm);line-height:1.5;color:#7A1A12"><b>Excluir {{ p.name }}?</b> Ele sai do cardápio. Pedidos antigos e relatórios continuam como estão.</div>
                           <div style="display:flex;gap:8px;flex-wrap:wrap">
                             <div onClick="{{ p.doDelete }}" class="btn btn-danger btn-sm" style="flex:1;white-space:nowrap">{{ p.deleteLabel }}</div>
                             <div onClick="{{ p.cancelDelete }}" class="btn btn-ghost btn-sm" style="flex:1;white-space:nowrap">Cancelar</div>
@@ -1444,17 +1464,17 @@ select{caret-color:auto}
               </div>
               <div class="col-side" style="position:sticky;top:20px">
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-                  <div style="font:800 20px 'DM Sans',sans-serif">{{ pfFormTitle }}</div>
+                  <div style="font:800 var(--fs-h3) 'DM Sans',sans-serif">{{ pfFormTitle }}</div>
                   <div><span class="lbl">Nome</span><input class="inp" value="{{ pfName }}" onChange="{{ setPfName }}" placeholder="Nome do produto" /></div>
                   <div>
                     <span class="lbl">Categoria</span>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
                       <sc-for list="{{ pfCategoryOptions }}" as="co" hint-placeholder-count="4">
-                        <span onClick="{{ co.pick }}" class="fpill {{ co.cls }}" style="min-height:38px;font-size:14px;padding:0 13px">{{ co.cat }}</span>
+                        <span onClick="{{ co.pick }}" class="fpill {{ co.cls }}" style="min-height:44px;font-size:var(--fs-sm);padding:0 12px">{{ co.cat }}</span>
                       </sc-for>
                     </div>
                   </div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                     <div><span class="lbl">Preço</span><input class="inp" value="{{ pfPrice }}" onChange="{{ setPfPrice }}" placeholder="Ex.: 24.90" /></div>
                     <div><span class="lbl">Estoque</span><input class="inp" value="{{ pfStock }}" onChange="{{ setPfStock }}" placeholder="Vazio = ilimitado" /></div>
                     <div><span class="lbl">Porção</span><input class="inp" value="{{ pfPortion }}" onChange="{{ setPfPortion }}" placeholder="Ex.: 300 ml" /></div>
@@ -1475,66 +1495,66 @@ select{caret-color:auto}
               <div class="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
                 <div class="panel" style="{{ pausePanelStyle }}">
                   <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
-                    <div><h2 style="margin:0">Recebendo pedidos</h2><div class="muted" style="font-size:14px;margin-top:4px;line-height:1.4">{{ pauseSub }}</div></div>
+                    <div><h2 style="margin:0">Recebendo pedidos</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">{{ pauseSub }}</div></div>
                     <div onClick="{{ togglePause }}" class="toggle" style="{{ pauseSwitchStyle }}"><span style="{{ pauseKnobStyle }}"></span></div>
                   </div>
-                  <div style="display:flex;align-items:center;gap:10px;margin-top:18px"><span style="{{ pauseDotStyle }};width:14px;height:14px"></span><span class="tt" style="font-size:26px">{{ pauseLabel }}</span></div>
+                  <div style="display:flex;align-items:center;gap:12px;margin-top:20px"><span style="{{ pauseDotStyle }};width:14px;height:14px"></span><span class="tt" style="font-size:var(--fs-h2)">{{ pauseLabel }}</span></div>
                 </div>
-                <div class="panel" style="display:flex;flex-direction:column;gap:10px">
-                  <div><h2 style="margin:0">Pedido mínimo</h2><div class="muted" style="font-size:14px;margin-top:4px;line-height:1.4">Atual: {{ minOrderStr }}. O cliente só fecha o pedido se o subtotal (sem a taxa) chegar nesse valor. Use 0 para não ter mínimo.</div></div>
+                <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+                  <div><h2 style="margin:0">Pedido mínimo</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ minOrderStr }}. O cliente só fecha o pedido se o subtotal (sem a taxa) chegar nesse valor. Use 0 para não ter mínimo.</div></div>
                   <div style="display:flex;gap:8px">
                     <input class="inp" value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" placeholder="Novo valor (ex: 15,00)" style="flex:1;min-width:0" />
-                    <div onClick="{{ saveMinOrder }}" class="btn btn-dark btn-sm" style="min-height:48px">Salvar mínimo</div>
+                    <div onClick="{{ saveMinOrder }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar mínimo</div>
                   </div>
-                  <sc-if value="{{ hasMinOrderMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 14px 'DM Sans',sans-serif;color:#0B6670">{{ minOrderMsg }}</div></sc-if>
+                  <sc-if value="{{ hasMinOrderMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670">{{ minOrderMsg }}</div></sc-if>
                 </div>
-                <div class="panel" style="display:flex;flex-direction:column;gap:10px">
-                  <div><h2 style="margin:0">Prazo para o cliente cancelar</h2><div class="muted" style="font-size:14px;margin-top:4px;line-height:1.4">Atual: {{ cancelWindowStr }}. Contado a partir do pedido; só vale enquanto ele está na fila. Use 0 para não ter prazo.</div></div>
+                <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+                  <div><h2 style="margin:0">Prazo para o cliente cancelar</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ cancelWindowStr }}. Contado a partir do pedido; só vale enquanto ele está na fila. Use 0 para não ter prazo.</div></div>
                   <div style="display:flex;gap:8px">
                     <input class="inp" value="{{ cancelWindowInput }}" onChange="{{ setCancelWindowInput }}" placeholder="Minutos (ex: 5)" inputmode="numeric" style="flex:1;min-width:0" />
-                    <div onClick="{{ saveCancelWindow }}" class="btn btn-dark btn-sm" style="min-height:48px">Salvar</div>
+                    <div onClick="{{ saveCancelWindow }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar</div>
                   </div>
-                  <sc-if value="{{ hasCancelWindowMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 14px 'DM Sans',sans-serif;color:#0B6670">{{ cancelWindowMsg }}</div></sc-if>
+                  <sc-if value="{{ hasCancelWindowMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670">{{ cancelWindowMsg }}</div></sc-if>
                 </div>
                 <div class="panel">
                   <h2 style="margin:0 0 4px">Pagamentos online</h2>
-                  <div class="muted" style="font-size:14px;margin-bottom:12px">PIX e cartão pelo Mercado Pago.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);margin-bottom:12px">PIX e cartão pelo Mercado Pago.</div>
                   <div class="alert {{ mpAlertCls }}" style="flex-direction:column;gap:2px"><b>{{ mpTitle }}</b><span style="font-weight:500">{{ mpText }}</span></div>
-                  <div class="muted" style="font-size:14px;margin-top:12px;line-height:1.45">Pagar na entrega: o garçom marca o recebimento em <span onClick="{{ goPayments }}" class="link" style="font-size:14px">Pagamentos</span>.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);margin-top:12px;line-height:1.5">Pagar na entrega: o garçom marca o recebimento em <span onClick="{{ goPayments }}" class="link" style="font-size:var(--fs-sm)">Pagamentos</span>.</div>
                 </div>
               </div>
               <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-                <div><h2 style="margin:0">Localização do quiosque</h2><div class="muted" style="font-size:14px;margin-top:4px;line-height:1.4">Aparece para o cliente em "Localização do quiosque". O mapa e o botão "Abrir no mapa" usam o endereço.</div></div>
+                <div><h2 style="margin:0">Localização do quiosque</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Aparece para o cliente em "Localização do quiosque". O mapa e o botão "Abrir no mapa" usam o endereço.</div></div>
                 <div class="locform">
                   <div><label for="locNameInp" class="lbl">Nome do local</label><input id="locNameInp" class="inp" value="{{ locNameInput }}" onChange="{{ setLocNameInput }}" placeholder="Ex.: Sunfood na Faculdade" maxlength="80" /></div>
                   <div class="wide"><label for="locAddressInp" class="lbl">Endereço</label><input id="locAddressInp" class="inp" value="{{ locAddressInput }}" onChange="{{ setLocAddressInput }}" placeholder="Rua, número, bairro, cidade - UF" maxlength="200" /></div>
                   <div><label for="locHoursInp" class="lbl">Horário (opcional)</label><input id="locHoursInp" class="inp" value="{{ locHoursInput }}" onChange="{{ setLocHoursInput }}" placeholder="Ex.: Seg. a sex., 8h às 22h." maxlength="120" /></div>
                 </div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                  <div onClick="{{ saveLocation }}" class="btn btn-dark btn-sm" style="min-height:48px">Salvar localização</div>
-                  <a href="{{ locPreviewUrl }}" target="_blank" rel="noopener" class="link" style="font-size:14px">Conferir no Google Maps</a>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+                  <div onClick="{{ saveLocation }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar localização</div>
+                  <a href="{{ locPreviewUrl }}" target="_blank" rel="noopener" class="link" style="font-size:var(--fs-sm)">Conferir no Google Maps</a>
                 </div>
-                <sc-if value="{{ hasLocMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 14px 'DM Sans',sans-serif;color:#0B6670">{{ locMsg }}</div></sc-if>
+                <sc-if value="{{ hasLocMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670">{{ locMsg }}</div></sc-if>
               </div>
               <div class="panel">
-                <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-                  <div><h2 style="margin:0">Mesas</h2><div class="muted" style="font-size:14px;margin-top:4px">Mesa desativada não aceita pedidos. Toque para ligar ou desligar.</div></div>
-                  <b style="font-size:16px">{{ activeTables }}</b>
+                <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+                  <div><h2 style="margin:0">Mesas</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px">Mesa desativada não aceita pedidos. Toque para ligar ou desligar.</div></div>
+                  <b style="font-size:var(--fs-body)">{{ activeTables }}</b>
                 </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
-                  <label for="tableCountInp" style="font:700 14px 'DM Sans',sans-serif">Quantidade de mesas</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+                  <label for="tableCountInp" style="font:700 var(--fs-sm) 'DM Sans',sans-serif">Quantidade de mesas</label>
                   <div style="display:flex;gap:8px;flex:1;min-width:220px;max-width:360px">
                     <input id="tableCountInp" class="inp" value="{{ tableCountInput }}" onChange="{{ setTableCountInput }}" placeholder="{{ tableCountPlaceholder }}" inputmode="numeric" style="flex:1;min-width:0" />
-                    <div onClick="{{ saveTableCount }}" class="btn btn-dark btn-sm" style="min-height:48px">Salvar</div>
+                    <div onClick="{{ saveTableCount }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar</div>
                   </div>
                 </div>
-                <div class="muted" style="font-size:14px;margin-bottom:14px">Numeradas de 1 até esse número. Mesa nova já entra ativa.</div>
-                <sc-if value="{{ hasTableCountMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 14px 'DM Sans',sans-serif;color:#0B6670;margin:-6px 0 14px">{{ tableCountMsg }}</div></sc-if>
+                <div class="muted" style="font-size:var(--fs-sm);margin-bottom:16px">Numeradas de 1 até esse número. Mesa nova já entra ativa.</div>
+                <sc-if value="{{ hasTableCountMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;margin:-8px 0 16px">{{ tableCountMsg }}</div></sc-if>
                 <div class="tiles">
                   <sc-for list="{{ tableTiles }}" as="t" hint-placeholder-count="12">
                     <div onClick="{{ t.toggle }}" class="tile" style="{{ t.tileStyle }}">
                       <div style="font:700 12px 'DM Sans',sans-serif;opacity:.8">Mesa</div>
-                      <div class="tt" style="font-size:28px;margin:2px 0">{{ t.n }}</div>
+                      <div class="tt" style="font-size:var(--fs-h2);margin:2px 0">{{ t.n }}</div>
                       <div style="font:700 12px 'DM Sans',sans-serif">{{ t.pill }}</div>
                     </div>
                   </sc-for>
@@ -1545,7 +1565,7 @@ select{caret-color:auto}
 
           <sc-if value="{{ is_reports }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:16px" class="rise">
-              <div class="muted" style="font-size:14px">{{ reportRange }} · Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.</div>
+              <div class="muted" style="font-size:var(--fs-sm)">{{ reportRange }} · Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.</div>
               <sc-if value="{{ hasReportExportMsg }}" hint-placeholder-val="{{ false }}">
                 <div class="alert alert-warn">{{ reportExportMsg }}</div>
               </sc-if>
@@ -1562,7 +1582,7 @@ select{caret-color:auto}
                   <h2>Vendas por dia</h2>
                   <div class="bars" style="gap:4px;height:170px">
                     <sc-for list="{{ reportDayBars }}" as="b" hint-placeholder-count="7">
-                      <div title="{{ b.tip }}" class="bar"><div style="{{ b.style }}"></div><div class="bl" style="font-size:11px">{{ b.lbl }}</div></div>
+                      <div title="{{ b.tip }}" class="bar"><div style="{{ b.style }}"></div><div class="bl" style="font-size:12px">{{ b.lbl }}</div></div>
                     </sc-for>
                   </div>
                 </div>
@@ -1570,13 +1590,13 @@ select{caret-color:auto}
               <div class="grid2">
                 <div class="panel">
                   <h2 style="margin-bottom:4px">Horários de pico</h2>
-                  <div class="muted" style="font-size:14px;margin-bottom:14px">{{ reportPeakText }}</div>
-                  <div class="bars" style="gap:6px;height:180px">
+                  <div class="muted" style="font-size:var(--fs-sm);margin-bottom:16px">{{ reportPeakText }}</div>
+                  <div class="bars" style="gap:4px;height:180px">
                     <sc-for list="{{ reportHourBars }}" as="b" hint-placeholder-count="12">
-                      <div title="{{ b.tip }}" class="bar"><div class="bv" style="font-weight:700">{{ b.top }}</div><div style="{{ b.style }}"></div><div class="bl" style="font-size:11px">{{ b.lbl }}</div></div>
+                      <div title="{{ b.tip }}" class="bar"><div class="bv" style="font-weight:700">{{ b.top }}</div><div style="{{ b.style }}"></div><div class="bl" style="font-size:12px">{{ b.lbl }}</div></div>
                     </sc-for>
                   </div>
-                  <div class="muted" style="font-size:13px;margin-top:10px">Número de pedidos por hora em que foram feitos.</div>
+                  <div class="muted" style="font-size:13px;margin-top:12px">Número de pedidos por hora em que foram feitos.</div>
                 </div>
                 <div class="panel">
                   <h2>Mais vendidos no período</h2>
@@ -1594,8 +1614,8 @@ select{caret-color:auto}
                 </div>
               </div>
               <sc-if value="{{ hasDayReport }}" hint-placeholder-val="{{ false }}">
-                <div style="background:#12232E;color:#EAF2F3;border-radius:20px;padding:20px 22px;max-width:520px">
-                  <div style="font:800 18px 'DM Sans',sans-serif;display:flex;align-items:center;gap:10px;margin-bottom:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB21E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>Último fechamento do dia</div>
+                <div style="background:#12232E;color:#EAF2F3;border-radius:var(--r-card);padding:var(--cpad);max-width:520px">
+                  <div style="font:800 var(--fs-h3) 'DM Sans',sans-serif;display:flex;align-items:center;gap:12px;margin-bottom:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB21E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>Último fechamento do dia</div>
                   <div class="sumrow" style="color:#C9D6DB"><span>Vendas</span><b style="color:#fff">{{ reportRevenue }}</b></div>
                   <div class="sumrow" style="color:#C9D6DB"><span>Pedidos</span><b style="color:#fff">{{ reportOrders }}</b></div>
                   <div class="sumrow" style="color:#C9D6DB"><span>Ticket médio</span><b style="color:#fff">{{ reportAvgTicket }}</b></div>
@@ -1608,7 +1628,7 @@ select{caret-color:auto}
             <div class="kpis rise">
               <sc-for list="{{ opsRows }}" as="r" hint-placeholder-count="5">
                 <div class="kpi">
-                  <div class="k" style="font-size:14px">{{ r.k }}</div>
+                  <div class="k" style="font-size:var(--fs-sm)">{{ r.k }}</div>
                   <div class="v" style="{{ r.valStyle }}">{{ r.val }}</div>
                   <div class="s" style="color:#5A6670">{{ r.sub }}</div>
                 </div>
@@ -1621,23 +1641,23 @@ select{caret-color:auto}
               <sc-if value="{{ dayOpen }}" hint-placeholder-val="{{ true }}">
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <h2 style="margin:0">Encerrar o dia</h2>
-                  <p class="muted" style="font-size:15px;line-height:1.55;margin:0">Gera o relatório do dia com faturamento, pedidos e ticket médio, e bloqueia novos fechamentos de pedido até reabrir.</p>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Gera o relatório do dia com faturamento, pedidos e ticket médio, e bloqueia novos fechamentos de pedido até reabrir.</p>
                   <div onClick="{{ closeDay }}" class="btn btn-dark">Encerrar o dia agora</div>
                 </div>
               </sc-if>
               <sc-if value="{{ dayClosed }}" hint-placeholder-val="{{ false }}">
-                <div class="panel" style="display:flex;flex-direction:column;gap:14px">
+                <div class="panel" style="display:flex;flex-direction:column;gap:16px">
                   <h2 style="margin:0">Dia encerrado</h2>
-                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-                    <div><div class="muted" style="font-size:13px">Faturamento</div><div class="tt" style="font-size:22px;margin-top:4px">{{ reportRevenue }}</div></div>
-                    <div><div class="muted" style="font-size:13px">Pedidos</div><div class="tt" style="font-size:22px;margin-top:4px">{{ reportOrders }}</div></div>
-                    <div><div class="muted" style="font-size:13px">Ticket médio</div><div class="tt" style="font-size:22px;margin-top:4px">{{ reportAvgTicket }}</div></div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                    <div><div class="muted" style="font-size:13px">Faturamento</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportRevenue }}</div></div>
+                    <div><div class="muted" style="font-size:13px">Pedidos</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportOrders }}</div></div>
+                    <div><div class="muted" style="font-size:13px">Ticket médio</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportAvgTicket }}</div></div>
                   </div>
                   <sc-if value="{{ hasDayReport }}" hint-placeholder-val="{{ false }}">
                     <div>
-                      <div class="muted" style="font-size:13px;margin-bottom:6px">Mais vendidos</div>
+                      <div class="muted" style="font-size:13px;margin-bottom:8px">Mais vendidos</div>
                       <sc-for list="{{ reportTopProducts }}" as="tp" hint-placeholder-count="3">
-                        <div class="sumrow" style="font-size:14px"><span style="color:#12232E">{{ tp.name }}</span><span>{{ tp.qty }} un.</span></div>
+                        <div class="sumrow" style="font-size:var(--fs-sm)"><span style="color:#12232E">{{ tp.name }}</span><span>{{ tp.qty }} un.</span></div>
                       </sc-for>
                     </div>
                   </sc-if>
@@ -1665,17 +1685,17 @@ select{caret-color:auto}
             <div onClick="{{ goAdminHome }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v4h-7z M13 10h7v10h-7z M4 13h7v7H4z"></path></svg>Painel admin</div>
           </sc-if>
           <div class="adm-foot">
-            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
         <div class="adm-main">
           <div class="adm-head">
             <div>
-              <div class="muted" style="font-size:15px">{{ kEyebrow }}</div>
+              <div class="muted" style="font-size:var(--fs-body)">{{ kEyebrow }}</div>
               <h1 class="tt">{{ kTitle }}</h1>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span class="kz-chip">Entregues hoje <b style="color:#1E6B36">{{ kDelivered }}</b></span>
               <span class="kz-chip">Atrasados <b style="color:#B3261E">{{ kLate }}</b></span>
               <span class="kz-clock">{{ kClock }}</span>
@@ -1683,19 +1703,19 @@ select{caret-color:auto}
           </div>
           <sc-if value="{{ soundOff }}" hint-placeholder-val="{{ true }}">
             <div class="kz-sound">
-              <span style="font:500 15px 'DM Sans',sans-serif;color:#7A4B00"><b>O som de novos pedidos está desligado.</b> O navegador só libera o som depois de um toque.</span>
-              <span onClick="{{ toggleSound }}" class="btn btn-sun btn-sm" style="min-height:44px">Ativar som</span>
+              <span style="font:500 var(--fs-body) 'DM Sans',sans-serif;color:#7A4B00"><b>O som de novos pedidos está desligado.</b> O navegador só libera o som depois de um toque.</span>
+              <span onClick="{{ toggleSound }}" class="btn btn-sun btn-sm" style="min-height:var(--ctl)">Ativar som</span>
             </div>
           </sc-if>
           <sc-if value="{{ is_unavailable }}" hint-placeholder-val="{{ false }}">
             <div style="max-width:720px">
               <div class="kz-col">
                 <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
-                <div class="kz-sub" style="font:500 14px 'DM Sans',sans-serif;color:#5A6670;margin-top:-6px">Desligue o que acabou: some do cardápio na hora.</div>
+                <div class="kz-sub" style="font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670;margin-top:-8px">Desligue o que acabou: some do cardápio na hora.</div>
                 <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
                   <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
                 </sc-for>
-                <div onClick="{{ goKanban }}" class="btn btn-ghost btn-sm" style="min-height:46px;margin-top:6px">Voltar aos pedidos</div>
+                <div onClick="{{ goKanban }}" class="btn btn-ghost btn-sm" style="min-height:var(--ctl);margin-top:8px">Voltar aos pedidos</div>
               </div>
             </div>
           </sc-if>
@@ -1732,7 +1752,7 @@ select{caret-color:auto}
               </sc-for>
               <div class="kz-col kz-availcol">
                 <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
-                <div class="kz-sub" style="font:500 14px 'DM Sans',sans-serif;color:#5A6670;margin-top:-6px">Desligue o que acabou: some do cardápio na hora.</div>
+                <div class="kz-sub" style="font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670;margin-top:-8px">Desligue o que acabou: some do cardápio na hora.</div>
                 <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
                   <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
                 </sc-for>
@@ -1744,7 +1764,7 @@ select{caret-color:auto}
       </sc-if>
 
       <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
-        <div role="status" style="position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:80;background:#12232E;color:#fff;padding:12px 18px;border-radius:999px;font:600 14px 'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;animation:sftoast .3s cubic-bezier(.2,.8,.2,1);max-width:calc(100vw - 32px);box-shadow:0 12px 28px -10px rgba(0,0,0,.5)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7CF29A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>{{ toast }}</div>
+        <div role="status" style="position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:80;background:#12232E;color:#fff;padding:12px 20px;border-radius:var(--r-card);font:600 var(--fs-sm) 'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;animation:sftoast .3s cubic-bezier(.2,.8,.2,1);max-width:calc(100vw - 32px);box-shadow:0 12px 28px -10px rgba(0,0,0,.5)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7CF29A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>{{ toast }}</div>
       </sc-if>
 
 </div>
@@ -3744,7 +3764,7 @@ class Component extends DCLogic {
         send:() => this.sendReply(m),
         name:m.name, contact:m.contact, reason:m.reason, message:m.message, protocol:m.protocol,
         when:fmtWhen(d),
-        cardStyle:'padding:16px 20px' + (isNew ? ';border-left:4px solid #FFB21E' : ''),
+        cardStyle:'padding:var(--cpad)' + (isNew ? ';border-left:4px solid #FFB21E' : ''),
         statusLabel:isNew ? 'Nova' : 'Respondida',
         statusStyle:isNew ? 'background:#FFF4DB;color:#7A4B00' : 'background:#E5F7EA;color:#1E6B36',
         toggleLabel:isNew ? 'Marcar como respondida' : 'Voltar para novas',
@@ -3890,7 +3910,7 @@ class Component extends DCLogic {
       ['Pedidos atrasados', opsM ? String(opsM.lateOrders) : '—', opsM && opsM.lateOrders > 0],
       ['Cancelamentos hoje', opsM ? String(opsM.cancelledToday) : '—', false],
       ['Itens esgotados', opsM ? String(opsM.soldOutProducts.length) : '—', opsM && opsM.soldOutProducts.length > 0]
-    ].map(([k, val, bad]) => ({k, v:val, style:'font-size:26px;color:' + (bad ? '#B42318' : '#12232E')}));
+    ].map(([k, val, bad]) => ({k, v:val, style:'font-size:var(--fs-h2);color:' + (bad ? '#B42318' : '#12232E')}));
 
     // Relatórios: vendas, mais vendidos e horários de pico no período.
     const rep = s.report && s.report.period === s.reportPeriod ? s.report : null;
@@ -3956,7 +3976,7 @@ class Component extends DCLogic {
       ['Itens indisponíveis', ops.soldOutProducts.length ? (ops.soldOutProducts.length + ' (' + ops.soldOutProducts.join(', ') + ')') : 'Nenhum', 'Sinalizado pela cozinha', ops.soldOutProducts.length ? 'warn' : 'ok'],
       ['Cancelamentos', String(ops.cancelledToday), 'Hoje', ops.cancelledToday > 0 ? 'warn' : 'ok']
     ].map(([k, val, sub, kind]) => ({
-      k, val, sub, valStyle:'font-size:26px;color:' + (kind === 'ok' ? '#12232E' : '#B42318')
+      k, val, sub, valStyle:'font-size:var(--fs-h2);color:' + (kind === 'ok' ? '#12232E' : '#B42318')
     })) : [];
 
     v.pfCategoryOptions = ['Bebidas','Lanches','Pratos','Sobremesas'].map(cat => ({

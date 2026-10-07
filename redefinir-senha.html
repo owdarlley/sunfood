@@ -21,18 +21,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Escala geral: tudo um pouco menor que o tamanho "cru" do CSS, para as telas
-   não parecerem ampliadas (pedido do Dárlley, 2026-10-06). As alturas de tela
-   cheia usam calc(100vh / var(--sfz)) porque o zoom também encolhe o vh.
-   No celular e no tablet os campos ficam com 16px reais na tela, senão o
-   iPhone dá zoom sozinho ao tocar num campo. */
-:root{--sfz:.86}
-@media (max-width:1100px){:root{--sfz:.92}}
-html{zoom:var(--sfz)}
-@media (max-width:1100px){input,select,textarea{font-size:calc(16px / var(--sfz)) !important}}
+/* Design system (2026-10-07): medidas reais na tela, sem zoom geral. Os mesmos
+   tokens do app (app-cliente.dc.html): margem lateral 16/24/32, espaço entre
+   itens 12/16/24, entre seções 24/32/48, padding de cards 16/20/24, campos e
+   botões 48 px no celular e 44 px no computador, cantos 12-16 (cards) e 8
+   (botões/campos), títulos 26/30/36 e texto 15/16 com line-height 1.5. */
+:root{
+  --px:16px;--gap:12px;--sec:24px;--cpad:16px;--ctl:48px;
+  --fs-h1:26px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;
+  --r-card:12px;--r-ctl:8px
+}
+@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px;--r-card:16px}}
+@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--ctl:44px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
 
   html,body{margin:0;padding:0}
-  body{background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;color:#12232E;-webkit-font-smoothing:antialiased}
+  body{background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;font-size:var(--fs-body);line-height:1.5;color:#12232E;-webkit-font-smoothing:antialiased}
   *{box-sizing:border-box}
   input{font-family:inherit}
   a{color:#0B6670}
@@ -44,35 +47,35 @@ html{zoom:var(--sfz)}
   .wave{animation:sfwave 7s ease-in-out infinite}
   .rise{animation:sfup .35s cubic-bezier(.2,.8,.2,1) both}
   @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
-  .tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.05}
+  .tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.1}
   .muted{color:#5A6670}
-  .brand{display:flex;align-items:center;gap:10px;color:#12232E;text-decoration:none}
+  .brand{display:flex;align-items:center;gap:8px;min-height:48px;color:#12232E;text-decoration:none}
   .brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-  .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:16px;font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;user-select:none;text-decoration:none;transition:background .2s,transform .15s,filter .2s,border-color .2s}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-ctl);font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;user-select:none;text-decoration:none;transition:background .2s,transform .15s,filter .2s,border-color .2s}
   .btn:active{transform:scale(.98)}
   .btn-sun{background:#FFB21E;color:#12232E}
   .btn-sun:hover{filter:brightness(.96);color:#12232E}
   .btn-ghost{background:#fff;color:#12232E;border:1px solid #D6CFBF;font-weight:700}
   .btn-ghost:hover{border-color:#12232E;color:#12232E}
-  .lbl{display:block;font:700 14px 'DM Sans',sans-serif;color:#12232E;margin-bottom:6px}
-  .inp{width:100%;min-height:48px;border:1px solid #D6CFBF;border-radius:14px;padding:12px 14px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+  .lbl{display:block;font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#12232E;margin-bottom:8px}
+  .inp{width:100%;min-height:var(--ctl);border:1px solid #D6CFBF;border-radius:var(--r-ctl);padding:8px 12px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
   .inp:focus{border-color:#0B6670;box-shadow:0 0 0 3px rgba(11,102,112,.16)}
   .inp::placeholder{color:#9A958A}
-  .alert{border-radius:14px;padding:12px 14px;font:600 14px/1.45 'DM Sans',sans-serif;display:flex;gap:10px;align-items:flex-start}
+  .alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'DM Sans',sans-serif;display:flex;gap:12px;align-items:flex-start}
   .alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
   .alert-ok{background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB}
   .alert-info{background:#E7F1F1;color:#084C53;border:1px solid #CFE7E8}
-  .icon{width:56px;height:56px;border-radius:18px;background:#E7F1F1;display:flex;align-items:center;justify-content:center}
-  .auth{min-height:calc(100vh / var(--sfz));display:flex}
+  .icon{width:56px;height:56px;border-radius:var(--r-card);background:#E7F1F1;display:flex;align-items:center;justify-content:center}
+  .auth{min-height:100vh;display:flex}
   .auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
-  .auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}
-  .auth-box{width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px}
+  .auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:var(--sec) var(--px)}
+  .auth-box{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
   .auth-mobile{display:none}
   @media (max-width:920px){
     .auth{flex-direction:column}
     .auth-art{display:none}
     .auth-mobile{display:flex}
-    .auth-main{align-items:flex-start;padding:24px 18px 40px}
+    .auth-main{align-items:flex-start}
   }
 
 /* Clicar ou tocar perto de um texto não seleciona nada nem mostra o cursor de
@@ -89,25 +92,25 @@ select{caret-color:auto}
     <a href="./" class="brand" style="color:#fff"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
     <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
     <div style="position:relative;max-width:460px">
-      <div class="tt" style="font-size:clamp(34px,3.6vw,48px)">Uma senha nova e você volta pra areia.</div>
-      <p style="font-size:18px;line-height:1.5;color:#DDF1F2;margin:16px 0 0">Crie a nova senha aqui e entre de novo no app para pedir da sua mesa.</p>
+      <div class="tt" style="font-size:var(--fs-h1)">Uma senha nova e você volta pra areia.</div>
+      <p style="font-size:var(--fs-h3);line-height:1.5;color:#DDF1F2;margin:16px 0 0">Crie a nova senha aqui e entre de novo no app para pedir da sua mesa.</p>
     </div>
-    <div style="position:relative;font:500 14px 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
+    <div style="position:relative;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
     <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
   </div>
-  <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:22px 18px 20px;flex-direction:column;gap:12px;position:relative;overflow:hidden">
-    <a href="./" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></a>
-    <div style="font:500 15px/1.45 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">Uma senha nova e você volta pra areia.</div>
+  <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:var(--cpad);flex-direction:column;gap:12px;position:relative;overflow:hidden">
+    <a href="./" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></a>
+    <div style="font:500 var(--fs-body)/1.5 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">Uma senha nova e você volta pra areia.</div>
   </div>
   <div class="auth-main">
     <div class="auth-box rise">
 
       <sc-if value="{{ tokenMissing }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;flex-direction:column;gap:16px">
           <div class="icon" style="background:#FFF4DB"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B0791A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg></div>
           <div>
-            <div class="tt" style="font-size:36px">{{ invalidTitle }}</div>
-            <div class="muted" style="font-size:16px;line-height:1.5;margin-top:8px">{{ invalidMsg }}</div>
+            <div class="tt" style="font-size:var(--fs-h1)">{{ invalidTitle }}</div>
+            <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">{{ invalidMsg }}</div>
           </div>
           <a href="app-cliente.dc.html?module=cliente&amp;screen=forgot" class="btn btn-sun">Pedir um novo link</a>
           <a href="./" class="btn btn-ghost">Voltar ao login</a>
@@ -116,21 +119,21 @@ select{caret-color:auto}
 
       <sc-if value="{{ hasToken }}" hint-placeholder-val="{{ true }}">
         <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:16px">
             <div class="icon" style="background:#E5F7EA"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2E9C6A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></div>
             <div>
-              <div class="tt" style="font-size:36px">Tudo certo!</div>
-              <div class="muted" style="font-size:16px;line-height:1.5;margin-top:8px">Senha redefinida com sucesso. Já dá pra entrar com a nova senha.</div>
+              <div class="tt" style="font-size:var(--fs-h1)">Tudo certo!</div>
+              <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">Senha redefinida com sucesso. Já dá pra entrar com a nova senha.</div>
             </div>
             <a href="app-cliente.dc.html" class="btn btn-sun">Ir para o login</a>
           </div>
         </sc-if>
         <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:16px">
             <div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0B6670" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></div>
             <div>
-              <div class="tt" style="font-size:36px">Crie sua nova senha</div>
-              <div class="muted" style="font-size:16px;line-height:1.5;margin-top:8px">Escolha uma senha com pelo menos 6 caracteres. Depois é só entrar com ela no app.</div>
+              <div class="tt" style="font-size:var(--fs-h1)">Crie sua nova senha</div>
+              <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">Escolha uma senha com pelo menos 6 caracteres. Depois é só entrar com ela no app.</div>
             </div>
             <div>
               <span class="lbl">Nova senha</span>
@@ -144,7 +147,7 @@ select{caret-color:auto}
               <div class="alert alert-err" role="alert">{{ err }}</div>
             </sc-if>
             <div onClick="{{ submit }}" class="btn btn-sun" role="button">Redefinir senha</div>
-            <div class="muted" style="text-align:center;font-size:14px">Lembrou a senha? <a href="app-cliente.dc.html" style="font-weight:700;text-underline-offset:3px">Voltar ao login</a></div>
+            <div class="muted" style="text-align:center;font-size:var(--fs-sm)">Lembrou a senha? <a href="app-cliente.dc.html" style="font-weight:700;text-underline-offset:3px">Voltar ao login</a></div>
           </div>
         </sc-if>
       </sc-if>
