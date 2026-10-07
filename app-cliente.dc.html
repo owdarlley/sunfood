@@ -217,6 +217,44 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
   .brand b{font-size:20px}
 }
 
+/* Detalhe do produto: no celular a foto fica menor e o botão Adicionar fica preso embaixo,
+   para nome, preço, descrição e botão aparecerem sem rolar. */
+.pd .pd-col{flex:1 1 300px;min-width:0}
+.pd-info{display:flex;flex-direction:column;gap:14px}
+.pd-photo{border-radius:24px;overflow:hidden;aspect-ratio:4/3;max-height:calc(72vh / var(--sfz));display:flex;align-items:center;justify-content:center;position:relative}
+.pd-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.pd-name{margin:6px 0 0;font-size:clamp(32px,4vw,46px)}
+.pd-mprice{display:none}
+.pd-desc{font-size:17px;line-height:1.55;color:#3D4A53;margin:12px 0 0}
+.pd-chips{display:flex;gap:8px;flex-wrap:wrap}
+.pd-ingr{font-size:15px;line-height:1.55}
+.pd-buy{border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.pd-act{display:contents}
+.pd-row{order:1;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pd-price{font-size:28px}
+.pd-note{order:2}
+.pd-alert{order:3}
+.pd-add{order:4}
+@media (max-width:760px){
+  .pd{gap:16px}
+  .pd-photo{aspect-ratio:auto;height:calc(34vh / var(--sfz));min-height:150px;max-height:none;border-radius:20px}
+  .pd-photo svg{width:96px;height:96px}
+  .pd-info{gap:12px;padding-bottom:96px}
+  .pd-name{margin-top:4px;font-size:clamp(26px,7.5vw,32px)}
+  .pd-mprice{display:block;font-size:22px;white-space:nowrap;color:#0B6670}
+  .pd-desc{font-size:15.5px;line-height:1.5;margin-top:8px}
+  .pd-chips .chip{padding:6px 10px !important;font-size:13px !important}
+  .pd-ingr{font-size:14px;line-height:1.5}
+  .pd-buy{padding:16px;border-radius:18px}
+  .pd-buy textarea.inp{min-height:64px}
+  .pd-act{display:flex;align-items:center;gap:10px;position:fixed;left:0;right:0;bottom:0;z-index:24;background:#fff;border-top:1px solid #E3DDD0;box-shadow:0 -6px 20px rgba(18,35,46,.08);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+  .pd-row{flex-shrink:0}
+  .pd-price{display:none}
+  .pd-alert{flex:1;margin:0}
+  .pd-add{flex:1;min-width:0;padding-left:12px;padding-right:12px;white-space:nowrap}
+}
+@media (max-width:640px){.pd-info{padding-bottom:0}}
+
 /* ===== Admin ===== */
 .adm{min-height:calc(100vh / var(--sfz));display:flex;background:#F6F3EC;width:100%}
 .adm-side{width:240px;flex-shrink:0;background:#12232E;color:#fff;display:flex;flex-direction:column;padding:24px 14px 18px;gap:6px;position:sticky;top:0;height:calc(100vh / var(--sfz));overflow-y:auto}
@@ -671,20 +709,23 @@ select{caret-color:auto}
               </sc-if>
 
               <sc-if value="{{ is_product }}" hint-placeholder-val="{{ false }}">
-                <div class="cols rise">
-                  <div style="flex:1 1 380px;min-width:0">
-                    <div style="{{ pTileStyle }};border-radius:24px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative">
+                <div class="cols rise pd">
+                  <div class="pd-col">
+                    <div class="pd-photo" style="{{ pTileStyle }}">
                       <sc-if value="{{ pHasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ pPhotoStyle }}"></span></sc-if>
                       <sc-if value="{{ pNoPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="130" height="130" fill="none" stroke="{{ pIconColor }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ pMarkPath }}"></path></svg></sc-if>
                     </div>
                   </div>
-                  <div style="flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:14px">
+                  <div class="pd-col pd-info">
                     <div>
                       <div class="eyebrow">{{ pCat }}</div>
-                      <h1 class="tt" style="margin:6px 0 0;font-size:clamp(32px,4vw,46px)">{{ pName }}</h1>
-                      <p style="font-size:17px;line-height:1.55;color:#3D4A53;margin:12px 0 0">{{ pLong }}</p>
+                      <div class="pd-head">
+                        <h1 class="tt pd-name">{{ pName }}</h1>
+                        <span class="tt pd-mprice">{{ pPriceStr }}</span>
+                      </div>
+                      <p class="pd-desc">{{ pLong }}</p>
                     </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <div class="pd-chips">
                       <sc-for list="{{ pFacts }}" as="fc" hint-placeholder-count="2">
                         <span class="chip" style="background:#fff;border:1px solid #E3DDD0;padding:8px 12px;font-size:14px;color:#12232E">{{ fc.t }}</span>
                       </sc-for>
@@ -693,28 +734,30 @@ select{caret-color:auto}
                       </sc-for>
                     </div>
                     <sc-if value="{{ hasIngredientes }}" hint-placeholder-val="{{ false }}">
-                      <div class="muted" style="font-size:15px;line-height:1.55"><b style="color:#12232E">Ingredientes:</b> {{ pIngredientes }}</div>
+                      <div class="muted pd-ingr"><b style="color:#12232E">Ingredientes:</b> {{ pIngredientes }}</div>
                     </sc-if>
-                    <div class="card" style="border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px">
-                      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-                        <span class="tt" style="font-size:28px">{{ pPriceStr }}</span>
-                        <div class="stepper">
-                          <span onClick="{{ dec }}" class="sb" aria-label="Menos">−</span>
-                          <span class="sq">{{ qty }}</span>
-                          <span onClick="{{ inc }}" class="sb on" aria-label="Mais">+</span>
-                        </div>
-                      </div>
-                      <div>
+                    <div class="card pd-buy">
+                      <div class="pd-note">
                         <span class="lbl">Observação deste item <span class="muted" style="font-weight:500">(opcional)</span></span>
                         <textarea class="inp" value="{{ note }}" onChange="{{ setNote }}" maxlength="280" placeholder="Ex.: sem gelo, molho à parte"></textarea>
                         <div class="muted" style="text-align:right;font-size:12px;margin-top:4px">{{ noteCount }}/280</div>
                       </div>
-                      <sc-if value="{{ pSoldOut }}" hint-placeholder-val="{{ false }}">
-                        <div class="alert alert-err">Esgotado no momento. A cozinha avisa quando voltar.</div>
-                      </sc-if>
-                      <sc-if value="{{ pAvail }}" hint-placeholder-val="{{ true }}">
-                        <div onClick="{{ addSel }}" class="btn btn-sun">{{ addLabel }}</div>
-                      </sc-if>
+                      <div class="pd-act">
+                        <div class="pd-row">
+                          <span class="tt pd-price">{{ pPriceStr }}</span>
+                          <div class="stepper">
+                            <span onClick="{{ dec }}" class="sb" aria-label="Menos">−</span>
+                            <span class="sq">{{ qty }}</span>
+                            <span onClick="{{ inc }}" class="sb on" aria-label="Mais">+</span>
+                          </div>
+                        </div>
+                        <sc-if value="{{ pSoldOut }}" hint-placeholder-val="{{ false }}">
+                          <div class="alert alert-err pd-alert">Esgotado no momento. A cozinha avisa quando voltar.</div>
+                        </sc-if>
+                        <sc-if value="{{ pAvail }}" hint-placeholder-val="{{ true }}">
+                          <div onClick="{{ addSel }}" class="btn btn-sun pd-add">{{ addLabel }}</div>
+                        </sc-if>
+                      </div>
                     </div>
                   </div>
                 </div>

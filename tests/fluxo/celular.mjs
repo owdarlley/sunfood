@@ -98,6 +98,21 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
   }
 }
 
+await step('detalhe do produto', async () => {
+  // Celular pequeno: nome, preço e o botão Adicionar aparecem sem rolar, e o botão funciona.
+  VW = { width: 360, height: 640 };
+  const p = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
+  await tap(p, 'Peixe Frito');
+  const dentro = await p.evaluate(() => ['.pd-name', '.pd-mprice', '.pd-desc', '.pd-add'].map(sel => {
+    const r = document.querySelector(sel).getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight + 1; }));
+  check('detalhe do produto 360px: nome, preço, descrição e Adicionar aparecem sem rolar', dentro.every(Boolean), JSON.stringify(dentro));
+  check('detalhe do produto 360px: sem rolagem para os lados', await semRolagemLateral(p));
+  await tap(p, '+');
+  await p.locator('.pd-add').tap(); await p.waitForTimeout(500);
+  check('detalhe do produto 360px: Adicionar põe 2 itens no carrinho e volta ao cardápio', p.url().includes('screen=menu') && (await text(p)).includes('2 itens no carrinho'), p.url());
+  await p.context().close();
+});
+
 await step('tracinho de digitação', async () => {
   // Ao tocar/clicar num botão não pode aparecer o cursor de texto piscando; nos campos, sim.
   for (const [path, role, botao, campo] of [['index.html', null, '#entrar', '#email'], ['app-cliente.dc.html?module=cliente&screen=forgot', null, 'text=Enviar link', 'input'], ['app-cliente.dc.html?module=admin&screen=tables', 'admin', 'text=Menu', 'input']]) {
