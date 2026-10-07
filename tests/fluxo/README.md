@@ -16,6 +16,7 @@ Testam o app de ponta a ponta **sem deixar nada gravado em produção**.
 | `relatorios.mjs` | Exportar relatórios do admin: planilha `.csv` (abre no Excel, com `;` e vírgula decimal) e versão para imprimir/salvar como PDF, do período escolhido (hoje, 7 ou 30 dias), com a lista de pedidos no horário de São Paulo (celular, tablet e computador) | `node fluxo/relatorios.mjs` |
 | `desempenho.mjs` | Recarregar sem tremer e toque rápido: a página é baixada uma vez só, a primeira visita mostra cartões vazios até o cardápio chegar (sem itens de exemplo trocados na frente), ao recarregar o cardápio guardado aparece na hora sem nada sair do lugar, e a cozinha vê o pedido mudar de coluna no toque, antes do servidor responder (celular, tablet e computador) | `node fluxo/desempenho.mjs` |
 | `mesas.mjs` | Quantidade de mesas: o admin escolhe quantas mesas existem (celular, tablet e computador) e o cliente só consegue pedir de 1 até esse número | `node fluxo/mesas.mjs` |
+| `responder-mensagens.mjs` | Responder o Fale conosco pela tela Mensagens do admin: contato com e-mail recebe a resposta por e-mail (com aviso se o envio não estiver configurado no servidor), contato com telefone abre o WhatsApp com o texto pronto, e a resposta fica salva no cartão em Respondidas (celular, tablet e computador) | `node fluxo/responder-mensagens.mjs` |
 
 Os testes abrem um Chromium de verdade, mas todas as chamadas para a API são respondidas por `fake-api.mjs`, uma API falsa em memória: nada chega ao servidor nem ao banco.
 

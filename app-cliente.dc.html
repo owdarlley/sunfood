@@ -275,6 +275,10 @@ textarea.inp{min-height:84px;resize:vertical;line-height:1.45}
 .locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:24px;overflow:hidden;background:#CFE7E8;border:1px solid #E3DDD0}
 .locmap iframe{display:block;width:100%;height:100%;border:0}
 @media (max-width:640px){.locmap{height:260px}}
+/* Responder Fale conosco: botões lado a lado; no celular, um embaixo do outro. */
+.msg-reply-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.msg-reply-actions .btn{min-width:180px}
+@media (max-width:640px){.msg-reply-actions{flex-direction:column-reverse}.msg-reply-actions .btn{width:100%;min-width:0}}
 .locform{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:10px}
 .locform .wide{grid-column:span 2}
 @media (max-width:640px){.locform .wide{grid-column:auto}}
@@ -1319,11 +1323,35 @@ select{caret-color:auto}
                     <span class="muted" style="font-size:13px">{{ m.protocol }} · {{ m.when }}</span>
                   </div>
                   <div style="font:400 15px/1.55 'DM Sans',sans-serif;color:#12232E;margin-top:10px;white-space:pre-wrap">{{ m.message }}</div>
-                  <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
-                    <span class="chip" style="{{ m.statusStyle }}">{{ m.statusLabel }}</span>
-                    <span style="flex:1"></span>
-                    <span onClick="{{ m.toggle }}" class="chip" style="padding:8px 14px;cursor:pointer;{{ m.toggleStyle }}">{{ m.toggleLabel }}</span>
-                  </div>
+                  <sc-if value="{{ m.hasReply }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:12px;padding:12px 14px;border-radius:14px;background:#E7F1F1;color:#084C53">
+                      <div style="font:700 13px 'DM Sans',sans-serif;margin-bottom:4px">{{ m.replyInfo }}</div>
+                      <div style="font:400 15px/1.55 'DM Sans',sans-serif;white-space:pre-wrap;word-break:break-word">{{ m.reply }}</div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.replying }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+                      <span class="lbl" style="margin:0">{{ m.replyHint }}</span>
+                      <textarea class="inp" value="{{ replyText }}" onChange="{{ setReplyText }}" maxlength="4000" placeholder="Escreva sua resposta para {{ m.firstName }}…" style="min-height:120px"></textarea>
+                      <sc-if value="{{ hasReplyErr }}" hint-placeholder-val="{{ false }}">
+                        <div class="alert alert-err">{{ replyErr }}</div>
+                      </sc-if>
+                      <div class="msg-reply-actions">
+                        <div onClick="{{ cancelReply }}" class="btn btn-ghost">Cancelar</div>
+                        <div onClick="{{ m.send }}" class="btn btn-dark" style="opacity:{{ replyBusyOpacity }}">{{ m.sendLabel }}</div>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.showActions }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+                      <span class="chip" style="{{ m.statusStyle }}">{{ m.statusLabel }}</span>
+                      <span style="flex:1"></span>
+                      <span onClick="{{ m.toggle }}" class="chip" style="padding:8px 14px;cursor:pointer;{{ m.toggleStyle }}">{{ m.toggleLabel }}</span>
+                      <sc-if value="{{ m.canReply }}" hint-placeholder-val="{{ true }}">
+                        <span onClick="{{ m.openReply }}" class="chip" style="padding:8px 14px;cursor:pointer;background:#FFB21E;color:#12232E;font-weight:800">{{ m.replyBtnLabel }}</span>
+                      </sc-if>
+                    </div>
+                  </sc-if>
                 </div>
               </sc-for>
               <sc-if value="{{ noMsgRows }}" hint-placeholder-val="{{ false }}">
@@ -1840,6 +1868,9 @@ function refreshSession(oldToken){
 }
 // fetch() para a API com o token sempre válido. Chamadas sem Authorization
 // (login, cadastro, cardápio) passam direto, como um fetch comum.
+// Mesma regra do backend (contactMessageSchema): o que não é e-mail é telefone.
+function isEmailContact(v){ return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(v || '').trim()); }
+
 async function authFetch(url, opts){
   opts = opts || {};
   const headers = Object.assign({}, opts.headers || {});
@@ -2292,6 +2323,8 @@ class Component extends DCLogic {
     reportPeriod:'hoje', report:null, reportErr:'', reportAt:0, reportExportMsg:'',
     // Mensagens do Fale conosco (GET /contact): lista, filtro e último erro.
     contactMsgs:null, msgFilter:'novo', msgErr:'', msgAt:0,
+    // Resposta em andamento na tela Mensagens (só uma aberta por vez).
+    replyId:null, replyText:'', replyBusy:false, replyErr:'',
     pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'', pfDeleting:null, pfDeletingBusy:false,
     // Admin: filtro/busca da lista de pedidos e filtro do cardápio.
     admFilter:'Todos', admSearch:'', admCat:'Todos',
@@ -2645,6 +2678,37 @@ class Component extends DCLogic {
       this.setState(s => ({contactMsgs:(s.contactMsgs || []).map(m => m.id === upd.id ? upd : m)}));
       this.flash(status === 'respondido' ? 'Mensagem marcada como respondida.' : 'Mensagem voltou para Novas.');
     } catch(e){ this.flash('Sem conexão com o servidor.'); }
+  }
+
+  // Responde o Fale conosco. Contato com e-mail: a API envia o e-mail.
+  // Telefone: abre o WhatsApp com o texto já escrito (precisa abrir antes do
+  // await, senão o celular bloqueia a nova aba) e a API só registra.
+  async sendReply(m){
+    const reply = this.state.replyText.trim();
+    if(this.state.replyBusy) return;
+    if(reply.length < 2) return this.setState({replyErr:'Escreva a resposta antes de enviar.'});
+    const wa = !isEmailContact(m.contact);
+    if(wa){
+      const digits = m.contact.replace(/\D/g, '');
+      const phone = digits.length <= 11 ? '55' + digits : digits;
+      window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(reply), '_blank', 'noopener');
+    }
+    this.setState({replyBusy:true, replyErr:''});
+    try {
+      const res = await authFetch(API_BASE + '/contact/' + encodeURIComponent(m.id) + '/reply', {
+        method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({reply})
+      });
+      const body = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setState({replyBusy:false, replyErr:body.error || 'Não foi possível enviar a resposta.'});
+      this.setState(s => ({
+        contactMsgs:(s.contactMsgs || []).map(x => x.id === body.id ? body : x),
+        replyId:null, replyText:'', replyBusy:false
+      }));
+      this.flash(wa ? 'Resposta registrada. Envie pelo WhatsApp que abriu.' : 'Resposta enviada por e-mail.');
+    } catch(e){
+      this.setState({replyBusy:false, replyErr:'Sem conexão com o servidor. Tente de novo.'});
+    }
   }
 
   async loadReport(period){
@@ -3614,12 +3678,29 @@ class Component extends DCLogic {
       label, cls:s.msgFilter === k ? 'on' : '', pick:() => this.setState({msgFilter:k})
     }));
     v.msgErr = s.msgErr; v.hasMsgErr = !!s.msgErr;
+    v.replyText = s.replyText; v.setReplyText = e => this.setState({replyText:e.target.value.slice(0, 4000)});
+    v.replyErr = s.replyErr; v.hasReplyErr = !!s.replyErr;
+    v.replyBusyOpacity = s.replyBusy ? .6 : 1;
+    v.cancelReply = () => this.setState({replyId:null, replyText:'', replyErr:''});
+    const fmtWhen = d => d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
     v.msgRows = msgs.filter(m => s.msgFilter === 'todas' || m.status === s.msgFilter).map(m => {
       const isNew = m.status === 'novo';
       const d = new Date(m.createdAt);
+      const byEmail = isEmailContact(m.contact);
+      const replying = s.replyId === m.id;
+      const firstName = String(m.name).trim().split(/\s+/)[0];
       return {
+        firstName, replying, showActions:!replying,
+        hasReply:!!m.reply, reply:m.reply || '',
+        replyInfo:m.reply ? 'Sua resposta · ' + (m.replyChannel === 'whatsapp' ? 'pelo WhatsApp' : 'por e-mail') + (m.repliedAt ? ' em ' + fmtWhen(new Date(m.repliedAt)) : '') : '',
+        canReply:!m.reply,
+        replyBtnLabel:byEmail ? 'Responder por e-mail' : 'Responder no WhatsApp',
+        replyHint:byEmail ? 'A resposta vai para ' + m.contact.trim() + ' e a mensagem fica como respondida.' : 'O WhatsApp abre com o texto pronto para ' + m.contact.trim() + '. A mensagem fica como respondida.',
+        sendLabel:s.replyBusy ? 'Enviando…' : (byEmail ? 'Enviar e-mail' : 'Abrir WhatsApp e enviar'),
+        openReply:() => this.setState({replyId:m.id, replyText:'', replyErr:''}),
+        send:() => this.sendReply(m),
         name:m.name, contact:m.contact, reason:m.reason, message:m.message, protocol:m.protocol,
-        when:d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+        when:fmtWhen(d),
         cardStyle:'padding:16px 20px' + (isNew ? ';border-left:4px solid #FFB21E' : ''),
         statusLabel:isNew ? 'Nova' : 'Respondida',
         statusStyle:isNew ? 'background:#FFF4DB;color:#7A4B00' : 'background:#E5F7EA;color:#1E6B36',
