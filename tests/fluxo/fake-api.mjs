@@ -72,6 +72,13 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
       db.contacts.unshift(c); return json(201, { protocol: c.protocol });
     }
     if (p === '/contact' && m === 'GET') return json(200, db.contacts);
+    if ((r = p.match(/^\/contact\/([^/]+)\/reply$/)) && m === 'POST') {
+      const c = db.contacts.find(c => c.id === r[1]);
+      const byEmail = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(c.contact).trim());
+      if (byEmail && db.emailOff) return json(503, { error: 'O envio de e-mail ainda não foi configurado no servidor. A resposta não foi enviada.', code: 'email_not_configured' });
+      Object.assign(c, { reply: body.reply, replyChannel: byEmail ? 'email' : 'whatsapp', repliedAt: now(), status: 'respondido' });
+      return json(200, c);
+    }
     if ((r = p.match(/^\/contact\/([^/]+)\/status$/))) { const c = db.contacts.find(c => c.id === r[1]); c.status = body.status; return json(200, c); }
     if (p === '/reports/sales') {
       // Relatório de mentira: 12h é o pico; período de 1, 7 ou 30 dias.
