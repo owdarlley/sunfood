@@ -62,8 +62,9 @@ async function open(path, { role, seed, kiosk, viewport } = {}) {
     return api(route);
   });
   page.api = api;
-  if (role) await page.addInitScript(r => localStorage.setItem('sunfood_session',
-    JSON.stringify({ token: 'tok', user: { id: 'u1', email: r + '@teste', name: 'Teste', role: r } })), role);
+  // try: o script também roda no iframe do mapa, onde o localStorage é bloqueado.
+  if (role) await page.addInitScript(r => { try { localStorage.setItem('sunfood_session',
+    JSON.stringify({ token: 'tok', user: { id: 'u1', email: r + '@teste', name: 'Teste', role: r } })); } catch (e) {} }, role);
   await page.goto(BASE + path);
   await page.waitForTimeout(1200);
   return page;
