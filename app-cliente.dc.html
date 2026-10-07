@@ -163,7 +163,9 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 .wrap-narrow{max-width:640px}
 .cols{display:flex;flex-wrap:wrap;gap:var(--gap);align-items:flex-start}
 .col-main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:var(--gap)}
-.col-side{flex:1 1 320px;max-width:400px;display:flex;flex-direction:column;gap:var(--gap)}
+/* Coluna lateral com largura fixa: o resumo do carrinho crescer não pode
+   apertar o cardápio ao lado (antes os cartões mudavam de tamanho ao adicionar). */
+.col-side{flex:0 0 360px;min-width:0;max-width:100%;display:flex;flex-direction:column;gap:var(--gap)}
 .hero{position:relative;overflow:hidden;border-radius:var(--r-card);background:#0B6670;color:#fff;padding:calc(var(--cpad) + 8px) calc(var(--cpad) + 8px) 0;margin-bottom:var(--sec)}
 .hero h1{margin:0 0 48px;position:relative;font-size:var(--fs-h1);max-width:720px}
 .hero p{margin:12px 0 16px;font-size:var(--fs-body);line-height:1.5;color:#DDF1F2;max-width:620px;position:relative}
@@ -216,6 +218,7 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 .footer-in{max-width:var(--maxw);margin:0 auto;padding:var(--gap) var(--px);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;justify-content:space-between;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670}
 
 @media (max-width:920px){
+  .col-side{flex:1 1 100%}
   .cartpanel{display:none}
   .mobilebar{display:flex;position:fixed;left:var(--px);right:var(--px);bottom:80px;z-index:20}
   .toplinks .toplink{display:none}
@@ -396,7 +399,9 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 /* Carrinho no celular: foto e nome na primeira linha; +/− e preço embaixo. */
 @media (max-width:767px){.cartrow{flex-wrap:wrap;row-gap:12px}.cartrow .cr-info{flex:1 1 calc(100% - 80px) !important}.cartrow .stepper{margin-left:80px}.cartrow .cr-price{flex:1;width:auto !important}}
 @media (max-width:767px){.bars{gap:4px}.kpi .k{font-size:var(--fs-cap)}}
-@media (max-width:767px){.pcard .stepper .sb{width:36px;height:36px;font-size:18px}.pcard .stepper .sb::after{inset:-6px}.pcard .stepper .sq{min-width:20px}}
+/* No cartão do cardápio o +/− tem a mesma altura do botão Adicionar (44 px),
+   para o cartão não mudar de tamanho ao adicionar. */
+.pcard .stepper .sb{width:36px;height:36px;font-size:18px}.pcard .stepper .sb::after{inset:-6px}.pcard .stepper .sq{min-width:20px}
 
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
 @media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}}
