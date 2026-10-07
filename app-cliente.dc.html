@@ -249,6 +249,7 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 .pd .pd-col{flex:1 1 300px;min-width:0}
 .pd-info{display:flex;flex-direction:column;gap:16px}
 .pd-photo{border-radius:var(--r-card);overflow:hidden;aspect-ratio:4/3;max-height:72vh;display:flex;align-items:center;justify-content:center;position:relative}
+.pd-back{position:absolute;top:12px;left:12px;z-index:2;box-shadow:0 2px 10px rgba(18,35,46,.18)}
 .pd-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .pd-name{margin:8px 0 0;font-size:var(--fs-h1)}
 .pd-mprice{display:none}
@@ -743,6 +744,7 @@ select{caret-color:auto}
                 <div class="cols rise pd">
                   <div class="pd-col">
                     <div class="pd-photo" style="{{ pTileStyle }}">
+                      <span onClick="{{ onBack }}" class="backbtn pd-back" role="button" aria-label="Voltar ao cardápio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12232E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></span>
                       <sc-if value="{{ pHasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ pPhotoStyle }}"></span></sc-if>
                       <sc-if value="{{ pNoPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="130" height="130" fill="none" stroke="{{ pIconColor }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ pMarkPath }}"></path></svg></sc-if>
                     </div>
