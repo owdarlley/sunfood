@@ -18,6 +18,7 @@ Testam o app de ponta a ponta **sem deixar nada gravado em produção**.
 | `mesas.mjs` | Quantidade de mesas: o admin escolhe quantas mesas existem (celular, tablet e computador) e o cliente só consegue pedir de 1 até esse número | `node fluxo/mesas.mjs` |
 | `responder-mensagens.mjs` | Responder o Fale conosco pela tela Mensagens do admin: contato com e-mail recebe a resposta por e-mail (com aviso se o envio não estiver configurado no servidor), contato com telefone abre o WhatsApp com o texto pronto, e a resposta fica salva no cartão em Respondidas (celular, tablet e computador) | `node fluxo/responder-mensagens.mjs` |
 | `perfil.mjs` | Tela Perfil do cliente: editar nome, telefone e nascimento (e-mail e CPF travados), foto enviada (reduzida no navegador) ou avatar pronto, trocar senha confirmando a atual (some para conta do Google), avisos do pedido pronto (vibração/notificação e som) e sem rolagem lateral (celular, tablet e computador) | `node fluxo/perfil.mjs` |
+| `garcom.mjs` | Perfil Garçom: login abre o módulo do garçom, "Para entregar" com os pedidos prontos (marcar entregue e anotar o recebimento na mesa) e o que ainda está na cozinha, lançar pedido escolhendo a mesa e os itens, quiosque pausado, "Meu desempenho" por período e a tela Garçons do admin (cadastrar e desativar), sem rolagem lateral (celular, tablet, computador e tela larga) | `node fluxo/garcom.mjs` |
 
 Os testes abrem um Chromium de verdade, mas todas as chamadas para a API são respondidas por `fake-api.mjs`, uma API falsa em memória: nada chega ao servidor nem ao banco.
 

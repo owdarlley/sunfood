@@ -402,6 +402,37 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 }
 @media (max-width:1024px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:767px){ .kz-board{grid-template-columns:1fr} }
+/* Garçom: mesmo painel da cozinha. Cartões em 1 coluna no celular, 2 no
+   tablet e 3 a 4 no computador; mesas em botões de 56 px (64 no computador). */
+.gc-page{display:flex;flex-direction:column;gap:var(--sec)}
+.gc-h2{display:flex;align-items:center;gap:8px;margin:0 0 var(--gap);font:800 var(--fs-h2) 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+.gc-grid{display:grid;grid-template-columns:1fr;gap:var(--gap);align-items:start}
+@media (min-width:768px){.gc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1025px){.gc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1440px){.gc-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.gc-card{background:#fff}
+.gc-mini{display:flex;flex-direction:column;gap:8px}
+.gc-mesa-sm{font:800 var(--fs-h3) 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+.gc-tag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;background:#E7F1F1;color:#084C53;font:700 var(--fs-cap) 'DM Sans',sans-serif;white-space:nowrap}
+.gc-cap{font:600 var(--fs-cap) 'DM Sans',sans-serif;color:#5A6670;margin-bottom:8px}
+.gc-recv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gc-recv .btn{min-height:48px;padding:0 8px}
+.gc-tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px}
+.gc-table{min-height:56px;border-radius:var(--r-ctl);border:1px solid #D6CFBF;background:#fff;display:flex;align-items:center;justify-content:center;font:800 18px 'DM Sans',sans-serif;cursor:pointer;user-select:none}
+.gc-table:hover{border-color:#12232E}
+.gc-table.on{background:#12232E;border-color:#12232E;color:#fff}
+.gc-table.off{background:#EFEADF;color:#9A958A;border-color:#EFEADF;cursor:not-allowed;text-decoration:line-through}
+@media (min-width:1025px){.gc-tables{grid-template-columns:repeat(auto-fill,minmax(64px,1fr))}.gc-table{min-height:64px}}
+.gc-prods{display:grid;grid-template-columns:1fr;gap:0 var(--gap)}
+@media (min-width:768px){.gc-prods{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gc-prod{display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 0;border-top:1px solid #EFEADF}
+.gc-prod.off{opacity:.55}
+.gc-side{position:sticky;top:20px}
+@media (max-width:1024px){.gc-side{position:static}}
+.gc-day{display:flex;align-items:center;gap:12px;min-height:32px}
+.gc-day-lbl{flex:0 0 72px;font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670}
+.gc-day-track{flex:1;height:12px;border-radius:999px;background:#EFEADF;overflow:hidden}
+.gc-day-n{flex:0 0 32px;text-align:right;font:800 var(--fs-sm) 'DM Sans',sans-serif}
 /* Carrinho no celular: foto e nome na primeira linha; +/− e preço embaixo. */
 @media (max-width:767px){.cartrow{flex-wrap:wrap;row-gap:12px}.cartrow .cr-info{flex:1 1 calc(100% - 80px) !important}.cartrow .stepper{margin-left:80px}.cartrow .cr-price{flex:1;width:auto !important}}
 @media (max-width:767px){.bars{gap:4px}.kpi .k{font-size:var(--fs-cap)}}
@@ -1498,6 +1529,50 @@ select{caret-color:auto}
             </div>
           </sc-if>
 
+          <sc-if value="{{ is_waiters }}" hint-placeholder-val="{{ false }}">
+            <div class="cols rise">
+              <div class="col-main">
+                <sc-if value="{{ waitersLoading }}" hint-placeholder-val="{{ false }}">
+                  <div class="card muted" style="padding:40px;text-align:center">Carregando…</div>
+                </sc-if>
+                <sc-if value="{{ noWaiters }}" hint-placeholder-val="{{ false }}">
+                  <div class="card muted" style="padding:40px;text-align:center">Nenhum garçom cadastrado ainda. Cadastre o primeiro ao lado.</div>
+                </sc-if>
+                <sc-if value="{{ hasWaiters }}" hint-placeholder-val="{{ true }}">
+                  <div class="pgrid">
+                    <sc-for list="{{ waiterRows }}" as="w" hint-placeholder-count="3">
+                      <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px">
+                        <div style="display:flex;align-items:center;gap:12px">
+                          <span style="width:48px;height:48px;flex-shrink:0;border-radius:50%;background:#0B6670;color:#fff;display:flex;align-items:center;justify-content:center;font:800 16px 'DM Sans',sans-serif">{{ w.initials }}</span>
+                          <div style="min-width:0;flex:1">
+                            <div style="font:700 var(--fs-body)/1.3 'DM Sans',sans-serif">{{ w.name }}</div>
+                            <div class="muted" style="font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ w.email }}</div>
+                          </div>
+                          <span style="{{ w.pillStyle }}">{{ w.pill }}</span>
+                        </div>
+                        <div class="muted" style="font-size:var(--fs-sm)">{{ w.today }}</div>
+                        <div style="display:flex;justify-content:flex-end;border-top:1px solid #EFEADF;padding-top:12px">
+                          <div onClick="{{ w.toggle }}" class="{{ w.btnCls }}">{{ w.btn }}</div>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <div class="col-side">
+                <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+                  <div><h2 style="margin:0;font-size:var(--fs-h3)">Cadastrar garçom</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Ele entra pela mesma tela de login do Sunfood e vai direto para os pedidos prontos.</div></div>
+                  <div><span class="lbl">Nome</span><input class="inp" value="{{ wName }}" onChange="{{ setWName }}" placeholder="Ex.: Carlos Souza" autocomplete="off" /></div>
+                  <div><span class="lbl">E-mail</span><input class="inp" type="email" value="{{ wEmail }}" onChange="{{ setWEmail }}" placeholder="garcom@sunfood.com" autocomplete="off" /></div>
+                  <div><span class="lbl">Senha inicial</span><input class="inp" type="password" value="{{ wPass }}" onChange="{{ setWPass }}" placeholder="Mínimo de 6 caracteres" autocomplete="new-password" /></div>
+                  <sc-if value="{{ hasWErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ wErr }}</div></sc-if>
+                  <sc-if value="{{ hasWMsg }}" hint-placeholder-val="{{ false }}"><div class="alert alert-ok">{{ wMsg }}</div></sc-if>
+                  <div onClick="{{ createWaiter }}" class="btn btn-sun">{{ wBtnLabel }}</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
           <sc-if value="{{ is_productForm }}" hint-placeholder-val="{{ false }}">
             <div class="cols rise" style="gap:20px">
               <div class="col-main">
@@ -1832,6 +1907,220 @@ select{caret-color:auto}
                   <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
                 </sc-for>
               </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isGarcom }}" hint-placeholder-val="{{ false }}">
+      <div class="adm kz gc">
+        <div class="adm-side {{ admMenuCls }}">
+          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>garçom</small></div>
+          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
+          <sc-for list="{{ garcomSide }}" as="it" hint-placeholder-count="3">
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+          </sc-for>
+          <div onClick="{{ toggleSound }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ soundIc }}"></path></svg>{{ soundLabel }}</div>
+          <div class="adm-foot">
+            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
+          </div>
+        </div>
+        <div class="adm-main">
+          <div class="adm-head">
+            <div>
+              <div class="muted" style="font-size:var(--fs-body)">{{ gEyebrow }}</div>
+              <h1 class="tt">{{ screenLabel }}</h1>
+            </div>
+            <sc-if value="{{ is_entregar }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span class="kz-chip">Prontos <b style="color:#1E6B36">{{ gReadyN }}</b></span>
+                <span class="kz-chip">Na cozinha <b style="color:#0B6670">{{ gKitchenN }}</b></span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ is_desempenho }}" hint-placeholder-val="{{ false }}">
+              <div class="seg" style="max-width:100%;overflow-x:auto">
+                <sc-for list="{{ gPeriods }}" as="rp" hint-placeholder-count="3">
+                  <div onClick="{{ rp.pick }}" class="{{ rp.cls }}">{{ rp.label }}</div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ is_entregar }}" hint-placeholder-val="{{ false }}">
+            <div class="gc-page rise">
+              <sc-if value="{{ soundOff }}" hint-placeholder-val="{{ false }}">
+                <div class="kz-sound" style="margin:0">
+                  <span style="font:500 var(--fs-body) 'DM Sans',sans-serif;color:#7A4B00"><b>O aviso sonoro está desligado.</b> Ligue para ouvir um toque quando um pedido ficar pronto.</span>
+                  <span onClick="{{ toggleSound }}" class="btn btn-sun btn-sm" style="min-height:var(--ctl)">Ativar som</span>
+                </div>
+              </sc-if>
+              <section>
+                <h2 class="gc-h2"><span style="width:10px;height:10px;border-radius:50%;background:#2E9C6A"></span>Prontos para entregar</h2>
+                <div class="gc-grid">
+                  <sc-for list="{{ gReady }}" as="k" hint-placeholder-count="2">
+                    <div class="kz-card gc-card {{ k.lateCls }}">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                        <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 13px 'DM Sans',sans-serif;color:#5A6670">{{ k.id }}</span></div>
+                        <span class="kz-time">{{ k.min }}</span>
+                      </div>
+                      <div>
+                        <sc-for list="{{ k.lines }}" as="ln" hint-placeholder-count="2">
+                          <div class="kz-item"><b>{{ ln.q }}</b> {{ ln.n }}</div>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ k.hasObs }}" hint-placeholder-val="{{ false }}">
+                        <div class="kz-obs">Obs: {{ k.obs }}</div>
+                      </sc-if>
+                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <span style="{{ k.payStyle }}">{{ k.payLabel }}</span>
+                        <sc-if value="{{ k.mine }}" hint-placeholder-val="{{ false }}"><span class="gc-tag">Você lançou</span></sc-if>
+                      </div>
+                      <sc-if value="{{ k.canReceive }}" hint-placeholder-val="{{ false }}">
+                        <div>
+                          <div class="gc-cap">Recebeu na mesa? Anote como:</div>
+                          <div class="gc-recv">
+                            <div onClick="{{ k.recvCash }}" class="btn btn-ghost btn-sm">Dinheiro</div>
+                            <div onClick="{{ k.recvCard }}" class="btn btn-ghost btn-sm">Cartão</div>
+                            <div onClick="{{ k.recvPix }}" class="btn btn-ghost btn-sm">PIX</div>
+                          </div>
+                        </div>
+                      </sc-if>
+                      <div onClick="{{ k.deliver }}" class="kz-act" style="background:#1E6B36;color:#fff">Marcar como entregue</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ gNoReady }}" hint-placeholder-val="{{ false }}">
+                  <div class="panel kz-empty">Nada esperando entrega. Quando a cozinha marcar um pedido como pronto, ele aparece aqui.</div>
+                </sc-if>
+              </section>
+              <section>
+                <h2 class="gc-h2"><span style="width:10px;height:10px;border-radius:50%;background:#0B6670"></span>Ainda na cozinha</h2>
+                <div class="gc-grid">
+                  <sc-for list="{{ gKitchen }}" as="k" hint-placeholder-count="2">
+                    <div class="panel gc-mini">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                        <div><b class="gc-mesa-sm">{{ k.table }}</b> <span style="font:500 13px 'DM Sans',sans-serif;color:#5A6670">{{ k.id }}</span></div>
+                        <span style="{{ k.statusStyle }}">{{ k.status }}</span>
+                      </div>
+                      <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">{{ k.items }}</div>
+                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <span class="gc-cap" style="margin:0">{{ k.min }}</span>
+                        <sc-if value="{{ k.mine }}" hint-placeholder-val="{{ false }}"><span class="gc-tag">Você lançou</span></sc-if>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ gNoKitchen }}" hint-placeholder-val="{{ false }}">
+                  <div class="panel kz-empty">Nenhum pedido na fila ou em preparo agora.</div>
+                </sc-if>
+              </section>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ is_novoPedido }}" hint-placeholder-val="{{ false }}">
+            <div class="cols rise">
+              <div class="col-main" style="display:flex;flex-direction:column;gap:var(--gap)">
+                <sc-if value="{{ gClosed }}" hint-placeholder-val="{{ false }}">
+                  <div class="alert alert-warn">{{ gClosedText }}</div>
+                </sc-if>
+                <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+                  <div><h2 class="gc-h2" style="margin:0">Mesa</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px">Toque na mesa do cliente.</div></div>
+                  <div class="gc-tables">
+                    <sc-for list="{{ gTableTiles }}" as="t" hint-placeholder-count="12">
+                      <div onClick="{{ t.pick }}" class="gc-table {{ t.cls }}" role="button" aria-label="{{ t.aria }}">{{ t.n }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+                    <h2 class="gc-h2" style="margin:0">Itens</h2>
+                    <div style="flex:1 1 220px;max-width:360px">
+                      <input class="inp" value="{{ gSearch }}" onChange="{{ setGSearch }}" placeholder="Buscar no cardápio" aria-label="Buscar no cardápio" />
+                    </div>
+                  </div>
+                  <div class="pills">
+                    <sc-for list="{{ gCats }}" as="c" hint-placeholder-count="5">
+                      <div onClick="{{ c.pick }}" class="fpill {{ c.cls }}">{{ c.c }}</div>
+                    </sc-for>
+                  </div>
+                  <div class="gc-prods">
+                    <sc-for list="{{ gProducts }}" as="p" hint-placeholder-count="6">
+                      <div class="gc-prod {{ p.offCls }}">
+                        <div style="min-width:0;flex:1">
+                          <div style="font:700 var(--fs-body)/1.3 'DM Sans',sans-serif">{{ p.name }}</div>
+                          <div class="muted" style="font-size:var(--fs-sm)">{{ p.sub }}</div>
+                        </div>
+                        <sc-if value="{{ p.avail }}" hint-placeholder-val="{{ true }}">
+                          <div class="stepper">
+                            <div onClick="{{ p.minus }}" class="sb" role="button" aria-label="{{ p.minusAria }}">−</div>
+                            <span class="sq">{{ p.qty }}</span>
+                            <div onClick="{{ p.plus }}" class="sb on" role="button" aria-label="{{ p.plusAria }}">+</div>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <sc-if value="{{ gNoProducts }}" hint-placeholder-val="{{ false }}">
+                    <div class="kz-empty">Nenhum item encontrado.</div>
+                  </sc-if>
+                </div>
+              </div>
+              <div class="col-side gc-side">
+                <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+                  <h2 class="gc-h2" style="margin:0">{{ gSumTitle }}</h2>
+                  <sc-for list="{{ gLines }}" as="ln" hint-placeholder-count="2">
+                    <div class="sumrow"><span>{{ ln.q }}× {{ ln.n }}</span><b>{{ ln.v }}</b></div>
+                  </sc-for>
+                  <sc-if value="{{ gEmptyCart }}" hint-placeholder-val="{{ true }}">
+                    <div class="muted" style="font-size:var(--fs-sm)">Nenhum item ainda. Use o + ao lado de cada item.</div>
+                  </sc-if>
+                  <div>
+                    <span class="lbl">Observação</span>
+                    <textarea class="inp" value="{{ gNote }}" onChange="{{ setGNote }}" placeholder="Ex.: sem gelo, guarda-sol azul"></textarea>
+                  </div>
+                  <div>
+                    <div class="sumrow"><span>Subtotal</span><b>{{ gSubtotal }}</b></div>
+                    <div class="sumrow"><span>Taxa de serviço (10%)</span><b>{{ gFee }}</b></div>
+                    <div class="sumtotal"><span>Total</span><span>{{ gTotal }}</span></div>
+                  </div>
+                  <div class="alert alert-info" style="font-weight:500">Pagamento na entrega: você recebe na mesa e anota em "Para entregar".</div>
+                  <sc-if value="{{ hasGErr }}" hint-placeholder-val="{{ false }}">
+                    <div class="alert alert-err">{{ gErr }}</div>
+                  </sc-if>
+                  <div onClick="{{ sendManualOrder }}" class="btn btn-sun" style="{{ gSendStyle }}">{{ gSendLabel }}</div>
+                  <sc-if value="{{ gHasCart }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ clearManualOrder }}" class="btn btn-ghost btn-sm">Limpar pedido</div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ is_desempenho }}" hint-placeholder-val="{{ false }}">
+            <div class="gc-page rise">
+              <sc-if value="{{ hasGMetricsErr }}" hint-placeholder-val="{{ false }}">
+                <div class="alert alert-err">{{ gMetricsErr }}</div>
+              </sc-if>
+              <div class="kpis">
+                <sc-for list="{{ gKpis }}" as="m" hint-placeholder-count="5">
+                  <div class="kpi"><div class="k">{{ m.lbl }}</div><div class="v">{{ m.val }}</div><div class="s" style="color:#5A6670">{{ m.sub }}</div></div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ gShowDays }}" hint-placeholder-val="{{ false }}">
+                <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+                  <h2 class="gc-h2" style="margin:0">Entregas por dia</h2>
+                  <sc-for list="{{ gDays }}" as="d" hint-placeholder-count="7">
+                    <div class="gc-day">
+                      <span class="gc-day-lbl">{{ d.label }}</span>
+                      <div class="gc-day-track"><div style="{{ d.barStyle }}"></div></div>
+                      <span class="gc-day-n">{{ d.n }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">Entregues e tempo médio contam os pedidos que você marcou como entregues. Lançados são os pedidos que você fez na mesa, sem os cancelados.</div>
             </div>
           </sc-if>
         </div>
@@ -2179,6 +2468,7 @@ function adminOrderFromApi(o){
     obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt,
     paymentMethod:o.paymentMethod || 'pix', paymentStatus:o.paymentStatus || 'pending',
     receivedWith:o.receivedWith || null, total:o.total, paymentProvider:o.paymentProvider || null,
+    waiterId:o.waiterId || null,
     ...paymentBadge(o)
   };
 }
@@ -2378,6 +2668,7 @@ const ADM_IC = {
   productForm:'M4 6h16 M4 12h10 M4 18h13',
   reports:'M4 20h16 M7 16v-5 M11 16V8 M15 16v-3 M19 16V6',
   perfOps:'M12 13V9 M9 2h6 M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16z',
+  waiters:'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M2 21c0-4 3-7 7-7s7 3 7 7 M16 3.5a4 4 0 0 1 0 7 M18 14c2.5.8 4 3.5 4 7',
   tables:'M3 11l9-7 9 7 M5 10v10h14V10'
 };
 
@@ -2406,13 +2697,24 @@ const SCREENS = {
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Painel de hoje'],
     ['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens (Fale conosco)'],['productForm','Cardápio e estoque'],['tables','Quiosque e mesas'],
-    ['pause','Quiosque e mesas'],['reports','Relatórios'],['perfOps','Desempenho — Operação'],
+    ['pause','Quiosque e mesas'],['reports','Relatórios'],['perfOps','Desempenho — Operação'],['waiters','Garçons'],
     ['closeDay','Encerrar o dia']
   ],
   cozinha:[
     ['kanban','Kanban de Pedidos'],['unavailable','Sinalizar Item Indisponível'],['queueEmpty','Fila Vazia']
+  ],
+  garcom:[
+    ['entregar','Para entregar'],['novoPedido','Lançar pedido'],['desempenho','Meu desempenho']
   ]
 };
+
+// Equipe do quiosque: cada papel abre o seu módulo (cliente fica no cardápio).
+const STAFF_HOME = {
+  admin:'app-cliente.dc.html?module=admin&screen=dashboard',
+  cozinha:'app-cliente.dc.html?module=cozinha&screen=kanban',
+  garcom:'app-cliente.dc.html?module=garcom&screen=entregar'
+};
+const STAFF_MODULES = ['admin','cozinha','garcom'];
 
 // t: título da página (vazio = sem barra de título), back: tela do botão
 // voltar, nav: aba ativa no menu de baixo (celular), w: largura do conteúdo.
@@ -2506,6 +2808,12 @@ class Component extends DCLogic {
     profileInfo:null, meName:'', mePhone:'', meBirth:'', meErr:'', avatarErr:'',
     pwCur:'', pwNew:'', pwNew2:'', pwErr:'',
     histSel:0,
+    // Garçom: pedido lançado na mesa (gCart = {id do produto: quantidade}),
+    // métricas do período escolhido e o aviso de pedido pronto.
+    gTable:null, gCart:{}, gNote:'', gSearch:'', gCat:'Todos', gErr:'', gBusy:false,
+    gPeriod:'hoje', gMetrics:null, gMetricsErr:'', gMetricsAt:0,
+    // Admin > Garçons: lista e o formulário de cadastro.
+    waiters:null, wName:'', wEmail:'', wPass:'', wErr:'', wMsg:'', wBusy:false, wToggling:null,
     toast:''
   };
 
@@ -2532,7 +2840,9 @@ class Component extends DCLogic {
     this.timer = setInterval(() => {
       const o = this.state.order;
       if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue') this.pollOrder(o._apiId);
-      if((this.state.module === 'admin' || this.state.module === 'cozinha') && this.state.token) this.loadAdminData();
+      if(STAFF_MODULES.indexOf(this.state.module) >= 0 && this.state.token) this.loadAdminData();
+      // Garçom na tela de desempenho: atualiza as métricas a cada 30 s.
+      if(this.state.module === 'garcom' && this.state.screen === 'desempenho' && this.state.token && Date.now() - this.state.gMetricsAt > 30000) this.loadWaiterMetrics();
     }, 3000);
   }
 
@@ -2547,7 +2857,7 @@ class Component extends DCLogic {
     const rota = new URLSearchParams(window.location.search);
     const mod = rota.get('module');
     if(!mod || !SCREENS[mod] || (mod === 'cliente' && ['login','signup','forgot'].indexOf(rota.get('screen')) >= 0)){
-      if(saved.user.role === 'admin' || saved.user.role === 'cozinha'){ this.startSession(saved.token, saved.user); return; }
+      if(STAFF_HOME[saved.user.role]){ this.startSession(saved.token, saved.user); return; }
       this.setState({module:'cliente', screen:'menu'});
     }
     if(saved.user.role === 'cliente'){
@@ -2556,7 +2866,13 @@ class Component extends DCLogic {
       if(mod === 'cliente' && ['profile','editProfile'].indexOf(rota.get('screen')) >= 0) setTimeout(() => this.loadProfile(rota.get('screen') === 'editProfile'), 0);
       if(saved.user.profileComplete === false) this.askCompleteProfile(saved.user);
     }
-    else this.loadAdminData();
+    else {
+      this.loadAdminData();
+      // Abriu (ou recarregou) direto numa tela que carrega dados próprios.
+      const tela = rota.get('screen');
+      if(mod === 'garcom' && tela === 'desempenho') setTimeout(() => this.loadWaiterMetrics(), 0);
+      if(mod === 'admin' && tela === 'waiters') setTimeout(() => this.loadWaiters(), 0);
+    }
   }
 
   // Entrar/cadastrar com Google de verdade: manda o navegador direto pro
@@ -2653,8 +2969,8 @@ class Component extends DCLogic {
     this.setState({token, authUser:user});
     // Cozinha e administração também podem entrar por esta tela: vão para o
     // módulo delas, como no login da página inicial.
-    if(user.role === 'admin' || user.role === 'cozinha'){
-      window.location.href = user.role === 'admin' ? 'app-cliente.dc.html?module=admin&screen=dashboard' : 'app-cliente.dc.html?module=cozinha&screen=kanban';
+    if(STAFF_HOME[user.role]){
+      window.location.href = STAFF_HOME[user.role];
       return;
     }
     this.loadHistory(token);
@@ -2988,6 +3304,14 @@ class Component extends DCLogic {
     const seen = this._seenQueue;
     this._seenQueue = new Set(ids);
     if(seen && this.state.soundOn && this.state.module === 'cozinha' && ids.some(id => !seen.has(id))) this.beep();
+    // Garçom: toca (e vibra o celular) quando um pedido fica pronto para levar.
+    const ready = orders.filter(o => o.status === 'Pronto').map(o => o.apiId);
+    const seenReady = this._seenReady;
+    this._seenReady = new Set(ready);
+    if(seenReady && this.state.module === 'garcom' && ready.some(id => !seenReady.has(id))){
+      if(this.state.soundOn) this.beep();
+      try { if(navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch(e){}
+    }
   }
 
   beep(){
@@ -3289,6 +3613,99 @@ class Component extends DCLogic {
     this.loadAdminData();
   }
 
+  // ---- Garçom ----
+  // Lança o pedido feito na mesa (cliente sem o app). O servidor confere as
+  // mesmas regras do pedido pelo app; o pagamento é sempre na entrega.
+  async sendManualOrder(){
+    const s = this.state;
+    if(s.gBusy) return;
+    const items = Object.keys(s.gCart).filter(id => s.gCart[id] > 0).map(id => ({productId:id, qty:s.gCart[id]}));
+    if(!s.gTable) return this.setState({gErr:'Escolha a mesa do cliente.'});
+    if(!items.length) return this.setState({gErr:'Adicione pelo menos um item.'});
+    this.setState({gBusy:true, gErr:''});
+    try {
+      const res = await authFetch(API_BASE + '/orders/manual', {
+        method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({tableNumber:s.gTable, items, note:s.gNote.trim()})
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok){ this.setState({gErr:data.error || 'Não foi possível lançar o pedido.'}); return; }
+      this.setState({gCart:{}, gNote:'', gTable:null});
+      this.go('entregar', 'garcom');
+      this.flash('Pedido da mesa ' + data.tableNumber + ' enviado para a cozinha.');
+      this.loadAdminData();
+      this.loadCatalog();
+    } catch(e){
+      this.setState({gErr:'Falha de conexão com o servidor.'});
+    } finally {
+      this.setState({gBusy:false});
+    }
+  }
+
+  setManualQty(productId, qty){
+    this.setState(x => {
+      const gCart = Object.assign({}, x.gCart);
+      if(qty > 0) gCart[productId] = Math.min(qty, 50); else delete gCart[productId];
+      return {gCart, gErr:''};
+    });
+  }
+
+  async loadWaiterMetrics(period){
+    const p = period || this.state.gPeriod;
+    this.setState({gPeriod:p, gMetricsAt:Date.now()});
+    try {
+      const res = await authFetch(API_BASE + '/waiter/metrics?period=' + encodeURIComponent(p), {headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setState({gMetricsErr:data.error || 'Não foi possível carregar suas métricas.'});
+      if(this.state.gPeriod === p) this.setChanged({gMetrics:data, gMetricsErr:''});
+    } catch(e){ this.setState({gMetricsErr:'Falha de conexão com o servidor.'}); }
+  }
+
+  // ---- Admin > Garçons ----
+  async loadWaiters(){
+    try {
+      const res = await authFetch(API_BASE + '/waiters', {headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setState({wErr:data.error || 'Não foi possível carregar os garçons.'});
+      this.setChanged({waiters:data});
+    } catch(e){ this.setState({wErr:'Falha de conexão com o servidor.'}); }
+  }
+
+  async createWaiter(){
+    const s = this.state;
+    if(s.wBusy) return;
+    if(s.wName.trim().length < 2) return this.setState({wErr:'Informe o nome do garçom.', wMsg:''});
+    if(!/^\S+@\S+\.\S+$/.test(s.wEmail.trim())) return this.setState({wErr:'Informe um e-mail válido.', wMsg:''});
+    if(s.wPass.length < 6) return this.setState({wErr:'A senha precisa ter pelo menos 6 caracteres.', wMsg:''});
+    this.setState({wBusy:true, wErr:'', wMsg:''});
+    try {
+      const res = await authFetch(API_BASE + '/waiters', {
+        method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({name:s.wName.trim(), email:s.wEmail.trim(), password:s.wPass})
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setState({wErr:data.error || 'Não foi possível cadastrar o garçom.'});
+      this.setState({wName:'', wEmail:'', wPass:'', wMsg:data.name + ' já pode entrar com ' + data.email + ' e a senha que você criou.'});
+      this.loadWaiters();
+    } catch(e){ this.setState({wErr:'Falha de conexão com o servidor.'}); }
+    finally { this.setState({wBusy:false}); }
+  }
+
+  async toggleWaiter(id, active){
+    if(this.state.wToggling) return;
+    this.setState({wToggling:id});
+    try {
+      const res = await authFetch(API_BASE + '/waiters/' + id, {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({active})
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) this.flash(data.error || 'Não foi possível salvar.');
+      else { this.flash(active ? 'Garçom reativado.' : 'Garçom desativado: não consegue mais entrar.'); await this.loadWaiters(); }
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+    finally { this.setState({wToggling:null}); }
+  }
+
   async closeDayReal(){
     try {
       const res = await authFetch(API_BASE + '/close-day', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
@@ -3382,7 +3799,7 @@ class Component extends DCLogic {
     try { localStorage.removeItem(SESSION_KEY); } catch(e){}
     // Admin/cozinha não têm uma tela de login própria dentro do app: sair
     // manda de volta para a tela de login do endereço principal (index.html).
-    if(this.state.module === 'admin' || this.state.module === 'cozinha'){ window.location.href = 'index.html'; return; }
+    if(STAFF_MODULES.indexOf(this.state.module) >= 0){ window.location.href = 'index.html'; return; }
     this.setState({token:null, authUser:null, order:null, history:[], cart:[], pass:'', screen:'login'});
   }
 
@@ -3512,6 +3929,9 @@ class Component extends DCLogic {
     this.setState(s => ({screen, module: module || s.module, toast:'', admMenu:false}));
     if(screen === 'reports' && this.state.token){ this.loadReport(); this.loadLatestDayReport(); }
     if(screen === 'messages' && this.state.token) this.loadMessages();
+    if(screen === 'desempenho' && this.state.token) this.loadWaiterMetrics();
+    if(screen === 'waiters' && this.state.token) this.loadWaiters();
+    if(screen === 'novoPedido') this.setState({gErr:''});
     if((screen === 'profile' || screen === 'editProfile') && this.state.token) this.loadProfile(screen === 'editProfile');
     if(screen === 'changePassword') this.setState({pwCur:'', pwNew:'', pwNew2:'', pwErr:''});
     try { window.scrollTo(0, 0); } catch(e){}
@@ -3689,6 +4109,7 @@ class Component extends DCLogic {
     v.isCliente = s.module === 'cliente';
     v.isAdmin = s.module === 'admin';
     v.isCozinha = s.module === 'cozinha';
+    v.isGarcom = s.module === 'garcom';
 
     const navFor = m => SCREENS[m].map(([k, label], i) => ({
       key:k, label, num:('0' + (i + 1)).slice(-2),
@@ -4001,7 +4422,7 @@ class Component extends DCLogic {
     // de verdade por loadAdminData() (nada é mock; adminLogin/adminForgot saíram
     // do menu porque a autenticação agora é só pelo modal do index.html).
     const sideOn = s.screen === 'pause' ? 'tables' : s.screen === 'closeDay' ? 'dashboard' : s.screen;
-    v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio'],['reports','Vendas'],['perfOps','Operação'],['tables','Quiosque e mesas']]
+    v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio'],['reports','Vendas'],['perfOps','Operação'],['tables','Quiosque e mesas'],['waiters','Garçons']]
       .map(([k, label]) => ({label, ic:ADM_IC[k], cls:sideOn === k ? 'on' : '', go:() => this.go(k, 'admin')}));
     v.admMenuCls = s.admMenu ? 'open' : '';
     v.admMenuLabel = s.admMenu ? 'Fechar' : 'Menu';
@@ -4022,6 +4443,7 @@ class Component extends DCLogic {
       pause:'Regras que valem para todos os pedidos, conferidas no servidor',
       reports:'Vendas, mais vendidos e horários de pico',
       perfOps:'Hoje, atualizado sozinho',
+      waiters:'Contas da equipe que entrega os pedidos',
       closeDay:'Fechamento do caixa'
     }[s.screen] || '';
 
@@ -4373,6 +4795,108 @@ class Component extends DCLogic {
     v.isAdminUser = !!(s.authUser && s.authUser.role === 'admin');
     v.goAdminHome = () => this.go('dashboard', 'admin');
     v.kBoardOn = s.screen !== 'unavailable';
+
+    // garçom — pedidos prontos para levar, pedido lançado na mesa e métricas.
+    const myId = s.authUser && s.authUser.id;
+    v.garcomSide = [['entregar','Para entregar','M5 12l4 4L19 6 M3 20h18'],['novoPedido','Lançar pedido','M12 5v14 M5 12h14'],['desempenho','Meu desempenho','M4 20h16 M7 16v-5 M11 16V8 M15 16v-3 M19 16V6']]
+      .map(([k, label, ic]) => ({label, ic, cls:s.screen === k ? 'on' : '', go:() => this.go(k, 'garcom')}));
+    v.gEyebrow = {entregar:'Atualiza sozinho, em tempo real', novoPedido:'Para o cliente que pediu direto com você', desempenho:'Seus números no período'}[s.screen] || '';
+    const gVisible = s.adminOrders.filter(k => k.paymentMethod === 'entrega' || k.paymentStatus === 'approved');
+    v.gReady = gVisible.filter(k => k.status === 'Pronto').map(k => ({
+      id:k.id, table:'Mesa ' + k.table, min:k.minAgo + ' min', lateCls:k.minAgo > 5 ? 'late' : '',
+      lines:kLines(k.itemsStr), obs:k.obs || '', hasObs:!!k.obs,
+      payLabel:k.payLabel, payStyle:pillStyle(k.payTone), mine:!!myId && k.waiterId === myId,
+      canReceive:k.paymentMethod === 'entrega' && k.paymentStatus !== 'approved',
+      recvCash:() => this.markPaymentReceived(k.apiId, 'dinheiro'),
+      recvCard:() => this.markPaymentReceived(k.apiId, 'cartao'),
+      recvPix:() => this.markPaymentReceived(k.apiId, 'pix'),
+      deliver:() => this.advanceOrderStatus(k.apiId, 'Entregue')
+    }));
+    v.gKitchen = gVisible.filter(k => k.status === 'Na Fila' || k.status === 'Em Preparo').map(k => ({
+      id:k.id, table:'Mesa ' + k.table, items:k.itemsStr, min:'Há ' + k.minAgo + ' min',
+      status:k.status === 'Na Fila' ? 'Na fila' : 'Em preparo', statusStyle:pillStyle(statusTone(k.status)),
+      mine:!!myId && k.waiterId === myId
+    }));
+    v.gReadyN = String(v.gReady.length); v.gKitchenN = String(v.gKitchen.length);
+    v.gNoReady = !v.gReady.length; v.gNoKitchen = !v.gKitchen.length;
+
+    // Lançar pedido: mesas ativas, itens do cardápio com + e −, resumo com a taxa.
+    v.gTableTiles = s.tables.map(t => ({
+      n:String(t.n), aria:'Mesa ' + t.n + (t.active ? '' : ' (inativa)'),
+      cls:!t.active ? 'off' : s.gTable === t.n ? 'on' : '',
+      pick:() => t.active ? this.setState({gTable:t.n, gErr:''}) : this.flash('Mesa ' + t.n + ' está inativa.')
+    }));
+    v.gCats = ['Todos'].concat(Array.from(new Set(s.products.map(p => p.cat).filter(Boolean)))).map(c => ({
+      c, cls:s.gCat === c ? 'on' : '', pick:() => this.setState({gCat:c})
+    }));
+    const gq = s.gSearch.trim().toLowerCase();
+    v.gProducts = s.products
+      .filter(p => (s.gCat === 'Todos' || p.cat === s.gCat) && (!gq || p.name.toLowerCase().indexOf(gq) >= 0))
+      .map(p => {
+        const qty = s.gCart[p.id] || 0, out = p.soldOut || noStock(p);
+        return {name:p.name, qty:String(qty), avail:!out, offCls:out ? 'off' : '',
+          sub:f(p.price) + (out ? ' · indisponível' : p.stock != null ? ' · estoque ' + p.stock : ''),
+          minusAria:'Tirar um ' + p.name, plusAria:'Adicionar um ' + p.name,
+          minus:() => this.setManualQty(p.id, qty - 1),
+          plus:() => (p.stock != null && qty >= p.stock) ? this.flash('Só restam ' + p.stock + ' de ' + p.name + '.') : this.setManualQty(p.id, qty + 1)};
+      });
+    v.gNoProducts = !v.gProducts.length;
+    v.gSearch = s.gSearch; v.setGSearch = e => this.setState({gSearch:e.target.value});
+    v.gNote = s.gNote; v.setGNote = e => this.setState({gNote:e.target.value});
+    const gItems = Object.keys(s.gCart).map(id => ({p:s.products.find(p => p.id === id), qty:s.gCart[id]})).filter(x => x.p && x.qty > 0);
+    v.gLines = gItems.map(x => ({q:String(x.qty), n:x.p.name, v:f(x.p.price * x.qty)}));
+    const gSub = gItems.reduce((a, x) => a + Math.round(x.p.price * 100) * x.qty, 0);
+    const gFeeC = Math.round(gSub * 0.1);
+    v.gSubtotal = f(gSub / 100); v.gFee = f(gFeeC / 100); v.gTotal = f((gSub + gFeeC) / 100);
+    v.gHasCart = gItems.length > 0; v.gEmptyCart = !v.gHasCart;
+    v.gSumTitle = s.gTable ? 'Pedido da mesa ' + s.gTable : 'Pedido (escolha a mesa)';
+    v.gClosed = !!(s.paused || s.dayClosed);
+    v.gClosedText = s.dayClosed ? 'O quiosque encerrou o dia: não dá para lançar pedidos agora.' : 'Quiosque pausado: não dá para lançar pedidos agora.';
+    v.gErr = s.gErr; v.hasGErr = !!s.gErr;
+    v.gSendLabel = s.gBusy ? 'Enviando...' : 'Enviar para a cozinha';
+    v.gSendStyle = s.gBusy || !s.gTable || !gItems.length ? 'opacity:.6' : '';
+    v.sendManualOrder = () => this.sendManualOrder();
+    v.clearManualOrder = () => this.setState({gCart:{}, gNote:'', gErr:''});
+
+    // Meu desempenho.
+    const gm = s.gMetrics && s.gMetrics.period === s.gPeriod ? s.gMetrics : null;
+    v.gPeriods = [['hoje','Hoje'],['7d','7 dias'],['30d','30 dias']].map(([k, label]) => ({
+      label, cls:s.gPeriod === k ? 'on' : '', pick:() => this.loadWaiterMetrics(k)
+    }));
+    const minTxt = n => n >= 60 ? Math.floor(n / 60) + ' h ' + Math.round(n % 60) + ' min' : (Math.round(n * 10) / 10).toString().replace('.', ',') + ' min';
+    v.gKpis = [
+      {lbl:'Pedidos entregues', val:gm ? String(gm.delivered) : '—', sub:'marcados por você'},
+      {lbl:'Tempo até entregar', val:gm ? (gm.delivered ? minTxt(gm.avgDeliverMin) : '—') : '—', sub:'média, de pronto até entregue'},
+      {lbl:'Pedidos lançados', val:gm ? String(gm.launched) : '—', sub:'feitos com você na mesa'},
+      {lbl:'Valor lançado', val:gm ? f(gm.launchedTotal) : '—', sub:'total dos pedidos lançados'},
+      {lbl:'Recebido por você', val:gm ? f(gm.received) : '—', sub:'pagamentos na entrega anotados'}
+    ];
+    const gDayMax = gm ? Math.max(1, ...gm.byDay.map(d => d.delivered)) : 1;
+    v.gDays = gm ? gm.byDay.slice().reverse().map(d => ({
+      label:d.date.slice(8, 10) + '/' + d.date.slice(5, 7), n:String(d.delivered),
+      barStyle:'height:100%;border-radius:999px;background:#0B6670;width:' + Math.round(d.delivered / gDayMax * 100) + '%'
+    })) : [];
+    v.gShowDays = !!gm && gm.byDay.length > 1;
+    v.gMetricsErr = s.gMetricsErr; v.hasGMetricsErr = !!s.gMetricsErr;
+
+    // Admin > Garçons.
+    v.wName = s.wName; v.setWName = e => this.setState({wName:e.target.value, wErr:''});
+    v.wEmail = s.wEmail; v.setWEmail = e => this.setState({wEmail:e.target.value, wErr:''});
+    v.wPass = s.wPass; v.setWPass = e => this.setState({wPass:e.target.value, wErr:''});
+    v.wErr = s.wErr; v.hasWErr = !!s.wErr; v.wMsg = s.wMsg; v.hasWMsg = !!s.wMsg;
+    v.wBtnLabel = s.wBusy ? 'Cadastrando...' : 'Cadastrar garçom';
+    v.createWaiter = () => this.createWaiter();
+    v.waiterRows = (s.waiters || []).map(w => ({
+      name:w.name, email:w.email, initials:(w.name || '?').split(' ').filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join(''),
+      pill:w.active ? 'Ativo' : 'Desativado', pillStyle:pillStyle(w.active ? 'ok' : 'muted'),
+      today:'Hoje: ' + w.deliveredToday + ' entregue(s) · ' + w.launchedToday + ' lançado(s)',
+      btn:s.wToggling === w.id ? 'Salvando...' : w.active ? 'Desativar' : 'Reativar',
+      btnCls:w.active ? 'btn btn-danger-ghost btn-sm' : 'btn btn-ghost btn-sm',
+      toggle:() => this.toggleWaiter(w.id, !w.active)
+    }));
+    v.hasWaiters = v.waiterRows.length > 0;
+    v.noWaiters = s.waiters !== null && !v.hasWaiters;
+    v.waitersLoading = s.waiters === null;
 
     v.availRows = s.products.map(p => ({
       name:p.name, cat:p.cat, markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
