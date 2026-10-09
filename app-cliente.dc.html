@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sunfood</title>
 <script>
 // Sem isto o support.js baixa esta página (1 MB) de novo logo depois de abrir
 // e remonta a tela inteira: gastava internet e travava os primeiros toques.
@@ -2414,6 +2415,23 @@ const SCREENS = {
   ]
 };
 
+// Nome que aparece na guia do navegador: "Sunfood · <tela>". Sem isto a guia
+// mostrava o endereço (app-cliente.dc.html?module=...).
+const TAB_TITLES = {
+  login:'Entrar', signup:'Criar conta', forgot:'Recuperar senha', completeProfile:'Completar cadastro',
+  menu:'Cardápio', product:'Cardápio', cart:'Carrinho', cartEmpty:'Carrinho',
+  table:'Confirmar pedido', payment:'Revisar pedido', pix:'Pagamento via PIX', card:'Pagamento com cartão',
+  confirm:'Pedido confirmado', payFail:'Falha no pagamento',
+  status:'Meu pedido', cancelAsk:'Cancelar pedido', cancelDone:'Pedido cancelado', cancelBlocked:'Meu pedido',
+  history:'Meus pedidos', historyEmpty:'Meus pedidos', orderDetail:'Meus pedidos',
+  profile:'Meu perfil', editProfile:'Editar perfil', changePassword:'Trocar senha', deleteAccount:'Excluir conta',
+  location:'Como chegar', offline:'Sem conexão',
+  adminLogin:'Entrar', adminForgot:'Recuperar senha', dashboard:'Painel', orders:'Pedidos', payments:'Pagamentos',
+  messages:'Mensagens', productForm:'Cardápio e estoque', tables:'Quiosque e mesas', pause:'Quiosque e mesas',
+  reports:'Relatórios', perfOps:'Desempenho', closeDay:'Encerrar o dia',
+  kanban:'Cozinha', unavailable:'Cozinha', queueEmpty:'Cozinha'
+};
+
 // t: título da página (vazio = sem barra de título), back: tela do botão
 // voltar, nav: aba ativa no menu de baixo (celular), w: largura do conteúdo.
 const META = {
@@ -3721,6 +3739,10 @@ class Component extends DCLogic {
       : '';
 
     const meta = META[s.screen] || {};
+    const sel0 = s.screen === 'product' && s.products.find(p => p.id === s.selId);
+    const aba = sel0 ? sel0.name : TAB_TITLES[s.screen];
+    const tituloAba = aba ? 'Sunfood · ' + aba : 'Sunfood';
+    if(document.title !== tituloAba) document.title = tituloAba;
     const authScreens = ['login','signup','forgot','completeProfile'];
     v.showAuth = authScreens.indexOf(s.screen) >= 0;
     v.showApp = !v.showAuth;
