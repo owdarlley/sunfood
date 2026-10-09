@@ -117,7 +117,7 @@ await step('rodapé do login', async () => {
   await page.locator('.tab', { hasText: 'Termos de uso' }).click(); await page.waitForTimeout(300);
   check('painel: abas trocam de seção', page.url() === BASE + '#termos' && (await page.locator('#info').innerText()).includes('Natureza do serviço'));
   await page.locator('.tab', { hasText: 'Fale conosco' }).click(); await page.waitForTimeout(300);
-  // Os motivos do formulário precisam ser os mesmos aceitos pela API (CONTACT_REASONS no sunfood-backend).
+  // Os motivos do formulário precisam ser os mesmos aceitos pela API (CONTACT_REASONS em server/src).
   const motivos = await page.locator('#c-motivo option').allInnerTexts();
   check('fale conosco: motivos iguais aos aceitos pela API', JSON.stringify(motivos) === JSON.stringify(['Reservar mesa ou guarda-sol', 'Tirar dúvida sobre o cardápio', 'Dúvida sobre pagamento', 'Suporte com um pedido em andamento', 'Parceria com meu quiosque']), motivos.join(' | '));
   await page.fill('#c-nome', 'Bruna Lima');
