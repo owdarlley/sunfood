@@ -125,7 +125,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
   handler.approvePayment = id => { db.orders.find(o => o.id === id).paymentStatus = 'approved'; };
   handler.db = db;
   handler.user = user;
-  handler.seed = () => db.orders.push({ id: 'o9', tableNumber: 1, status: 'Na Fila', subtotal: 25, total: 27.5, note: 'sem sal',
+  handler.seed = () => db.orders.push({ id: 'o9', tableNumber: 1, customerName: 'Ana Teste', status: 'Na Fila', subtotal: 25, total: 27.5, note: 'sem sal',
     paymentStatus: 'approved', createdAt: now(), updatedAt: now(), items: [{ productId: 'p1', name: 'Batata Frita', qty: 1, unitPrice: 25, note: '' }] });
   return handler;
 }
