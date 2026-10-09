@@ -22,6 +22,8 @@ O front-end detecta sozinho onde está rodando: em `localhost`, fala com a API l
 
 As contas de **Administração** (`admin@sunfood.com`, abre o dashboard de vendas) e **Cozinha** (`cozinha@sunfood.com`, abre o kanban de pedidos) não têm a senha publicada: quem tem essas senhas consegue mudar preços, pausar o quiosque e encerrar o dia de verdade, já que o site fala com o banco de produção. Peça a senha ao responsável pelo projeto.
 
+O **Garçom** (abre "Para entregar": pedidos prontos para levar, lançar pedido feito na mesa e as próprias métricas) também não tem senha publicada: cada garçom recebe a conta do admin, na tela **Garçons** do painel.
+
 ## Como navegar
 
 O endereço principal (`index.html`, ou seja, https://sunfood.app.br/) é a **tela de login** do sistema. Não há site institucional separado: os links do rodapé do login abrem o conteúdo num painel por cima da própria tela, cada um com endereço próprio:
@@ -40,7 +42,7 @@ Os endereços antigos (`inicio.html`, `sobre.html`, `funcionalidades.html`, `com
 | Redefinir senha | `redefinir-senha.html` | Segunda etapa do "esqueci minha senha" (o link do e-mail cai aqui) |
 | Protótipo | `prototipo-completo.html` | Protótipo navegável de 38 telas (material da faculdade, sem link no site). `prototipo.html`, a antiga página escura que o envolvia, agora só redireciona para `/#conheca` |
 
-Quem já entrou naquele aparelho vai direto para o seu módulo (exceto quando abre um dos painéis acima). Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração ou cozinha).
+Quem já entrou naquele aparelho vai direto para o seu módulo (exceto quando abre um dos painéis acima). Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração, cozinha ou garçom).
 
 ## Rodando localmente
 
@@ -75,7 +77,7 @@ O `sw.js` guarda as páginas e arquivos do site para abrirem mais rápido e most
 index.html                                   → login + painéis Conheça, Fale conosco, Termos e Privacidade
 inicio.html, sobre.html, termos.html, ...    → endereços antigos, redirecionam para o painel certo
 redefinir-senha.html                         → segunda etapa da recuperação de senha
-app-cliente.dc.html                          → o app (cliente, cozinha e administração), fala com a API
+app-cliente.dc.html                          → o app (cliente, cozinha, garçom e administração), fala com a API
 prototipo-completo.html                      → protótipo navegável das telas (material da faculdade)
 support.js                                   → script de apoio às páginas (gerado, não editar)
 assets/                                      → imagens usadas no protótipo

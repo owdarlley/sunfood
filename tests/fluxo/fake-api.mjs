@@ -70,6 +70,33 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
         total: Math.round(subtotal * 110) / 100, note: body.note, paymentStatus: 'pending', paymentMethod: body.paymentMethod, createdAt: now(), updatedAt: now(), items };
       db.orders.unshift(o); return json(201, o);
     }
+    // Garçom: pedido lançado na mesa (pago na entrega, no nome do garçom) e métricas.
+    if (p === '/orders/manual' && m === 'POST') {
+      if (db.kiosk.paused) return json(409, { error: 'Quiosque pausado no momento — não é possível fechar o pedido.' });
+      const items = body.items.map(i => { const pr = db.products.find(x => x.id === i.productId);
+        return { productId: pr.id, name: pr.name, qty: i.qty, unitPrice: pr.price, note: '' }; });
+      const subtotal = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+      const o = { id: 'o' + (db.orders.length + 1), tableNumber: body.tableNumber, status: 'Na Fila', subtotal, waiterId: user.id,
+        total: Math.round(subtotal * 110) / 100, note: body.note, paymentStatus: 'pending', paymentMethod: 'entrega', createdAt: now(), updatedAt: now(), items };
+      db.manual = body;
+      db.orders.unshift(o); return json(201, o);
+    }
+    if (p === '/waiter/metrics') {
+      const period = url.searchParams.get('period') || 'hoje';
+      const days = { hoje: 1, '7d': 7, '30d': 30 }[period];
+      if (!days) return json(400, { error: 'Período inválido.' });
+      db.lastWaiterPeriod = period;
+      const byDay = Array.from({ length: days }, (_, i) => ({ date: new Date(Date.UTC(2026, 9, 9 - (days - 1) + i)).toISOString().slice(0, 10), delivered: i + 1, launched: 1 }));
+      return json(200, { period, from: byDay[0].date, to: byDay[days - 1].date, delivered: byDay.reduce((a, d) => a + d.delivered, 0),
+        avgDeliverMin: 3.5, launched: days, launchedTotal: 33 * days, received: 27.5, byDay });
+    }
+    db.waiters = db.waiters || [{ id: 'w1', name: 'Carlos Souza', email: 'carlos@sunfood.com', active: true, deliveredToday: 4, launchedToday: 2 }];
+    if (p === '/waiters' && m === 'GET') return json(200, db.waiters);
+    if (p === '/waiters' && m === 'POST') {
+      if (db.waiters.some(w => w.email === body.email.toLowerCase())) return json(409, { error: 'Já existe uma conta com esse e-mail.' });
+      const w = { id: 'w' + (db.waiters.length + 1), name: body.name, email: body.email.toLowerCase(), active: true, deliveredToday: 0, launchedToday: 0 };
+      db.waiters.push(w); db.waiterPassword = body.password; return json(201, w);
+    }
     let r;
     if ((r = p.match(/^\/payments\/card\/([^/]+)$/))) { db.cardReturnUrl = body.returnUrl;
       if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
@@ -78,6 +105,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
       if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '' }); }
     if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured });
+    if ((r = p.match(/^\/waiters\/([^/]+)$/)) && m === 'PATCH') { const w = db.waiters.find(w => w.id === r[1]); w.active = body.active; return json(200, { id: w.id, active: w.active }); }
     if ((r = p.match(/^\/orders\/([^/]+)\/payment-received$/))) { const o = db.orders.find(o => o.id === r[1]);
       if (o.paymentMethod !== 'entrega' || o.status === 'Cancelado') return json(409, { error: 'Só pedido na entrega.' });
       Object.assign(o, body.receivedWith ? { paymentStatus: 'approved', receivedWith: body.receivedWith } : { paymentStatus: 'pending', receivedWith: null });
