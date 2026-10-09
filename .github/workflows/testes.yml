@@ -1,5 +1,5 @@
-# Roda os testes de tela (navegador de verdade + API falsa) a cada push e
-# pull request, pra pegar erro antes de chegar no site.
+# Roda os testes a cada push e pull request, pra pegar erro antes de chegar
+# no site ou na API: as telas (navegador de verdade + API falsa) e o servidor.
 name: Testes
 
 on:
@@ -22,4 +22,19 @@ jobs:
           cache-dependency-path: tests/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - run: npm test
+
+  servidor:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
       - run: npm test

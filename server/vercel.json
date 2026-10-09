@@ -1,0 +1,5 @@
+{
+  "regions": ["pdx1"],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- .",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
+}

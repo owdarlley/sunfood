@@ -24,4 +24,4 @@ Os testes abrem um Chromium de verdade, mas todas as chamadas para a API são re
 
 Para rodar todos, de dentro da pasta `tests`: `npm ci`, `npx playwright install chromium` e `npm test`. Os comandos da tabela rodam um de cada vez (também de dentro de `tests`). Se o `unpkg.com` estiver bloqueado, baixe `react@18.3.1`, `react-dom@18.3.1` e `@babel/standalone@7.29.0` com npm numa pasta e rode com `CDN_DIR=<pasta>`.
 
-Os testes da API e do banco ficam no repositório [`sunfood-backend`](https://github.com/owdarlley/sunfood-backend) (`test/` e `test/banco/`).
+Os testes da API e do banco ficam na pasta [`server`](../../server/README.md) (`server/test/` e `server/test/banco/`).
