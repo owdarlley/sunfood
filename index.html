@@ -37,18 +37,20 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Design system (2026-10-07) com o visual da tela de login (2026-10-10): os
-   mesmos tokens do app (app-cliente.dc.html). Margem lateral 24/24/32, espaço
-   entre itens 12/16/24, entre seções 24/32/48, padding de cards 16/20/24,
-   botões e campos com 52 px, cantos 16 (cards), 14 (botões) e 12 (campos),
-   fonte Manrope, títulos 26/30/36 em peso 800 e texto 15/16 (line-height 1.5). */
+/* Design system (2026-10-07): os mesmos tokens do app (app-cliente.dc.html).
+   Margem lateral 16/24/32, espaço entre itens 12/16/24, entre seções 24/32/48,
+   padding de cards 16/20/24, botões e campos com 48 px (44 no computador),
+   cantos 16 (cards), 8 (botões e campos) e 999 (pílulas), fonte Manrope,
+   títulos 26/30/36 em peso 800 e texto 15/16 (line-height 1.5). */
 :root{
-  --px:24px;--gap:12px;--sec:24px;--cpad:16px;--ctl:52px;
+  --px:16px;--gap:12px;--sec:24px;--cpad:16px;--ctl:48px;
   --fs-h1:26px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;
-  --r-card:16px;--r-btn:14px;--r-ctl:12px
+  --r-card:16px;--r-btn:8px;--r-ctl:8px
 }
-@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px}}
-@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
+@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px;--fs-body:16px}}
+@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--ctl:44px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
+:focus-visible{outline:2px solid #1F5A63;outline-offset:2px}
+.info-head :focus-visible{outline-color:#F5B83D}
 
 /* Mesmo visual da tela de login do app (app-cliente.dc.html): areia, mar e sol. */
 *{box-sizing:border-box}
@@ -101,13 +103,14 @@ a{color:#1F5A63}
 .info-close:hover{background:rgba(255,255,255,.12)}
 .tabs{display:flex;gap:4px;margin-top:16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
+@media (max-width:767px){.tabs{-webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent);padding-right:32px}}
 .tab{flex:none;min-height:44px;line-height:20px;padding:12px 16px;border-radius:var(--r-ctl) var(--r-ctl) 0 0;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#D2E3E5;text-decoration:none;white-space:nowrap}
 .tab:hover{color:#fff}
 .tab[aria-current="page"]{background:#F7F5F0;color:#14232A}
 .info-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:var(--sec) var(--px);outline:none}
 .info-body section{max-width:640px;margin:0 auto}
 .info-body .eyebrow{font:800 var(--fs-cap) 'Manrope',system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#1F5A63;margin:0 0 8px}
-.info-body h2{font:800 var(--fs-h1)/1.1 'Manrope',system-ui,sans-serif;letter-spacing:-.025em;margin:0}
+.info-body h2{font:800 var(--fs-h1)/1.1 'Manrope',system-ui,sans-serif;letter-spacing:-.025em;margin:0;text-wrap:balance}
 .info-body h3{font:800 var(--fs-h2)/1.2 'Manrope',system-ui,sans-serif;letter-spacing:-.015em;margin:var(--sec) 0 12px}
 .info-body p,.info-body li{font:400 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53}
 .info-body p{margin:12px 0 0}
@@ -145,9 +148,9 @@ a{color:#1F5A63}
 .form{display:flex;flex-direction:column;gap:16px;margin-top:24px}
 .form textarea.inp{min-height:128px;padding:12px;resize:vertical;line-height:1.5}
 .form select.inp{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235A6670' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px}
-.ferr{font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:8px}
+.ferr{font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:8px}
 .inp[aria-invalid="true"]{border-color:#B42318}
-.hint{font:500 13px 'Manrope',system-ui,sans-serif;color:#55626A;margin-top:8px}
+.hint{font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A;margin-top:8px}
 @media (max-width:920px){.info-sheet{width:100%}}
 @media (max-width:767px){
   .grid,.grid.g2{grid-template-columns:1fr}
@@ -168,21 +171,21 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
    escura para ter contraste 3:1 (WCAG AA) com o branco. */
 :root{
   --lg-s4:4px;--lg-s6:6px;--lg-s8:8px;--lg-s12:12px;--lg-s16:16px;--lg-s20:20px;--lg-s24:24px;--lg-s32:32px;--lg-s40:40px;
-  --lg-pad:var(--lg-s24);--lg-h:52px;--lg-h2:44px;--lg-w:408px;
-  --lg-fs-title:24px;--lg-fs-sub:14px;--lg-fs-label:14px;--lg-fs-input:16px;--lg-fs-btn:15px;--lg-fs-link:14px;--lg-fs-err:13px;--lg-fs-foot:12px;
+  --lg-pad:var(--lg-s24);--lg-h:var(--ctl);--lg-h2:44px;--lg-w:408px;
+  --lg-fs-title:24px;--lg-fs-sub:14px;--lg-fs-label:14px;--lg-fs-input:16px;--lg-fs-btn:16px;--lg-fs-link:14px;--lg-fs-err:14px;--lg-fs-foot:12px;
   --lg-w-regular:400;--lg-w-medium:500;--lg-w-strong:700;
   --lg-ink:#14232A;--lg-ink-2:#55626A;--lg-ink-3:#55626A;
   --lg-pri:#1F5A63;--lg-pri-hover:#174A52;--lg-ring:0 0 0 3px rgba(31,90,99,.2);
   --lg-bg:#F7F5F0;--lg-surface:#fff;--lg-surface-off:#F1EEE6;--lg-line:#E3DDD0;
   --lg-field:#8F8676;--lg-field-hover:#55626A;
   --lg-s48:48px;
-  --lp-max:1280px;--lp-px:24px;--lp-logo:24px;--lp-fs-brand:20px;--lp-fs-hero:28px;--lp-cat-w:150px;--lp-cat-h:190px;--lp-cat-gap:12px;--lp-cat-pad:16px;--lp-ico:56px;--lp-fs-cat:17px;--lp-fs-cat-sub:13px;
+  --lp-max:1280px;--lp-px:16px;--lp-logo:24px;--lp-fs-brand:20px;--lp-fs-hero:28px;--lp-cat-w:72%;--lp-cat-h:168px;--lp-cat-gap:12px;--lp-cat-pad:16px;--lp-ico:56px;--lp-fs-cat:18px;--lp-fs-cat-sub:14px;
   --lp-coral:#F07B4F;--lp-sun:#F5B83D;--lp-sea:#5BA9AE;--lp-berry:#7B3F6E;
   --lg-err:#B42318;--lg-err-ink:#8A1C12;--lg-err-bg:#FDECEA;--lg-err-line:#F0C2BC;--lg-err-ring:0 0 0 3px rgba(180,35,24,.2);
   --lg-ease:150ms ease-out
 }
-@media (min-width:768px){:root{--lg-pad:var(--lg-s32);--lg-fs-title:28px;--lg-fs-sub:15px;--lp-max:608px;--lp-px:24px;--lp-fs-hero:36px;--lp-cat-h:200px;--lp-cat-gap:16px}}
-@media (min-width:1024px){:root{--lp-max:1280px;--lg-pad:var(--lg-s40);--lp-px:32px;--lp-logo:28px;--lp-fs-brand:22px;--lp-fs-hero:40px;--lp-cat-h:240px;--lp-cat-gap:24px;--lp-cat-pad:20px;--lp-ico:64px;--lp-fs-cat:20px}}
+@media (min-width:768px){:root{--lg-pad:var(--lg-s32);--lg-fs-title:28px;--lg-fs-sub:15px;--lp-max:608px;--lp-px:24px;--lp-fs-hero:36px;--lp-cat-h:184px;--lp-cat-gap:16px}}
+@media (min-width:1024px){:root{--lp-max:1280px;--lg-pad:var(--lg-s40);--lp-px:32px;--lp-logo:28px;--lp-fs-brand:22px;--lp-fs-hero:40px;--lp-cat-h:200px;--lp-cat-gap:24px;--lp-cat-pad:20px;--lp-ico:64px;--lp-fs-cat:20px}}
 
 /* ---- Página de entrada (design "Cardápio em destaque", 2026-10-10) ----
    Celular: marca + "Ver cardápio", chamada, cartões do cardápio que rolam
@@ -202,6 +205,10 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .lp-title{margin:var(--lg-s24) 0 0;font:800 var(--lp-fs-hero)/1.15 'Manrope',system-ui,sans-serif;letter-spacing:-.03em;color:var(--lg-ink)}
 .lp-cats{list-style:none;margin:var(--lg-s16) calc(-1 * var(--lp-px)) 0;padding:0 var(--lp-px);display:flex;gap:var(--lg-s12);overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--lp-px);scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .lp-cats::-webkit-scrollbar{display:none}
+.lp-dots{display:flex;justify-content:center;gap:8px;margin-top:var(--lg-s12)}
+.lp-dots span{width:8px;height:8px;border-radius:999px;background:#D6CFBF;transition:width var(--lg-ease),background-color var(--lg-ease)}
+.lp-dots span.on{width:20px;background:var(--lg-pri)}
+@media (min-width:768px){.lp-dots{display:none}}
 .lp-cats li{flex:0 0 var(--lp-cat-w);scroll-snap-align:start}
 .lp-cat{display:flex;flex-direction:column;justify-content:space-between;height:var(--lp-cat-h);padding:var(--lg-s16);border-radius:var(--r-card);color:var(--lg-ink);text-decoration:none;transition:transform var(--lg-ease),box-shadow var(--lg-ease)}
 .lp-cat:hover{transform:translateY(-2px);box-shadow:0 12px 24px -16px rgba(20,35,42,.45)}
@@ -213,7 +220,7 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .lp-cat-acai{background:var(--lp-sun)}
 
 /* Ações e formulário */
-.login{margin-top:auto;padding-top:var(--lg-s24);display:flex;flex-direction:column}
+.login{padding-top:var(--lg-s24);display:flex;flex-direction:column}
 .lp-back{align-self:flex-start;display:inline-flex;align-items:center;gap:var(--lg-s4);min-height:var(--lg-h2);margin:0 0 var(--lg-s8) calc(-1 * var(--lg-s8));padding:0 var(--lg-s8);border:0;border-radius:var(--r-ctl);background:transparent;font:var(--lg-w-medium) var(--lg-fs-link)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-pri);cursor:pointer}
 .lp-back svg{width:20px;height:20px}
 .lp-back:hover{background:var(--lg-surface-off)}
@@ -245,9 +252,9 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 }
 
 .login-form{margin-top:var(--lg-s24);display:flex;flex-direction:column}
-.field + .field{margin-top:var(--lg-s8)}
+.field + .field{margin-top:0}
 .field-label{display:block;font:600 var(--lg-fs-label)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-ink)}
-.field-control{position:relative;margin-top:var(--lg-s6)}
+.field-control{position:relative;margin-top:var(--lg-s8)}
 .login .inp{display:block;height:var(--lg-h);min-height:0;padding:0 var(--lg-s16);border:1px solid var(--lg-field);border-radius:var(--r-ctl);background:var(--lg-surface);font:var(--lg-w-regular) var(--lg-fs-input)/1.5 'Manrope',system-ui,sans-serif;color:var(--lg-ink);transition:border-color var(--lg-ease),box-shadow var(--lg-ease),background-color var(--lg-ease);scroll-margin-bottom:160px}
 .login .inp::placeholder{color:var(--lg-ink-3);opacity:1}
 .login .inp:hover{border-color:var(--lg-field-hover)}
@@ -270,7 +277,7 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .pw-toggle:disabled{cursor:not-allowed;opacity:.5}
 
 /* Espaço reservado para o erro: o layout não pula quando ele aparece. */
-.field-msg{display:flex;align-items:flex-start;gap:var(--lg-s4);min-height:18px;margin:var(--lg-s6) 0 0;font:var(--lg-w-medium) var(--lg-fs-err)/18px 'Manrope',system-ui,sans-serif;color:var(--lg-err)}
+.field-msg{display:flex;align-items:flex-start;gap:var(--lg-s4);min-height:20px;margin:var(--lg-s4) 0 0;font:var(--lg-w-medium) var(--lg-fs-err)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-err)}
 .field-msg:empty{visibility:hidden}
 .field-msg:not(:empty){animation:sffade .15s ease-out both}
 .field-msg svg{flex:none;width:16px;height:16px;margin-top:1px}
@@ -311,8 +318,8 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .login-foot p{margin:0;font:var(--lg-w-regular) var(--lg-fs-link)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-ink-2)}
 .login-foot .login-note{margin-top:var(--lg-s8);font-size:var(--lg-fs-foot);line-height:18px;color:var(--lg-ink-3)}
 
-.lp .foot{margin-top:var(--lg-s24);gap:0 var(--lg-s16);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'Manrope',system-ui,sans-serif}
-.lp .foot a{display:inline-flex;align-items:center;min-height:var(--lg-h2);padding:0 var(--lg-s4);color:var(--lg-ink-3);border-radius:var(--r-ctl);transition:color var(--lg-ease)}
+.lp .foot{margin-top:var(--lg-s24);gap:0 var(--lg-s16);font:var(--lg-w-medium) var(--lg-fs-link)/20px 'Manrope',system-ui,sans-serif}
+.lp .foot a{display:inline-flex;align-items:center;min-height:var(--lg-h2);padding:0 var(--lg-s4);color:var(--lg-ink);border-radius:var(--r-ctl);transition:color var(--lg-ease)}
 .lp .foot a:hover,.lp .foot a:focus-visible{color:var(--lg-pri);text-decoration:underline;text-underline-offset:3px}
 .lp .foot a:focus-visible{outline:none;box-shadow:var(--lg-ring)}
 @media (max-width:479px){.lp .foot{display:grid;grid-template-columns:auto auto;justify-content:center}}
@@ -348,6 +355,7 @@ select{caret-color:auto}
           <span><b>Açaí</b><small>Monte o seu</small></span>
         </a></li>
       </ul>
+      <div class="lp-dots" id="lp-dots" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
     </section>
     <div class="login" id="acesso">
       <button type="button" class="lp-back" id="voltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Voltar</button>
@@ -367,7 +375,7 @@ select{caret-color:auto}
         <div class="field">
           <label class="field-label" for="pass">Senha</label>
           <div class="field-control">
-            <input class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" placeholder="••••••••" aria-describedby="pass-msg">
+            <input class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" aria-describedby="pass-msg">
             <button type="button" class="pw-toggle" id="pw-toggle" aria-controls="pass" aria-pressed="false" aria-label="Mostrar senha">
               <svg class="ico-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="ico-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.7 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></svg>
@@ -422,7 +430,7 @@ select{caret-color:auto}
 
       <section data-sec="conheca">
         <p class="eyebrow">Pedidos digitais para quiosques de praia</p>
-        <h2>Peça direto do seu guarda-sol.</h2>
+        <h2>Peça direto do seu guarda&#8209;sol.</h2>
         <p class="lead">Em quiosque de praia o pedido ainda vive no bloco de papel: o cliente espera o garçom para pedir, espera de novo para pagar, e o gestor não sabe o que está vendendo. O Sunfood põe o cardápio, o pagamento e a fila da cozinha na mesma tela, em tempo real.</p>
         <div class="cta"><a class="pri" href="#" data-close>Entrar</a><a class="sec" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></div>
         <div class="stats">
@@ -671,6 +679,15 @@ document.querySelectorAll('[data-pede-login]').forEach(function (a) {
     $('email').focus({ preventScroll: true });
   });
 });
+// Pontos embaixo do carrossel acompanham o cartão que está à vista.
+(function () {
+  var lista = document.querySelector('.lp-cats'), pontos = $('lp-dots').children;
+  lista.addEventListener('scroll', function () {
+    var w = lista.firstElementChild.offsetWidth || 1;
+    var i = Math.min(pontos.length - 1, Math.round(lista.scrollLeft / w));
+    for (var k = 0; k < pontos.length; k++) pontos[k].className = k === i ? 'on' : '';
+  }, { passive: true });
+})();
 $('voltar').addEventListener('click', function () {
   $('lp').setAttribute('data-step', 'inicio'); $('com-email').focus();
 });
