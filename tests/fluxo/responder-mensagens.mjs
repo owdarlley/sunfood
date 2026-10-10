@@ -110,7 +110,7 @@ await step('admin responde por e-mail', async () => {
   check('admin: chama POST /contact/c1/reply com o texto e o token', call && call.p === '/contact/c1/reply' && call.body.reply === 'Temos sim!\nO pão sem glúten sai na hora.' && call.auth === 'Bearer tok', JSON.stringify(call));
   t = await text(page);
   check('admin: avisa "Resposta enviada por e-mail."', t.includes('Resposta enviada por e-mail.'));
-  check('admin: mensagem sai das Novas', !t.includes('Carla Souza') && t.includes('Novas (1)'));
+  check('admin: mensagem sai das Novas', !t.includes('Carla Souza') && t.includes('Novas\n1'));
   await click(page, 'Respondidas', true);
   t = await text(page);
   check('admin: resposta aparece salva no cartão', t.includes('Sua resposta · por e-mail') && t.includes('O pão sem glúten sai na hora.') && !(await card(page, 'Carla Souza').getByText('Responder por e-mail').count()));

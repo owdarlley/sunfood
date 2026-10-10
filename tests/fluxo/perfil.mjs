@@ -94,10 +94,10 @@ await step('editar', async () => {
   check('editar: telefone já preenchido', await page.getByPlaceholder('(11) 91234-5678').inputValue() === '11999999999');
   check('editar: e-mail e CPF travados', await page.locator('input[disabled]').count() === 2 && (await text(page)).includes('E-mail e CPF não mudam'));
   check('editar: CPF mascarado', await page.locator('input[disabled]').nth(1).inputValue() === '529.***.***-25');
-  await page.locator('input[type=date]').fill('2015-01-01');
+  await page.getByPlaceholder('dd/mm/aaaa').fill('01/01/2015');
   await pressBtn(page, 'Salvar');
   check('editar: recusa menor de 18', (await text(page)).includes('18 anos'));
-  await page.locator('input[type=date]').fill('1999-05-10');
+  await page.getByPlaceholder('dd/mm/aaaa').fill('10/05/1999');
   await nome.fill('Ana Maria Souza');
   await page.getByPlaceholder('(11) 91234-5678').fill('11 98888-7777');
   await pressBtn(page, 'Salvar');
