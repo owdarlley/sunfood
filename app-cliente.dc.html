@@ -395,7 +395,10 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .tile{border-radius:var(--r-card);padding:16px 8px;text-align:center;cursor:pointer;transition:transform .15s}
 .tile:hover{transform:translateY(-2px)}
 .mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-@media (max-width:1100px){ .grid2{grid-template-columns:1fr} }
+@media (max-width:1100px){ .grid2{grid-template-columns:minmax(0,1fr)} }
+/* Seletor (Hoje / 7 dias / 30 dias) no celular: ocupa a largura e as opções
+   dividem o espaço, para caber em 360 px com a margem de 24 px. */
+@media (max-width:767px){.seg{display:flex;width:100%}.seg div{flex:1 1 0;min-width:0;padding:0 8px;white-space:normal;text-align:center;line-height:1.2}}
 /* No celular/tablet o menu do admin vira um botão "Menu" que abre a lista
    em grade (antes era uma faixa que precisava arrastar para os lados). */
 .adm-menubtn{display:none}
