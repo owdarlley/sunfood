@@ -65,9 +65,6 @@ a{color:#0B6670}
 .muted{color:#5A6670}
 .brand{display:flex;align-items:center;gap:8px;min-height:48px;color:#fff;text-decoration:none}
 .brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.auth{min-height:100vh;min-height:100dvh;display:flex}
-.auth-art{flex:0 0 45%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
-.auth-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;padding:var(--lg-s24) var(--lg-s16)}
 .lbl{display:block;font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#12232E;margin-bottom:8px}
 .inp{width:100%;min-height:var(--ctl);border:1px solid #D6CFBF;border-radius:var(--r-ctl);padding:8px 12px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
 .inp:focus{border-color:#0B6670;box-shadow:0 0 0 3px rgba(11,102,112,.16)}
@@ -157,10 +154,6 @@ a{color:#0B6670}
   .tab{padding:12px}
 }
 [hidden]{display:none !important}
-@media (max-width:1023px){
-  .auth{flex-direction:column}
-  .auth-art{display:none}
-}
 
 /* ---- Tela de login (refino de 2026-10-10) ----
    Tudo da tela sai destes tokens: escala de 4 px (com o meio-passo de 6 px
@@ -177,25 +170,76 @@ a{color:#0B6670}
   --lg-pri:#0B6670;--lg-pri-hover:#084C53;--lg-ring:0 0 0 3px rgba(11,102,112,.2);
   --lg-bg:#F6F3EC;--lg-surface:#fff;--lg-surface-off:#F1EEE6;--lg-line:#E3DDD0;
   --lg-field:#8F8676;--lg-field-hover:#6B6458;
-  --lg-btn:#12232E;--lg-btn-hover:#1E3642;
+  --lg-s48:48px;
+  --lp-max:1280px;--lp-px:16px;--lp-logo:24px;--lp-fs-brand:20px;--lp-fs-hero:28px;--lp-cat-w:150px;--lp-cat-h:190px;--lp-cat-gap:12px;--lp-cat-pad:16px;--lp-ico:56px;--lp-fs-cat:17px;--lp-fs-cat-sub:13px;
+  --lp-coral:#F07B4F;--lp-sun:#FFB21E;--lp-sea:#5BA9AE;--lp-berry:#7B3F6E;
   --lg-err:#B42318;--lg-err-ink:#8A1C12;--lg-err-bg:#FDECEA;--lg-err-line:#F0C2BC;--lg-err-ring:0 0 0 3px rgba(180,35,24,.2);
   --lg-ease:150ms ease-out
 }
-@media (min-width:768px){:root{--lg-pad:var(--lg-s32);--lg-fs-title:28px;--lg-fs-sub:15px}}
-@media (min-width:1024px){:root{--lg-pad:var(--lg-s40)}}
+@media (min-width:768px){:root{--lg-pad:var(--lg-s32);--lg-fs-title:28px;--lg-fs-sub:15px;--lp-max:608px;--lp-px:24px;--lp-fs-hero:36px;--lp-cat-h:200px;--lp-cat-gap:16px}}
+@media (min-width:1024px){:root{--lp-max:1280px;--lg-pad:var(--lg-s40);--lp-px:32px;--lp-logo:28px;--lp-fs-brand:22px;--lp-fs-hero:40px;--lp-cat-h:240px;--lp-cat-gap:24px;--lp-cat-pad:20px;--lp-ico:64px;--lp-fs-cat:20px}}
 
-.login{width:100%;max-width:calc(var(--lg-w) + 2 * var(--lg-pad) + 2px);background:var(--lg-surface);border:1px solid var(--lg-line);border-radius:var(--r-card);padding:var(--lg-pad)}
-@media (min-width:768px){.login{box-shadow:0 1px 2px rgba(18,35,46,.04),0 12px 32px -16px rgba(18,35,46,.18)}}
+/* ---- Página de entrada (design "Cardápio em destaque", 2026-10-10) ----
+   Celular: marca + "Ver cardápio", chamada, cartões do cardápio que rolam
+   para o lado e, embaixo, "Entrar com e-mail" e Google. Tocar em "Entrar com
+   e-mail" troca a chamada pelo formulário (data-step="form"). Do tablet para
+   cima o formulário já aparece direto, num cartão branco. */
+.lp{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;width:100%;max-width:var(--lp-max);margin:0 auto;padding:var(--lg-s16) var(--lp-px) var(--lg-s16)}
+.lp-top{display:flex;align-items:center;justify-content:space-between;gap:var(--lg-s16)}
+.lp-logo{display:inline-flex;align-items:center;gap:var(--lg-s8);min-height:var(--lg-h);color:var(--lg-pri);text-decoration:none;border-radius:var(--r-ctl)}
+.lp-logo svg{display:block;width:var(--lp-logo);height:var(--lp-logo)}
+.lp-logo b{font:800 var(--lp-fs-brand)/1 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+.lp-menu{display:inline-flex;align-items:center;min-height:var(--lg-h);padding:0 var(--lg-s4);font:var(--lg-w-strong) var(--lg-fs-link)/20px 'DM Sans',sans-serif;color:var(--lg-pri);text-decoration:none;border-radius:var(--r-ctl);transition:color var(--lg-ease)}
+.lp-menu:hover,.lp-menu:focus-visible{color:var(--lg-pri-hover);text-decoration:underline;text-underline-offset:3px}
+.lp-logo:focus-visible,.lp-menu:focus-visible,.lp-cat:focus-visible,.lp-back:focus-visible{outline:none;box-shadow:var(--lg-ring)}
 
+.lp-main{flex:1;display:flex;flex-direction:column}
+.lp-title{margin:var(--lg-s24) 0 0;font:800 var(--lp-fs-hero)/1.15 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;color:var(--lg-ink)}
+.lp-cats{list-style:none;margin:var(--lg-s16) calc(-1 * var(--lp-px)) 0;padding:0 var(--lp-px);display:flex;gap:var(--lg-s12);overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--lp-px);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.lp-cats::-webkit-scrollbar{display:none}
+.lp-cats li{flex:0 0 var(--lp-cat-w);scroll-snap-align:start}
+.lp-cat{display:flex;flex-direction:column;justify-content:space-between;height:var(--lp-cat-h);padding:var(--lg-s16);border-radius:var(--r-card);color:var(--lg-ink);text-decoration:none;transition:transform var(--lg-ease),box-shadow var(--lg-ease)}
+.lp-cat:hover{transform:translateY(-2px);box-shadow:0 12px 24px -16px rgba(18,35,46,.45)}
+.lp-cat svg{display:block;width:var(--lp-ico);height:var(--lp-ico)}
+.lp-cat b{display:block;font:800 var(--lp-fs-cat)/1.25 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
+.lp-cat small{display:block;margin-top:var(--lg-s4);font:var(--lg-w-medium) var(--lp-fs-cat-sub)/18px 'DM Sans',sans-serif}
+.lp-cat-porcoes{background:var(--lp-coral)}
+.lp-cat-bebidas{background:var(--lg-pri);color:#fff}
+.lp-cat-acai{background:var(--lp-sun)}
+
+/* Ações e formulário */
+.login{margin-top:auto;padding-top:var(--lg-s24);display:flex;flex-direction:column}
+.lp-back{align-self:flex-start;display:inline-flex;align-items:center;gap:var(--lg-s4);min-height:var(--lg-h2);margin:0 0 var(--lg-s8) calc(-1 * var(--lg-s8));padding:0 var(--lg-s8);border:0;border-radius:var(--r-ctl);background:transparent;font:var(--lg-w-medium) var(--lg-fs-link)/20px 'DM Sans',sans-serif;color:var(--lg-pri);cursor:pointer}
+.lp-back svg{width:20px;height:20px}
+.lp-back:hover{background:var(--lg-surface-off)}
 .login-head{text-align:center}
-.login-logo{display:inline-flex;align-items:center;gap:var(--lg-s8);min-height:var(--lg-h2);color:var(--lg-ink);text-decoration:none;border-radius:var(--r-ctl)}
-.login-logo b{font:800 20px/1 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.login-title{margin:var(--lg-s24) 0 0;font:var(--lg-w-strong) var(--lg-fs-title)/1.2 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:var(--lg-ink);text-wrap:balance}
+.login-title{margin:0;font:var(--lg-w-strong) var(--lg-fs-title)/1.2 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:var(--lg-ink);text-wrap:balance}
 .login-sub{margin:var(--lg-s8) 0 0;font:var(--lg-w-regular) var(--lg-fs-sub)/1.5 'DM Sans',sans-serif;color:var(--lg-ink-2)}
-/* No computador o painel verde já mostra a marca. */
-@media (min-width:1024px){.login-logo{display:none}.login-title{margin-top:0}}
+.login .lp-email + .gbtn{margin-top:var(--lg-s12)}
 
-.login-form{margin-top:var(--lg-s32);display:flex;flex-direction:column}
+/* Celular: duas etapas (chamada → formulário). */
+@media (max-width:767px){
+  .lp[data-step="inicio"] .lp-back,.lp[data-step="inicio"] .login-head,.lp[data-step="inicio"] #login,.lp[data-step="inicio"] .login .divider{display:none}
+  .lp[data-step="form"] .lp-hero,.lp[data-step="form"] .lp-email,.lp[data-step="form"] .login .divider,.lp[data-step="form"] .login .gbtn{display:none}
+  .lp[data-step="form"] .login{margin-top:0;padding-top:var(--lg-s16)}
+  .lp[data-step="inicio"] .login-foot{margin-top:var(--lg-s16)}
+}
+/* Tablet para cima: formulário direto, num cartão. */
+@media (min-width:768px){
+  .lp-back,.lp-email{display:none}
+  .lp-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--lp-cat-gap);margin:var(--lg-s24) 0 0;padding:0;overflow:visible}
+  .lp-cat{padding:var(--lp-cat-pad)}
+  .login{margin-top:var(--lg-s32);padding:var(--lg-pad);background:var(--lg-surface);border:1px solid var(--lg-line);border-radius:var(--r-card);box-shadow:0 1px 2px rgba(18,35,46,.04),0 12px 32px -16px rgba(18,35,46,.18)}
+  .lp-main{width:100%;max-width:560px;margin:0 auto;justify-content:center}
+}
+@media (min-width:1024px){
+  .lp-main{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) calc(var(--lg-w) + 2 * var(--lg-pad) + 2px);gap:var(--lg-s48);align-items:center;padding:var(--lg-s40) 0}
+  .lp-title{margin-top:0}
+  .lp-cats{margin-top:var(--lg-s32)}
+  .login{margin-top:0}
+}
+
+.login-form{margin-top:var(--lg-s24);display:flex;flex-direction:column}
 .field + .field{margin-top:var(--lg-s8)}
 .field-label{display:block;font:var(--lg-w-medium) var(--lg-fs-label)/20px 'DM Sans',sans-serif;color:var(--lg-ink)}
 .field-control{position:relative;margin-top:var(--lg-s6)}
@@ -242,31 +286,31 @@ a{color:#0B6670}
 .login .alert + #entrar,.login .alert + .btn-ghost{margin-top:var(--lg-s16)}
 .login .btn-ghost{height:var(--lg-h2);margin-top:var(--lg-s12);font-weight:var(--lg-w-strong)}
 .login .btn-ghost + #entrar{margin-top:var(--lg-s16)}
-.login .btn-dark{background:var(--lg-btn)}
-.login .btn-dark:hover:not(:disabled){background:var(--lg-btn-hover)}
+.login .btn-pri{background:var(--lg-pri);color:#fff}
+.login .btn-pri:hover:not(:disabled){background:var(--lg-pri-hover)}
 .login .btn:active:not(:disabled){transform:scale(.98)}
-.login .btn-dark:disabled{opacity:.6;cursor:not-allowed}
-.login .btn-dark[aria-busy="true"]{opacity:1;cursor:progress}
+.login .btn-pri:disabled{opacity:.6;cursor:not-allowed}
+.login .btn-pri[aria-busy="true"]{opacity:1;cursor:progress}
 .login .btn .spin{display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sfspin .7s linear infinite}
 .login .btn[aria-busy="true"] .spin{display:block}
 .login .divider{margin-top:var(--lg-s24);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'DM Sans',sans-serif;color:var(--lg-ink-3)}
 .login .divider span{background:var(--lg-line)}
-.login .gbtn{margin-top:var(--lg-s16);height:var(--lg-h2);min-height:0;gap:var(--lg-s12);border:1px solid var(--lg-field);border-radius:var(--r-ctl);font:var(--lg-w-medium) var(--lg-fs-btn)/1 'DM Sans',sans-serif;letter-spacing:.01em;color:var(--lg-ink);transition:border-color var(--lg-ease),background-color var(--lg-ease),transform var(--lg-ease)}
+.login .gbtn{margin-top:var(--lg-s16);height:var(--lg-h);min-height:0;gap:var(--lg-s12);border:1px solid var(--lg-field);border-radius:var(--r-ctl);font:var(--lg-w-medium) var(--lg-fs-btn)/1 'DM Sans',sans-serif;letter-spacing:.01em;color:var(--lg-ink);transition:border-color var(--lg-ease),background-color var(--lg-ease),transform var(--lg-ease)}
 .login .gbtn:hover:not(:disabled){border-color:var(--lg-ink);background:var(--lg-bg)}
 .login .gbtn:active:not(:disabled){transform:scale(.98)}
 .login .gbtn:disabled{opacity:.6;cursor:not-allowed}
-.login .btn:focus-visible,.login .gbtn:focus-visible,.login .link:focus-visible,.pw-toggle:focus-visible,.login-logo:focus-visible{outline:none;box-shadow:var(--lg-ring)}
-.login .btn-dark:focus-visible{box-shadow:0 0 0 2px var(--lg-surface),0 0 0 4px var(--lg-pri)}
+.login .btn:focus-visible,.login .gbtn:focus-visible,.login .link:focus-visible,.pw-toggle:focus-visible{outline:none;box-shadow:var(--lg-ring)}
+.login .btn-pri:focus-visible{box-shadow:0 0 0 2px var(--lg-surface),0 0 0 4px var(--lg-pri)}
 
 .login-foot{margin-top:var(--lg-s32);text-align:center}
 .login-foot p{margin:0;font:var(--lg-w-regular) var(--lg-fs-link)/20px 'DM Sans',sans-serif;color:var(--lg-ink-2)}
 .login-foot .login-note{margin-top:var(--lg-s8);font-size:var(--lg-fs-foot);line-height:18px;color:var(--lg-ink-3)}
 
-.auth-main .foot{margin-top:var(--lg-s24);gap:0 var(--lg-s16);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'DM Sans',sans-serif}
-.auth-main .foot a{display:inline-flex;align-items:center;min-height:var(--lg-h2);padding:0 var(--lg-s4);color:var(--lg-ink-3);border-radius:var(--r-ctl);transition:color var(--lg-ease)}
-.auth-main .foot a:hover,.auth-main .foot a:focus-visible{color:var(--lg-pri);text-decoration:underline;text-underline-offset:3px}
-.auth-main .foot a:focus-visible{outline:none;box-shadow:var(--lg-ring)}
-@media (max-width:479px){.auth-main .foot{display:grid;grid-template-columns:auto auto;justify-content:center}}
+.lp .foot{margin-top:var(--lg-s24);gap:0 var(--lg-s16);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'DM Sans',sans-serif}
+.lp .foot a{display:inline-flex;align-items:center;min-height:var(--lg-h2);padding:0 var(--lg-s4);color:var(--lg-ink-3);border-radius:var(--r-ctl);transition:color var(--lg-ease)}
+.lp .foot a:hover,.lp .foot a:focus-visible{color:var(--lg-pri);text-decoration:underline;text-underline-offset:3px}
+.lp .foot a:focus-visible{outline:none;box-shadow:var(--lg-ring)}
+@media (max-width:479px){.lp .foot{display:grid;grid-template-columns:auto auto;justify-content:center}}
 
 /* Clicar ou tocar perto de um texto não seleciona nada nem mostra o cursor de
    texto (o "tracinho"): só os campos de digitação são selecionáveis e
@@ -277,24 +321,36 @@ select{caret-color:auto}
 </style>
 </head>
 <body>
-<div class="auth">
-  <div class="auth-art">
-    <a class="brand" href="./" aria-label="Sunfood: ir para o login"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
-    <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
-    <div style="position:relative;max-width:460px">
-      <div class="tt" style="font-size:40px">Peça direto do seu guarda&#8209;sol.</div>
-      <p style="font-size:var(--fs-h3);line-height:1.5;color:#DDF1F2;margin:16px 0 0">Entre com sua conta para ver o cardápio, pagar pelo celular e acompanhar o pedido até a sua mesa.</p>
-    </div>
-    <div style="position:relative;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
-    <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
-  </div>
-  <main class="auth-main">
-    <div class="login rise">
+<div class="lp rise" id="lp" data-step="inicio">
+  <header class="lp-top">
+    <a class="lp-logo" href="./" aria-label="Sunfood: ir para o início"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#FFB21E"/><g stroke="#FFB21E" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg><b>Sunfood</b></a>
+    <a class="lp-menu" href="app-cliente.dc.html?module=cliente&amp;screen=menu">Ver cardápio</a>
+  </header>
+  <main class="lp-main">
+    <section class="lp-hero" aria-labelledby="lp-titulo">
+      <h1 class="lp-title" id="lp-titulo">Fome na praia?<br>A gente leva.</h1>
+      <ul class="lp-cats" aria-label="Destaques do cardápio">
+        <li><a class="lp-cat lp-cat-porcoes" href="app-cliente.dc.html?module=cliente&amp;screen=menu">
+          <svg viewBox="0 0 56 56" fill="none" aria-hidden="true"><path d="M10 34h36l-4 10H14z" fill="#fff" opacity=".9"/><circle cx="20" cy="28" r="7" fill="var(--lp-sun)"/><circle cx="32" cy="26" r="8" fill="var(--lp-sun)"/><circle cx="40" cy="30" r="5" fill="var(--lp-sun)"/></svg>
+          <span><b>Porções</b><small>Isca, camarão, batata</small></span>
+        </a></li>
+        <li><a class="lp-cat lp-cat-bebidas" href="app-cliente.dc.html?module=cliente&amp;screen=menu">
+          <svg viewBox="0 0 56 56" fill="none" aria-hidden="true"><path d="M18 14h20l-3 32H21z" fill="var(--lp-sea)"/><path d="M19 22h18" stroke="#fff" stroke-width="2"/><path d="M32 8l-2 10" stroke="var(--lp-sun)" stroke-width="3" stroke-linecap="round"/></svg>
+          <span><b>Bebidas</b><small>Sucos, coco, cerveja</small></span>
+        </a></li>
+        <li><a class="lp-cat lp-cat-acai" href="app-cliente.dc.html?module=cliente&amp;screen=menu">
+          <svg viewBox="0 0 56 56" fill="none" aria-hidden="true"><path d="M12 28h32a16 16 0 0 1-32 0z" fill="#fff"/><circle cx="22" cy="24" r="6" fill="var(--lp-berry)"/><circle cx="32" cy="22" r="7" fill="var(--lp-berry)"/></svg>
+          <span><b>Açaí</b><small>Monte o seu</small></span>
+        </a></li>
+      </ul>
+    </section>
+    <div class="login" id="acesso">
+      <button type="button" class="lp-back" id="voltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Voltar</button>
       <header class="login-head">
-        <a class="login-logo" href="./" aria-label="Sunfood: ir para o login"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
-        <h1 class="login-title">Bem-vindo de volta</h1>
+        <h2 class="login-title">Bem-vindo de volta</h2>
         <p class="login-sub">Entre para continuar</p>
       </header>
+      <button type="button" class="btn btn-pri lp-email" id="com-email">Entrar com e-mail</button>
       <form id="login" class="login-form" novalidate>
         <div class="field">
           <label class="field-label" for="email">E-mail</label>
@@ -319,24 +375,24 @@ select{caret-color:auto}
         </div>
         <div id="msg" class="alert alert-err" role="alert" hidden></div>
         <button type="button" id="resend" class="btn btn-ghost" hidden>Reenviar e-mail de confirmação</button>
-        <button type="submit" id="entrar" class="btn btn-dark"><span class="spin" aria-hidden="true"></span><span id="entrar-txt">Entrar</span></button>
-        <div class="divider"><span></span>ou<span></span></div>
-        <button type="button" id="google" class="gbtn">
-          <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
-        </button>
+        <button type="submit" id="entrar" class="btn btn-pri"><span class="spin" aria-hidden="true"></span><span id="entrar-txt">Entrar</span></button>
       </form>
+      <div class="divider"><span></span>ou<span></span></div>
+      <button type="button" id="google" class="gbtn">
+        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Continuar com Google
+      </button>
       <footer class="login-foot">
-        <p>Não tem conta? <a class="link" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></p>
-        <p class="login-note">Cozinha e administração usam este mesmo login.</p>
+        <p>Novo por aqui? <a class="link" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></p>
+        <p class="login-note">Cozinha e administração usam o mesmo acesso.</p>
       </footer>
     </div>
-    <nav class="foot" aria-label="Sobre o Sunfood">
-      <a href="#conheca">Conheça o Sunfood</a>
-      <a href="#fale-conosco">Fale conosco</a>
-      <a href="#termos">Termos de uso</a>
-      <a href="#privacidade">Privacidade</a>
-    </nav>
   </main>
+  <nav class="foot" aria-label="Sobre o Sunfood">
+    <a href="#conheca">Conheça o Sunfood</a>
+    <a href="#fale-conosco">Fale conosco</a>
+    <a href="#termos">Termos de uso</a>
+    <a href="#privacidade">Privacidade</a>
+  </nav>
 </div>
 <!-- Conteúdo institucional (antes em inicio.html, sobre.html, contato.html,
      termos.html, privacidade.html...): abre por cima do login pelos links do
@@ -595,9 +651,17 @@ $('pw-toggle').addEventListener('click', function () {
   this.setAttribute('aria-label', mostrar ? 'Ocultar senha' : 'Mostrar senha');
 });
 
+// Celular: "Entrar com e-mail" troca a chamada pelo formulário; "Voltar" desfaz.
+$('com-email').addEventListener('click', function () {
+  $('lp').setAttribute('data-step', 'form'); window.scrollTo(0, 0); $('email').focus();
+});
+$('voltar').addEventListener('click', function () {
+  $('lp').setAttribute('data-step', 'inicio'); $('com-email').focus();
+});
+
 // Carregando: spinner + "Entrando...", formulário travado contra duplo envio.
 function carregando(on) {
-  $('login').querySelectorAll('input, button').forEach(function (el) { el.disabled = on; });
+  $('acesso').querySelectorAll('input, button').forEach(function (el) { el.disabled = on; });
   $('entrar').setAttribute('aria-busy', on ? 'true' : 'false');
   $('entrar-txt').textContent = on ? 'Entrando...' : 'Entrar';
 }
