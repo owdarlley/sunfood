@@ -223,6 +223,7 @@ await step('fluxo do cliente', async () => {
 await step('fluxo da cozinha', async () => {
   const page = await open('app-cliente.dc.html?module=cozinha&screen=kanban', { role: 'cozinha', seed: true });
   check('cozinha: pedido aparece na fila com observação', (await text(page)).includes('Obs: sem sal'));
+  check('cozinha: cartão mostra o nome de quem pediu', (await text(page)).includes('Ana Teste'));
   await click(page, 'Iniciar preparo'); await click(page, 'Marcar como pronto'); await click(page, 'Marcar como entregue');
   check('cozinha: pedido chega a Entregue', page.api.db.orders[0].status === 'Entregue', page.api.db.orders[0].status);
   check('cozinha: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
