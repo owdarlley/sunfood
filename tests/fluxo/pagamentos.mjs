@@ -56,7 +56,7 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 
 async function ateOPagamento(page) {
   await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.locator('input[type=password]').first().fill('senha');
+  await page.getByPlaceholder('••••••••').fill('senha');
   await click(page, 'Entrar', true);
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
@@ -201,11 +201,11 @@ await step('prazo de cancelamento', async () => {
   const admin = await open('app-cliente.dc.html?module=admin&screen=pause', { role: 'admin' });
   let t = await text(admin);
   check('admin: mostra o prazo atual (sem prazo)', t.includes('Prazo para o cliente cancelar') && t.includes('sem prazo'));
-  await admin.getByLabel('Prazo em minutos').fill('5');
+  await admin.getByPlaceholder('Minutos (ex: 5)').fill('5');
   await click(admin, 'Salvar', true);
   t = await text(admin);
   check('admin: salva 5 minutos', admin.api.db.kiosk.cancelWindowMinutes === 5 && t.includes('5 min depois do pedido'), String(admin.api.db.kiosk.cancelWindowMinutes));
-  await admin.getByLabel('Prazo em minutos').fill('abc');
+  await admin.getByPlaceholder('Minutos (ex: 5)').fill('abc');
   await click(admin, 'Salvar', true);
   check('admin: recusa valor inválido', (await text(admin)).includes('número inteiro de minutos'));
   check('admin: sem erro de JavaScript', admin.jsErrors.length === 0 && !(await renderError(admin)), admin.jsErrors.join(' | '));

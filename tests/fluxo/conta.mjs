@@ -71,7 +71,7 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 const called = (page, p) => page.api.db.calls.filter(c => c.p === p);
 async function login(page) {
   await page.getByPlaceholder('voce@email.com').first().fill('ana@email.com');
-  await page.locator('input[type=password]').first().fill('senha');
+  await page.getByPlaceholder('••••••••').fill('senha');
   await click(page, 'Entrar', true);
 }
 
@@ -82,7 +82,7 @@ await step('cadastro', async () => {
   await page.getByPlaceholder('Ana Souza').fill('Ana Teste');
   await page.getByPlaceholder('voce@email.com').fill('ana@teste.com');
   await page.getByPlaceholder('(11) 91234-5678').fill('11 91234-5678');
-  await page.getByPlaceholder('dd/mm/aaaa').fill('01/01/2000');
+  await page.locator('input[type=date]').fill('2000-01-01');
   await page.getByPlaceholder('Mínimo 6 caracteres').fill('senha123');
   await page.getByPlaceholder('Repita a senha').fill('senha123');
   await page.locator('input[type=checkbox]').check();

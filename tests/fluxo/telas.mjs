@@ -78,7 +78,7 @@ await step('login no endereço principal', async () => {
   check('raiz: pede e-mail e senha embaixo de cada campo', (await text(page)).includes('Informe seu e-mail.') && (await text(page)).includes('Informe sua senha.')
     && await page.locator('#email').getAttribute('aria-invalid') === 'true' && await page.evaluate(() => document.activeElement.id) === 'email');
   await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.locator('input[type=password]').first().fill('senha');
+  await page.getByPlaceholder('••••••••').fill('senha');
   await click(page, 'Entrar', true);
   await page.waitForTimeout(1200);
   check('raiz: cliente cai no cardápio', page.url().includes('module=cliente&screen=menu') && (await text(page)).includes('Batata Frita'), page.url());
@@ -89,7 +89,7 @@ await step('login no endereço principal', async () => {
     const p = await open('', { role, session: false });
     await click(p, 'Entrar com e-mail', true);
     await p.getByPlaceholder('voce@email.com').fill(role + '@teste');
-    await p.locator('input[type=password]').first().fill('senha');
+    await p.getByPlaceholder('••••••••').fill('senha');
     await click(p, 'Entrar', true);
     await p.waitForTimeout(800);
     check(`raiz: ${role} cai no módulo certo`, p.url().includes(dest), p.url());
@@ -108,7 +108,7 @@ await step('login no endereço principal', async () => {
 
   const app = await open('app-cliente.dc.html', { role: 'admin', session: false });
   await app.getByPlaceholder('voce@email.com').fill('admin@teste');
-  await app.locator('input[type=password]').first().fill('senha');
+  await app.getByPlaceholder('••••••••').fill('senha');
   await click(app, 'Entrar', true);
   await app.waitForTimeout(800);
   check('login do app: admin vai para o painel', app.url().includes('module=admin&screen=dashboard'), app.url());
@@ -171,7 +171,7 @@ await step('logo do Sunfood', async () => {
 
   const cli = await open('app-cliente.dc.html');
   await cli.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await cli.locator('input[type=password]').first().fill('senha');
+  await cli.getByPlaceholder('••••••••').fill('senha');
   await click(cli, 'Entrar', true);
   await click(cli, 'Perfil', true);
   await logo(cli).click(); await cli.waitForTimeout(500);
@@ -195,7 +195,7 @@ await step('logo do Sunfood', async () => {
 await step('fluxo do cliente', async () => {
   const page = await open('app-cliente.dc.html');
   await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.locator('input[type=password]').first().fill('senha');
+  await page.getByPlaceholder('••••••••').fill('senha');
   await click(page, 'Entrar', true);
   let t = await text(page);
   check('cliente: login abre o cardápio', t.includes('Batata Frita') && t.includes('Água de Coco'));
@@ -280,7 +280,7 @@ await step('fale conosco', async () => {
   check('admin no celular: menu fecha depois de escolher', await admin.locator('.adm-item').first().isHidden());
   await click(admin, 'Menu', true); await click(admin, 'Mensagens', true);
   let a = await text(admin);
-  check('admin mensagens: mostra a mensagem nova', a.includes('Bruna Lima') && a.includes('Mesa para 6 no sábado.') && a.includes('Novas\n1'), a.slice(0, 500));
+  check('admin mensagens: mostra a mensagem nova', a.includes('Bruna Lima') && a.includes('Mesa para 6 no sábado.') && a.includes('Novas (1)'), a.slice(0, 500));
   await click(admin, 'Marcar como respondida');
   a = await text(admin);
   check('admin mensagens: marca como respondida', admin.api.db.contacts[0].status === 'respondido' && a.includes('Nenhuma mensagem nova.'));

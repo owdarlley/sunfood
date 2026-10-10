@@ -104,8 +104,7 @@ await step('detalhe do produto', async () => {
   const p = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
   await tap(p, 'Peixe Frito');
   const dentro = await p.evaluate(() => ['.pd-name', '.pd-mprice', '.pd-desc', '.pd-add'].map(sel => {
-    const el = document.querySelector(sel); if(!el && sel === '.pd-desc') return true; // descrição igual ao nome não aparece
-    const r = el.getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight + 1; }));
+    const r = document.querySelector(sel).getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight + 1; }));
   check('detalhe do produto 360px: nome, preço, descrição e Adicionar aparecem sem rolar', dentro.every(Boolean), JSON.stringify(dentro));
   check('detalhe do produto 360px: sem rolagem para os lados', await semRolagemLateral(p));
   await tap(p, '+');
