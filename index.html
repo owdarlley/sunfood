@@ -55,21 +55,19 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
 body{margin:0;background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;font-size:var(--fs-body);line-height:1.5;color:#12232E;-webkit-font-smoothing:antialiased}
 a{color:#0B6670}
 @keyframes sfspin{to{transform:rotate(360deg)}}
-@keyframes sfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sfup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes sfwave{0%,100%{transform:translateX(0)}50%{transform:translateX(-24px)}}
 .sun{animation:sfspin 24s linear infinite;transform-origin:50% 50%}
 .wave{animation:sfwave 7s ease-in-out infinite}
-.rise{animation:sfup .35s cubic-bezier(.2,.8,.2,1) both}
+.rise{animation:sfup .25s ease-out both}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 .tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.1}
 .muted{color:#5A6670}
 .brand{display:flex;align-items:center;gap:8px;min-height:48px;color:#fff;text-decoration:none}
 .brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.auth{min-height:100vh;display:flex}
-.auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
-.auth-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--sec) var(--px)}
-.auth-box{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
-.auth-mobile{display:none}
+.auth{min-height:100vh;min-height:100dvh;display:flex}
+.auth-art{flex:0 0 45%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
+.auth-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;padding:var(--lg-s24) var(--lg-s16)}
 .lbl{display:block;font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#12232E;margin-bottom:8px}
 .inp{width:100%;min-height:var(--ctl);border:1px solid #D6CFBF;border-radius:var(--r-ctl);padding:8px 12px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
 .inp:focus{border-color:#0B6670;box-shadow:0 0 0 3px rgba(11,102,112,.16)}
@@ -159,15 +157,116 @@ a{color:#0B6670}
   .tab{padding:12px}
 }
 [hidden]{display:none !important}
-@media (max-width:920px){
+@media (max-width:1023px){
   .auth{flex-direction:column}
   .auth-art{display:none}
-  .auth-mobile{display:flex}
-  .auth-main{justify-content:flex-start}
 }
 
-/* Links de texto: área de toque maior no celular sem mudar o desenho. */
-@media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}.foot{gap:0 12px;margin-top:24px}.foot a{padding:12px 4px}}
+/* ---- Tela de login (refino de 2026-10-10) ----
+   Tudo da tela sai destes tokens: escala de 4 px (com o meio-passo de 6 px
+   entre rótulo, campo e erro), campos e botão principal com 48 px, botões
+   secundários com 44 px, três tons de texto e três pesos de fonte (400, 500
+   e 700). Cores são as do projeto; a borda do campo ficou um pouco mais
+   escura para ter contraste 3:1 (WCAG AA) com o branco. */
+:root{
+  --lg-s4:4px;--lg-s6:6px;--lg-s8:8px;--lg-s12:12px;--lg-s16:16px;--lg-s20:20px;--lg-s24:24px;--lg-s32:32px;--lg-s40:40px;
+  --lg-pad:var(--lg-s24);--lg-h:48px;--lg-h2:44px;--lg-w:408px;
+  --lg-fs-title:24px;--lg-fs-sub:14px;--lg-fs-label:14px;--lg-fs-input:16px;--lg-fs-btn:15px;--lg-fs-link:14px;--lg-fs-err:13px;--lg-fs-foot:12px;
+  --lg-w-regular:400;--lg-w-medium:500;--lg-w-strong:700;
+  --lg-ink:#12232E;--lg-ink-2:#5A6670;--lg-ink-3:#6B6458;
+  --lg-pri:#0B6670;--lg-pri-hover:#084C53;--lg-ring:0 0 0 3px rgba(11,102,112,.2);
+  --lg-bg:#F6F3EC;--lg-surface:#fff;--lg-surface-off:#F1EEE6;--lg-line:#E3DDD0;
+  --lg-field:#8F8676;--lg-field-hover:#6B6458;
+  --lg-btn:#12232E;--lg-btn-hover:#1E3642;
+  --lg-err:#B42318;--lg-err-ink:#8A1C12;--lg-err-bg:#FDECEA;--lg-err-line:#F0C2BC;--lg-err-ring:0 0 0 3px rgba(180,35,24,.2);
+  --lg-ease:150ms ease-out
+}
+@media (min-width:768px){:root{--lg-pad:var(--lg-s32);--lg-fs-title:28px;--lg-fs-sub:15px}}
+@media (min-width:1024px){:root{--lg-pad:var(--lg-s40)}}
+
+.login{width:100%;max-width:calc(var(--lg-w) + 2 * var(--lg-pad) + 2px);background:var(--lg-surface);border:1px solid var(--lg-line);border-radius:var(--r-card);padding:var(--lg-pad)}
+@media (min-width:768px){.login{box-shadow:0 1px 2px rgba(18,35,46,.04),0 12px 32px -16px rgba(18,35,46,.18)}}
+
+.login-head{text-align:center}
+.login-logo{display:inline-flex;align-items:center;gap:var(--lg-s8);min-height:var(--lg-h2);color:var(--lg-ink);text-decoration:none;border-radius:var(--r-ctl)}
+.login-logo b{font:800 20px/1 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+.login-title{margin:var(--lg-s24) 0 0;font:var(--lg-w-strong) var(--lg-fs-title)/1.2 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:var(--lg-ink);text-wrap:balance}
+.login-sub{margin:var(--lg-s8) 0 0;font:var(--lg-w-regular) var(--lg-fs-sub)/1.5 'DM Sans',sans-serif;color:var(--lg-ink-2)}
+/* No computador o painel verde já mostra a marca. */
+@media (min-width:1024px){.login-logo{display:none}.login-title{margin-top:0}}
+
+.login-form{margin-top:var(--lg-s32);display:flex;flex-direction:column}
+.field + .field{margin-top:var(--lg-s8)}
+.field-label{display:block;font:var(--lg-w-medium) var(--lg-fs-label)/20px 'DM Sans',sans-serif;color:var(--lg-ink)}
+.field-control{position:relative;margin-top:var(--lg-s6)}
+.login .inp{display:block;height:var(--lg-h);min-height:0;padding:0 var(--lg-s16);border:1px solid var(--lg-field);border-radius:var(--r-ctl);background:var(--lg-surface);font:var(--lg-w-regular) var(--lg-fs-input)/1.5 'DM Sans',sans-serif;color:var(--lg-ink);transition:border-color var(--lg-ease),box-shadow var(--lg-ease),background-color var(--lg-ease);scroll-margin-bottom:160px}
+.login .inp::placeholder{color:var(--lg-ink-3);opacity:1}
+.login .inp:hover{border-color:var(--lg-field-hover)}
+.login .inp:not(:placeholder-shown){border-color:var(--lg-field-hover)}
+.login .inp:focus{box-shadow:none}
+.login .inp:focus-visible{border-color:var(--lg-pri);box-shadow:var(--lg-ring)}
+.login .inp[aria-invalid="true"]{border-color:var(--lg-err)}
+.login .inp[aria-invalid="true"]:focus-visible{box-shadow:var(--lg-err-ring)}
+.login .inp:disabled{background:var(--lg-surface-off);color:var(--lg-ink-2);border-color:var(--lg-line);cursor:not-allowed}
+/* Preenchimento automático do navegador com as cores do projeto. */
+.login .inp:-webkit-autofill,.login .inp:-webkit-autofill:hover{-webkit-text-fill-color:var(--lg-ink);box-shadow:inset 0 0 0 100px var(--lg-surface);caret-color:var(--lg-ink)}
+.login .inp:-webkit-autofill:focus-visible{box-shadow:inset 0 0 0 100px var(--lg-surface),var(--lg-ring)}
+.login .inp-pw{padding-right:var(--lg-h)}
+.pw-toggle{position:absolute;top:var(--lg-s4);right:var(--lg-s4);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:0;border-radius:var(--r-ctl);background:transparent;color:var(--lg-ink-2);cursor:pointer;transition:color var(--lg-ease),background-color var(--lg-ease)}
+.pw-toggle::after{content:"";position:absolute;inset:-2px}
+.pw-toggle:hover{color:var(--lg-ink);background:var(--lg-surface-off)}
+.pw-toggle svg{display:block;width:20px;height:20px}
+.pw-toggle .ico-hide,.pw-toggle[aria-pressed="true"] .ico-show{display:none}
+.pw-toggle[aria-pressed="true"] .ico-hide{display:block}
+.pw-toggle:disabled{cursor:not-allowed;opacity:.5}
+
+/* Espaço reservado para o erro: o layout não pula quando ele aparece. */
+.field-msg{display:flex;align-items:flex-start;gap:var(--lg-s4);min-height:18px;margin:var(--lg-s6) 0 0;font:var(--lg-w-medium) var(--lg-fs-err)/18px 'DM Sans',sans-serif;color:var(--lg-err)}
+.field-msg:empty{visibility:hidden}
+.field-msg:not(:empty){animation:sffade .15s ease-out both}
+.field-msg svg{flex:none;width:16px;height:16px;margin-top:1px}
+.field-msg.is-hint{color:var(--lg-ink-2)}
+
+.login-row{display:flex;justify-content:flex-end;margin-top:var(--lg-s4)}
+.login .link{position:relative;display:inline-block;padding:0;margin:0;font:var(--lg-w-medium) var(--lg-fs-link)/20px 'DM Sans',sans-serif;color:var(--lg-pri);text-decoration:none;text-underline-offset:3px;border-radius:var(--r-ctl)}
+/* Área de toque de 44 px sem mudar o desenho do link. */
+.login .link::after{content:"";position:absolute;inset:-12px -4px}
+.login .link:hover,.login .link:focus-visible{color:var(--lg-pri-hover);text-decoration:underline}
+@media (max-width:359px){.login-row{justify-content:flex-start}}
+
+.login .alert{margin-top:var(--lg-s16);display:flex;gap:var(--lg-s8);align-items:flex-start;padding:var(--lg-s12) var(--lg-s16);border-radius:var(--r-ctl);font:var(--lg-w-medium) var(--lg-fs-label)/20px 'DM Sans',sans-serif;animation:sffade .15s ease-out both}
+.login .alert svg{flex:none;width:16px;height:16px;margin-top:2px}
+.login .alert-err{background:var(--lg-err-bg);color:var(--lg-err-ink);border:1px solid var(--lg-err-line)}
+.login .btn{height:var(--lg-h);min-height:0;padding:0 var(--lg-s20);border-radius:var(--r-ctl);font:var(--lg-w-strong) var(--lg-fs-btn)/1 'DM Sans',sans-serif;letter-spacing:.01em;transition:background-color var(--lg-ease),box-shadow var(--lg-ease),transform var(--lg-ease)}
+.login #entrar{margin-top:var(--lg-s24)}
+.login .alert + #entrar,.login .alert + .btn-ghost{margin-top:var(--lg-s16)}
+.login .btn-ghost{height:var(--lg-h2);margin-top:var(--lg-s12);font-weight:var(--lg-w-strong)}
+.login .btn-ghost + #entrar{margin-top:var(--lg-s16)}
+.login .btn-dark{background:var(--lg-btn)}
+.login .btn-dark:hover:not(:disabled){background:var(--lg-btn-hover)}
+.login .btn:active:not(:disabled){transform:scale(.98)}
+.login .btn-dark:disabled{opacity:.6;cursor:not-allowed}
+.login .btn-dark[aria-busy="true"]{opacity:1;cursor:progress}
+.login .btn .spin{display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sfspin .7s linear infinite}
+.login .btn[aria-busy="true"] .spin{display:block}
+.login .divider{margin-top:var(--lg-s24);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'DM Sans',sans-serif;color:var(--lg-ink-3)}
+.login .divider span{background:var(--lg-line)}
+.login .gbtn{margin-top:var(--lg-s16);height:var(--lg-h2);min-height:0;gap:var(--lg-s12);border:1px solid var(--lg-field);border-radius:var(--r-ctl);font:var(--lg-w-medium) var(--lg-fs-btn)/1 'DM Sans',sans-serif;letter-spacing:.01em;color:var(--lg-ink);transition:border-color var(--lg-ease),background-color var(--lg-ease),transform var(--lg-ease)}
+.login .gbtn:hover:not(:disabled){border-color:var(--lg-ink);background:var(--lg-bg)}
+.login .gbtn:active:not(:disabled){transform:scale(.98)}
+.login .gbtn:disabled{opacity:.6;cursor:not-allowed}
+.login .btn:focus-visible,.login .gbtn:focus-visible,.login .link:focus-visible,.pw-toggle:focus-visible,.login-logo:focus-visible{outline:none;box-shadow:var(--lg-ring)}
+.login .btn-dark:focus-visible{box-shadow:0 0 0 2px var(--lg-surface),0 0 0 4px var(--lg-pri)}
+
+.login-foot{margin-top:var(--lg-s32);text-align:center}
+.login-foot p{margin:0;font:var(--lg-w-regular) var(--lg-fs-link)/20px 'DM Sans',sans-serif;color:var(--lg-ink-2)}
+.login-foot .login-note{margin-top:var(--lg-s8);font-size:var(--lg-fs-foot);line-height:18px;color:var(--lg-ink-3)}
+
+.auth-main .foot{margin-top:var(--lg-s24);gap:0 var(--lg-s16);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'DM Sans',sans-serif}
+.auth-main .foot a{display:inline-flex;align-items:center;min-height:var(--lg-h2);padding:0 var(--lg-s4);color:var(--lg-ink-3);border-radius:var(--r-ctl);transition:color var(--lg-ease)}
+.auth-main .foot a:hover,.auth-main .foot a:focus-visible{color:var(--lg-pri);text-decoration:underline;text-underline-offset:3px}
+.auth-main .foot a:focus-visible{outline:none;box-shadow:var(--lg-ring)}
+@media (max-width:479px){.auth-main .foot{display:grid;grid-template-columns:auto auto;justify-content:center}}
 
 /* Clicar ou tocar perto de um texto não seleciona nada nem mostra o cursor de
    texto (o "tracinho"): só os campos de digitação são selecionáveis e
@@ -189,33 +288,48 @@ select{caret-color:auto}
     <div style="position:relative;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
     <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
   </div>
-  <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:var(--cpad);flex-direction:column;gap:12px">
-    <a class="brand" href="./" aria-label="Sunfood: ir para o login"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></a>
-    <div style="font:500 var(--fs-body)/1.5 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">Peça direto do seu guarda-sol.</div>
-  </div>
   <main class="auth-main">
-    <form id="login" class="auth-box rise" novalidate>
-      <div>
-        <h1 class="tt" style="font-size:var(--fs-h1);margin:0">Bem-vindo de volta</h1>
-        <div class="muted" style="font-size:var(--fs-body);margin-top:8px">Novo por aqui? <a class="link" style="font-size:var(--fs-body)" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Cadastre-se</a></div>
-      </div>
-      <div>
-        <label class="lbl" for="email">E-mail</label>
-        <input class="inp" id="email" type="email" autocomplete="email" placeholder="voce@email.com">
-      </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline"><label class="lbl" for="pass">Senha</label><a class="link" style="font-weight:600" href="app-cliente.dc.html?module=cliente&amp;screen=forgot">Esqueci minha senha</a></div>
-        <input class="inp" id="pass" type="password" autocomplete="current-password" placeholder="••••••••">
-      </div>
-      <div id="msg" class="alert alert-err" role="alert" hidden></div>
-      <button type="button" id="resend" class="btn btn-ghost" hidden>Reenviar e-mail de confirmação</button>
-      <button type="submit" id="entrar" class="btn btn-dark" style="margin-top:4px">Entrar</button>
-      <div class="divider"><span></span>ou<span></span></div>
-      <button type="button" id="google" class="gbtn">
-        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
-      </button>
-      <div class="muted" style="text-align:center;font-size:var(--fs-sm)">Equipe da cozinha e administração usam este mesmo login.</div>
-    </form>
+    <div class="login rise">
+      <header class="login-head">
+        <a class="login-logo" href="./" aria-label="Sunfood: ir para o login"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
+        <h1 class="login-title">Bem-vindo de volta</h1>
+        <p class="login-sub">Entre para continuar</p>
+      </header>
+      <form id="login" class="login-form" novalidate>
+        <div class="field">
+          <label class="field-label" for="email">E-mail</label>
+          <div class="field-control">
+            <input class="inp" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" aria-describedby="email-msg">
+          </div>
+          <p class="field-msg" id="email-msg"></p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="pass">Senha</label>
+          <div class="field-control">
+            <input class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" placeholder="••••••••" aria-describedby="pass-msg">
+            <button type="button" class="pw-toggle" id="pw-toggle" aria-controls="pass" aria-pressed="false" aria-label="Mostrar senha">
+              <svg class="ico-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="ico-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.7 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></svg>
+            </button>
+          </div>
+          <p class="field-msg" id="pass-msg" aria-live="polite"></p>
+        </div>
+        <div class="login-row">
+          <a class="link" href="app-cliente.dc.html?module=cliente&amp;screen=forgot">Esqueci minha senha</a>
+        </div>
+        <div id="msg" class="alert alert-err" role="alert" hidden></div>
+        <button type="button" id="resend" class="btn btn-ghost" hidden>Reenviar e-mail de confirmação</button>
+        <button type="submit" id="entrar" class="btn btn-dark"><span class="spin" aria-hidden="true"></span><span id="entrar-txt">Entrar</span></button>
+        <div class="divider"><span></span>ou<span></span></div>
+        <button type="button" id="google" class="gbtn">
+          <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
+        </button>
+      </form>
+      <footer class="login-foot">
+        <p>Não tem conta? <a class="link" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></p>
+        <p class="login-note">Cozinha e administração usam este mesmo login.</p>
+      </footer>
+    </div>
     <nav class="foot" aria-label="Sobre o Sunfood">
       <a href="#conheca">Conheça o Sunfood</a>
       <a href="#fale-conosco">Fale conosco</a>
@@ -430,6 +544,8 @@ var busy = false;
 
 function show(text, ok) {
   $('msg').textContent = text;
+  // Ícone discreto no alerta de erro (o texto continua sendo o da API).
+  if (text && !ok) $('msg').insertAdjacentHTML('afterbegin', ICO_ERRO);
   $('msg').className = 'alert ' + (ok ? 'alert-ok' : 'alert-err');
   $('msg').hidden = !text;
 }
@@ -439,13 +555,85 @@ function show(text, ok) {
 // direto para o Google.
 $('google').addEventListener('click', function () { location.href = 'app-cliente.dc.html?google=1'; });
 
+// ---- Estados visuais do formulário (não mudam a regra de login) ----
+var ICO_ERRO = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11.3" r=".9" fill="currentColor"/></svg>';
+var capsLigado = false;
+
+// Erro embaixo do campo: borda e texto na cor de erro, ligado ao campo por aria-describedby.
+function erroDoCampo(id, texto) {
+  var campo = $(id), slot = $(id + '-msg');
+  campo.setAttribute('aria-invalid', texto ? 'true' : 'false');
+  slot.className = 'field-msg';
+  slot.innerHTML = texto ? ICO_ERRO + '<span>' + texto + '</span>' : '';
+  if (!texto && id === 'pass') avisoCaps();
+}
+
+// Aviso de Caps Lock no campo senha (só aparece quando não há erro ali).
+function avisoCaps() {
+  var slot = $('pass-msg');
+  if ($('pass').getAttribute('aria-invalid') === 'true') return;
+  slot.className = 'field-msg is-hint';
+  slot.textContent = capsLigado ? 'Caps Lock está ativado.' : '';
+}
+['keydown', 'keyup'].forEach(function (ev) {
+  $('pass').addEventListener(ev, function (e) {
+    if (!e.getModifierState) return;
+    var on = e.getModifierState('CapsLock');
+    if (on !== capsLigado) { capsLigado = on; avisoCaps(); }
+  });
+});
+$('pass').addEventListener('blur', function () { if (capsLigado) { capsLigado = false; avisoCaps(); } });
+['email', 'pass'].forEach(function (id) {
+  $(id).addEventListener('input', function () { if ($(id).getAttribute('aria-invalid') === 'true') erroDoCampo(id, ''); });
+});
+
+// Mostrar/ocultar senha.
+$('pw-toggle').addEventListener('click', function () {
+  var mostrar = $('pass').type === 'password';
+  $('pass').type = mostrar ? 'text' : 'password';
+  this.setAttribute('aria-pressed', mostrar ? 'true' : 'false');
+  this.setAttribute('aria-label', mostrar ? 'Ocultar senha' : 'Mostrar senha');
+});
+
+// Carregando: spinner + "Entrando...", formulário travado contra duplo envio.
+function carregando(on) {
+  $('login').querySelectorAll('input, button').forEach(function (el) { el.disabled = on; });
+  $('entrar').setAttribute('aria-busy', on ? 'true' : 'false');
+  $('entrar-txt').textContent = on ? 'Entrando...' : 'Entrar';
+}
+
+// Foco automático no e-mail só no computador (no celular abriria o teclado).
+if (!location.hash && matchMedia('(min-width:1024px) and (pointer:fine)').matches) $('email').focus({ preventScroll: true });
+
+// Celular: com o teclado aberto, rola só o necessário para o campo ativo e o
+// botão Entrar ficarem visíveis.
+if (window.visualViewport && matchMedia('(pointer:coarse)').matches) {
+  var ajustarTeclado = function () {
+    var ativo = document.activeElement;
+    if (!ativo || ativo.tagName !== 'INPUT' || !$('login').contains(ativo)) return;
+    var vv = window.visualViewport, alvo = $('entrar').getBoundingClientRect(), campo = ativo.getBoundingClientRect();
+    var falta = alvo.bottom + 16 - (vv.offsetTop + vv.height);
+    if (falta > 0) window.scrollBy(0, Math.min(falta, campo.top - vv.offsetTop - 16));
+  };
+  window.visualViewport.addEventListener('resize', function () { setTimeout(ajustarTeclado, 50); });
+  $('login').addEventListener('focusin', function () { setTimeout(ajustarTeclado, 300); });
+}
+
 $('login').addEventListener('submit', async function (e) {
   e.preventDefault();
   if (busy) return;
   var email = $('email').value.trim(), password = $('pass').value;
   $('resend').hidden = true;
-  if (!email || !password) return show('Preencha e-mail e senha.');
-  busy = true; $('entrar').disabled = true; $('entrar').textContent = 'Entrando...'; show('');
+  if (!email || !password) {
+    show('');
+    erroDoCampo('email', email ? '' : 'Informe seu e-mail.');
+    erroDoCampo('pass', password ? '' : 'Informe sua senha.');
+    $(email ? 'pass' : 'email').focus();
+    return;
+  }
+  erroDoCampo('email', ''); erroDoCampo('pass', '');
+  var focoDepois = null;
+  busy = true; carregando(true); show('');
   try {
     var res = await fetch(API_BASE + '/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -455,6 +643,8 @@ $('login').addEventListener('submit', async function (e) {
     if (!res.ok) {
       show(data.error || 'E-mail ou senha inválidos.');
       $('resend').hidden = data.code !== 'email_not_confirmed';
+      // Credenciais erradas: o e-mail fica, o foco volta para a senha.
+      if (data.code !== 'email_not_confirmed') focoDepois = $('pass');
       return;
     }
     try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, refreshToken: data.refreshToken, user: data.user })); } catch (err) {}
@@ -463,7 +653,8 @@ $('login').addEventListener('submit', async function (e) {
   } catch (err) {
     show('Falha de conexão com o servidor. Confira sua internet e tente de novo.');
   } finally {
-    busy = false; $('entrar').disabled = false; $('entrar').textContent = 'Entrar';
+    busy = false; carregando(false);
+    if (focoDepois) { focoDepois.focus(); focoDepois.select(); }
   }
 });
 

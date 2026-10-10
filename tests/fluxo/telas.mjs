@@ -66,7 +66,8 @@ await step('login no endereço principal', async () => {
   const page = await open('');
   check('raiz: abre a tela de login', (await text(page)).includes('Bem-vindo de volta'));
   await click(page, 'Entrar', true);
-  check('raiz: pede e-mail e senha', (await text(page)).includes('Preencha e-mail e senha.'));
+  check('raiz: pede e-mail e senha embaixo de cada campo', (await text(page)).includes('Informe seu e-mail.') && (await text(page)).includes('Informe sua senha.')
+    && await page.locator('#email').getAttribute('aria-invalid') === 'true' && await page.evaluate(() => document.activeElement.id) === 'email');
   await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
   await page.getByPlaceholder('••••••••').fill('senha');
   await click(page, 'Entrar', true);
