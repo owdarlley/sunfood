@@ -690,6 +690,19 @@ function carregando(on) {
   $('entrar-txt').textContent = on ? 'Entrando...' : 'Entrar';
 }
 
+// Veio do app ao sair da conta (ou por sessão expirada, conta criada, conta
+// excluída): mostra o aviso e já deixa o e-mail preenchido, se veio junto.
+(function () {
+  var aviso = null;
+  try { aviso = JSON.parse(sessionStorage.getItem('sunfood_login_aviso') || 'null'); sessionStorage.removeItem('sunfood_login_aviso'); } catch (e) {}
+  if (!aviso) return;
+  if (aviso.email) $('email').value = aviso.email;
+  if (aviso.texto) {
+    show(aviso.texto, aviso.ok);
+    $('lp').setAttribute('data-step', 'form');
+  }
+})();
+
 // Foco automático no e-mail só no computador (no celular abriria o teclado).
 if (!location.hash && matchMedia('(min-width:1024px) and (pointer:fine)').matches) $('email').focus({ preventScroll: true });
 
