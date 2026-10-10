@@ -2593,11 +2593,17 @@ class Component extends DCLogic {
     sessionEvents.onToken = token => this.setState({token});
     sessionEvents.onLost = () => {
       if(!this.state.token) return;
-      this.logout();
-      setTimeout(() => this.flash('Sua sessão expirou. Entre de novo.'), 0);
+      this.logout('Sua sessão expirou. Entre de novo.');
     };
     this.aplicarRota();
-    if(!this.handleGoogleCallback()) this.restoreSession();
+    const voltouDoGoogle = this.handleGoogleCallback();
+    if(!voltouDoGoogle) this.restoreSession();
+    // A tela de login é uma só: a do endereço principal (index.html). Quem
+    // abre o app sem sessão (e sem estar no meio do login com Google) vai pra lá.
+    if(!voltouDoGoogle && !this.temSessaoSalva() && this.rotaEhLogin() && new URLSearchParams(window.location.search).get('google') !== '1'){
+      this.irParaLogin();
+      return;
+    }
     // Veio do botão do Google da página inicial: já segue para o Google.
     if(new URLSearchParams(window.location.search).get('google') === '1'){
       history.replaceState(null, '', window.location.pathname);
@@ -2670,7 +2676,7 @@ class Component extends DCLogic {
     let saved = {};
     try { saved = JSON.parse(sessionStorage.getItem(GOOGLE_LOGIN_KEY) || '{}'); sessionStorage.removeItem(GOOGLE_LOGIN_KEY); } catch(e){}
     if(saved.search) history.replaceState(null, '', window.location.pathname + saved.search);
-    const fail = () => { this.setState({screen:'login', module:'cliente'}); this.flash('Não foi possível entrar com Google. Tente de novo.'); };
+    const fail = () => this.irParaLogin('Não foi possível entrar com Google. Tente de novo.');
     if(!saved.nonce || saved.state !== state) return fail();
     try {
       const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=id_token', {
@@ -2704,8 +2710,7 @@ class Component extends DCLogic {
       let search = window.location.search;
       try { search = JSON.parse(sessionStorage.getItem(GOOGLE_LOGIN_KEY) || '{}').search || search; sessionStorage.removeItem(GOOGLE_LOGIN_KEY); } catch(e){}
       history.replaceState(null, '', window.location.pathname + search);
-      this.setState({screen:'login', module:'cliente'});
-      setTimeout(() => this.flash('Não foi possível entrar. Tente de novo.'), 0);
+      this.irParaLogin('Não foi possível entrar. Tente de novo.');
       return true;
     }
     const idToken = hash.get('id_token');
@@ -3457,12 +3462,31 @@ class Component extends DCLogic {
     }
   }
 
-  logout(){
+  // Sair (de qualquer perfil) volta para a tela de login do endereço principal
+  // (index.html), a mesma que aparece ao abrir o site.
+  logout(aviso){
     try { localStorage.removeItem(SESSION_KEY); } catch(e){}
-    // Admin/cozinha não têm uma tela de login própria dentro do app: sair
-    // manda de volta para a tela de login do endereço principal (index.html).
-    if(this.state.module === 'admin' || this.state.module === 'cozinha'){ window.location.href = 'index.html'; return; }
-    this.setState({token:null, authUser:null, order:null, history:[], cart:[], pass:'', screen:'login'});
+    this.irParaLogin(aviso);
+  }
+
+  // Leva para a tela de login principal. O aviso (e o e-mail, se houver) vai
+  // junto pelo sessionStorage e aparece lá, já que esta página é trocada.
+  irParaLogin(aviso, ok, email){
+    if(this._indoProLogin) return;
+    this._indoProLogin = true;
+    try { if(aviso || email) sessionStorage.setItem('sunfood_login_aviso', JSON.stringify({texto:aviso || '', ok:!!ok, email:email || ''})); } catch(e){}
+    window.location.replace('index.html');
+  }
+
+  temSessaoSalva(){
+    try { const s = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); return !!(s && s.token); } catch(e){ return false; }
+  }
+
+  // Sem ?module, ou ?module=cliente&screen=login: é a tela de login antiga do app.
+  rotaEhLogin(){
+    const q = new URLSearchParams(window.location.search);
+    const mod = q.get('module');
+    return !mod || !SCREENS[mod] || (mod === 'cliente' && q.get('screen') === 'login');
   }
 
   async cancelOrder(){
@@ -3496,8 +3520,7 @@ class Component extends DCLogic {
       const data = await res.json().catch(() => ({}));
       if(!res.ok){ this.flash(data.error || 'Não foi possível excluir a conta.'); return; }
       try { localStorage.removeItem(SESSION_KEY); } catch(e){}
-      this.setState({token:null, authUser:null, order:null, history:[], cart:[], email:'', pass:'', screen:'login'});
-      this.flash('Conta excluída.');
+      this.irParaLogin('Conta excluída.', true);
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
     } finally {
@@ -3528,8 +3551,7 @@ class Component extends DCLogic {
       const data = await res.json();
       if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível criar a conta.'}); return; }
       if(data.requiresEmailConfirmation){
-        this.flash('Conta criada — confirme seu e-mail antes de entrar.');
-        this.setState({suErr:'', screen:'login', email:s.suEmail.trim()});
+        this.irParaLogin('Conta criada. Confirme seu e-mail antes de entrar.', true, s.suEmail.trim());
       } else {
         // Alguns projetos Supabase confirmam o e-mail automaticamente — nesse
         // caso já dá pra logar direto com a senha recém-criada. Libera o
