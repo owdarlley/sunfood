@@ -11,12 +11,12 @@ window.__resources = window.__resources || {};
 <link rel="preconnect" href="https://unpkg.com" crossorigin="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* Cor de fundo já no começo (antes ficava branco até o app montar) e a tela
    só aparece quando as fontes chegaram (ou depois de 1,5 s), para os textos
    não trocarem de tamanho na frente da pessoa ao recarregar. */
-html,body{background:#F6F3EC;margin:0}
+html,body{background:#F7F5F0;margin:0}
 html.sf-espera #dc-root{opacity:0}
 #dc-root{transition:opacity .12s}
 </style>
@@ -26,13 +26,13 @@ html.sf-espera #dc-root{opacity:0}
   var pronto = function(){ d.classList.remove('sf-espera'); };
   setTimeout(pronto, 1500);
   try {
-    Promise.all(['800 20px "Bricolage Grotesque"','500 16px "DM Sans"','700 16px "DM Sans"'].map(function(f){ return document.fonts.load(f); })).then(pronto, pronto);
+    Promise.all(['800 20px "Manrope"','500 16px "Manrope"','700 16px "Manrope"'].map(function(f){ return document.fonts.load(f); })).then(pronto, pronto);
   } catch(e){ pronto(); }
 })();
 </script>
 <script src="./support.js"></script>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0B6670">
+<meta name="theme-color" content="#1F5A63">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -47,42 +47,47 @@ html.sf-espera #dc-root{opacity:0}
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ===== Design system (definido pelo Dárlley, 2026-10-07) =====
-   Medidas reais na tela, sem zoom geral (o zoom de antes deixava os
-   tamanhos finais diferentes do CSS). Grade de 8 pt; muda em 3 faixas:
+/* ===== Design system (Dárlley, 2026-10-07) + visual da tela de login (2026-10-10) =====
+   Medidas reais na tela, sem zoom geral. Grade de 8 pt; muda em 3 faixas:
    celular (< 768 px), tablet (768-1024 px) e computador (> 1024 px).
-   --px  margem lateral da tela      16 / 24 / 32
+   --px  margem lateral da tela      24 / 24 / 32
    --gap espaço entre cards e itens  12 / 16 / 24
    --sec espaço entre seções         24 / 32 / 48
    --cpad padding interno de cards   16 / 20 / 24
-   --ctl altura de campos e botões   48 / 48 / 44
-   Títulos: H1 26 / 30 / 36, H2 20 / 22 / 24, H3 18 / 18 / 20.
-   Texto 15 / 15 / 16 (line-height 1.5), texto menor 14, legenda 12.
-   Cantos: cards 12 (celular) / 16, botões e campos 8, pílulas 999. */
+   --ctl altura de botões e campos   52 (toque confortável em qualquer tela)
+   Títulos: H1 26 / 30 / 36, H2 20 / 22 / 24, H3 18 / 18 / 20, peso 800 e
+   espaçamento levemente negativo. Texto 15 / 15 / 16 (line-height 1.5),
+   texto menor 14, legenda 12. Fonte única: Manrope.
+   Cantos: cards 16, botões 14, campos e avisos 12, pílulas 999.
+   Cores (as mesmas da tela de login): marca #1F5A63, sol #F5B83D (destaque),
+   fundo #F7F5F0 com cartões brancos, texto #14232A e apoio #55626A. */
 :root{
-  --px:16px;--gap:12px;--sec:24px;--cpad:16px;--ctl:48px;
+  --px:24px;--gap:12px;--sec:24px;--cpad:16px;--ctl:52px;
   --fs-h1:26px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;
-  --r-card:12px;--r-ctl:8px;--maxw:1320px
+  --r-card:16px;--r-btn:14px;--r-ctl:12px;--maxw:1320px;
+  --brand:#1F5A63;--brand-hover:#174A52;--brand-tint:#E6EFF0;--sun:#F5B83D;--sun-tint:#FFF4DB;
+  --bg:#F7F5F0;--surface:#fff;--surface-off:#F1EEE7;--ink:#14232A;--ink-2:#55626A;
+  --line:#E5E0D5;--field:#8F8676;--field-hover:#55626A;--ring:0 0 0 3px rgba(31,90,99,.2);
+  --shadow-card:0 1px 2px rgba(20,35,42,.04),0 8px 24px -16px rgba(20,35,42,.16)
 }
-@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px;--r-card:16px}}
+@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px}}
 @media (min-width:1440px){:root{--maxw:1440px}}
-@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--ctl:44px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
+@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
 
-/* ===== Sunfood · visual "pé na areia" =====
-   Cores: areia #F6F3EC (fundo), tinta #12232E (texto), mar #0B6670
-   (ação secundária), sol #FFB21E (ação principal). Títulos em Bricolage
-   Grotesque, texto em DM Sans. Tudo aqui é só aparência: a lógica fica
-   no script lá embaixo. */
+/* ===== Sunfood · componentes =====
+   Botões, campos, cartões e cabeçalhos são os mesmos em todas as telas
+   (cliente, administração e cozinha). Tudo aqui é só aparência: a lógica
+   fica no script lá embaixo. */
 html,body{margin:0;padding:0}
-body{background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;font-size:var(--fs-body);line-height:1.5;color:#12232E;-webkit-font-smoothing:antialiased}
+body{background:#F7F5F0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--fs-body);line-height:1.5;color:#14232A;-webkit-font-smoothing:antialiased}
 *{box-sizing:border-box}
 input,textarea,button,select{font-family:inherit}
-a{color:#0B6670}
-a:hover{color:#084C53}
+a{color:#1F5A63}
+a:hover{color:#174A52}
 ::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-thumb{background:rgba(18,35,46,.18);border-radius:8px}
+::-webkit-scrollbar-thumb{background:rgba(20,35,42,.18);border-radius:8px}
 @keyframes sfspin{to{transform:rotate(360deg)}}
 @keyframes sfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes sffade{from{opacity:0}to{opacity:1}}
@@ -94,69 +99,87 @@ a:hover{color:#084C53}
 .rise{animation:sffade .15s ease-out both}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 
-.tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.1}
-.muted{color:#5A6670}
-.eyebrow{font:700 var(--fs-cap) 'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#0B6670}
+.tt{font-family:'Manrope',system-ui,sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.muted{color:#55626A}
+.eyebrow{font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#1F5A63}
 
-/* botões: 48 px no celular, 44 px no computador; cantos de 8 px */
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-ctl);font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;user-select:none;transition:background .2s,transform .15s,filter .2s,border-color .2s}
+/* botões: 52 px de altura e cantos de 14 px. O principal é preenchido na
+   cor da marca; o secundário é branco com borda. .btn-sun, .btn-dark e
+   .btn-teal são o mesmo botão principal (nomes antigos mantidos). */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-btn);font:700 16px/1.2 'Manrope',system-ui,sans-serif;letter-spacing:.005em;cursor:pointer;text-align:center;border:0;user-select:none;transition:background-color .15s ease-out,border-color .15s ease-out,box-shadow .15s ease-out,transform .15s ease-out}
 .btn:active{transform:scale(.98)}
-.btn-sun{background:#FFB21E;color:#12232E}
-.btn-sun:hover{filter:brightness(.96)}
-.btn-dark{background:#12232E;color:#fff}
-.btn-dark:hover{background:#1E3642}
-.btn-teal{background:#0B6670;color:#fff}
-.btn-teal:hover{background:#084C53}
-.btn-ghost{background:#fff;color:#12232E;border:1px solid #D6CFBF;font-weight:700}
-.btn-ghost:hover{border-color:#12232E}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--brand)}
+.btn-sun,.btn-dark,.btn-teal{background:var(--brand);color:#fff}
+.btn-sun:hover,.btn-dark:hover,.btn-teal:hover{background:var(--brand-hover)}
+.btn-ghost{background:#fff;color:var(--brand);border:1px solid var(--brand);font-weight:700}
+.btn-ghost:hover{background:var(--brand-tint)}
 .btn-danger{background:#B42318;color:#fff}
-.btn-danger-ghost{background:#fff;color:#B42318;border:1px solid #F0C2BC;font-weight:700}
+.btn-danger:hover{background:#8A1C12}
+.btn-danger-ghost{background:#fff;color:#B42318;border:1px solid #B42318;font-weight:700}
 .btn-danger-ghost:hover{background:#FDECEA}
-.btn-sm{min-height:40px;padding:0 16px;border-radius:var(--r-ctl);font-size:var(--fs-sm)}
-.link{font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-.link:hover{color:#084C53}
+/* botão menor (ações dentro de cartões e tabelas): 44 px, o mínimo de toque */
+.btn-sm{min-height:44px;padding:0 16px;border-radius:var(--r-ctl);font-size:var(--fs-sm)}
+.link{font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.link:hover{color:#174A52}
+/* Links de texto: área de toque de 44 px sem mudar o desenho. */
+.link{position:relative}
+.link::after{content:'';position:absolute;inset:-12px -4px}
 
 /* cartões, campos, avisos */
-.card{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card)}
-.lbl{display:block;font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#12232E;margin-bottom:8px}
-.inp{width:100%;min-height:var(--ctl);border:1px solid #D6CFBF;border-radius:var(--r-ctl);padding:8px 12px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
-.inp:focus{border-color:#0B6670;box-shadow:0 0 0 3px rgba(11,102,112,.16)}
-.inp::placeholder{color:#9A958A}
-textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
-.alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'DM Sans',sans-serif;display:flex;gap:12px;align-items:flex-start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card)}
+/* campos: rótulo em cima, 52 px, borda suave (contraste 3:1) e anel na cor da marca no foco */
+.lbl{display:block;font:600 var(--fs-sm)/20px 'Manrope',system-ui,sans-serif;color:var(--ink);margin-bottom:6px}
+.inp{width:100%;min-height:var(--ctl);border:1px solid var(--field);border-radius:var(--r-ctl);padding:8px 16px;font:500 16px 'Manrope',system-ui,sans-serif;color:var(--ink);background:#fff;outline:none;transition:border-color .15s ease-out,box-shadow .15s ease-out}
+.inp:hover{border-color:var(--field-hover)}
+.inp:focus{border-color:var(--brand);box-shadow:var(--ring)}
+.inp:disabled,.inp[readonly]{background:var(--surface-off);color:var(--ink-2);border-color:var(--line)}
+.inp::placeholder{color:#737C82;opacity:1}
+textarea.inp{min-height:96px;padding:12px 16px;resize:vertical;line-height:1.5}
+select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2355626A' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;padding-right:40px}
+.alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;display:flex;gap:12px;align-items:flex-start}
 .alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
 .alert-warn{background:#FFF4DB;color:#5C3900;border:1px solid #F0D9A8}
 .alert-ok{background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB}
-.alert-info{background:#E7F1F1;color:#084C53;border:1px solid #CFE7E8}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font:700 var(--fs-cap) 'DM Sans',sans-serif;white-space:nowrap}
-.sumrow{display:flex;justify-content:space-between;gap:12px;font:500 var(--fs-body) 'DM Sans',sans-serif;color:#5A6670;padding:4px 0}
-.sumrow b{color:#12232E;font-weight:700}
-.sumtotal{display:flex;justify-content:space-between;gap:12px;font:800 var(--fs-h2) 'Bricolage Grotesque',sans-serif;border-top:1px dashed #D6CFBF;margin-top:8px;padding-top:12px}
+.alert-info{background:#E6EFF0;color:#174A52;border:1px solid #D2E3E5}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;white-space:nowrap}
+.sumrow{display:flex;justify-content:space-between;gap:12px;font:500 var(--fs-body) 'Manrope',system-ui,sans-serif;color:#55626A;padding:4px 0}
+.sumrow b{color:#14232A;font-weight:700}
+.sumtotal{display:flex;justify-content:space-between;gap:12px;font:800 var(--fs-h2) 'Manrope',system-ui,sans-serif;border-top:1px dashed #D6CFBF;margin-top:8px;padding-top:12px}
 /* +/− com área de toque de 48 px (o círculo desenhado é menor) */
-.stepper{display:flex;align-items:center;gap:4px;background:#F6F3EC;border-radius:999px;padding:4px}
-.stepper .sb{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 20px 'DM Sans',sans-serif;cursor:pointer;user-select:none;background:#fff;color:#12232E;border:1px solid #E3DDD0;position:relative}
+.stepper{display:flex;align-items:center;gap:4px;background:#F7F5F0;border-radius:999px;padding:4px}
+.stepper .sb{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 20px 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none;background:#fff;color:#14232A;border:1px solid #E3DDD0;position:relative}
 .stepper .sb::after{content:'';position:absolute;inset:-4px}
-.stepper .sb.on{background:#0B6670;color:#fff;border-color:#0B6670}
-.stepper .sq{min-width:24px;text-align:center;font:800 16px 'DM Sans',sans-serif}
+.stepper .sb.on{background:#1F5A63;color:#fff;border-color:#1F5A63}
+.stepper .sq{min-width:24px;text-align:center;font:800 16px 'Manrope',system-ui,sans-serif}
 .toggle{width:48px;height:28px;border-radius:999px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s}
 .toggle::after{content:'';position:absolute;inset:-10px 0}
 .toggle span{position:absolute;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 
+/* Ícones: um único traço fino (1,75 px na tela, pontas arredondadas) em todo
+   o app, qualquer que seja o tamanho ou o viewBox do desenho. A logo do sol
+   e o "G" do Google ficam de fora (o traço deles está no <g>/no fill). */
+svg[stroke]{stroke-width:1.75px;stroke-linecap:round;stroke-linejoin:round}
+svg[stroke] *{vector-effect:non-scaling-stroke}
+
+/* Cabeçalho de página e título iguais em todas as telas. */
+h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
+
 /* ===== Cliente ===== */
-.sfc{min-height:100vh;display:flex;flex-direction:column;background:#F6F3EC}
-.topbar{position:sticky;top:0;z-index:25;background:rgba(246,243,236,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid #E3DDD0}
+.sfc{min-height:100vh;display:flex;flex-direction:column;background:#F7F5F0}
+.topbar{position:sticky;top:0;z-index:25;background:rgba(247,245,240,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid #E3DDD0}
 .topbar-in{max-width:var(--maxw);margin:0 auto;padding:12px var(--px);display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:8px;min-height:48px;cursor:pointer;color:#12232E;text-decoration:none}
-.brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
+.brand{display:flex;align-items:center;gap:8px;min-height:48px;cursor:pointer;color:var(--brand);text-decoration:none}
+.brand b{font:800 22px 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
 .toplinks{display:flex;align-items:center;gap:8px}
-.toplink{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;font:600 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer;color:#12232E;white-space:nowrap}
+.toplink{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer;color:#14232A;white-space:nowrap}
 .toplink:hover{background:#EFEADF}
-.toplink.on{background:#12232E;color:#fff}
-.mesachip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;border:1px solid #E3DDD0;font:600 var(--fs-sm) 'DM Sans',sans-serif;white-space:nowrap}
-.cartpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#12232E;color:#fff;font:800 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer}
+.toplink.on{background:var(--brand);color:#fff}
+.mesachip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;border:1px solid #E3DDD0;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;white-space:nowrap}
+.cartpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:var(--brand);color:#fff;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer}
+.cartpill:hover{background:var(--brand-hover)}
 .pagehead{max-width:1120px;width:100%;margin:0 auto;padding:var(--sec) var(--px) 0;display:flex;align-items:center;gap:16px}
-.backbtn{width:48px;height:48px;border-radius:50%;background:#fff;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
-.backbtn:hover{border-color:#12232E}
+.backbtn{width:48px;height:48px;border-radius:var(--r-btn);background:#fff;border:1px solid var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.backbtn:hover{border-color:var(--brand);color:var(--brand)}
 .wrap{width:100%;margin:0 auto;padding:var(--gap) var(--px) var(--sec);flex:1}
 .wrap-wide{max-width:var(--maxw)}
 .wrap-mid{max-width:1120px}
@@ -166,9 +189,9 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 /* Coluna lateral com largura fixa: o resumo do carrinho crescer não pode
    apertar o cardápio ao lado (antes os cartões mudavam de tamanho ao adicionar). */
 .col-side{flex:0 0 360px;min-width:0;max-width:100%;display:flex;flex-direction:column;gap:var(--gap)}
-.hero{position:relative;overflow:hidden;border-radius:var(--r-card);background:#0B6670;color:#fff;padding:calc(var(--cpad) + 8px) calc(var(--cpad) + 8px) 0;margin-bottom:var(--sec)}
+.hero{position:relative;overflow:hidden;border-radius:var(--r-card);background:#1F5A63;color:#fff;padding:calc(var(--cpad) + 8px) calc(var(--cpad) + 8px) 0;margin-bottom:var(--sec)}
 .hero h1{margin:0 0 48px;position:relative;font-size:var(--fs-h1);max-width:720px}
-.hero p{margin:12px 0 16px;font-size:var(--fs-body);line-height:1.5;color:#DDF1F2;max-width:620px;position:relative}
+.hero p{margin:12px 0 16px;font-size:var(--fs-body);line-height:1.5;color:#E1EEEF;max-width:620px;position:relative}
 .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
 /* Cardápio: 2 colunas no celular, 3 no tablet, 4 no computador e 5 em tela larga */
@@ -177,8 +200,8 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 @media (min-width:1025px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (min-width:1200px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (min-width:1500px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
-.pcard{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .25s,box-shadow .25s}
-.pcard:hover{transform:translateY(-4px);box-shadow:0 18px 36px -18px rgba(18,35,46,.35)}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .25s,box-shadow .25s}
+.pcard:hover{transform:translateY(-4px);box-shadow:0 18px 36px -18px rgba(20,35,42,.35)}
 .pcard .pbody{padding:16px !important}
 @media (min-width:1025px){.pcard .pbody{padding:20px !important}}
 /* Cartões "vazios" enquanto o cardápio chega na primeira visita (em vez de
@@ -186,28 +209,47 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 .pcard.sk{cursor:default;pointer-events:none}
 .sk-box{background:#ECE7DC;animation:sfpulse 1.2s ease-in-out infinite}
 .pimg{position:relative;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.addbtn{height:44px;padding:0 16px;border-radius:999px;background:#0B6670;color:#fff;font:700 var(--fs-sm) 'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;transition:background .2s,transform .15s}
-.addbtn:hover{background:#084C53}
+.addbtn{height:44px;padding:0 16px;border-radius:999px;background:#1F5A63;color:#fff;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;display:inline-flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;transition:background .2s,transform .15s}
+.addbtn:hover{background:#174A52}
 .addbtn:active{transform:scale(.94)}
 .addbtn .plus{font-size:20px;line-height:1;font-weight:800}
 .cartpanel{position:sticky;top:96px}
 .mobilebar{display:none}
 .bottomnav{display:none}
 .auth{min-height:100vh;display:flex}
-.auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
+.auth-art{flex:0 0 48%;max-width:620px;background:#1F5A63;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
 .auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:var(--sec) var(--px)}
 .auth-box{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 .auth-mobile{display:none}
-.divider{display:flex;align-items:center;gap:12px;color:#6B6458;font:500 var(--fs-cap) 'DM Sans',sans-serif}
+/* Telas de conta (cadastro, esqueci a senha, completar cadastro, nova senha):
+   o mesmo visual da tela de login. Fundo claro, marca em verde-petróleo,
+   chamada em texto escuro à esquerda (computador) e o formulário num cartão
+   branco do tablet para cima. */
+.auth{background:var(--bg)}
+.auth-art{background:transparent !important;color:var(--ink) !important;padding:40px 48px}
+.auth-art > svg{display:none}
+.auth-art > div{color:var(--ink-2) !important}
+.auth-art p{color:var(--ink-2) !important}
+.auth-art .tt{color:var(--ink);letter-spacing:-.025em}
+.auth-art .brand{color:var(--brand) !important}
+.auth-mobile{background:transparent !important;color:var(--ink) !important;padding:16px var(--px) 0 !important}
+.auth-mobile > div{color:var(--ink-2) !important}
+.auth-mobile .brand{color:var(--brand) !important}
+@media (min-width:768px){
+  .auth-box{max-width:504px;padding:32px;background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:0 1px 2px rgba(20,35,42,.04),0 12px 32px -16px rgba(20,35,42,.18)}
+}
+@media (min-width:1025px){.auth-box{padding:40px}}
+input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
+.divider{display:flex;align-items:center;gap:12px;color:#55626A;font:500 var(--fs-cap) 'Manrope',system-ui,sans-serif}
 .divider span{flex:1;height:1px;background:#E3DDD0;display:block}
-.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;min-height:var(--ctl);border-radius:var(--r-ctl);border:1px solid #D6CFBF;background:#fff;font:700 16px 'DM Sans',sans-serif;cursor:pointer;color:#12232E}
-.gbtn:hover{border-color:#12232E}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;min-height:var(--ctl);border-radius:var(--r-btn);border:1px solid var(--field);background:#fff;font:600 16px 'Manrope',system-ui,sans-serif;cursor:pointer;color:#14232A}
+.gbtn:hover{border-color:var(--ink);background:var(--bg)}
 .payopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--gap)}
-.payopt{display:flex;align-items:center;gap:12px;border-radius:var(--r-card);padding:var(--cpad);cursor:pointer;background:#fff;border:2px solid #E3DDD0;transition:border-color .15s,background .15s}
-.payopt:hover{border-color:#B9B2A3}
-.payopt.on{border-color:#0B6670;background:#E7F1F1}
-.radio{width:20px;height:20px;border-radius:50%;border:2px solid #B9B2A3;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.payopt.on .radio{border-color:#0B6670;background:#0B6670}
+.payopt{display:flex;align-items:center;gap:12px;border-radius:var(--r-card);padding:var(--cpad);cursor:pointer;background:#fff;border:2px solid var(--line);transition:border-color .15s,background .15s}
+.payopt:hover{border-color:#8C949A}
+.payopt.on{border-color:#1F5A63;background:#E6EFF0}
+.radio{width:20px;height:20px;border-radius:50%;border:2px solid #8C949A;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.payopt.on .radio{border-color:#1F5A63;background:#1F5A63}
 .payopt.on .radio::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
 .orow{display:flex;align-items:center;gap:16px;padding:var(--cpad);border-top:1px solid #EFEADF;cursor:pointer}
 .orow:first-child{border-top:0}
@@ -218,10 +260,10 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 .avatar-opt{width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:box-shadow .15s}
 .form-2col{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
 @media (min-width:768px){.avatar-grid{grid-template-columns:repeat(8,56px)}}
-.menurow{display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:12px 4px;border-top:1px solid #EFEADF;font:600 var(--fs-body) 'DM Sans',sans-serif;cursor:pointer}
-.menurow:hover{color:#0B6670}
+.menurow{display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:12px 4px;border-top:1px solid #EFEADF;font:600 var(--fs-body) 'Manrope',system-ui,sans-serif;cursor:pointer}
+.menurow:hover{color:var(--brand)}
 .footer{border-top:1px solid #E3DDD0}
-.footer-in{max-width:var(--maxw);margin:0 auto;padding:var(--gap) var(--px);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;justify-content:space-between;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670}
+.footer-in{max-width:var(--maxw);margin:0 auto;padding:var(--gap) var(--px);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;justify-content:space-between;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A}
 
 @media (max-width:920px){
   .col-side{flex:1 1 100%}
@@ -268,11 +310,11 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
   .pd-photo svg{width:96px;height:96px}
   .pd-info{gap:12px;padding-bottom:96px}
   .pd-name{margin-top:4px}
-  .pd-mprice{display:block;font-size:var(--fs-h2);white-space:nowrap;color:#0B6670}
+  .pd-mprice{display:block;font-size:var(--fs-h2);white-space:nowrap;color:#1F5A63}
   .pd-desc{margin-top:8px}
   .pd-chips .chip{padding:6px 12px !important;font-size:var(--fs-cap) !important}
   .pd-buy textarea.inp{min-height:64px}
-  .pd-act{display:flex;align-items:center;gap:12px;position:fixed;left:0;right:0;bottom:0;z-index:24;background:#fff;border-top:1px solid #E3DDD0;box-shadow:0 -6px 20px rgba(18,35,46,.08);padding:8px var(--px) calc(8px + env(safe-area-inset-bottom))}
+  .pd-act{display:flex;align-items:center;gap:12px;position:fixed;left:0;right:0;bottom:0;z-index:24;background:#fff;border-top:1px solid #E3DDD0;box-shadow:0 -6px 20px rgba(20,35,42,.08);padding:8px var(--px) calc(8px + env(safe-area-inset-bottom))}
   .pd-row{flex-shrink:0}
   .pd-price{display:none}
   .pd-alert{flex:1;margin:0}
@@ -281,15 +323,15 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 @media (max-width:767px){.pd-info{padding-bottom:0}}
 
 /* ===== Admin ===== */
-.adm{min-height:100vh;display:flex;background:#F6F3EC;width:100%}
-.adm-side{width:240px;flex-shrink:0;background:#12232E;color:#fff;display:flex;flex-direction:column;padding:24px 16px 16px;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.adm{min-height:100vh;display:flex;background:#F7F5F0;width:100%}
+.adm-side{width:240px;flex-shrink:0;background:var(--brand);color:#fff;display:flex;flex-direction:column;padding:24px 16px 16px;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
 .adm-brand{display:flex;align-items:center;gap:8px;padding:0 8px 16px}
-.adm-brand b{font:800 20px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.adm-brand small{font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#9FB2BA;margin-left:2px}
-.adm-item{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border-radius:var(--r-ctl);font:600 15px 'DM Sans',sans-serif;cursor:pointer;color:#EAF2F3;white-space:nowrap;transition:background .15s}
-.adm-item:hover{background:#1E3642}
-.adm-item.on{background:#FFB21E;color:#12232E;font-weight:800}
-.adm-sep{height:1px;background:#2A3F4B;margin:8px}
+.adm-brand b{font:800 20px 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
+.adm-brand small{font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#C3D8DB;margin-left:2px}
+.adm-item{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border-radius:var(--r-ctl);font:600 15px 'Manrope',system-ui,sans-serif;cursor:pointer;color:#EAF2F3;white-space:nowrap;transition:background .15s}
+.adm-item:hover{background:rgba(255,255,255,.1)}
+.adm-item.on{background:var(--sun);color:var(--ink);font-weight:700}
+.adm-sep{height:1px;background:rgba(255,255,255,.32);margin:8px}
 .adm-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:16px}
 .adm-main{flex:1;min-width:0;max-width:calc(1440px + 2 * var(--px));margin:0 auto;padding:var(--sec) var(--px)}
 .adm-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:var(--sec)}
@@ -297,33 +339,33 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
 @media (min-width:768px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (min-width:1025px){.kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}}
-.kpi{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);padding:var(--cpad)}
-.kpi .k{font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670}
-.kpi .v{font:800 var(--fs-h1) 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;margin:8px 0 4px;line-height:1.1}
-.kpi .s{font:500 var(--fs-cap) 'DM Sans',sans-serif;color:#1E6B36}
-.panel{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);padding:var(--cpad)}
-.panel h2{margin:0 0 16px;font:700 var(--fs-h3) 'DM Sans',sans-serif}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad)}
+.kpi .k{font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A}
+.kpi .v{font:800 var(--fs-h1) 'Manrope',system-ui,sans-serif;letter-spacing:-.03em;margin:8px 0 4px;line-height:1.1}
+.kpi .s{font:500 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#1E6B36}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad)}
+.panel h2{margin:0 0 16px;font:800 var(--fs-h3)/1.25 'Manrope',system-ui,sans-serif;letter-spacing:-.015em}
 .grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:var(--gap)}
 .bars{display:flex;align-items:flex-end;gap:8px;height:200px}
 .bar{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
-.bar .bv{font:500 var(--fs-cap) 'DM Sans',sans-serif;color:#5A6670;margin-bottom:4px;white-space:nowrap;height:16px}
-.bar .bl{font:500 var(--fs-cap) 'DM Sans',sans-serif;color:#5A6670;margin-top:8px;white-space:nowrap;height:16px}
+.bar .bv{font:500 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#55626A;margin-bottom:4px;white-space:nowrap;height:16px}
+.bar .bl{font:500 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#55626A;margin-top:8px;white-space:nowrap;height:16px}
 .prog{height:8px;border-radius:999px;background:#EFEADF;overflow:hidden}
 .prog > div{height:100%;border-radius:999px}
 .pills{display:flex;gap:8px;flex-wrap:wrap}
-.fpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;font:700 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer;background:#fff;border:1px solid #E3DDD0;color:#12232E;white-space:nowrap}
-.fpill:hover{border-color:#12232E}
-.fpill.on{background:#12232E;border-color:#12232E;color:#fff}
-.fpill .n{display:inline-flex;min-width:20px;height:20px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;color:#12232E;font-size:var(--fs-cap);padding:0 6px}
-.fpill.on .n{background:#FFB21E}
+.fpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer;background:#fff;border:1px solid #E3DDD0;color:#14232A;white-space:nowrap}
+.fpill:hover{border-color:var(--brand)}
+.fpill.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.fpill .n{display:inline-flex;min-width:20px;height:20px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;color:#14232A;font-size:var(--fs-cap);padding:0 6px}
+.fpill.on .n{background:#F5B83D}
 .seg{display:inline-flex;background:#EFEADF;border-radius:var(--r-ctl);padding:4px;gap:4px}
-.seg div{display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border-radius:6px;font:700 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
-.seg div.on{background:#12232E;color:#fff}
+.seg div{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:8px;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.seg div.on{background:var(--brand);color:#fff}
 .tbl{width:100%}
-.tr{display:grid;gap:12px;align-items:center;padding:12px var(--cpad);border-top:1px solid #EFEADF;font:500 var(--fs-sm) 'DM Sans',sans-serif}
-.tr.th{border-top:0;border-bottom:1px solid #E3DDD0;font:700 var(--fs-cap) 'DM Sans',sans-serif;color:#5A6670;padding-top:12px;padding-bottom:12px;white-space:nowrap}
+.tr{display:grid;gap:12px;align-items:center;padding:12px var(--cpad);border-top:1px solid #EFEADF;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif}
+.tr.th{border-top:0;border-bottom:1px solid #E3DDD0;font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#55626A;padding-top:12px;padding-bottom:12px;white-space:nowrap}
 .tr.th + .tr{border-top:0}
-.tblwrap{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);overflow-x:auto}
+.tblwrap{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);overflow-x:auto}
 /* No celular as tabelas de Pedidos e Pagamentos viram cartões (sem arrastar
    para os lados): cada linha mostra os campos com o nome em cima. */
 @media (max-width:767px){
@@ -331,13 +373,13 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
   .tbl-cards .tr.th{display:none}
   .tbl-cards .tr{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:12px;padding:16px}
   .tbl-cards .tr > div{text-align:left !important;min-width:0}
-  .tbl-cards .tr > [data-l]::before{content:attr(data-l);display:block;font:600 var(--fs-cap) 'DM Sans',sans-serif;color:#6B6458;margin-bottom:4px}
+  .tbl-cards .tr > [data-l]::before{content:attr(data-l);display:block;font:600 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#55626A;margin-bottom:4px}
   .tbl-cards .tr > .wide{grid-column:1/-1}
   .tbl-cards .tr > .wide:empty{display:none}
-  .tbl-cards .tr > div > span{display:inline-block;max-width:100%;white-space:normal}
+  .tbl-cards .tr > div > span{display:inline-block;max-width:100%;white-space:normal !important;overflow-wrap:anywhere}
 }
 /* Mapa da Localização (Google Maps sem chave de API, a partir do endereço). */
-.locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:var(--r-card);overflow:hidden;background:#CFE7E8;border:1px solid #E3DDD0}
+.locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:var(--r-card);overflow:hidden;background:#D2E3E5;border:1px solid #E3DDD0}
 .locmap iframe{display:block;width:100%;height:100%;border:0}
 @media (max-width:767px){.locmap{height:260px}}
 /* Responder Fale conosco: botões lado a lado; no celular, um embaixo do outro. */
@@ -353,7 +395,10 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
 .tile{border-radius:var(--r-card);padding:16px 8px;text-align:center;cursor:pointer;transition:transform .15s}
 .tile:hover{transform:translateY(-2px)}
 .mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-@media (max-width:1100px){ .grid2{grid-template-columns:1fr} }
+@media (max-width:1100px){ .grid2{grid-template-columns:minmax(0,1fr)} }
+/* Seletor (Hoje / 7 dias / 30 dias) no celular: ocupa a largura e as opções
+   dividem o espaço, para caber em 360 px com a margem de 24 px. */
+@media (max-width:767px){.seg{display:flex;width:100%}.seg div{flex:1 1 0;min-width:0;padding:0 8px;white-space:normal;text-align:center;line-height:1.2}}
 /* No celular/tablet o menu do admin vira um botão "Menu" que abre a lista
    em grade (antes era uma faixa que precisava arrastar para os lados). */
 .adm-menubtn{display:none}
@@ -362,40 +407,43 @@ textarea.inp{min-height:88px;padding:12px;resize:vertical;line-height:1.5}
   .adm-side{width:100%;height:auto;position:sticky;top:0;z-index:20;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible;padding:8px var(--px);gap:8px}
   .adm-brand{flex:1;padding:0;min-height:48px}
   .adm-brand small{display:inline}
-  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid #2A3F4B;color:#EAF2F3;font:700 15px 'DM Sans',sans-serif;cursor:pointer;user-select:none}
+  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid rgba(255,255,255,.32);color:#EAF2F3;font:700 15px 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none}
   .adm-side:not(.open) .adm-item,.adm-side:not(.open) .adm-sep,.adm-side:not(.open) .adm-foot{display:none}
   .adm-side.open .adm-item{flex:1 1 calc(50% - 8px);min-height:48px;padding:8px 12px;font-size:15px}
   .adm-side.open .adm-sep{display:none}
-  .adm-side.open .adm-foot{width:100%;margin:4px 0 0;padding:8px 0 0;border-top:1px solid #2A3F4B;flex-direction:row;align-items:center;justify-content:space-between}
+  .adm-side.open .adm-foot{width:100%;margin:4px 0 0;padding:8px 0 0;border-top:1px solid rgba(255,255,255,.32);flex-direction:row;align-items:center;justify-content:space-between}
   .adm-side.open .adm-foot .em{display:block;padding:0 4px;min-width:0}
   .adm-main{width:100%}
 }
 
 /* ===== Cozinha (mesmo visual da administração: menu escuro, fundo areia e
    cartões brancos; letras grandes para ler de longe na parede) ===== */
-.kz-chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;border:1px solid #E3DDD0;font:600 var(--fs-sm) 'DM Sans',sans-serif;white-space:nowrap}
-.kz-chip b{font:800 18px 'Bricolage Grotesque',sans-serif}
-.kz-clock{font:800 var(--fs-h1) 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;margin-left:4px}
-.kz-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid #2A3F4B;background:transparent;color:#EAF2F3;font:700 var(--fs-sm) 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
-.kz-btn:hover{border-color:#9FB2BA}
+.kz-chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;border:1px solid #E3DDD0;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;white-space:nowrap}
+.kz-chip b{font:800 18px 'Manrope',system-ui,sans-serif}
+.kz-clock{font:800 var(--fs-h1) 'Manrope',system-ui,sans-serif;letter-spacing:-.02em;margin-left:4px}
+.kz-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid rgba(255,255,255,.32);background:transparent;color:#EAF2F3;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.kz-btn:hover{background:rgba(255,255,255,.1);border-color:#C3D8DB}
 .kz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,.9fr);gap:var(--gap);align-items:start}
-.kz-col{background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-card);padding:var(--cpad);display:flex;flex-direction:column;gap:12px}
-.kz-colhead{display:flex;align-items:center;justify-content:space-between;font:800 var(--fs-h3) 'DM Sans',sans-serif;padding:0 0 4px;color:#12232E}
-.kz-n{display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;font:800 var(--fs-sm) 'DM Sans',sans-serif;padding:0 8px}
+.kz-col{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad);display:flex;flex-direction:column;gap:12px}
+.kz-colhead{display:flex;align-items:center;justify-content:space-between;font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif;padding:0 0 4px;color:#14232A}
+.kz-n{display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif;padding:0 8px}
 .kz-card{background:#FBFAF6;border-radius:var(--r-card);padding:16px;border:2px solid #EFEADF;display:flex;flex-direction:column;gap:12px}
 .kz-card.late{border-color:#D9432F;background:#FFF8F6}
-.kz-mesa{font:800 var(--fs-h2) 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:#12232E}
-.kz-time{font:800 var(--fs-sm) 'DM Sans',sans-serif;padding:4px 12px;border-radius:999px;background:#EFEADF;color:#12232E;white-space:nowrap}
+.kz-mesa{font:800 var(--fs-h2) 'Manrope',system-ui,sans-serif;letter-spacing:-.02em;color:#14232A}
+.kz-time{font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif;padding:4px 12px;border-radius:999px;background:#EFEADF;color:#14232A;white-space:nowrap}
 .kz-card.late .kz-time{background:#FDECEA;color:#8A1C12}
-.kz-cliente{display:flex;align-items:flex-start;gap:8px;margin-top:-4px;font:600 16px/1.5 'DM Sans',sans-serif;color:#12232E}
-.kz-cliente svg{flex:none;margin-top:3px;color:#0B6670}
+.kz-cliente{display:flex;align-items:flex-start;gap:8px;margin-top:-4px;font:600 16px/1.5 'Manrope',system-ui,sans-serif;color:#14232A}
+.kz-cliente svg{flex:none;margin-top:3px;color:#1F5A63}
 .kz-cliente span{min-width:0;overflow-wrap:anywhere}
-.kz-item{font:500 16px/1.5 'DM Sans',sans-serif;color:#12232E}
-.kz-item b{color:#0B6670}
-.kz-obs{background:#FFF4DB;color:#7A4B00;border-radius:var(--r-ctl);padding:8px 12px;font:600 var(--fs-sm)/1.5 'DM Sans',sans-serif}
-.kz-act{min-height:48px;border-radius:var(--r-ctl);display:flex;align-items:center;justify-content:center;font:800 15px 'DM Sans',sans-serif;cursor:pointer;text-align:center;padding:0 16px}
-.kz-empty{color:#5A6670;font:500 var(--fs-body)/1.5 'DM Sans',sans-serif;text-align:center;padding:24px 8px}
-.kz-avail{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:8px 4px;border-top:1px solid #EFEADF;font:500 var(--fs-body) 'DM Sans',sans-serif}
+.kz-item{font:500 16px/1.5 'Manrope',system-ui,sans-serif;color:#14232A}
+.kz-item b{color:#1F5A63}
+.kz-obs{background:#FFF4DB;color:#7A4B00;border-radius:var(--r-ctl);padding:8px 12px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif}
+/* ação do cartão da cozinha: o mesmo botão principal do app (a cor do
+   status fica na bolinha do título da coluna) */
+.kz-act{min-height:var(--ctl);border-radius:var(--r-btn);display:flex;align-items:center;justify-content:center;font:700 16px/1.2 'Manrope',system-ui,sans-serif;cursor:pointer;text-align:center;padding:0 20px;background:var(--brand);color:#fff;transition:background-color .15s ease-out}
+.kz-act:hover{background:var(--brand-hover)}
+.kz-empty{color:#55626A;font:500 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;text-align:center;padding:24px 8px}
+.kz-avail{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:8px 4px;border-top:1px solid #EFEADF;font:500 var(--fs-body) 'Manrope',system-ui,sans-serif}
 .kz-sound{padding:16px;border-radius:var(--r-card);background:#FFF4DB;border:1px solid #F3DDA6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--gap)}
 @media (max-width:1400px){
   .kz-board{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -424,25 +472,25 @@ select{caret-color:auto}
 </style>
 </helmet>
 
-<div style="min-height:100vh;position:relative;background:#F6F3EC">
+<div style="min-height:100vh;position:relative;background:#F7F5F0">
       <sc-if value="{{ isCliente }}" hint-placeholder-val="{{ true }}">
       <div class="sfc">
 
         <sc-if value="{{ showAuth }}" hint-placeholder-val="{{ false }}">
           <div class="auth">
             <div class="auth-art">
-              <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
-              <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
+              <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
+              <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
               <div style="position:relative;max-width:460px">
                 <div class="tt" style="font-size:40px">{{ authArtTitle }}</div>
-                <p style="font-size:var(--fs-h3);line-height:1.5;color:#DDF1F2;margin:16px 0 0">{{ authArtSub }}</p>
+                <p style="font-size:var(--fs-h3);line-height:1.5;color:#E1EEEF;margin:16px 0 0">{{ authArtSub }}</p>
               </div>
-              <div style="position:relative;font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
-              <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
+              <div style="position:relative;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#D2E3E5">Seus dados são protegidos conforme a LGPD.</div>
+              <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#2A6C75"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#3B8089" opacity=".7"></path></svg>
             </div>
-            <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:var(--cpad);flex-direction:column;gap:12px;position:relative;overflow:hidden">
-              <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></div>
-              <div style="font:500 var(--fs-body)/1.5 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">{{ authArtTitle }}</div>
+            <div class="auth-mobile" style="background:#1F5A63;color:#fff;padding:var(--cpad);flex-direction:column;gap:12px;position:relative;overflow:hidden">
+              <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></div>
+              <div style="font:500 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;color:#E1EEEF;max-width:320px">{{ authArtTitle }}</div>
             </div>
             <div class="auth-main">
               <div class="auth-box rise">
@@ -465,7 +513,7 @@ select{caret-color:auto}
                       <div class="alert alert-err">{{ loginErr }}</div>
                     </sc-if>
                     <sc-if value="{{ loginNeedsConfirm }}" hint-placeholder-val="{{ false }}">
-                      <div onClick="{{ resendConfirm }}" class="btn btn-ghost" style="border-color:#0B6670;color:#0B6670">{{ resendLabel }}</div>
+                      <div onClick="{{ resendConfirm }}" class="btn btn-ghost" style="border-color:#1F5A63;color:#1F5A63">{{ resendLabel }}</div>
                     </sc-if>
                     <div onClick="{{ doLogin }}" class="btn btn-dark" style="opacity:{{ loginBusyOpacity }};margin-top:4px">{{ loginBtnLabel }}</div>
                     <div class="divider"><span></span>ou<span></span></div>
@@ -493,7 +541,7 @@ select{caret-color:auto}
                       <div>
                         <span class="lbl">CPF</span>
                         <input class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="border-color:{{ suCpfBorder }}">
-                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
+                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                       </div>
                     </div>
                     <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}"></div>
@@ -502,8 +550,8 @@ select{caret-color:auto}
                       <div><span class="lbl">Confirmar senha</span><input class="inp" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" placeholder="Repita a senha"></div>
                     </div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
-                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#0B6670;cursor:pointer">
-                      <span onClick="{{ toggleSuTerms }}" style="font:500 var(--fs-sm)/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
+                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
+                      <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
                     <div onClick="{{ doSignup }}" class="btn btn-sun" style="opacity:{{ signupBusyOpacity }}">{{ signupBtnLabel }}</div>
@@ -529,7 +577,7 @@ select{caret-color:auto}
                           <div>
                             <span class="lbl">CPF</span>
                             <input class="inp" value="{{ fpCpf }}" onChange="{{ setFpCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="border-color:{{ fpCpfBorder }}">
-                            <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
+                            <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                             <span class="muted" style="display:block;font-size:var(--fs-sm);line-height:1.5;margin-top:8px">Não lembra o e-mail do cadastro? Mandamos o link para o e-mail ligado a este CPF.</span>
                           </div>
                         </sc-if>
@@ -540,9 +588,9 @@ select{caret-color:auto}
                     </sc-if>
                     <sc-if value="{{ fpSent }}" hint-placeholder-val="{{ false }}">
                       <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px" class="rise">
-                        <span style="width:76px;height:76px;border-radius:50%;background:#E7F1F1;display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0B6670" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg></span>
+                        <span style="width:76px;height:76px;border-radius:50%;background:#E6EFF0;display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg></span>
                         <div class="tt" style="font-size:var(--fs-h1)">Link enviado</div>
-                        <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:#12232E;word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
+                        <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:#14232A;word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
                         <div onClick="{{ goLogin }}" class="btn btn-dark" style="width:100%;margin-top:8px">Voltar ao login</div>
                       </div>
                     </sc-if>
@@ -561,17 +609,17 @@ select{caret-color:auto}
                       <div>
                         <span class="lbl">CPF</span>
                         <input class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" style="border-color:{{ suCpfBorder }}">
-                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
+                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                       </div>
                     </div>
                     <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}"></div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
-                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#0B6670;cursor:pointer">
-                      <span onClick="{{ toggleSuTerms }}" style="font:500 var(--fs-sm)/1.5 'DM Sans',sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
+                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
+                      <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
                     <div onClick="{{ doCompleteProfile }}" class="btn btn-sun" style="opacity:{{ completeBusyOpacity }}">{{ completeBtnLabel }}</div>
-                    <div onClick="{{ goLogin }}" class="link" style="text-align:center;color:#5A6670">Sair</div>
+                    <div onClick="{{ goLogin }}" class="link" style="text-align:center;color:#55626A">Sair</div>
                   </div>
                 </sc-if>
 
@@ -584,10 +632,10 @@ select{caret-color:auto}
           <div style="flex:1;display:flex;flex-direction:column;min-height:100vh">
             <div class="topbar">
               <div class="topbar-in">
-                <div onClick="{{ goHome }}" class="brand"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
+                <div onClick="{{ goHome }}" class="brand"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
                 <div class="toplinks">
                   <sc-if value="{{ hasTable }}" hint-placeholder-val="{{ false }}">
-                    <span class="mesachip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B6670" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M5 10v10M19 10v10M8 6h8l2 4H6z"></path></svg>Mesa {{ tableStr }}</span>
+                    <span class="mesachip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M5 10v10M19 10v10M8 6h8l2 4H6z"></path></svg>Mesa {{ tableStr }}</span>
                   </sc-if>
                   <sc-for list="{{ topLinks }}" as="t" hint-placeholder-count="3">
                     <span onClick="{{ t.go }}" class="toplink {{ t.cls }}">{{ t.label }}</span>
@@ -602,7 +650,7 @@ select{caret-color:auto}
             <sc-if value="{{ showPageHead }}" hint-placeholder-val="{{ false }}">
               <div class="pagehead">
                 <sc-if value="{{ hdrBack }}" hint-placeholder-val="{{ false }}">
-                  <span onClick="{{ onBack }}" class="backbtn" aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12232E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></span>
+                  <span onClick="{{ onBack }}" class="backbtn" aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14232A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></span>
                 </sc-if>
                 <div style="min-width:0">
                   <div class="tt" style="font-size:var(--fs-h1)">{{ hdrTitle }}</div>
@@ -616,10 +664,10 @@ select{caret-color:auto}
               <sc-if value="{{ is_menu }}" hint-placeholder-val="{{ false }}">
                 <div>
                   <div class="hero">
-                    <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:90px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
-                    <svg style="position:absolute;right:clamp(-70px,2vw,40px);top:-40px;width:clamp(150px,18vw,220px);height:clamp(150px,18vw,220px)" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
+                    <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:90px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#2A6C75"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#3B8089" opacity=".7"></path></svg>
+                    <svg style="position:absolute;right:clamp(-70px,2vw,40px);top:-40px;width:clamp(150px,18vw,220px);height:clamp(150px,18vw,220px)" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
                     <div style="position:relative">
-                      <span style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.14);font:600 var(--fs-sm) 'DM Sans',sans-serif;margin-bottom:16px"><span style="{{ heroDotStyle }}"></span>{{ heroChip }}</span>
+                      <span style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.14);font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;margin-bottom:16px"><span style="{{ heroDotStyle }}"></span>{{ heroChip }}</span>
                       <h1 class="tt">Peça da mesa. A gente leva até a areia.</h1>
                     </div>
                   </div>
@@ -633,8 +681,8 @@ select{caret-color:auto}
 
                   <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
                     <div class="mobilebar">
-                      <div onClick="{{ goCart }}" style="width:100%;height:56px;border-radius:var(--r-card);background:#12232E;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;cursor:pointer;box-shadow:0 16px 32px -12px rgba(18,35,46,.55);font:700 var(--fs-body) 'DM Sans',sans-serif">
-                        <span style="display:flex;align-items:center;gap:12px"><span style="display:inline-flex;min-width:30px;height:30px;align-items:center;justify-content:center;border-radius:var(--r-card);background:#FFB21E;color:#12232E;font-weight:800">{{ cartCount }}</span>{{ cartCountStr }}</span>
+                      <div onClick="{{ goCart }}" style="width:100%;height:56px;border-radius:var(--r-btn);background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;cursor:pointer;box-shadow:0 16px 32px -12px rgba(20,35,42,.55);font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">
+                        <span style="display:flex;align-items:center;gap:12px"><span style="display:inline-flex;min-width:30px;height:30px;align-items:center;justify-content:center;border-radius:var(--r-card);background:#F5B83D;color:#14232A;font-weight:800">{{ cartCount }}</span>{{ cartCountStr }}</span>
                         <span style="font-weight:800">{{ subtotalStr }}</span>
                       </div>
                     </div>
@@ -647,8 +695,8 @@ select{caret-color:auto}
                         <span class="muted" style="font-size:var(--fs-sm)">{{ countLabel }}</span>
                       </div>
                       <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-ctl);padding:0 16px;min-height:48px;margin-bottom:16px">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6458" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-                        <input value="{{ menuSearch }}" onChange="{{ setMenuSearch }}" placeholder="Buscar no cardápio" style="flex:1;min-width:0;border:none;outline:none;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:transparent;min-height:46px">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#55626A" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+                        <input value="{{ menuSearch }}" onChange="{{ setMenuSearch }}" placeholder="Buscar no cardápio" style="flex:1;min-width:0;border:none;outline:none;font:500 16px 'Manrope',system-ui,sans-serif;color:#14232A;background:transparent;min-height:46px">
                       </div>
                       <div class="cats" style="margin-bottom:24px">
                         <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
@@ -661,25 +709,25 @@ select{caret-color:auto}
                             <div class="pimg" style="{{ p.tileStyle }}">
                               <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ p.photoStyle }}"></span></sc-if>
                               <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="64" height="64" fill="none" stroke="{{ p.iconColor }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ p.markPath }}"></path></svg></sc-if>
-                              <sc-if value="{{ p.hasPrep }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:12px;top:12px;padding:4px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.92);font:600 12px 'DM Sans',sans-serif;color:#12232E">{{ p.prep }}</span></sc-if>
+                              <sc-if value="{{ p.hasPrep }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:12px;top:12px;padding:4px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.92);font:600 12px 'Manrope',system-ui,sans-serif;color:#14232A">{{ p.prep }}</span></sc-if>
                             </div>
                             <div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:8px;flex-grow:1">
-                              <div style="font:700 var(--fs-body)/1.25 'DM Sans',sans-serif">{{ p.name }}</div>
+                              <div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif">{{ p.name }}</div>
                               <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;flex-grow:1">{{ p.desc }}</div>
                               <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:8px;gap:8px">
-                                <span style="font:700 var(--fs-h3) 'Bricolage Grotesque',sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
+                                <span style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
                                 <sc-if value="{{ p.showAdd }}" hint-placeholder-val="{{ true }}">
                                   <div onClick="{{ p.add }}" class="addbtn" aria-label="Adicionar ao pedido"><span class="plus">+</span><span class="lbltxt">Adicionar</span></div>
                                 </sc-if>
                                 <sc-if value="{{ p.inCart }}" hint-placeholder-val="{{ false }}">
-                                  <div onClick="{{ stopProp }}" class="stepper" style="background:#E7F1F1">
+                                  <div onClick="{{ stopProp }}" class="stepper" style="background:#E6EFF0">
                                     <span onClick="{{ p.remove }}" class="sb" aria-label="Remover um">−</span>
                                     <span class="sq">{{ p.qty }}</span>
                                     <span onClick="{{ p.add }}" class="sb on" aria-label="Adicionar mais um">+</span>
                                   </div>
                                 </sc-if>
                                 <sc-if value="{{ p.soldOut }}" hint-placeholder-val="{{ false }}">
-                                  <span class="chip" style="background:#12232E;color:#fff">Esgotado</span>
+                                  <span class="chip" style="background:#14232A;color:#fff">Esgotado</span>
                                 </sc-if>
                               </div>
                             </div>
@@ -694,7 +742,7 @@ select{caret-color:auto}
                         </div>
                       </sc-if>
                       <sc-if value="{{ noMenuItems }}" hint-placeholder-val="{{ false }}">
-                        <div class="card" style="padding:40px 20px;text-align:center" ><div style="font:700 var(--fs-body) 'DM Sans',sans-serif">Nada encontrado</div><div class="muted" style="margin-top:8px">Tente outra palavra ou outra categoria.</div></div>
+                        <div class="card" style="padding:40px 20px;text-align:center" ><div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Nada encontrado</div><div class="muted" style="margin-top:8px">Tente outra palavra ou outra categoria.</div></div>
                       </sc-if>
                     </div>
 
@@ -702,7 +750,7 @@ select{caret-color:auto}
                       <div class="card" style="border-radius:var(--r-card);padding:24px">
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
                           <h2 class="tt" style="margin:0;font-size:var(--fs-h2)">Seu pedido</h2>
-                          <span style="display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:var(--r-card);background:#FFB21E;color:#12232E;font-weight:800;padding:0 12px">{{ cartCount }}</span>
+                          <span style="display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:var(--r-card);background:#F5B83D;color:#14232A;font-weight:800;padding:0 12px">{{ cartCount }}</span>
                         </div>
                         <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
                           <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:16px">
@@ -712,8 +760,8 @@ select{caret-color:auto}
                                   <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
                                   <div class="muted" style="font-size:var(--fs-sm)">{{ c.qty }} × {{ c.unitStr }}</div>
                                 </div>
-                                <span onClick="{{ c.dec }}" style="width:40px;height:40px;border-radius:50%;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">−</span>
-                                <span onClick="{{ c.inc }}" style="width:40px;height:40px;border-radius:50%;border:1px solid #E3DDD0;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">+</span>
+                                <span onClick="{{ c.dec }}" style="width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">−</span>
+                                <span onClick="{{ c.inc }}" style="width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">+</span>
                                 <div style="width:82px;text-align:right;font-weight:700;flex-shrink:0">{{ c.lineStr }}</div>
                               </div>
                             </sc-for>
@@ -731,10 +779,10 @@ select{caret-color:auto}
                         </sc-if>
                         <sc-if value="{{ noCart }}" hint-placeholder-val="{{ true }}">
                           <div class="muted" style="padding:24px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#B9B2A3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg>
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8C949A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg>
                             <p style="margin:0">Seu carrinho está vazio. Escolha algo gelado pra começar.</p>
                           </div>
-                          <div class="btn" style="background:#EFEADF;color:#6B6458;cursor:not-allowed">Fechar pedido</div>
+                          <div class="btn" style="background:#EFEADF;color:#55626A;cursor:not-allowed">Fechar pedido</div>
                         </sc-if>
                       </div>
                     </div>
@@ -761,14 +809,14 @@ select{caret-color:auto}
                     </div>
                     <div class="pd-chips">
                       <sc-for list="{{ pFacts }}" as="fc" hint-placeholder-count="2">
-                        <span class="chip" style="background:#fff;border:1px solid #E3DDD0;padding:8px 12px;font-size:var(--fs-sm);color:#12232E">{{ fc.t }}</span>
+                        <span class="chip" style="background:#fff;border:1px solid #E3DDD0;padding:8px 12px;font-size:var(--fs-sm);color:#14232A">{{ fc.t }}</span>
                       </sc-for>
                       <sc-for list="{{ pTags }}" as="tg" hint-placeholder-count="2">
                         <span class="chip" style="{{ tg.style }}">{{ tg.t }}</span>
                       </sc-for>
                     </div>
                     <sc-if value="{{ hasIngredientes }}" hint-placeholder-val="{{ false }}">
-                      <div class="muted pd-ingr"><b style="color:#12232E">Ingredientes:</b> {{ pIngredientes }}</div>
+                      <div class="muted pd-ingr"><b style="color:#14232A">Ingredientes:</b> {{ pIngredientes }}</div>
                     </sc-if>
                     <div class="card pd-buy">
                       <div class="pd-note">
@@ -808,7 +856,7 @@ select{caret-color:auto}
                             <sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="{{ c.iconColor }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ c.markPath }}"></path></svg></sc-if>
                           </span>
                           <div class="cr-info" style="flex:1;min-width:0">
-                            <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">{{ c.name }}</div>
+                            <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ c.name }}</div>
                             <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ c.sub }}</div>
                           </div>
                           <div class="stepper">
@@ -816,7 +864,7 @@ select{caret-color:auto}
                             <span class="sq">{{ c.qty }}</span>
                             <span onClick="{{ c.inc }}" class="sb on">+</span>
                           </div>
-                          <div class="cr-price" style="width:92px;text-align:right;font:800 var(--fs-body) 'DM Sans',sans-serif;flex-shrink:0">{{ c.lineStr }}</div>
+                          <div class="cr-price" style="width:92px;text-align:right;font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;flex-shrink:0">{{ c.lineStr }}</div>
                         </div>
                       </sc-for>
                     </div>
@@ -824,7 +872,7 @@ select{caret-color:auto}
                   </div>
                   <div class="col-side">
                     <div class="card" style="padding:var(--cpad)">
-                      <div style="font:700 var(--fs-h3) 'DM Sans',sans-serif;margin-bottom:8px">Resumo</div>
+                      <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;margin-bottom:8px">Resumo</div>
                       <div class="sumrow"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
                       <div class="sumrow"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
                       <div class="sumtotal"><span>Total a pagar</span><span>{{ totalStr }}</span></div>
@@ -839,7 +887,7 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_cartEmpty }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:48px 12px">
-                  <span style="width:96px;height:96px;border-radius:50%;background:#fff;border:1px dashed #D6CFBF;display:flex;align-items:center;justify-content:center"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#B9B2A3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg></span>
+                  <span style="width:96px;height:96px;border-radius:50%;background:#fff;border:1px dashed #D6CFBF;display:flex;align-items:center;justify-content:center"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#8C949A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg></span>
                   <div class="tt" style="font-size:var(--fs-h2)">Seu carrinho está vazio</div>
                   <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:380px">Escolha alguma coisa gelada no cardápio e nós levamos até o seu guarda-sol.</p>
                   <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:12px">Ver o cardápio</div>
@@ -849,10 +897,10 @@ select{caret-color:auto}
               <sc-if value="{{ is_table }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
                   <div class="card" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px">
-                    <span style="font:700 13px 'DM Sans',sans-serif;color:#5A6670;text-transform:uppercase;letter-spacing:.08em">Nº da mesa ou guarda-sol</span>
-                    <div style="width:150px;height:150px;border-radius:50%;background:#0B6670;box-shadow:0 0 0 8px #F6F3EC,0 0 0 11px #FBD58A;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:12px 0">
-                      <span style="font:700 var(--fs-sm) 'DM Sans',sans-serif;color:#CFE7E8">Mesa</span>
-                      <input value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" placeholder="00" aria-label="Número da mesa" style="width:150px;max-width:100%;border:none;outline:none;text-align:center;font:800 var(--fs-h1) 'Bricolage Grotesque',sans-serif;color:#fff;background:transparent;padding:0;line-height:1">
+                    <span style="font:700 13px 'Manrope',system-ui,sans-serif;color:#55626A;text-transform:uppercase;letter-spacing:.08em">Nº da mesa ou guarda-sol</span>
+                    <div style="width:150px;height:150px;border-radius:50%;background:#1F5A63;box-shadow:0 0 0 8px #F7F5F0,0 0 0 11px #FBD58A;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:12px 0">
+                      <span style="font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#D2E3E5">Mesa</span>
+                      <input value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" placeholder="00" aria-label="Número da mesa" style="width:150px;height:56px;max-width:100%;border:none;outline:none;text-align:center;font:800 var(--fs-h1) 'Manrope',system-ui,sans-serif;color:#fff;background:transparent;padding:0;line-height:1">
                     </div>
                     <div class="muted" style="font-size:var(--fs-body);line-height:1.5;max-width:420px">O número está na plaquinha de madeira do guarda-sol. {{ activeTablesHint }}</div>
                   </div>
@@ -875,12 +923,12 @@ select{caret-color:auto}
               <sc-if value="{{ is_payment }}" hint-placeholder-val="{{ false }}">
                 <div class="cols rise">
                   <div class="col-main">
-                    <div style="font:700 var(--fs-h3) 'DM Sans',sans-serif">Forma de pagamento</div>
+                    <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif">Forma de pagamento</div>
                     <div class="payopts">
                       <sc-for list="{{ payOpts }}" as="o" hint-placeholder-count="3">
                         <div onClick="{{ o.pick }}" class="payopt {{ o.cls }}">
                           <span class="radio"></span>
-                          <div style="min-width:0"><div style="font:700 var(--fs-body) 'DM Sans',sans-serif">{{ o.nm }}</div><div class="muted" style="font-size:13px;margin-top:2px">{{ o.sub }}</div></div>
+                          <div style="min-width:0"><div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ o.nm }}</div><div class="muted" style="font-size:13px;margin-top:2px">{{ o.sub }}</div></div>
                         </div>
                       </sc-for>
                     </div>
@@ -891,9 +939,9 @@ select{caret-color:auto}
                   </div>
                   <div class="col-side">
                     <div class="card" style="padding:var(--cpad)">
-                      <div style="font:700 var(--fs-h3) 'DM Sans',sans-serif;margin-bottom:12px">Total do pedido · Mesa {{ tableStr }}</div>
+                      <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;margin-bottom:12px">Total do pedido · Mesa {{ tableStr }}</div>
                       <sc-for list="{{ cartRows }}" as="c" hint-placeholder-count="3">
-                        <div style="display:flex;justify-content:space-between;gap:12px;font:500 var(--fs-body)/1.35 'DM Sans',sans-serif;padding:4px 0"><span><b>{{ c.qty }}×</b> {{ c.name }}</span><b style="white-space:nowrap">{{ c.lineStr }}</b></div>
+                        <div style="display:flex;justify-content:space-between;gap:12px;font:500 var(--fs-body)/1.35 'Manrope',system-ui,sans-serif;padding:4px 0"><span><b>{{ c.qty }}×</b> {{ c.name }}</span><b style="white-space:nowrap">{{ c.lineStr }}</b></div>
                       </sc-for>
                       <div style="border-top:1px dashed #D6CFBF;margin-top:8px;padding-top:8px">
                         <div class="sumrow" style="font-size:var(--fs-sm)"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
@@ -912,11 +960,11 @@ select{caret-color:auto}
                       <img src="{{ pixQrImg }}" alt="QR Code PIX" style="width:200px;height:200px;margin:0 auto 16px;padding:8px;background:#fff;border-radius:var(--r-card);box-shadow:0 0 0 1px #E3DDD0;display:block" />
                     </sc-if>
                     <sc-if value="{{ noPixQrImg }}" hint-placeholder-val="{{ true }}">
-                      <div style="width:200px;height:200px;margin:0 auto 16px;border-radius:var(--r-card);background:#EFEADF;display:flex;align-items:center;justify-content:center;color:#B9B2A3"><svg viewBox="0 0 48 48" width="70" height="70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M24 6 42 24 24 42 6 24 24 6Z M17 24h14 M24 17v14"></path></svg></div>
+                      <div style="width:200px;height:200px;margin:0 auto 16px;border-radius:var(--r-card);background:#EFEADF;display:flex;align-items:center;justify-content:center;color:#8C949A"><svg viewBox="0 0 48 48" width="70" height="70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M24 6 42 24 24 42 6 24 24 6Z M17 24h14 M24 17v14"></path></svg></div>
                     </sc-if>
                     <div class="muted" style="font-size:var(--fs-body)">Valor a pagar</div>
                     <div class="tt" style="font-size:var(--fs-h1);margin-top:2px">{{ orderTotalStr }}</div>
-                    <div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><svg style="animation:sfspin .9s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>Aguardando confirmação do pagamento…</div>
+                    <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><svg style="animation:sfspin .9s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>Aguardando confirmação do pagamento…</div>
                   </div>
                   <div onClick="{{ copyPix }}" class="btn btn-dark">Copiar código PIX</div>
                   <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola. A cozinha recebe o pedido assim que o pagamento for confirmado, automaticamente, sem precisar avisar aqui.</div>
@@ -926,11 +974,11 @@ select{caret-color:auto}
               <sc-if value="{{ is_card }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
                   <div class="card" style="padding:var(--cpad);text-align:center">
-                    <span style="width:72px;height:72px;margin:0 auto 12px;border-radius:50%;background:#E7F1F1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="#0B6670" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M11 13h26a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4Z M7 21h34 M14 29h7"></path></svg></span>
+                    <span style="width:72px;height:72px;margin:0 auto 12px;border-radius:50%;background:#E6EFF0;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="#1F5A63" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M11 13h26a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4Z M7 21h34 M14 29h7"></path></svg></span>
                     <div class="muted" style="font-size:var(--fs-body)">Valor a pagar</div>
                     <div class="tt" style="font-size:var(--fs-h1);margin-top:2px">{{ orderTotalStr }}</div>
                     <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
-                      <div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;margin-top:12px">Aguardando confirmação do pagamento…</div>
+                      <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-top:12px">Aguardando confirmação do pagamento…</div>
                     </sc-if>
                   </div>
                   <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do Mercado Pago para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
@@ -995,7 +1043,7 @@ select{caret-color:auto}
                   </div>
                   <div class="col-side">
                     <div class="card" style="padding:var(--cpad)">
-                      <div style="font:700 var(--fs-body) 'DM Sans',sans-serif;margin-bottom:8px">Itens</div>
+                      <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;margin-bottom:8px">Itens</div>
                       <sc-for list="{{ orderItems }}" as="it" hint-placeholder-count="3">
                         <div class="sumrow"><span>{{ it.n }}</span><span>{{ it.v }}</span></div>
                       </sc-for>
@@ -1044,7 +1092,7 @@ select{caret-color:auto}
                     <div class="tt" style="font-size:var(--fs-h1)">Não é mais possível cancelar</div>
                     <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ cancelBlockedMsg }}</p>
                   </div>
-                  <div class="card muted" style="padding:var(--cpad);font-size:var(--fs-body);line-height:1.5">Precisa de ajuda? Chame um atendente na mesa <b style="color:#12232E">{{ orderTable }}</b> ou fale com o balcão do quiosque.</div>
+                  <div class="card muted" style="padding:var(--cpad);font-size:var(--fs-body);line-height:1.5">Precisa de ajuda? Chame um atendente na mesa <b style="color:#14232A">{{ orderTable }}</b> ou fale com o balcão do quiosque.</div>
                   <div onClick="{{ goStatus }}" class="btn btn-sun">Voltar ao acompanhamento</div>
                 </div>
               </sc-if>
@@ -1055,11 +1103,11 @@ select{caret-color:auto}
                     <div onClick="{{ h.open }}" class="orow">
                       <span style="{{ h.dotStyle }}"></span>
                       <div style="flex:1;min-width:0">
-                        <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
+                        <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
                         <div class="muted" style="font-size:13px;margin-top:2px">{{ h.when }}</div>
                       </div>
                       <span style="{{ h.stStyle }}">{{ h.status }}</span>
-                      <span style="font:800 var(--fs-body) 'DM Sans',sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
+                      <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
                     </div>
                   </sc-for>
                 </div>
@@ -1067,7 +1115,7 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_historyEmpty }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:48px 12px">
-                  <span style="width:96px;height:96px;border-radius:50%;background:#fff;border:1px dashed #D6CFBF;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="#B9B2A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M13 8h22v32l-5-3-6 3-6-3-5 3V8Z M19 18h10 M19 25h10"></path></svg></span>
+                  <span style="width:96px;height:96px;border-radius:50%;background:#fff;border:1px dashed #D6CFBF;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="#8C949A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M13 8h22v32l-5-3-6 3-6-3-5 3V8Z M19 18h10 M19 25h10"></path></svg></span>
                   <div class="tt" style="font-size:var(--fs-h2)">Nenhum pedido ainda</div>
                   <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:380px">Quando você fizer o primeiro pedido, ele aparece aqui com os itens e o valor.</p>
                   <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:12px">Ver o cardápio</div>
@@ -1082,7 +1130,7 @@ select{caret-color:auto}
                     <div class="sumrow"><span>Situação</span><b>{{ hdStatus }}</b></div>
                   </div>
                   <div class="card" style="padding:var(--cpad)">
-                    <div style="font:700 var(--fs-body) 'DM Sans',sans-serif;margin-bottom:8px">Itens</div>
+                    <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;margin-bottom:8px">Itens</div>
                     <sc-for list="{{ hdItems }}" as="it" hint-placeholder-count="3">
                       <div class="sumrow"><span>{{ it.n }}</span><span>{{ it.v }}</span></div>
                     </sc-for>
@@ -1100,29 +1148,29 @@ select{caret-color:auto}
                       <div class="card" style="padding:var(--cpad)">
                         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
                           <span style="{{ meAvatarStyle }}">{{ meAvatarText }}</span>
-                          <div style="min-width:0"><div style="font:700 var(--fs-h3) 'DM Sans',sans-serif">{{ profileName }}</div><div class="muted" style="font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis">{{ profileEmail }}</div></div>
+                          <div style="min-width:0"><div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif">{{ profileName }}</div><div class="muted" style="font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis">{{ profileEmail }}</div></div>
                         </div>
-                        <div onClick="{{ goEditProfile }}" class="menurow">Editar perfil e foto<span style="color:#B9B2A3">›</span></div>
+                        <div onClick="{{ goEditProfile }}" class="menurow">Editar perfil e foto<span style="color:#55626A">›</span></div>
                         <sc-if value="{{ showChangePassword }}" hint-placeholder-val="{{ true }}">
-                          <div onClick="{{ goChangePassword }}" class="menurow">Trocar senha<span style="color:#B9B2A3">›</span></div>
+                          <div onClick="{{ goChangePassword }}" class="menurow">Trocar senha<span style="color:#55626A">›</span></div>
                         </sc-if>
-                        <div onClick="{{ goLocation }}" class="menurow">Localização do quiosque<span style="color:#B9B2A3">›</span></div>
-                        <div onClick="{{ goHistory }}" class="menurow">Meus pedidos<span style="color:#B9B2A3">›</span></div>
+                        <div onClick="{{ goLocation }}" class="menurow">Localização do quiosque<span style="color:#55626A">›</span></div>
+                        <div onClick="{{ goHistory }}" class="menurow">Meus pedidos<span style="color:#55626A">›</span></div>
                         <div onClick="{{ goLogin }}" class="btn btn-ghost btn-sm" style="margin-top:12px">Sair da conta</div>
                       </div>
                       <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:16px">
-                        <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">Avisos do pedido</div>
+                        <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Avisos do pedido</div>
                         <div class="pref-row">
-                          <div style="min-width:0"><div style="font:600 var(--fs-body) 'DM Sans',sans-serif">Avisar quando ficar pronto</div><div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:4px">{{ notifySub }}</div></div>
+                          <div style="min-width:0"><div style="font:600 var(--fs-body) 'Manrope',system-ui,sans-serif">Avisar quando ficar pronto</div><div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:4px">{{ notifySub }}</div></div>
                           <div onClick="{{ toggleNotifyReady }}" class="toggle" role="switch" aria-checked="{{ notifyOn }}" aria-label="Avisar quando ficar pronto" style="{{ notifySwitchStyle }}"><span style="{{ notifyKnobStyle }}"></span></div>
                         </div>
                         <div class="pref-row">
-                          <div style="min-width:0"><div style="font:600 var(--fs-body) 'DM Sans',sans-serif">Tocar som</div><div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:4px">Um toque curto quando o pedido fica pronto.</div></div>
+                          <div style="min-width:0"><div style="font:600 var(--fs-body) 'Manrope',system-ui,sans-serif">Tocar som</div><div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:4px">Um toque curto quando o pedido fica pronto.</div></div>
                           <div onClick="{{ toggleSoundPref }}" class="toggle" role="switch" aria-checked="{{ soundPrefOn }}" aria-label="Tocar som" style="{{ soundPrefSwitchStyle }}"><span style="{{ soundPrefKnobStyle }}"></span></div>
                         </div>
                       </div>
                       <div class="card" style="padding:var(--cpad);border-color:#F0C2BC">
-                        <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">Excluir conta</div>
+                        <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Excluir conta</div>
                         <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:8px 0 12px">Seus dados pessoais são apagados (LGPD). Os pedidos continuam no histórico do quiosque, sem o seu nome.</p>
                         <div onClick="{{ goDelete }}" class="btn btn-danger-ghost btn-sm" style="align-self:flex-start;display:inline-flex">Excluir minha conta</div>
                       </div>
@@ -1138,11 +1186,11 @@ select{caret-color:auto}
                             <div onClick="{{ h.open }}" class="orow">
                               <span style="{{ h.dotStyle }}"></span>
                               <div style="flex:1;min-width:0">
-                                <div style="font:700 var(--fs-body) 'DM Sans',sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
+                                <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
                                 <div class="muted" style="font-size:13px;margin-top:2px">{{ h.when }}</div>
                               </div>
                               <span style="{{ h.stStyle }}">{{ h.status }}</span>
-                              <span style="font:800 var(--fs-body) 'DM Sans',sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
+                              <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
                             </div>
                           </sc-for>
                         </div>
@@ -1184,8 +1232,8 @@ select{caret-color:auto}
                       <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ meBirth }}" onChange="{{ setMeBirth }}"></div>
                     </div>
                     <div class="form-2col">
-                      <div><span class="lbl">E-mail</span><input class="inp" value="{{ profileEmail }}" disabled="disabled" style="background:#F6F3EC;color:#5A6670"></div>
-                      <div><span class="lbl">CPF</span><input class="inp" value="{{ meCpf }}" disabled="disabled" style="background:#F6F3EC;color:#5A6670"></div>
+                      <div><span class="lbl">E-mail</span><input class="inp" value="{{ profileEmail }}" disabled="disabled" style="background:#F7F5F0;color:#55626A"></div>
+                      <div><span class="lbl">CPF</span><input class="inp" value="{{ meCpf }}" disabled="disabled" style="background:#F7F5F0;color:#55626A"></div>
                     </div>
                     <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:0">E-mail e CPF não mudam por aqui. Se precisar trocar, fale com o quiosque pelo Fale conosco.</p>
                     <sc-if value="{{ hasMeErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ meErr }}</div></sc-if>
@@ -1201,12 +1249,12 @@ select{caret-color:auto}
                   <div><span class="lbl">Repita a nova senha</span><input class="inp" type="password" autocomplete="new-password" value="{{ pwNew2 }}" onChange="{{ setPwNew2 }}" placeholder="••••••••"></div>
                   <sc-if value="{{ hasPwErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ pwErr }}</div></sc-if>
                   <div onClick="{{ submitChangePassword }}" class="btn btn-sun" style="opacity:{{ pwBusyOpacity }}">{{ pwSaveLabel }}</div>
-                  <div onClick="{{ goForgotFromProfile }}" class="link" style="text-align:center;color:#5A6670">Esqueci minha senha atual: mandar link por e-mail</div>
+                  <div onClick="{{ goForgotFromProfile }}" class="link" style="text-align:center;color:#55626A">Esqueci minha senha atual: mandar link por e-mail</div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_deleteAccount }}" hint-placeholder-val="{{ false }}">
-                <div style="position:fixed;inset:0;z-index:60;background:rgba(18,35,46,.5);display:flex;align-items:center;justify-content:center;padding:16px;animation:sffade .2s ease">
+                <div style="position:fixed;inset:0;z-index:60;background:rgba(20,35,42,.5);display:flex;align-items:center;justify-content:center;padding:16px;animation:sffade .2s ease">
                   <div class="rise" style="width:100%;max-width:420px;background:#fff;border-radius:var(--r-card);padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
                     <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
                     <div class="tt" style="font-size:var(--fs-h2)">Excluir sua conta?</div>
@@ -1238,7 +1286,7 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_offline }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
-                  <div style="padding:12px 16px;border-radius:var(--r-ctl);background:#12232E;color:#fff;display:flex;align-items:center;gap:12px;font:500 var(--fs-sm) 'DM Sans',sans-serif"><svg style="animation:sfpulse 1.2s ease-in-out infinite;flex-shrink:0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB21E" stroke-width="2.2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg><span><b>Sem conexão.</b> Tentando reconectar…</span></div>
+                  <div style="padding:12px 16px;border-radius:var(--r-ctl);background:#14232A;color:#fff;display:flex;align-items:center;gap:12px;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif"><svg style="animation:sfpulse 1.2s ease-in-out infinite;flex-shrink:0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5B83D" stroke-width="2.2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg><span><b>Sem conexão.</b> Tentando reconectar…</span></div>
                   <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:32px 12px">
                     <div class="tt" style="font-size:var(--fs-h1)">Você está offline</div>
                     <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:420px">O sinal na praia oscila. Seu carrinho ficou salvo no aparelho e será enviado quando a conexão voltar.</p>
@@ -1271,7 +1319,7 @@ select{caret-color:auto}
       <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
       <div class="adm">
         <div class="adm-side {{ admMenuCls }}">
-          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>admin</small></div>
+          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>admin</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ adminSide }}" as="it" hint-placeholder-count="7">
             <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
@@ -1279,7 +1327,7 @@ select{caret-color:auto}
           <div class="adm-sep"></div>
           <div onClick="{{ goKanban }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M10 7h4"></path></svg>Tela da cozinha</div>
           <div class="adm-foot">
-            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div class="em" style="font:500 13px 'Manrope',system-ui,sans-serif;color:#C3D8DB;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
@@ -1347,7 +1395,7 @@ select{caret-color:auto}
                     <div style="display:flex;flex-direction:column;gap:16px">
                       <sc-for list="{{ topSellers }}" as="ts" hint-placeholder-count="4">
                         <div>
-                          <div style="display:flex;justify-content:space-between;gap:12px;font:700 var(--fs-body) 'DM Sans',sans-serif;margin-bottom:8px"><span>{{ ts.name }}</span><span class="muted" style="font-weight:500">{{ ts.n }} un.</span></div>
+                          <div style="display:flex;justify-content:space-between;gap:12px;font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;margin-bottom:8px"><span>{{ ts.name }}</span><span class="muted" style="font-weight:500">{{ ts.n }} un.</span></div>
                           <div class="prog"><div style="{{ ts.barStyle }}"></div></div>
                         </div>
                       </sc-for>
@@ -1358,7 +1406,7 @@ select{caret-color:auto}
                   </sc-if>
                 </div>
               </div>
-              <div style="font:700 var(--fs-h3) 'DM Sans',sans-serif;margin-top:4px">Operação agora</div>
+              <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;margin-top:4px">Operação agora</div>
               <div class="mini">
                 <sc-for list="{{ opsMini }}" as="m" hint-placeholder-count="5">
                   <div class="kpi" style="padding:16px 16px"><div class="k" style="font-size:var(--fs-sm)">{{ m.k }}</div><div class="v" style="{{ m.style }}">{{ m.v }}</div></div>
@@ -1380,7 +1428,7 @@ select{caret-color:auto}
                     <div class="tr th" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px"><div>Pedido</div><div>Mesa</div><div>Hora</div><div>Itens</div><div style="text-align:right">Total</div><div>Pagamento</div><div>Status</div></div>
                     <sc-for list="{{ adminOrders }}" as="r" hint-placeholder-count="6">
                       <div class="tr" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px">
-                        <div data-l="Pedido" style="font-weight:800;color:#0B6670">{{ r.id }}</div>
+                        <div data-l="Pedido" style="font-weight:800;color:#1F5A63">{{ r.id }}</div>
                         <div data-l="Mesa" style="font-weight:700">{{ r.table }}</div>
                         <div data-l="Hora" class="muted" style="white-space:nowrap">{{ r.clock }}</div>
                         <div data-l="Itens" class="wide" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ r.itemsStr }}">{{ r.itemsStr }}</div>
@@ -1402,7 +1450,7 @@ select{caret-color:auto}
             <div style="display:flex;flex-direction:column;gap:16px" class="rise">
               <div class="kpis">
                 <sc-for list="{{ payKpis }}" as="k" hint-placeholder-count="4">
-                  <div class="kpi"><div class="k">{{ k.lbl }}</div><div class="v" style="font-size:var(--fs-h2)">{{ k.val }}</div><div class="s" style="color:#5A6670">{{ k.sub }}</div></div>
+                  <div class="kpi"><div class="k">{{ k.lbl }}</div><div class="v" style="font-size:var(--fs-h2)">{{ k.val }}</div><div class="s" style="color:#55626A">{{ k.sub }}</div></div>
                 </sc-for>
               </div>
               <sc-if value="{{ payOnlineOff }}" hint-placeholder-val="{{ false }}">
@@ -1414,7 +1462,7 @@ select{caret-color:auto}
                     <div class="tr th" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px"><div>Pedido</div><div>Mesa</div><div>Quando</div><div>Status</div><div>Pagamento</div><div>Recebimento</div><div style="text-align:right">Total</div></div>
                     <sc-for list="{{ payRows }}" as="r" hint-placeholder-count="6">
                       <div class="tr" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px">
-                          <div data-l="Pedido" style="font-weight:800;color:#0B6670">{{ r.id }}</div>
+                          <div data-l="Pedido" style="font-weight:800;color:#1F5A63">{{ r.id }}</div>
                           <div data-l="Mesa" style="font-weight:700">{{ r.table }}</div>
                           <div data-l="Quando" class="muted" style="white-space:nowrap">{{ r.when }}</div>
                           <div data-l="Status">{{ r.status }}</div>
@@ -1424,12 +1472,12 @@ select{caret-color:auto}
                               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                                 <span class="muted" style="font-size:13px">Recebido em:</span>
                                 <span onClick="{{ r.recvCash }}" class="chip" style="background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB;padding:8px 12px;cursor:pointer">Dinheiro</span>
-                                <span onClick="{{ r.recvCard }}" class="chip" style="background:#E7F1F1;color:#084C53;border:1px solid #CFE7E8;padding:8px 12px;cursor:pointer">Cartão</span>
+                                <span onClick="{{ r.recvCard }}" class="chip" style="background:#E6EFF0;color:#174A52;border:1px solid #D2E3E5;padding:8px 12px;cursor:pointer">Cartão</span>
                                 <span onClick="{{ r.recvPix }}" class="chip" style="background:#FFF4DB;color:#7A4B00;border:1px solid #F0D9A8;padding:8px 12px;cursor:pointer">PIX</span>
                               </div>
                             </sc-if>
                             <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
-                              <span onClick="{{ r.undo }}" class="chip" style="background:#fff;border:1px solid #D6CFBF;color:#5A6670;padding:8px 12px;cursor:pointer">Desfazer</span>
+                              <span onClick="{{ r.undo }}" class="chip" style="background:#fff;border:1px solid #D6CFBF;color:#55626A;padding:8px 12px;cursor:pointer">Desfazer</span>
                             </sc-if>
                           </div>
                           <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
@@ -1457,17 +1505,17 @@ select{caret-color:auto}
               <sc-for list="{{ msgRows }}" as="m" hint-placeholder-count="3">
                 <div class="card" style="{{ m.cardStyle }}">
                   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                    <span style="font:800 var(--fs-body) 'Bricolage Grotesque',sans-serif">{{ m.name }}</span>
+                    <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ m.name }}</span>
                     <span class="muted" style="font-size:var(--fs-sm)">{{ m.contact }}</span>
-                    <span class="chip" style="background:#E7F1F1;color:#084C53">{{ m.reason }}</span>
+                    <span class="chip" style="background:#E6EFF0;color:#174A52">{{ m.reason }}</span>
                     <span style="flex:1"></span>
                     <span class="muted" style="font-size:13px">{{ m.protocol }} · {{ m.when }}</span>
                   </div>
-                  <div style="font:400 var(--fs-body)/1.5 'DM Sans',sans-serif;color:#12232E;margin-top:12px;white-space:pre-wrap">{{ m.message }}</div>
+                  <div style="font:400 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;color:#14232A;margin-top:12px;white-space:pre-wrap">{{ m.message }}</div>
                   <sc-if value="{{ m.hasReply }}" hint-placeholder-val="{{ false }}">
-                    <div style="margin-top:12px;padding:12px 16px;border-radius:var(--r-ctl);background:#E7F1F1;color:#084C53">
-                      <div style="font:700 13px 'DM Sans',sans-serif;margin-bottom:4px">{{ m.replyInfo }}</div>
-                      <div style="font:400 var(--fs-body)/1.5 'DM Sans',sans-serif;white-space:pre-wrap;word-break:break-word">{{ m.reply }}</div>
+                    <div style="margin-top:12px;padding:12px 16px;border-radius:var(--r-ctl);background:#E6EFF0;color:#174A52">
+                      <div style="font:700 13px 'Manrope',system-ui,sans-serif;margin-bottom:4px">{{ m.replyInfo }}</div>
+                      <div style="font:400 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;white-space:pre-wrap;word-break:break-word">{{ m.reply }}</div>
                     </div>
                   </sc-if>
                   <sc-if value="{{ m.replying }}" hint-placeholder-val="{{ false }}">
@@ -1487,9 +1535,9 @@ select{caret-color:auto}
                     <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
                       <span class="chip" style="{{ m.statusStyle }}">{{ m.statusLabel }}</span>
                       <span style="flex:1"></span>
-                      <span onClick="{{ m.toggle }}" class="chip" style="padding:8px 16px;cursor:pointer;{{ m.toggleStyle }}">{{ m.toggleLabel }}</span>
+                      <span onClick="{{ m.toggle }}" class="chip" style="min-height:44px;padding:0 16px;cursor:pointer;{{ m.toggleStyle }}">{{ m.toggleLabel }}</span>
                       <sc-if value="{{ m.canReply }}" hint-placeholder-val="{{ true }}">
-                        <span onClick="{{ m.openReply }}" class="chip" style="padding:8px 16px;cursor:pointer;background:#FFB21E;color:#12232E;font-weight:800">{{ m.replyBtnLabel }}</span>
+                        <span onClick="{{ m.openReply }}" class="chip" style="min-height:44px;padding:0 16px;cursor:pointer;background:var(--brand);color:#fff;font-weight:700">{{ m.replyBtnLabel }}</span>
                       </sc-if>
                     </div>
                   </sc-if>
@@ -1513,13 +1561,13 @@ select{caret-color:auto}
                   <sc-for list="{{ productRows }}" as="p" hint-placeholder-count="6">
                     <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px;{{ p.cardStyle }}">
                       <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
-                        <div style="min-width:0"><div class="eyebrow" style="font-size:12px">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'DM Sans',sans-serif;margin-top:2px">{{ p.name }}</div></div>
-                        <span style="font:800 var(--fs-body) 'DM Sans',sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
+                        <div style="min-width:0"><div class="eyebrow" style="font-size:12px">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif;margin-top:2px">{{ p.name }}</div></div>
+                        <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
                       </div>
                       <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;flex-grow:1">{{ p.desc }}</div>
                       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="{{ p.pillStyle }}">{{ p.pill }}</span><span class="muted" style="font-size:13px">{{ p.meta }}</span></div>
                       <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #EFEADF;padding-top:12px;flex-wrap:wrap;gap:12px">
-                        <div style="display:flex;align-items:center;gap:12px;font:700 var(--fs-sm) 'DM Sans',sans-serif">
+                        <div style="display:flex;align-items:center;gap:12px;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif">
                           <div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div>{{ p.availLabel }}
                         </div>
                         <div style="display:flex;gap:8px;margin-left:auto">
@@ -1542,7 +1590,7 @@ select{caret-color:auto}
               </div>
               <div class="col-side" style="position:sticky;top:20px">
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-                  <div style="font:800 var(--fs-h3) 'DM Sans',sans-serif">{{ pfFormTitle }}</div>
+                  <div style="font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif">{{ pfFormTitle }}</div>
                   <div><span class="lbl">Nome</span><input class="inp" value="{{ pfName }}" onChange="{{ setPfName }}" placeholder="Nome do produto" /></div>
                   <div>
                     <span class="lbl">Categoria</span>
@@ -1584,7 +1632,7 @@ select{caret-color:auto}
                     <input class="inp" value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" placeholder="Novo valor (ex: 15,00)" style="flex:1;min-width:0" />
                     <div onClick="{{ saveMinOrder }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar mínimo</div>
                   </div>
-                  <sc-if value="{{ hasMinOrderMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670">{{ minOrderMsg }}</div></sc-if>
+                  <sc-if value="{{ hasMinOrderMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63">{{ minOrderMsg }}</div></sc-if>
                 </div>
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <div><h2 style="margin:0">Prazo para o cliente cancelar</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ cancelWindowStr }}. Contado a partir do pedido; só vale enquanto ele está na fila. Use 0 para não ter prazo.</div></div>
@@ -1592,7 +1640,7 @@ select{caret-color:auto}
                     <input class="inp" value="{{ cancelWindowInput }}" onChange="{{ setCancelWindowInput }}" placeholder="Minutos (ex: 5)" inputmode="numeric" style="flex:1;min-width:0" />
                     <div onClick="{{ saveCancelWindow }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar</div>
                   </div>
-                  <sc-if value="{{ hasCancelWindowMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670">{{ cancelWindowMsg }}</div></sc-if>
+                  <sc-if value="{{ hasCancelWindowMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63">{{ cancelWindowMsg }}</div></sc-if>
                 </div>
                 <div class="panel">
                   <h2 style="margin:0 0 4px">Pagamentos online</h2>
@@ -1612,7 +1660,7 @@ select{caret-color:auto}
                   <div onClick="{{ saveLocation }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar localização</div>
                   <a href="{{ locPreviewUrl }}" target="_blank" rel="noopener" class="link" style="font-size:var(--fs-sm)">Conferir no Google Maps</a>
                 </div>
-                <sc-if value="{{ hasLocMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670">{{ locMsg }}</div></sc-if>
+                <sc-if value="{{ hasLocMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63">{{ locMsg }}</div></sc-if>
               </div>
               <div class="panel">
                 <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
@@ -1620,20 +1668,20 @@ select{caret-color:auto}
                   <b style="font-size:var(--fs-body)">{{ activeTables }}</b>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-                  <label for="tableCountInp" style="font:700 var(--fs-sm) 'DM Sans',sans-serif">Quantidade de mesas</label>
+                  <label for="tableCountInp" style="font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif">Quantidade de mesas</label>
                   <div style="display:flex;gap:8px;flex:1;min-width:220px;max-width:360px">
                     <input id="tableCountInp" class="inp" value="{{ tableCountInput }}" onChange="{{ setTableCountInput }}" placeholder="{{ tableCountPlaceholder }}" inputmode="numeric" style="flex:1;min-width:0" />
                     <div onClick="{{ saveTableCount }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar</div>
                   </div>
                 </div>
                 <div class="muted" style="font-size:var(--fs-sm);margin-bottom:16px">Numeradas de 1 até esse número. Mesa nova já entra ativa.</div>
-                <sc-if value="{{ hasTableCountMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#0B6670;margin:-8px 0 16px">{{ tableCountMsg }}</div></sc-if>
+                <sc-if value="{{ hasTableCountMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin:-8px 0 16px">{{ tableCountMsg }}</div></sc-if>
                 <div class="tiles">
                   <sc-for list="{{ tableTiles }}" as="t" hint-placeholder-count="12">
                     <div onClick="{{ t.toggle }}" class="tile" style="{{ t.tileStyle }}">
-                      <div style="font:700 12px 'DM Sans',sans-serif;opacity:.8">Mesa</div>
+                      <div style="font:700 12px 'Manrope',system-ui,sans-serif;opacity:.8">Mesa</div>
                       <div class="tt" style="font-size:var(--fs-h2);margin:2px 0">{{ t.n }}</div>
-                      <div style="font:700 12px 'DM Sans',sans-serif">{{ t.pill }}</div>
+                      <div style="font:700 12px 'Manrope',system-ui,sans-serif">{{ t.pill }}</div>
                     </div>
                   </sc-for>
                 </div>
@@ -1652,7 +1700,7 @@ select{caret-color:auto}
               </sc-if>
               <div class="kpis">
                 <sc-for list="{{ reportKpis }}" as="k" hint-placeholder-count="4">
-                  <div class="kpi"><div class="k">{{ k.lbl }}</div><div class="v">{{ k.val }}</div><div class="s" style="color:#5A6670">{{ k.sub }}</div></div>
+                  <div class="kpi"><div class="k">{{ k.lbl }}</div><div class="v">{{ k.val }}</div><div class="s" style="color:#55626A">{{ k.sub }}</div></div>
                 </sc-for>
               </div>
               <sc-if value="{{ reportMultiDay }}" hint-placeholder-val="{{ false }}">
@@ -1692,8 +1740,8 @@ select{caret-color:auto}
                 </div>
               </div>
               <sc-if value="{{ hasDayReport }}" hint-placeholder-val="{{ false }}">
-                <div style="background:#12232E;color:#EAF2F3;border-radius:var(--r-card);padding:var(--cpad);max-width:520px">
-                  <div style="font:800 var(--fs-h3) 'DM Sans',sans-serif;display:flex;align-items:center;gap:12px;margin-bottom:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB21E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>Último fechamento do dia</div>
+                <div style="background:#14232A;color:#EAF2F3;border-radius:var(--r-card);padding:var(--cpad);max-width:520px">
+                  <div style="font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif;display:flex;align-items:center;gap:12px;margin-bottom:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5B83D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>Último fechamento do dia</div>
                   <div class="sumrow" style="color:#C9D6DB"><span>Vendas</span><b style="color:#fff">{{ reportRevenue }}</b></div>
                   <div class="sumrow" style="color:#C9D6DB"><span>Pedidos</span><b style="color:#fff">{{ reportOrders }}</b></div>
                   <div class="sumrow" style="color:#C9D6DB"><span>Ticket médio</span><b style="color:#fff">{{ reportAvgTicket }}</b></div>
@@ -1708,7 +1756,7 @@ select{caret-color:auto}
                 <div class="kpi">
                   <div class="k" style="font-size:var(--fs-sm)">{{ r.k }}</div>
                   <div class="v" style="{{ r.valStyle }}">{{ r.val }}</div>
-                  <div class="s" style="color:#5A6670">{{ r.sub }}</div>
+                  <div class="s" style="color:#55626A">{{ r.sub }}</div>
                 </div>
               </sc-for>
             </div>
@@ -1735,7 +1783,7 @@ select{caret-color:auto}
                     <div>
                       <div class="muted" style="font-size:13px;margin-bottom:8px">Mais vendidos</div>
                       <sc-for list="{{ reportTopProducts }}" as="tp" hint-placeholder-count="3">
-                        <div class="sumrow" style="font-size:var(--fs-sm)"><span style="color:#12232E">{{ tp.name }}</span><span>{{ tp.qty }} un.</span></div>
+                        <div class="sumrow" style="font-size:var(--fs-sm)"><span style="color:#14232A">{{ tp.name }}</span><span>{{ tp.qty }} un.</span></div>
                       </sc-for>
                     </div>
                   </sc-if>
@@ -1752,7 +1800,7 @@ select{caret-color:auto}
       <sc-if value="{{ isCozinha }}" hint-placeholder-val="{{ false }}">
       <div class="adm kz">
         <div class="adm-side {{ admMenuCls }}">
-          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>cozinha</small></div>
+          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>cozinha</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ cozinhaSide }}" as="it" hint-placeholder-count="2">
             <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
@@ -1763,7 +1811,7 @@ select{caret-color:auto}
             <div onClick="{{ goAdminHome }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v4h-7z M13 10h7v10h-7z M4 13h7v7H4z"></path></svg>Painel admin</div>
           </sc-if>
           <div class="adm-foot">
-            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div class="em" style="font:500 13px 'Manrope',system-ui,sans-serif;color:#C3D8DB;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
@@ -1781,7 +1829,7 @@ select{caret-color:auto}
           </div>
           <sc-if value="{{ soundOff }}" hint-placeholder-val="{{ true }}">
             <div class="kz-sound">
-              <span style="font:500 var(--fs-body) 'DM Sans',sans-serif;color:#7A4B00"><b>O som de novos pedidos está desligado.</b> O navegador só libera o som depois de um toque.</span>
+              <span style="font:500 var(--fs-body) 'Manrope',system-ui,sans-serif;color:#7A4B00"><b>O som de novos pedidos está desligado.</b> O navegador só libera o som depois de um toque.</span>
               <span onClick="{{ toggleSound }}" class="btn btn-sun btn-sm" style="min-height:var(--ctl)">Ativar som</span>
             </div>
           </sc-if>
@@ -1789,7 +1837,7 @@ select{caret-color:auto}
             <div style="max-width:720px">
               <div class="kz-col">
                 <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
-                <div class="kz-sub" style="font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670;margin-top:-8px">Desligue o que acabou: some do cardápio na hora.</div>
+                <div class="kz-sub" style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A;margin-top:-8px">Desligue o que acabou: some do cardápio na hora.</div>
                 <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
                   <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
                 </sc-for>
@@ -1805,7 +1853,7 @@ select{caret-color:auto}
                   <sc-for list="{{ col.cards }}" as="k" hint-placeholder-count="2">
                     <div class="kz-card {{ k.lateCls }}">
                       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                        <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 13px 'DM Sans',sans-serif;color:#5A6670">{{ k.id }}</span></div>
+                        <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 13px 'Manrope',system-ui,sans-serif;color:#55626A">{{ k.id }}</span></div>
                         <span class="kz-time">{{ k.min }}</span>
                       </div>
                       <sc-if value="{{ k.hasCustomer }}" hint-placeholder-val="{{ true }}">
@@ -1833,7 +1881,7 @@ select{caret-color:auto}
               </sc-for>
               <div class="kz-col kz-availcol">
                 <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
-                <div class="kz-sub" style="font:500 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670;margin-top:-8px">Desligue o que acabou: some do cardápio na hora.</div>
+                <div class="kz-sub" style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A;margin-top:-8px">Desligue o que acabou: some do cardápio na hora.</div>
                 <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
                   <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
                 </sc-for>
@@ -1845,7 +1893,7 @@ select{caret-color:auto}
       </sc-if>
 
       <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
-        <div role="status" style="position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:80;background:#12232E;color:#fff;padding:12px 20px;border-radius:var(--r-card);font:600 var(--fs-sm) 'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;animation:sftoast .3s cubic-bezier(.2,.8,.2,1);max-width:calc(100vw - 32px);box-shadow:0 12px 28px -10px rgba(0,0,0,.5)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7CF29A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>{{ toast }}</div>
+        <div role="status" style="position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:80;background:#14232A;color:#fff;padding:12px 20px;border-radius:var(--r-card);font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;display:flex;align-items:center;gap:8px;animation:sftoast .3s cubic-bezier(.2,.8,.2,1);max-width:calc(100vw - 32px);box-shadow:0 12px 28px -10px rgba(0,0,0,.5)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7CF29A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>{{ toast }}</div>
       </sc-if>
 
 </div>
@@ -1884,9 +1932,20 @@ const PHOTO = {
 
 // Avatares prontos do perfil (a mesma lista que o servidor aceita).
 const AVATAR_PRESETS = [
-  ['sol','☀️','#FFE3A3','Sol'],['onda','🌊','#CDE8EA','Onda'],['coco','🥥','#E9DCCB','Coco'],['abacaxi','🍍','#FFF0B8','Abacaxi'],
-  ['peixe','🐠','#D3E6F5','Peixe'],['concha','🐚','#F8DCE2','Concha'],['palmeira','🌴','#D5EEDF','Palmeira'],['picole','🍦','#FBE1D6','Picolé']
+  ['sol','M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M12 2v2 M12 20v2 M2 12h2 M20 12h2 M4.9 4.9l1.4 1.4 M17.7 17.7l1.4 1.4 M4.9 19.1l1.4-1.4 M17.7 6.3l1.4-1.4','#FFE3A3','Sol'],
+  ['onda','M2 10c2.5-2.5 5-2.5 7.5 0s5 2.5 7.5 0 3.5-1.7 5 0 M2 15c2.5-2.5 5-2.5 7.5 0s5 2.5 7.5 0 3.5-1.7 5 0','#CDE8EA','Onda'],
+  ['coco','M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16z M9.5 9.5h.01 M12 8.5h.01 M14.5 9.5h.01 M15 2l-1.5 3','#E9DCCB','Coco'],
+  ['abacaxi','M12 21c3 0 5-2.7 5-6.5S15 8 12 8s-5 2.7-5 6.5S9 21 12 21z M12 8V3 M12 7L9 4 M12 7l3-3 M9.5 12l5 5 M14.5 12l-5 5','#FFF0B8','Abacaxi'],
+  ['peixe','M3 12c3-4.5 8.5-5.5 12.5-2L20 7v10l-4.5-3C11.5 17.5 6 16.5 3 12z M8 11h.01','#D3E6F5','Peixe'],
+  ['concha','M12 4C7 4 4 8 4 13l8 7 8-7c0-5-3-9-8-9z M12 4v16 M8 5.5l2.5 13.5 M16 5.5l-2.5 13.5','#F8DCE2','Concha'],
+  ['palmeira','M12 21V10 M12 10C10 7 6.5 7 4 9 M12 10c2-3 5.5-3 8-1 M12 10c-1-3-3.5-5-7-5 M12 10c1-3 3.5-5 7-5 M8 21h8','#D5EEDF','Palmeira'],
+  ['picole','M8 5a4 4 0 0 1 8 0v9a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1z M12 15v6 M10.5 7v5','#FBE1D6','Picolé']
 ];
+// Desenho do avatar pronto: o mesmo traço fino dos outros ícones do app
+// (antes eram emojis), como imagem de fundo sobre a cor do avatar.
+function avatarIcon(path){
+  return 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="' + path + '"/></svg>') + '") center/52% no-repeat';
+}
 // Bolinha do perfil: foto enviada, avatar pronto ou as iniciais do nome.
 function avatarLook(user, size){
   const base = 'width:' + size + 'px;height:' + size + 'px;border-radius:999px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;';
@@ -1894,8 +1953,8 @@ function avatarLook(user, size){
   const initials = name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
   if(user && user.avatarUrl) return {style: base + 'background:#E3DDD0 url(' + JSON.stringify(user.avatarUrl) + ') center/cover no-repeat', text:''};
   const preset = user && AVATAR_PRESETS.find(a => a[0] === user.avatarPreset);
-  if(preset) return {style: base + 'background:' + preset[2] + ';font-size:' + Math.round(size * 0.5) + 'px;line-height:1', text:preset[1]};
-  return {style: base + 'background:#0B6670;color:#fff;font:800 ' + Math.round(size * 0.36) + "px 'Bricolage Grotesque',sans-serif", text:initials};
+  if(preset) return {style: base + 'background:' + avatarIcon(preset[1]) + ',' + preset[2], text:''};
+  return {style: base + 'background:#1F5A63;color:#fff;font:800 ' + Math.round(size * 0.36) + "px 'Manrope',system-ui,sans-serif", text:initials};
 }
 // Reduz a foto no navegador (quadrada, até 512 px, JPEG) antes de enviar:
 // sobe rápido no 4G da praia e cabe folgado no limite de 2 MB do servidor.
@@ -2309,11 +2368,11 @@ function reportPrintHtml(d, autoPrint){
   const kpis = [['Faturamento', brMoney(d.rep.revenue)], ['Pedidos', d.rep.orders], ['Ticket médio', brMoney(d.rep.avgTicket)], ['Itens vendidos', d.rep.itemsSold]];
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<title>' + escHtml(d.fileBase) + '</title><style>' +
-    '*{box-sizing:border-box}body{margin:0;background:#F6F1E7;color:#12232E;font:15px/1.45 "DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}' +
+    '*{box-sizing:border-box}body{margin:0;background:#F6F1E7;color:#14232A;font:15px/1.45 "Manrope",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}' +
     '.page{max-width:960px;margin:0 auto;padding:24px 16px 40px}.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}' +
-    '.bar button{min-height:46px;padding:0 18px;border-radius:12px;border:0;font:800 15px inherit;font-family:inherit;cursor:pointer;background:#12232E;color:#fff}.bar button.g{background:#fff;color:#12232E;border:1px solid #D6CFBF}' +
-    '.sheet{background:#fff;border-radius:20px;padding:24px}h1{font-size:24px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 10px}.muted{color:#5A6670;font-size:13px;margin:0}' +
-    '.story{background:#F6F1E7;border-radius:14px;padding:14px 16px}.story p{margin:0 0 8px;font-size:15px}.story p:last-child{margin:0}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.kpi{border:1px solid #E6DFD1;border-radius:14px;padding:12px}.kpi .k{color:#5A6670;font-size:13px}.kpi .v{font-size:20px;font-weight:800;margin-top:2px}' +
+    '.bar button{min-height:46px;padding:0 18px;border-radius:12px;border:0;font:800 15px inherit;font-family:inherit;cursor:pointer;background:#14232A;color:#fff}.bar button.g{background:#fff;color:#14232A;border:1px solid #D6CFBF}' +
+    '.sheet{background:#fff;border-radius:20px;padding:24px}h1{font-size:24px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 10px}.muted{color:#55626A;font-size:13px;margin:0}' +
+    '.story{background:#F6F1E7;border-radius:14px;padding:14px 16px}.story p{margin:0 0 8px;font-size:15px}.story p:last-child{margin:0}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.kpi{border:1px solid #E6DFD1;border-radius:14px;padding:12px}.kpi .k{color:#55626A;font-size:13px}.kpi .v{font-size:20px;font-weight:800;margin-top:2px}' +
     '.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #EEE8DC;vertical-align:top}th{background:#F6F1E7;font-weight:800;white-space:nowrap}td.r,th.r{text-align:right;white-space:nowrap}tr.off td{color:#8A949B}' +
     '.orders td:nth-child(5){min-width:180px}' +
     '@media (max-width:640px){.sheet{padding:16px;border-radius:16px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:20px}.orders table{min-width:760px}}' +
@@ -2346,13 +2405,13 @@ function downloadFile(name, content, type){
 const TONES = {
   ok:['#E5F7EA','#1E6B36','#16362A','#7CF29A'],
   warn:['#FFF4DB','#7A4B00','#3A2F12','#FFD88A'],
-  info:['#E7F1F1','#084C53','#16343D','#8FD3D9'],
-  muted:['#EFEADF','#5A6670','#22343F','#C9D6DB'],
+  info:['#E6EFF0','#174A52','#16343D','#8FD3D9'],
+  muted:['#EFEADF','#55626A','#22343F','#C9D6DB'],
   err:['#FDECEA','#8A1C12','#4A1F1A','#FF8A78']
 };
 const pillStyle = (tone, dark) => {
   const t = TONES[tone] || TONES.muted;
-  return "display:inline-block;font:700 12px 'DM Sans',sans-serif;padding:5px 10px;border-radius:999px;white-space:nowrap;background:" +
+  return "display:inline-block;font:700 12px 'Manrope',system-ui,sans-serif;padding:5px 10px;border-radius:999px;white-space:nowrap;background:" +
     (dark ? t[2] : t[0]) + ';color:' + (dark ? t[3] : t[1]);
 };
 const statusTone = st => st === 'Pronto' || st === 'Entregue' ? 'ok' : st === 'Cancelado' ? 'err' : st === 'Em Preparo' ? 'info' : 'warn';
@@ -2372,8 +2431,8 @@ function paymentBadge(o){
 }
 
 // Fundo e cor do ícone de cada categoria quando o produto não tem foto.
-const CAT_TILE = {Bebidas:['#DDEFEF','#0B6670'], Lanches:['#FCEBC6','#9A5B00'], Pratos:['#F8DDD0','#A33A12'], Sobremesas:['#EDDFF1','#7A3E8F']};
-const catTile = cat => CAT_TILE[cat] || ['#EFEADF','#5A6670'];
+const CAT_TILE = {Bebidas:['#DDEFEF','#1F5A63'], Lanches:['#FCEBC6','#9A5B00'], Pratos:['#F8DDD0','#A33A12'], Sobremesas:['#EDDFF1','#7A3E8F']};
+const catTile = cat => CAT_TILE[cat] || ['#EFEADF','#55626A'];
 
 // Ícones (24×24) do menu lateral do admin.
 const ADM_IC = {
@@ -3746,8 +3805,8 @@ class Component extends DCLogic {
         if(k === 'status' && !s.order){ this.go(s.history.length ? 'history' : 'historyEmpty'); this.flash('Você não tem pedido em andamento.'); return; }
         this.go(k === 'history' && !s.history.length ? 'historyEmpty' : k);
       },
-      style:"display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font:700 12px 'DM Sans',sans-serif;min-width:64px;color:" +
-        (meta.nav === k ? '#0B6670' : '#6B6458')
+      style:"display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font:700 12px 'Manrope',system-ui,sans-serif;min-width:64px;color:" +
+        (meta.nav === k ? '#1F5A63' : '#55626A')
     }));
     const navTab = meta.nav === 'history' ? 'profile' : meta.nav;
     v.topLinks = [['menu','Cardápio'],['status','Meu pedido'],['profile','Minha conta']]
@@ -3786,7 +3845,7 @@ class Component extends DCLogic {
     v.paused = s.paused;
     v.menuDayClosed = s.dayClosed && !s.paused;
     v.heroChip = s.paused ? 'Pedidos pausados agora' : s.dayClosed ? 'Quiosque fechado por hoje' : 'Quiosque aberto agora';
-    v.heroDotStyle = 'width:8px;height:8px;border-radius:50%;display:inline-block;background:' + (s.paused || s.dayClosed ? '#FFB21E' : '#7CF29A');
+    v.heroDotStyle = 'width:8px;height:8px;border-radius:50%;display:inline-block;background:' + (s.paused || s.dayClosed ? '#F5B83D' : '#7CF29A');
     v.cartCount = s.cart.reduce((a, c) => a + c.qty, 0);
     v.hasCart = v.cartCount > 0;
     v.showCartPill = v.hasCart && ['menu','cart','table','payment'].indexOf(s.screen) < 0;
@@ -3796,7 +3855,7 @@ class Component extends DCLogic {
     v.totalStr = f(this.subtotal() * 1.1);
     v.goCart = () => this.go(v.hasCart ? 'cart' : 'cartEmpty');
     const minPct = s.minOrder > 0 ? Math.min(100, Math.round(this.subtotal() / s.minOrder * 100)) : 100;
-    v.minProgStyle = 'width:' + minPct + '%;background:' + (minPct >= 100 ? '#0B6670' : '#FFB21E');
+    v.minProgStyle = 'width:' + minPct + '%;background:' + (minPct >= 100 ? '#1F5A63' : '#F5B83D');
     v.minHint = s.minOrder <= 0 ? 'Sem pedido mínimo.' : minPct >= 100 ? 'Pedido mínimo de ' + f(s.minOrder) + ' atingido.'
       : 'Faltam ' + f(s.minOrder - this.subtotal()) + ' para o pedido mínimo de ' + f(s.minOrder) + '.';
 
@@ -3809,7 +3868,7 @@ class Component extends DCLogic {
     v.pNota = sel.nota; v.pAvaliacoes = sel.avaliacoes + ' avaliações';
     v.pFacts = [{k:'Porção', v:sel.porcao},{k:'Preparo', v:sel.tempo}].filter(x => x.v).map(x => ({t:x.k + ': ' + x.v}));
     v.pTags = (sel.tags || []).map(t => Array.isArray(t) ? t[0] : t).filter(Boolean).map(t => ({
-      t, style:'background:#E7F1F1;color:#084C53;padding:8px 12px;font-size:13px'
+      t, style:'background:#E6EFF0;color:#174A52;padding:8px 12px;font-size:13px'
     }));
     const selTile = catTile(sel.cat);
     v.pTileStyle = 'background:' + selTile[0]; v.pIconColor = selTile[1];
@@ -3933,9 +3992,9 @@ class Component extends DCLogic {
     ].map(st => {
       const done = st.i <= ci, active = st.i === ci + 1;
       return {t:st.t, d:st.d, mark:done ? '✓' : active ? '●' : '',
-        dotStyle:"width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 14px 'DM Sans',sans-serif;flex-shrink:0;" +
-          (done ? 'background:#0B6670;color:#fff' : active ? 'background:#FFB21E;color:#12232E' : 'background:#EFEADF;color:#B9B2A3'),
-        txtStyle:"font:700 16px/1.3 'DM Sans',sans-serif;color:" + (done || active ? '#12232E' : '#9A958A')};
+        dotStyle:"width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 14px 'Manrope',system-ui,sans-serif;flex-shrink:0;" +
+          (done ? 'background:#1F5A63;color:#fff' : active ? 'background:#F5B83D;color:#14232A' : 'background:#EFEADF;color:#55626A'),
+        txtStyle:"font:700 16px/1.3 'Manrope',system-ui,sans-serif;color:" + (done || active ? '#14232A' : '#5F686E')};
     });
     v.statusPillStyle = pillStyle(statusTone(v.orderStatus)) + ';font-size:14px;padding:7px 14px';
     v.askCancel = () => this.go(v.canCancel ? 'cancelAsk' : 'cancelBlocked');
@@ -3946,7 +4005,7 @@ class Component extends DCLogic {
     v.historyRows = s.history.map((h, i) => ({
       id:h.id, table:h.table, when:h.when + ' · ' + h.items.length + (h.items.length === 1 ? ' item' : ' itens'), totalStr:f(h.total), status:h.status,
       stStyle:pillStyle(statusTone(h.status)),
-      dotStyle:'width:10px;height:10px;border-radius:50%;flex-shrink:0;background:' + (histLive(h.status) ? '#FFB21E' : '#D6CFBF'),
+      dotStyle:'width:10px;height:10px;border-radius:50%;flex-shrink:0;background:' + (histLive(h.status) ? '#F5B83D' : '#D6CFBF'),
       open:() => { this.setState({histSel:i}); this.go('orderDetail'); }
     }));
     v.hasHistory = s.history.length > 0;
@@ -3969,7 +4028,7 @@ class Component extends DCLogic {
     v.suPhone = s.suPhone; v.suBirth = s.suBirth; v.suTerms = s.suTerms;
     v.suCpf = s.suCpf;
     v.suCpfBad = cpfDigits(s.suCpf).length === 11 && !isValidCpf(s.suCpf);
-    v.suCpfBorder = v.suCpfBad ? '#B42318' : '#E3DDD0';
+    v.suCpfBorder = v.suCpfBad ? '#B42318' : '';
     v.setSuName = e => this.setState({suName:e.target.value, suErr:''});
     v.setSuEmail = e => this.setState({suEmail:e.target.value, suErr:''});
     v.setSuPass = e => this.setState({suPass:e.target.value, suErr:''});
@@ -3995,7 +4054,7 @@ class Component extends DCLogic {
     v.fpCpf = s.fpCpf;
     v.setFpCpf = e => this.setState({fpCpf:formatCpf(e.target.value), fpErr:''});
     v.fpCpfBad = cpfDigits(s.fpCpf).length === 11 && !isValidCpf(s.fpCpf);
-    v.fpCpfBorder = v.fpCpfBad ? '#B42318' : '#E3DDD0';
+    v.fpCpfBorder = v.fpCpfBad ? '#B42318' : '';
     v.setFp = e => this.setState({fpEmail:e.target.value, fpErr:''});
     v.fpErr = s.fpErr; v.hasFpErr = !!s.fpErr;
     v.fpOk = s.fpMode === 'cpf' ? isValidCpf(s.fpCpf) : /@/.test(s.fpEmail);
@@ -4062,11 +4121,11 @@ class Component extends DCLogic {
         send:() => this.sendReply(m),
         name:m.name, contact:m.contact, reason:m.reason, message:m.message, protocol:m.protocol,
         when:fmtWhen(d),
-        cardStyle:'padding:var(--cpad)' + (isNew ? ';border-left:4px solid #FFB21E' : ''),
+        cardStyle:'padding:var(--cpad)' + (isNew ? ';border-left:4px solid #F5B83D' : ''),
         statusLabel:isNew ? 'Nova' : 'Respondida',
         statusStyle:isNew ? 'background:#FFF4DB;color:#7A4B00' : 'background:#E5F7EA;color:#1E6B36',
         toggleLabel:isNew ? 'Marcar como respondida' : 'Voltar para novas',
-        toggleStyle:isNew ? 'background:#0B6670;color:#fff' : 'background:#fff;border:1px solid #D6CFBF;color:#5A6670',
+        toggleStyle:isNew ? 'background:#1F5A63;color:#fff' : 'background:#fff;border:1px solid #D6CFBF;color:#55626A',
         toggle:() => this.setMessageStatus(m.id, isNew ? 'respondido' : 'novo')
       };
     });
@@ -4140,7 +4199,7 @@ class Component extends DCLogic {
       n:String(t.n), seats:t.seats + ' lugares',
       toggle:() => this.toggleTableActive(t.n, !t.active),
       pill:t.active ? 'Ativa' : 'Desativada',
-      tileStyle:t.active ? 'background:#0B6670;color:#fff;border:2px solid #0B6670' : 'background:#FBFAF6;color:#5A6670;border:2px dashed #D6CFBF'
+      tileStyle:t.active ? 'background:#1F5A63;color:#fff;border:2px solid #1F5A63' : 'background:#FBFAF6;color:#55626A;border:2px dashed #D6CFBF'
     }));
     v.activeTables = s.tables.filter(t => t.active).length + ' de ' + s.tables.length + ' ativas';
 
@@ -4176,7 +4235,7 @@ class Component extends DCLogic {
     v.pauseLabel = s.paused ? 'Quiosque pausado' : 'Quiosque aberto';
     v.pauseSub = s.paused ? 'O cardápio do cliente exibe aviso e o checkout está bloqueado.' : 'Novos pedidos estão sendo aceitos normalmente.';
     // Interruptor "Recebendo pedidos": ligado = aberto (o contrário de pausado).
-    v.pauseSwitchStyle = 'background:' + (s.paused ? '#B9B2A3' : '#2E9C6A');
+    v.pauseSwitchStyle = 'background:' + (s.paused ? '#8C949A' : '#2E9C6A');
     v.pauseKnobStyle = 'left:' + (s.paused ? '3px' : '23px');
     v.pauseLabel = s.paused ? 'Pausado' : 'Aberto';
     v.pauseDotStyle = 'width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;background:' + (s.paused ? '#B42318' : '#2E9C6A');
@@ -4196,7 +4255,7 @@ class Component extends DCLogic {
       const rev = hourRevenue.get(h) || 0;
       return {
         top:rev > 0 ? 'R$ ' + Math.round(rev) : '',
-        style:'width:100%;border-radius:8px 8px 0 0;background:' + (h === peakHour ? '#FFB21E' : '#0B6670') + ';height:' + (rev > 0 ? Math.max(4, Math.round(rev / maxRevenue * 100)) : 2) + '%' + (rev > 0 ? '' : ';opacity:.25'),
+        style:'width:100%;border-radius:8px 8px 0 0;background:' + (h === peakHour ? '#F5B83D' : '#1F5A63') + ';height:' + (rev > 0 ? Math.max(4, Math.round(rev / maxRevenue * 100)) : 2) + '%' + (rev > 0 ? '' : ';opacity:.25'),
         lbl:h + 'h'
       };
     });
@@ -4208,7 +4267,7 @@ class Component extends DCLogic {
       ['Pedidos atrasados', opsM ? String(opsM.lateOrders) : '—', opsM && opsM.lateOrders > 0],
       ['Cancelamentos hoje', opsM ? String(opsM.cancelledToday) : '—', false],
       ['Itens esgotados', opsM ? String(opsM.soldOutProducts.length) : '—', opsM && opsM.soldOutProducts.length > 0]
-    ].map(([k, val, bad]) => ({k, v:val, style:'font-size:var(--fs-h2);color:' + (bad ? '#B42318' : '#12232E')}));
+    ].map(([k, val, bad]) => ({k, v:val, style:'font-size:var(--fs-h2);color:' + (bad ? '#B42318' : '#14232A')}));
 
     // Relatórios: vendas, mais vendidos e horários de pico no período.
     const rep = s.report && s.report.period === s.reportPeriod ? s.report : null;
@@ -4234,7 +4293,7 @@ class Component extends DCLogic {
     v.reportDayBars = rep ? rep.byDay.map((d, i) => ({
       tip:ddmm(d.date) + ': ' + f(d.revenue) + ' em ' + d.orders + ' pedido(s)',
       lbl:(i % labelEvery === 0 || i === rep.byDay.length - 1) ? ddmm(d.date) : '',
-      style:'width:100%;border-radius:6px 6px 0 0;background:#0B6670;height:' +
+      style:'width:100%;border-radius:6px 6px 0 0;background:#1F5A63;height:' +
         (d.revenue > 0 ? Math.max(4, Math.round(d.revenue / maxDay * 100)) : 2) + '%' + (d.revenue > 0 ? '' : ';opacity:.25')
     })) : [];
     // Mostra o horário de funcionamento (10h–21h) e estica se houver venda fora dele.
@@ -4250,7 +4309,7 @@ class Component extends DCLogic {
         tip:h.hour + 'h às ' + (h.hour + 1) + 'h: ' + h.orders + ' pedido(s), ' + f(h.revenue),
         top:h.orders > 0 ? String(h.orders) : '',
         lbl:h.hour + 'h',
-        style:'width:100%;border-radius:6px 6px 0 0;background:' + (isPeak ? '#FFB21E' : '#0B6670') +
+        style:'width:100%;border-radius:6px 6px 0 0;background:' + (isPeak ? '#F5B83D' : '#1F5A63') +
           ';height:' + (h.orders > 0 ? Math.max(4, Math.round(h.orders / maxOrders * 100)) : 2) + '%' + (h.orders > 0 ? '' : ';opacity:.4')
       };
     });
@@ -4261,7 +4320,7 @@ class Component extends DCLogic {
     const maxQty = rep && rep.topProducts.length ? rep.topProducts[0].qty : 1;
     v.reportTop = rep ? rep.topProducts.map((p, i) => ({
       rank:(i + 1) + 'º', name:p.name, qty:p.qty, revenueStr:f(p.revenue),
-      barStyle:'height:100%;border-radius:5px;background:#0B6670;width:' + Math.max(3, Math.round(p.qty / maxQty * 100)) + '%'
+      barStyle:'height:100%;border-radius:5px;background:#1F5A63;width:' + Math.max(3, Math.round(p.qty / maxQty * 100)) + '%'
     })) : [];
     v.hasReportTop = v.reportTop.length > 0; v.noReportTop = !v.hasReportTop;
     v.reportEmptyText = rep ? 'Nenhuma venda paga nesse período.' : 'Carregando…';
@@ -4274,7 +4333,7 @@ class Component extends DCLogic {
       ['Itens indisponíveis', ops.soldOutProducts.length ? (ops.soldOutProducts.length + ' (' + ops.soldOutProducts.join(', ') + ')') : 'Nenhum', 'Sinalizado pela cozinha', ops.soldOutProducts.length ? 'warn' : 'ok'],
       ['Cancelamentos', String(ops.cancelledToday), 'Hoje', ops.cancelledToday > 0 ? 'warn' : 'ok']
     ].map(([k, val, sub, kind]) => ({
-      k, val, sub, valStyle:'font-size:var(--fs-h2);color:' + (kind === 'ok' ? '#12232E' : '#B42318')
+      k, val, sub, valStyle:'font-size:var(--fs-h2);color:' + (kind === 'ok' ? '#14232A' : '#B42318')
     })) : [];
 
     v.pfCategoryOptions = ['Bebidas','Lanches','Pratos','Sobremesas'].map(cat => ({
@@ -4300,9 +4359,9 @@ class Component extends DCLogic {
       markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
       pill:noStock(p) ? 'Sem estoque' : p.stock != null ? p.stock + ' em estoque' + (p.stock <= 5 ? ' · baixo' : '') : 'Estoque ilimitado',
       pillStyle:pillStyle(noStock(p) ? 'err' : p.stock != null && p.stock <= 5 ? 'warn' : 'muted'),
-      cardStyle:s.pf.id === p.id ? 'border-color:#0B6670;box-shadow:0 0 0 2px #0B6670' : '',
+      cardStyle:s.pf.id === p.id ? 'border-color:#1F5A63;box-shadow:0 0 0 2px #1F5A63' : '',
       availLabel:p.soldOut ? 'Esgotado' : 'Disponível',
-      swStyle:'background:' + (p.soldOut ? '#B9B2A3' : '#2E9C6A'),
+      swStyle:'background:' + (p.soldOut ? '#8C949A' : '#2E9C6A'),
       knobStyle:'left:' + (p.soldOut ? '3px' : '23px'),
       confirming:s.pfDeleting === p.id,
       deleteLabel:s.pfDeletingBusy && s.pfDeleting === p.id ? 'Excluindo…' : 'Sim, excluir',
@@ -4349,9 +4408,9 @@ class Component extends DCLogic {
     });
     const kRaw = st => s.adminOrders.filter(k => k.status === st && (k.paymentMethod === 'entrega' || k.paymentStatus === 'approved'));
     const KCOLS = [
-      ['Na Fila', 'Novos', '#FFB21E', 'Iniciar preparo', 'background:#FFB21E;color:#12232E'],
-      ['Em Preparo', 'Em preparo', '#0B6670', 'Marcar como pronto', 'background:#0B6670;color:#fff'],
-      ['Pronto', 'Prontos', '#2E9C6A', 'Marcar como entregue', 'background:#1E6B36;color:#fff']
+      ['Na Fila', 'Novos', '#F5B83D', 'Iniciar preparo', ''],
+      ['Em Preparo', 'Em preparo', '#1F5A63', 'Marcar como pronto', ''],
+      ['Pronto', 'Prontos', '#2E9C6A', 'Marcar como entregue', '']
     ];
     v.kCols = KCOLS.map(([st, title, dot, btn, btnStyle]) => {
       const cards = kRaw(st).map(k => ({
@@ -4384,12 +4443,12 @@ class Component extends DCLogic {
     v.availRows = s.products.map(p => ({
       name:p.name, cat:p.cat, markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
       pill:noStock(p) ? 'Sem estoque' : p.soldOut ? 'Indisponível' : (p.stock != null ? 'Disponível · estoque ' + p.stock : 'Disponível'),
-      pillStyle:'font:700 10px Inter,sans-serif;padding:4px 10px;border-radius:100px;background:' + (p.soldOut ? '#FDEBEA;color:#E74C3C' : '#E7F7ED;color:#16A34A'),
+      pillStyle:"font:700 12px 'Manrope',system-ui,sans-serif;padding:4px 12px;border-radius:999px;background:" + (p.soldOut ? '#FDECEA;color:#8A1C12' : '#E5F7EA;color:#1E6B36'),
       // Esgotado por estoque zerado não se resolve no interruptor (o PATCH só
       // mexe no sinal manual): avisa onde repor em vez de não fazer nada.
       toggle:() => noStock(p) ? this.flash('Sem estoque. Reponha o estoque em Produtos para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
-      nameStyle:"font:600 16px 'DM Sans',sans-serif;" + (p.soldOut ? 'color:#8A8478;text-decoration:line-through' : 'color:#12232E'),
-      swStyle:'background:' + (p.soldOut ? '#CFC8BA' : '#2E9C6A'),
+      nameStyle:"font:600 16px 'Manrope',system-ui,sans-serif;" + (p.soldOut ? 'color:#5F686E;text-decoration:line-through' : 'color:#14232A'),
+      swStyle:'background:' + (p.soldOut ? '#8C949A' : '#2E9C6A'),
       knobStyle:'left:' + (p.soldOut ? '3px' : '23px')
     }));
     const nSold = s.products.filter(p => p.soldOut).length;
@@ -4403,7 +4462,7 @@ class Component extends DCLogic {
     v.topSellers = dash && dash.topProducts.length ? dash.topProducts.map((tp, i) => {
       const p = s.products.find(x => x.name === tp.name) || {name:tp.name, mark:'coco'};
       return {name:p.name, n:String(tp.qty), markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
-        barStyle:'height:100%;border-radius:999px;width:' + Math.round(tp.qty / tsMax * 100) + '%;background:' + (i === 0 ? '#FFB21E' : '#0B6670')};
+        barStyle:'height:100%;border-radius:999px;width:' + Math.round(tp.qty / tsMax * 100) + '%;background:' + (i === 0 ? '#F5B83D' : '#1F5A63')};
     }) : [];
     v.hasTopSellers = v.topSellers.length > 0;
 
@@ -4446,11 +4505,11 @@ class Component extends DCLogic {
     const me = Object.assign({name:v.profileName}, s.authUser);
     const look = avatarLook(me, 56), lookBig = avatarLook(me, 96);
     v.meAvatarStyle = look.style; v.meAvatarText = look.text;
-    v.meAvatarBigStyle = lookBig.style + ';box-shadow:0 0 0 3px #fff,0 0 0 5px #FFB21E';
+    v.meAvatarBigStyle = lookBig.style + ';box-shadow:0 0 0 3px #fff,0 0 0 5px #F5B83D';
     v.meHasAvatar = !!(me.avatarUrl || me.avatarPreset);
-    v.avatarPresets = AVATAR_PRESETS.map(([key, emoji, bg, label]) => ({
-      emoji, label,
-      style:'background:' + bg + (me.avatarPreset === key && !me.avatarUrl ? ';box-shadow:0 0 0 3px #fff,0 0 0 5px #0B6670' : ''),
+    v.avatarPresets = AVATAR_PRESETS.map(([key, icon, bg, label]) => ({
+      emoji:'', label,
+      style:'background:' + avatarIcon(icon) + ',' + bg + (me.avatarPreset === key && !me.avatarUrl ? ';box-shadow:0 0 0 3px #fff,0 0 0 5px #1F5A63' : ''),
       pick:() => this.pickAvatarPreset(key)
     }));
     v.avatarUploadLabel = s.busy === 'avatar' ? 'Enviando…' : (me.avatarUrl ? 'Trocar foto' : 'Enviar foto');
@@ -4470,7 +4529,7 @@ class Component extends DCLogic {
     v.saveProfile = () => this.saveProfile();
     v.meSaveLabel = s.busy === 'profile' ? 'Salvando…' : 'Salvar';
     v.meBusyOpacity = s.busy === 'profile' ? 0.6 : 1;
-    const sw = on => ['background:' + (on ? '#2E9C6A' : '#B9B2A3'), 'left:' + (on ? '23px' : '3px')];
+    const sw = on => ['background:' + (on ? '#2E9C6A' : '#8C949A'), 'left:' + (on ? '23px' : '3px')];
     v.notifyOn = me.notifyReady !== false; v.soundPrefOn = me.soundOn !== false;
     [v.notifySwitchStyle, v.notifyKnobStyle] = sw(v.notifyOn);
     [v.soundPrefSwitchStyle, v.soundPrefKnobStyle] = sw(v.soundPrefOn);

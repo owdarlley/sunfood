@@ -113,7 +113,9 @@ await step('foto', async () => {
   const page = await open('editProfile');
   await page.locator('[aria-label="Coco"]').click(); await page.waitForTimeout(500);
   check('avatar: escolher o Coco salva', page.api.user.avatarPreset === 'coco');
-  check('avatar: aparece no lugar das iniciais', (await text(page)).includes('🥥'));
+  // O avatar pronto é um desenho de traço (imagem de fundo), não mais um emoji.
+  check('avatar: aparece no lugar das iniciais', await page.evaluate(() => [...document.querySelectorAll('[style*="data:image/svg+xml"]')]
+    .some(e => !e.classList.contains('avatar-opt') && e.getBoundingClientRect().width >= 56)));
   await page.locator('input[type=file]').setInputFiles(join(ROOT, 'icons', 'icon-512.png'));
   await page.waitForTimeout(1200);
   const up = page.api.db.avatarUpload;
