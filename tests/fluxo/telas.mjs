@@ -64,9 +64,12 @@ for (const p of ['index.html', 'inicio.html', 'sobre.html', 'funcionalidades.htm
 // 1b. O endereço principal (index.html) é a tela de login, para os três perfis
 await step('login no endereço principal', async () => {
   const page = await open('');
-  check('raiz: abre a tela de login', (await text(page)).includes('Bem-vindo de volta'));
+  check('raiz: abre a tela de entrada', (await text(page)).includes('Fome na praia?') && (await text(page)).includes('Entrar com e-mail'));
+  await click(page, 'Entrar com e-mail', true);
+  check('raiz: Entrar com e-mail mostra o formulário', (await text(page)).includes('Bem-vindo de volta') && await page.locator('#email').isVisible());
   await click(page, 'Entrar', true);
-  check('raiz: pede e-mail e senha', (await text(page)).includes('Preencha e-mail e senha.'));
+  check('raiz: pede e-mail e senha embaixo de cada campo', (await text(page)).includes('Informe seu e-mail.') && (await text(page)).includes('Informe sua senha.')
+    && await page.locator('#email').getAttribute('aria-invalid') === 'true' && await page.evaluate(() => document.activeElement.id) === 'email');
   await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
   await page.getByPlaceholder('••••••••').fill('senha');
   await click(page, 'Entrar', true);
@@ -77,6 +80,7 @@ await step('login no endereço principal', async () => {
 
   for (const [role, dest] of [['admin', 'module=admin&screen=dashboard'], ['cozinha', 'module=cozinha&screen=kanban']]) {
     const p = await open('', { role, session: false });
+    await click(p, 'Entrar com e-mail', true);
     await p.getByPlaceholder('voce@email.com').fill(role + '@teste');
     await p.getByPlaceholder('••••••••').fill('senha');
     await click(p, 'Entrar', true);
@@ -92,7 +96,7 @@ await step('login no endereço principal', async () => {
   const inicio = await open('inicio.html');
   check('inicio.html: endereço antigo abre Conheça o Sunfood no login', inicio.url() === BASE + '#conheca' && (await text(inicio)).includes('Um sistema, três telas de trabalho'), inicio.url());
   await inicio.locator('#info').getByText('Entrar', { exact: true }).click(); await inicio.waitForTimeout(300);
-  check('Conheça o Sunfood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Bem-vindo de volta'), inicio.url());
+  check('Conheça o Sunfood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Fome na praia?'), inicio.url());
   await inicio.close();
 
   const app = await open('app-cliente.dc.html', { role: 'admin', session: false });
@@ -155,7 +159,7 @@ await step('logo do Sunfood', async () => {
   const logo = page => page.locator('.brand:visible, .adm-brand:visible').first();
   const anon = await open('app-cliente.dc.html?module=cliente&screen=signup');
   await logo(anon).click(); await anon.waitForTimeout(800);
-  check('logo sem login: vai para a tela de login', anon.url() === BASE && (await text(anon)).includes('Bem-vindo de volta'), anon.url());
+  check('logo sem login: vai para a tela de login', anon.url() === BASE && (await text(anon)).includes('Entrar com e-mail'), anon.url());
   await anon.close();
 
   const cli = await open('app-cliente.dc.html');
