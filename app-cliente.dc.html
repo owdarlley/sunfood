@@ -235,6 +235,15 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 .auth-mobile{background:transparent !important;color:var(--ink) !important;padding:16px var(--px) 0 !important}
 .auth-mobile > div{color:var(--ink-2) !important}
 .auth-mobile .brand{color:var(--brand) !important}
+/* Os mesmos cards coloridos do cardápio que aparecem na tela de login. */
+.auth-art .auth-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:32px}
+.auth-art .auth-cat{display:flex;flex-direction:column;justify-content:space-between;height:200px;padding:20px;border-radius:var(--r-card);color:var(--ink) !important}
+.auth-art .auth-cat svg{display:block;width:56px;height:56px}
+.auth-art .auth-cat b{display:block;font:800 18px/1.25 'Manrope',system-ui,sans-serif;letter-spacing:-.01em}
+.auth-art .auth-cat small{display:block;margin-top:4px;font:500 13px/18px 'Manrope',system-ui,sans-serif}
+.auth-art .auth-cat-porcoes{background:#F07B4F}
+.auth-art .auth-cat-bebidas{background:var(--brand);color:#fff !important}
+.auth-art .auth-cat-acai{background:#F5B83D}
 @media (min-width:768px){
   .auth-box{max-width:504px;padding:32px;background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:0 1px 2px rgba(20,35,42,.04),0 12px 32px -16px rgba(20,35,42,.18)}
 }
@@ -481,9 +490,14 @@ select{caret-color:auto}
             <div class="auth-art">
               <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
               <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
-              <div style="position:relative;max-width:460px">
+              <div style="position:relative;max-width:560px">
                 <div class="tt" style="font-size:40px">{{ authArtTitle }}</div>
                 <p style="font-size:var(--fs-h3);line-height:1.5;color:#E1EEEF;margin:16px 0 0">{{ authArtSub }}</p>
+                <div class="auth-cats" aria-hidden="true">
+                  <div class="auth-cat auth-cat-porcoes"><svg viewBox="0 0 56 56" fill="none"><path d="M10 34h36l-4 10H14z" fill="#fff" opacity=".9"></path><circle cx="20" cy="28" r="7" fill="#F5B83D"></circle><circle cx="32" cy="26" r="8" fill="#F5B83D"></circle><circle cx="40" cy="30" r="5" fill="#F5B83D"></circle></svg><span><b>Porções</b><small>Isca, camarão, batata</small></span></div>
+                  <div class="auth-cat auth-cat-bebidas"><svg viewBox="0 0 56 56" fill="none"><path d="M18 14h20l-3 32H21z" fill="#5BA9AE"></path><path d="M19 22h18" stroke="#fff" stroke-width="2"></path><path d="M32 8l-2 10" stroke="#F5B83D" stroke-width="3" stroke-linecap="round"></path></svg><span><b>Bebidas</b><small>Sucos, coco, cerveja</small></span></div>
+                  <div class="auth-cat auth-cat-acai"><svg viewBox="0 0 56 56" fill="none"><path d="M12 28h32a16 16 0 0 1-32 0z" fill="#fff"></path><circle cx="22" cy="24" r="6" fill="#7B3F6E"></circle><circle cx="32" cy="22" r="7" fill="#7B3F6E"></circle></svg><span><b>Açaí</b><small>Monte o seu</small></span></div>
+                </div>
               </div>
               <div style="position:relative;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#D2E3E5">Seus dados são protegidos conforme a LGPD.</div>
               <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#2A6C75"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#3B8089" opacity=".7"></path></svg>

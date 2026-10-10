@@ -95,15 +95,23 @@ a{color:#1F5A63}
 .info-sheet{position:relative;width:min(760px,100%);height:100%;background:#F7F5F0;display:flex;flex-direction:column;box-shadow:-24px 0 60px -20px rgba(20,35,42,.35);animation:sfslide .28s cubic-bezier(.2,.8,.2,1) both}
 @keyframes sffade{from{opacity:0}}
 @keyframes sfslide{from{transform:translateX(40px);opacity:0}}
-.info-head{flex:none;background:#1F5A63;color:#fff;padding:16px var(--px) 0}
+/* Cabeçalho claro, no mesmo visual da tela de login: fundo areia, marca em
+   verde-petróleo e abas sublinhadas. */
+.info-head{flex:none;background:#F7F5F0;color:#1F5A63;padding:16px var(--px) 0;border-bottom:1px solid #E5E0D5}
+.info-head .brand{color:#1F5A63}
 .info-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.info-close{width:48px;height:48px;border-radius:var(--r-btn);border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.info-close:hover{background:rgba(255,255,255,.12)}
-.tabs{display:flex;gap:4px;margin-top:16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.info-close{width:48px;height:48px;border-radius:var(--r-btn);border:1px solid #D9D3C6;background:#fff;color:#1F5A63;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.info-close:hover{background:#EEF4F4;border-color:#1F5A63}
+.tabs{display:flex;gap:4px;margin-top:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:none;min-height:44px;line-height:20px;padding:12px 16px;border-radius:var(--r-ctl) var(--r-ctl) 0 0;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#D2E3E5;text-decoration:none;white-space:nowrap}
-.tab:hover{color:#fff}
-.tab[aria-current="page"]{background:#F7F5F0;color:#14232A}
+.tab{flex:none;min-height:44px;line-height:20px;padding:12px 14px;border-bottom:3px solid transparent;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A;text-decoration:none;white-space:nowrap;transition:color .15s,border-color .15s}
+.tab:hover{color:#1F5A63}
+.tab[aria-current="page"]{color:#1F5A63;border-bottom-color:#F5B83D}
+.info-body section{animation:sfsec .25s cubic-bezier(.2,.8,.2,1) both}
+.info-body[data-dir="prev"] section{animation-name:sfsecprev}
+@keyframes sfsec{from{transform:translateX(24px);opacity:0}}
+@keyframes sfsecprev{from{transform:translateX(-24px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.info-body section{animation:none}}
 .info-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:var(--sec) var(--px);outline:none}
 .info-body section{max-width:640px;margin:0 auto}
 .info-body .eyebrow{font:800 var(--fs-cap) 'Manrope',system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#1F5A63;margin:0 0 8px}
@@ -773,10 +781,16 @@ function abrirSecao() {
     return;
   }
   if (info.hidden) { voltarFoco = document.activeElement; info.hidden = false; document.body.style.overflow = 'hidden'; }
+  // A seção nova entra pelo lado certo (da direita se vier depois, da esquerda se vier antes).
+  var antes = SECOES.indexOf(info.getAttribute('data-atual'));
+  $('info-body').setAttribute('data-dir', antes > SECOES.indexOf(sec) ? 'prev' : 'next');
+  info.setAttribute('data-atual', sec);
   info.querySelectorAll('[data-sec]').forEach(function (el) { el.hidden = el.getAttribute('data-sec') !== sec; });
   info.querySelectorAll('.tab').forEach(function (a) {
     if (a.getAttribute('href') === '#' + sec) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
+  var ativa = info.querySelector('.tab[aria-current]');
+  if (ativa && ativa.scrollIntoView) ativa.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   $('info-body').scrollTop = 0;
   $('info-body').focus({ preventScroll: true });
   document.title = 'Sunfood · ' + TITULOS[sec];
@@ -793,6 +807,26 @@ info.addEventListener('click', function (e) {
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !info.hidden) fecharSecao(); });
 window.addEventListener('hashchange', abrirSecao);
+
+// No celular, arrastar o conteúdo para o lado troca de aba (esquerda = próxima,
+// direita = anterior). Gestos mais verticais que horizontais continuam rolando
+// a página normalmente, e arrastar dentro de um campo de texto não troca nada.
+(function () {
+  var corpo = $('info-body'), x0 = null, y0 = 0;
+  corpo.addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 1 || e.target.closest('input,textarea,select')) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive: true });
+  corpo.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    var i = SECOES.indexOf(location.hash.slice(1)), j = i + (dx < 0 ? 1 : -1);
+    if (i < 0 || j < 0 || j >= SECOES.length) return;
+    location.replace('#' + SECOES[j]);
+  }, { passive: true });
+})();
 abrirSecao();
 
 // Fale conosco: grava a mensagem pela API (POST /contact) e mostra o protocolo.
