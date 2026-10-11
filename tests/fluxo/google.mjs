@@ -105,8 +105,8 @@ const noErrors = async (name, page) => check(name + ': sem erro de JavaScript', 
 
 // 1. Primeiro acesso pelo Google: volta logado e pede telefone, nascimento e termos
 await step('Google primeiro acesso', async () => {
-  const page = await open('app-cliente.dc.html');
-  await click(page, 'Entrar com Google');
+  const page = await open('index.html');
+  await click(page, 'Continuar com Google');
   await page.waitForTimeout(1500);
   const auth = new URL(page.authorizeUrls[0] || 'http://x');
   check('Google: manda para o Supabase com provider=google', auth.pathname === '/auth/v1/authorize' && auth.searchParams.get('provider') === 'google', auth.href);
@@ -160,9 +160,9 @@ await step('Google cadastro completo', async () => {
 
 // 3. Cancelou na tela do Google: volta pro login com aviso
 await step('Google cancelado', async () => {
-  const p2 = await open('app-cliente.dc.html');
+  const p2 = await open('index.html');
   p2.googleCancels = true;
-  await click(p2, 'Entrar com Google');
+  await click(p2, 'Continuar com Google');
   await p2.waitForTimeout(1500);
   const t = await text(p2);
   check('Google cancelado: avisa e fica no login', t.includes('Não foi possível entrar') && t.includes('Esqueci minha senha'));
@@ -183,8 +183,8 @@ await step('sessão incompleta', async () => {
 // 5. Servidor recusa o pedido por cadastro incompleto: leva para completar e volta ao carrinho
 await step('pedido recusado', async () => {
   // /auth/me diz que está completo, mas o servidor recusa o pedido (ex.: conta antiga sem telefone ou sem CPF).
-  const page = await open('app-cliente.dc.html', { me: { profileComplete: true }, orderRefused: true });
-  await click(page, 'Entrar com Google');
+  const page = await open('index.html', { me: { profileComplete: true }, orderRefused: true });
+  await click(page, 'Continuar com Google');
   await page.waitForTimeout(1500);
   page.api.db.calls.length = 0;
   await click(page, '+', true); await click(page, '+', true);
@@ -225,8 +225,9 @@ await step('Google na página inicial', async () => {
 // domínio do site, e o id_token é trocado por uma sessão no Supabase.
 const sha256 = t => createHash('sha256').update(t).digest('hex');
 await step('Google direto', async () => {
-  const page = await open('app-cliente.dc.html?module=cliente&screen=login', { clientId: 'cid.apps.googleusercontent.com' });
-  await click(page, 'Entrar com Google');
+  // Pela tela de cadastro, para conferir que os ?parâmetros voltam para a barra de endereço.
+  const page = await open('app-cliente.dc.html?module=cliente&screen=signup', { clientId: 'cid.apps.googleusercontent.com' });
+  await click(page, 'Cadastrar com Google');
   await page.waitForTimeout(1500);
   const g = page.googleUrls[0] || new URL('http://x');
   check('direto: vai ao Google, não ao /authorize do Supabase', g.hostname === 'accounts.google.com' && page.authorizeUrls.length === 0, g.href);
@@ -236,16 +237,16 @@ await step('Google direto', async () => {
   check('direto: troca o id_token no Supabase com a chave publicável', tc && tc.url.searchParams.get('grant_type') === 'id_token' && /^sb_publishable_/.test(tc.apikey || ''), JSON.stringify(tc?.body));
   check('direto: Google recebe o nonce em hash e o Supabase o original', tc && sha256(tc.body.nonce) === g.searchParams.get('nonce'));
   check('direto: usa a sessão em /auth/me', called(page, '/auth/me')[0]?.auth === 'Bearer gtok');
-  check('direto: tira o token e devolve os ?parâmetros na barra de endereço', !page.url().includes('id_token') && page.url().endsWith('?module=cliente&screen=login'), page.url());
+  check('direto: tira o token e devolve os ?parâmetros na barra de endereço', !page.url().includes('id_token') && page.url().endsWith('?module=cliente&screen=signup'), page.url());
   check('direto: mostra "Falta pouco"', (await text(page)).includes('Falta pouco'));
   await noErrors('Google direto', page);
   await page.close();
 });
 
 await step('Google direto cancelado', async () => {
-  const page = await open('app-cliente.dc.html', { clientId: 'cid' });
+  const page = await open('index.html', { clientId: 'cid' });
   page.googleCancels = true;
-  await click(page, 'Entrar com Google');
+  await click(page, 'Continuar com Google');
   await page.waitForTimeout(1500);
   const t = await text(page);
   check('direto cancelado: avisa e fica no login', t.includes('Não foi possível entrar') && t.includes('Esqueci minha senha'));
@@ -255,9 +256,9 @@ await step('Google direto cancelado', async () => {
 });
 
 await step('Google direto recusado pelo Supabase', async () => {
-  const page = await open('app-cliente.dc.html', { clientId: 'cid' });
+  const page = await open('index.html', { clientId: 'cid' });
   page.supabaseRefuses = true;
-  await click(page, 'Entrar com Google');
+  await click(page, 'Continuar com Google');
   await page.waitForTimeout(1500);
   const t = await text(page);
   check('direto recusado: avisa e fica no login', t.includes('Não foi possível entrar com Google') && t.includes('Esqueci minha senha'));

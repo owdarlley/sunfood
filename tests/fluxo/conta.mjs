@@ -77,8 +77,8 @@ async function login(page) {
 
 // 1. Cadastro manda os dados certos e volta pro login pedindo confirmação
 await step('cadastro', async () => {
-  const page = await open('app-cliente.dc.html');
-  await click(page, 'Cadastre-se');
+  // O cadastro abre pelo "Criar conta" do login principal, que leva direto a esta tela.
+  const page = await open('app-cliente.dc.html?module=cliente&screen=signup');
   await page.getByPlaceholder('Ana Souza').fill('Ana Teste');
   await page.getByPlaceholder('voce@email.com').fill('ana@teste.com');
   await page.getByPlaceholder('(11) 91234-5678').fill('11 91234-5678');
@@ -101,7 +101,7 @@ await step('cadastro', async () => {
     && sent.cpf === '52998224725' && sent.birthDate === '2000-01-01' && sent.termsAccepted === true, JSON.stringify(sent));
   const t = await text(page);
   check('cadastro: avisa para confirmar o e-mail', /confirme seu e-mail/i.test(t));
-  check('cadastro: volta para o login', t.includes('Esqueci minha senha'));
+  check('cadastro: volta para o login principal', t.includes('Esqueci minha senha') && t.includes('Bem-vindo de volta'));
   check('cadastro: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
 });

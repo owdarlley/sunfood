@@ -696,11 +696,11 @@ function carregando(on) {
   var aviso = null;
   try { aviso = JSON.parse(sessionStorage.getItem('sunfood_login_aviso') || 'null'); sessionStorage.removeItem('sunfood_login_aviso'); } catch (e) {}
   if (!aviso) return;
+  // Quem veio do app já vem para entrar: o formulário abre direto, sem o
+  // passo "Entrar com e-mail" do celular.
+  $('lp').setAttribute('data-step', 'form');
   if (aviso.email) $('email').value = aviso.email;
-  if (aviso.texto) {
-    show(aviso.texto, aviso.ok);
-    $('lp').setAttribute('data-step', 'form');
-  }
+  if (aviso.texto) show(aviso.texto, aviso.ok);
 })();
 
 // Foco automático no e-mail só no computador (no celular abriria o teclado).
