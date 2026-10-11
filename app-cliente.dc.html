@@ -75,6 +75,13 @@ html.sf-espera #dc-root{opacity:0}
 @media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px}}
 @media (min-width:1440px){:root{--maxw:1440px}}
 @media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
+/* Escala mais enxuta (2026-10-11): fontes, botões, cartões e espaços cerca de
+   10% menores em todos os tamanhos de tela. Campos de digitação continuam em
+   16 px (abaixo disso o iPhone dá zoom ao tocar no campo) e os alvos de
+   toque continuam com pelo menos 44 px. */
+:root{--px:16px;--gap:10px;--sec:20px;--cpad:14px;--ctl:46px;--fs-h1:22px;--fs-h2:18px;--fs-h3:16px;--fs-body:14px;--fs-sm:13px;--fs-cap:12px;--r-card:14px;--r-btn:12px;--r-ctl:10px}
+@media (min-width:768px){:root{--px:20px;--gap:14px;--sec:28px;--cpad:16px;--fs-h1:26px;--fs-h2:20px;--fs-h3:17px}}
+@media (min-width:1025px){:root{--px:28px;--gap:20px;--sec:40px;--cpad:20px;--ctl:48px;--fs-h1:30px;--fs-h2:22px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px}}
 
 /* ===== Sunfood · componentes =====
    Botões, campos, cartões e cabeçalhos são os mesmos em todas as telas
@@ -636,6 +643,17 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
 @media (min-width:1025px) and (min-height:700px){
   .wrap-estado{min-height:calc(100vh - 220px);display:flex;flex-direction:column;justify-content:center}
 }
+
+/* Escala mais enxuta: tamanhos fixos que não seguem as variáveis acima. */
+.brand b{font-size:19px}
+.brand svg{width:28px;height:28px}
+.adm-brand b{font-size:18px}
+.adm-brand svg{width:28px;height:28px}
+.topbar-in{padding-top:8px;padding-bottom:8px}
+.hero h1{font-size:clamp(22px,3.4vw,36px)}
+.hero-sun{width:clamp(44px,6vw,80px);height:clamp(44px,6vw,80px)}
+.kz-clock{font-size:var(--fs-h2)}
+@media (max-width:920px){.bottomnav > div{min-height:50px}}
 
 /* Interruptores (48 x 28): área de toque de 44 px de altura, sem mudar o desenho. */
 .toggle::after{content:'';position:absolute;inset:-8px -4px}
