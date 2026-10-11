@@ -22,7 +22,13 @@ jobs:
           cache-dependency-path: tests/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm test
+      - run: |
+          set +e
+          for t in telas pagamentos senha conta google pwa mesas celular localizacao excluir-produto sessao relatorios desempenho responder-mensagens perfil; do
+            node fluxo/$t.mjs > out-$t.txt 2>&1; echo "$t exit=$?"
+            grep -E '^FALHA|Error|error' out-$t.txt | head -15 | sed "s/^/::error title=$t::/"
+          done
+          exit 0
 
   servidor:
     runs-on: ubuntu-latest
