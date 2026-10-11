@@ -256,7 +256,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .divider span{flex:1;height:1px;background:#E3DDD0;display:block}
 .gbtn{display:flex;align-items:center;justify-content:center;gap:12px;min-height:var(--ctl);border-radius:var(--r-btn);border:1px solid var(--field);background:#fff;font:600 16px 'Manrope',system-ui,sans-serif;cursor:pointer;color:#14232A}
 .gbtn:hover{border-color:var(--ink);background:var(--bg)}
-.payopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--gap)}
+.payopts{display:grid;grid-template-columns:minmax(0,1fr);gap:12px} /* uma embaixo da outra em todo tamanho: no computador as caixas lado a lado quebravam o texto */
 .payopt{display:flex;align-items:center;gap:12px;border-radius:var(--r-card);padding:var(--cpad);cursor:pointer;background:#fff;border:2px solid var(--line);transition:border-color .15s,background .15s}
 .payopt:hover{border-color:#8C949A}
 .payopt.on{border-color:#1F5A63;background:#E6EFF0}
@@ -590,6 +590,25 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
   .adm-menubtn{padding-left:12px !important;padding-right:12px !important}
 }
 @media (max-width:340px){.adm-brand small{display:none}}
+
+/* Interruptores (48 x 28): área de toque de 44 px de altura, sem mudar o desenho. */
+.toggle::after{content:'';position:absolute;inset:-8px -4px}
+
+/* Gráficos com muitas barras (Vendas por horário, 12 horas): no celular só
+   um rótulo sim, um não, para as horas não ficarem espremidas. */
+@media (max-width:560px){.bars:has(> .bar:nth-child(9)) > .bar:nth-child(even) .bl{visibility:hidden}}
+
+/* Indicadores (Painel, Pagamentos, Relatórios) no celular e no tablet: em
+   linhas que se completam. Antes, 5 cartões em 2 ou 3 colunas deixavam o
+   último sozinho com um buraco ao lado; agora ele ocupa a linha. */
+@media (max-width:1024px){
+  .kpis{display:flex;flex-wrap:wrap}
+  .kpis > *{flex:1 1 140px;min-width:0}
+}
+@media (min-width:768px) and (max-width:1024px){
+  .kpis > *{flex-basis:120px}
+  .kpi .v{font-size:clamp(20px,2.6vw,28px)}
+}
 
 /* ===== Padrão da tela de login em todo o app (2026-10-10) =====
    Uma camada só, por cima dos componentes acima, para cliente, administração
@@ -1681,9 +1700,9 @@ select{caret-color:auto}
                             <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
                               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                                 <span class="muted" style="font-size:13px">Recebido em:</span>
-                                <span onClick="{{ r.recvCash }}" class="chip" style="background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB;padding:8px 12px;cursor:pointer">Dinheiro</span>
-                                <span onClick="{{ r.recvCard }}" class="chip" style="background:#E6EFF0;color:#174A52;border:1px solid #D2E3E5;padding:8px 12px;cursor:pointer">Cartão</span>
-                                <span onClick="{{ r.recvPix }}" class="chip" style="background:#FFF4DB;color:#7A4B00;border:1px solid #F0D9A8;padding:8px 12px;cursor:pointer">PIX</span>
+                                <span onClick="{{ r.recvCash }}" class="chip" style="background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">Dinheiro</span>
+                                <span onClick="{{ r.recvCard }}" class="chip" style="background:#E6EFF0;color:#174A52;border:1px solid #D2E3E5;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">Cartão</span>
+                                <span onClick="{{ r.recvPix }}" class="chip" style="background:#FFF4DB;color:#7A4B00;border:1px solid #F0D9A8;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">PIX</span>
                               </div>
                             </sc-if>
                             <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
