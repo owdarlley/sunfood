@@ -189,8 +189,11 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 /* Coluna lateral com largura fixa: o resumo do carrinho crescer não pode
    apertar o cardápio ao lado (antes os cartões mudavam de tamanho ao adicionar). */
 .col-side{flex:0 0 360px;min-width:0;max-width:100%;display:flex;flex-direction:column;gap:var(--gap)}
-.hero{position:relative;overflow:hidden;border-radius:var(--r-card);background:#1F5A63;color:#fff;padding:calc(var(--cpad) + 8px) calc(var(--cpad) + 8px) 0;margin-bottom:var(--sec)}
-.hero h1{margin:0 0 48px;position:relative;font-size:var(--fs-h1);max-width:720px}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--ink);margin-bottom:var(--sec)}
+.hero-txt{display:flex;flex-direction:column;align-items:flex-start;gap:16px;min-width:0}
+.hero-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--ink-2);font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif}
+.hero h1{margin:0;font-size:clamp(28px,4vw,44px);line-height:1.08;letter-spacing:-.025em;color:var(--ink);text-wrap:balance}
+.hero-sun{flex:none;width:clamp(56px,8vw,96px);height:clamp(56px,8vw,96px)}
 .hero p{margin:12px 0 16px;font-size:var(--fs-body);line-height:1.5;color:#E1EEEF;max-width:620px;position:relative}
 .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
@@ -463,6 +466,14 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 @media (max-width:1024px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:767px){ .kz-board{grid-template-columns:1fr} }
 /* Carrinho no celular: foto e nome na primeira linha; +/− e preço embaixo. */
+/* Resumo "Seu pedido": nome inteiro em cima (até 2 linhas) e o seletor de
+   quantidade embaixo, em vez de espremer tudo numa linha só. */
+.sumitem{display:flex;flex-direction:column;gap:8px}
+.sumitem-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.sumitem-name{font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sumitem-price{font-weight:700;white-space:nowrap}
+.sumitem-bot{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.stepper-sm .sb{width:32px;height:32px;font-size:16px}.stepper-sm .sb::after{inset:-6px}.stepper-sm .sq{min-width:20px;font-size:14px}
 @media (max-width:767px){.cartrow{flex-wrap:wrap;row-gap:12px}.cartrow .cr-info{flex:1 1 calc(100% - 80px) !important}.cartrow .stepper{margin-left:80px}.cartrow .cr-price{flex:1;width:auto !important}}
 @media (max-width:767px){.bars{gap:4px}.kpi .k{font-size:var(--fs-cap)}}
 /* No cartão do cardápio o +/− tem a mesma altura do botão Adicionar (44 px),
@@ -471,6 +482,68 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
 @media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}}
+
+/* ===== Padrão da tela de login em todo o app (2026-10-10) =====
+   Uma camada só, por cima dos componentes acima, para cliente, administração
+   e cozinha falarem a mesma língua visual da tela de login: superfícies
+   claras (areia + cartões brancos), marca em verde-petróleo, destaque em
+   amarelo-sol, cantos 16/14/12, espaçamentos múltiplos de 4 e 8 e estados
+   visíveis (hover, toque, foco e desabilitado) em tudo que é clicável. */
+:root{--ease:cubic-bezier(.2,.8,.2,1);--overlay:rgba(20,35,42,.45);--row-hover:#FBFAF6;--focus:0 0 0 2px #fff,0 0 0 4px var(--brand)}
+
+/* Menu lateral (administração e cozinha): claro como o login, em vez do
+   bloco verde-escuro. Item ativo em verde-claro com a barrinha amarela. */
+.adm-side{background:var(--surface);color:var(--ink);border-right:1px solid var(--line)}
+.adm-brand{color:var(--brand)}
+.adm-brand small{color:var(--ink-2)}
+.adm-item{position:relative;color:var(--ink-2);transition:background .15s var(--ease),color .15s var(--ease)}
+.adm-item svg{flex:none}
+.adm-item:hover{background:var(--bg);color:var(--ink)}
+.adm-item:active{background:var(--surface-off)}
+.adm-item.on{background:var(--brand-tint);color:var(--brand);font-weight:700}
+.adm-item.on::before{content:'';position:absolute;left:-16px;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:var(--sun)}
+.adm-sep{background:var(--line)}
+.adm-foot .em{color:var(--ink-2) !important}
+.adm-foot .kz-btn{background:#fff;color:var(--brand);border-color:var(--brand)}
+.adm-foot .kz-btn:hover{background:var(--brand-tint);border-color:var(--brand)}
+@media (max-width:900px){
+  .adm-side{border-right:0;border-bottom:1px solid var(--line);background:rgba(247,245,240,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .adm-menubtn{background:#fff;border-color:var(--line);color:var(--brand)}
+  .adm-menubtn:hover{border-color:var(--brand)}
+  .adm-side.open .adm-item{background:#fff;border:1px solid var(--line)}
+  .adm-side.open .adm-item.on{background:var(--brand-tint);border-color:var(--brand-tint)}
+  .adm-side.open .adm-foot{border-top-color:var(--line)}
+  .adm-item.on::before{display:none}
+}
+
+/* Tabelas: cabeçalho em caixa alta e cor de apoio, linhas com destaque
+   suave ao passar o mouse. */
+.tr.th{text-transform:uppercase;letter-spacing:.06em}
+.tblwrap .tr:not(.th){transition:background .15s var(--ease)}
+@media (hover:hover){.tblwrap .tr:not(.th):hover{background:var(--row-hover)}}
+.tblwrap .tr + .tr:not(.th){border-top:1px solid #EFEADF}
+
+/* Estados: hover, toque, foco (teclado) e desabilitado iguais aos do login. */
+.btn,.addbtn,.kz-act,.kz-btn,.toplink,.cartpill,.backbtn,.mesachip{transition:background .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease),box-shadow .15s var(--ease),transform .1s var(--ease)}
+.btn:focus-visible,.addbtn:focus-visible,.kz-act:focus-visible,.kz-btn:focus-visible,.toplink:focus-visible,.cartpill:focus-visible,.backbtn:focus-visible,.adm-item:focus-visible,.pcard:focus-visible,.link:focus-visible,.adm-menubtn:focus-visible{outline:none;box-shadow:var(--focus)}
+.kz-act:active,.kz-btn:active,.backbtn:active,.cartpill:active,.toplink:active{transform:scale(.98)}
+.btn[aria-disabled="true"],.btn.is-disabled,.kz-act[aria-disabled="true"]{opacity:.5;cursor:not-allowed;pointer-events:none}
+.card{transition:box-shadow .2s var(--ease),border-color .2s var(--ease)}
+
+/* Status com cores de significado: verde = ok, vermelho = erro/atrasado,
+   amarelo = atenção, verde-petróleo claro = informação. */
+.alert{align-items:center}
+.alert svg{flex:none}
+
+/* Janelas por cima da tela (confirmação, excluir conta): fundo escurecido
+   com desfoque, como o painel do rodapé do login. */
+.sf-overlay{position:fixed;inset:0;z-index:60;background:var(--overlay);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;animation:sffade .2s ease}
+.sf-dialog{width:100%;max-width:440px;background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:0 24px 64px -24px rgba(20,35,42,.45)}
+
+/* Último fechamento do dia: cartão verde-petróleo da marca (era quase preto). */
+.dayreport{background:var(--brand);color:#EAF2F3;border-radius:var(--r-card);padding:var(--cpad);max-width:520px;box-shadow:var(--shadow-card)}
+.dayreport .sumrow{color:#D2E3E5 !important}
+.dayreport .sumrow b{color:#fff !important}
 
 /* Clicar ou tocar perto de um texto não seleciona nada nem mostra o cursor de
    texto (o "tracinho"): só os campos de digitação são selecionáveis e
@@ -678,12 +751,12 @@ select{caret-color:auto}
               <sc-if value="{{ is_menu }}" hint-placeholder-val="{{ false }}">
                 <div>
                   <div class="hero">
-                    <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:90px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#2A6C75"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#3B8089" opacity=".7"></path></svg>
-                    <svg style="position:absolute;right:clamp(-70px,2vw,40px);top:-40px;width:clamp(150px,18vw,220px);height:clamp(150px,18vw,220px)" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
-                    <div style="position:relative">
-                      <span style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.14);font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;margin-bottom:16px"><span style="{{ heroDotStyle }}"></span>{{ heroChip }}</span>
-                      <h1 class="tt">Peça da mesa. A gente leva até a areia.</h1>
+                    <div class="hero-txt">
+                      <span class="hero-chip"><span style="{{ heroDotStyle }}"></span>{{ heroChip }}</span>
+                      <h1 class="tt">Peça da mesa.<br>A gente leva até a areia.</h1>
                     </div>
+                    <svg class="hero-sun" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
+                  </div>
                   </div>
 
                   <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
@@ -769,14 +842,19 @@ select{caret-color:auto}
                         <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
                           <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:16px">
                             <sc-for list="{{ cartRows }}" as="c" hint-placeholder-count="2">
-                              <div style="display:flex;align-items:center;gap:12px">
-                                <div style="flex-grow:1;min-width:0">
-                                  <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
-                                  <div class="muted" style="font-size:var(--fs-sm)">{{ c.qty }} × {{ c.unitStr }}</div>
+                              <div class="sumitem">
+                                <div class="sumitem-top">
+                                  <div class="sumitem-name">{{ c.name }}</div>
+                                  <div class="sumitem-price">{{ c.lineStr }}</div>
                                 </div>
-                                <span onClick="{{ c.dec }}" style="width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">−</span>
-                                <span onClick="{{ c.inc }}" style="width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;flex-shrink:0">+</span>
-                                <div style="width:82px;text-align:right;font-weight:700;flex-shrink:0">{{ c.lineStr }}</div>
+                                <div class="sumitem-bot">
+                                  <div class="muted" style="font-size:var(--fs-sm)">{{ c.qty }} × {{ c.unitStr }}</div>
+                                  <div class="stepper stepper-sm">
+                                    <span onClick="{{ c.dec }}" class="sb" role="button" aria-label="Remover um">−</span>
+                                    <span class="sq">{{ c.qty }}</span>
+                                    <span onClick="{{ c.inc }}" class="sb on" role="button" aria-label="Adicionar mais um">+</span>
+                                  </div>
+                                </div>
                               </div>
                             </sc-for>
                           </div>
@@ -1268,8 +1346,8 @@ select{caret-color:auto}
               </sc-if>
 
               <sc-if value="{{ is_deleteAccount }}" hint-placeholder-val="{{ false }}">
-                <div style="position:fixed;inset:0;z-index:60;background:rgba(20,35,42,.5);display:flex;align-items:center;justify-content:center;padding:16px;animation:sffade .2s ease">
-                  <div class="rise" style="width:100%;max-width:420px;background:#fff;border-radius:var(--r-card);padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+                <div class="sf-overlay">
+                  <div class="rise sf-dialog" role="alertdialog" aria-modal="true" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
                     <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
                     <div class="tt" style="font-size:var(--fs-h2)">Excluir sua conta?</div>
                     <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Seu cadastro e seus dados pessoais serão apagados. Os pedidos já feitos ficam no caixa do quiosque, sem o seu nome. Esta ação não pode ser desfeita.</p>
@@ -1754,7 +1832,7 @@ select{caret-color:auto}
                 </div>
               </div>
               <sc-if value="{{ hasDayReport }}" hint-placeholder-val="{{ false }}">
-                <div style="background:#14232A;color:#EAF2F3;border-radius:var(--r-card);padding:var(--cpad);max-width:520px">
+                <div class="dayreport">
                   <div style="font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif;display:flex;align-items:center;gap:12px;margin-bottom:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5B83D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>Último fechamento do dia</div>
                   <div class="sumrow" style="color:#C9D6DB"><span>Vendas</span><b style="color:#fff">{{ reportRevenue }}</b></div>
                   <div class="sumrow" style="color:#C9D6DB"><span>Pedidos</span><b style="color:#fff">{{ reportOrders }}</b></div>
@@ -3882,7 +3960,7 @@ class Component extends DCLogic {
     v.paused = s.paused;
     v.menuDayClosed = s.dayClosed && !s.paused;
     v.heroChip = s.paused ? 'Pedidos pausados agora' : s.dayClosed ? 'Quiosque fechado por hoje' : 'Quiosque aberto agora';
-    v.heroDotStyle = 'width:8px;height:8px;border-radius:50%;display:inline-block;background:' + (s.paused || s.dayClosed ? '#F5B83D' : '#7CF29A');
+    v.heroDotStyle = 'width:8px;height:8px;border-radius:50%;display:inline-block;background:' + (s.paused || s.dayClosed ? '#E0A11B' : '#1E9E52');
     v.cartCount = s.cart.reduce((a, c) => a + c.qty, 0);
     v.hasCart = v.cartCount > 0;
     v.showCartPill = v.hasCart && ['menu','cart','table','payment'].indexOf(s.screen) < 0;
