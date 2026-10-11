@@ -483,8 +483,32 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
   .kz-board > .kz-availcol > .kz-colhead,.kz-board > .kz-availcol > .kz-sub{grid-column:1/-1}
   .kz-board > .kz-availcol > .kz-sub{margin:0 0 8px !important}
 }
-@media (max-width:1024px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
-@media (max-width:767px){ .kz-board{grid-template-columns:1fr} }
+/* Tablet: as 3 colunas de pedidos lado a lado. A Disponibilidade sai do
+   quadro (fica na tela própria, pelo menu), para não ir parar no fim da página. */
+@media (max-width:1024px){
+  .kz-board{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .kz-board > .kz-availcol{display:none !important}
+  .kz-board .kz-col{padding:12px}
+}
+/* Celular: abas Novos / Em preparo / Prontos, uma coluna por vez (arrastar
+   para o lado também troca), em vez das colunas empilhadas. */
+.kz-tabs{display:none}
+@media (max-width:767px){
+  .kz-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:12px;padding:4px;background:#EFEADF;border-radius:999px}
+  .kz-tabs::-webkit-scrollbar{display:none}
+  .kz-tab{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:44px;padding:0 6px;border-radius:999px;background:transparent;border:1px solid transparent;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
+  .kz-tab.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .kz-tab .kz-n{min-width:24px;height:24px;font-size:12px;padding:0 6px}
+  .kz-tab.on .kz-n{background:rgba(255,255,255,.2);color:#fff}
+  .kz-board{grid-template-columns:1fr}
+  .kz-board > .kz-col:not(.on){display:none}
+  .kz-board > .kz-col > .kz-colhead{display:none}
+  .kz-tab > span:first-child{flex:none}
+  .kz-board > .kz-col.on{animation:sfkz .22s cubic-bezier(.2,.8,.2,1)}
+}
+@media (max-width:380px){.kz-tab > span:first-child{display:none}}
+@keyframes sfkz{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.kz-board > .kz-col.on{animation:none}}
 /* Resumo "Seu pedido": nome inteiro em cima (até 2 linhas) e o seletor de
    quantidade embaixo, em vez de espremer tudo numa linha só. */
 .sumitem{display:flex;flex-direction:column;gap:8px}
@@ -2002,9 +2026,14 @@ select{caret-color:auto}
             </div>
           </sc-if>
           <sc-if value="{{ kBoardOn }}" hint-placeholder-val="{{ true }}">
+            <div class="kz-tabs" role="tablist" aria-label="Colunas de pedidos">
+              <sc-for list="{{ kTabs }}" as="t" hint-placeholder-count="3">
+                <div onClick="{{ t.pick }}" class="{{ t.cls }}" role="tab" aria-selected="{{ t.sel }}"><span style="{{ t.dotStyle }}"></span>{{ t.title }}<span class="kz-n">{{ t.n }}</span></div>
+              </sc-for>
+            </div>
             <div class="kz-board">
               <sc-for list="{{ kCols }}" as="col" hint-placeholder-count="3">
-                <div class="kz-col">
+                <div class="{{ col.tabCls }}">
                   <div class="kz-colhead"><span style="display:flex;align-items:center;gap:8px"><span style="{{ col.dotStyle }}"></span>{{ col.title }}</span><span class="kz-n">{{ col.n }}</span></div>
                   <sc-for list="{{ col.cards }}" as="k" hint-placeholder-count="2">
                     <div class="kz-card {{ k.lateCls }}">
@@ -2727,11 +2756,29 @@ class Component extends DCLogic {
     profileInfo:null, meName:'', mePhone:'', meBirth:'', meErr:'', avatarErr:'',
     pwCur:'', pwNew:'', pwNew2:'', pwErr:'',
     histSel:0,
+    kzTab:0,
     toast:''
   };
 
 
   componentDidMount(){
+    // Cozinha no celular: arrastar o quadro para o lado troca de aba (Novos / Em preparo / Prontos).
+    this._kzSwipe = {x:null, y:0};
+    this._kzStart = e => {
+      const b = e.target.closest && e.target.closest('.kz-board');
+      if(!b || window.innerWidth >= 768 || e.touches.length !== 1){ this._kzSwipe.x = null; return; }
+      this._kzSwipe = {x:e.touches[0].clientX, y:e.touches[0].clientY};
+    };
+    this._kzEnd = e => {
+      const g = this._kzSwipe; if(g.x === null) return;
+      const dx = e.changedTouches[0].clientX - g.x, dy = e.changedTouches[0].clientY - g.y;
+      g.x = null;
+      if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      const t = Math.max(0, Math.min(2, (this.state.kzTab || 0) + (dx < 0 ? 1 : -1)));
+      if(t !== this.state.kzTab) this.setState({kzTab:t});
+    };
+    document.addEventListener('touchstart', this._kzStart, {passive:true});
+    document.addEventListener('touchend', this._kzEnd, {passive:true});
     sessionEvents.onToken = token => this.setState({token});
     sessionEvents.onLost = () => {
       if(!this.state.token) return;
@@ -3749,7 +3796,7 @@ class Component extends DCLogic {
     this.setState({module:mod, screen});
   }
 
-  componentWillUnmount(){ clearInterval(this.timer); }
+  componentWillUnmount(){ clearInterval(this.timer); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); }
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
   go(screen, module){
@@ -4602,10 +4649,15 @@ class Component extends DCLogic {
         act:st === 'Pronto' ? () => this.advanceOrderStatus(k.apiId, 'Entregue')
           : () => this.advanceOrderStatus(k.apiId, st === 'Na Fila' ? 'Em Preparo' : 'Pronto')
       }));
-      return {title, n:String(cards.length), cards, empty:cards.length === 0,
+      const idx = KCOLS.findIndex(c => c[0] === st);
+      return {title, n:String(cards.length), cards, empty:cards.length === 0, tabCls:idx === (s.kzTab || 0) ? 'kz-col on' : 'kz-col',
         emptyText:st === 'Na Fila' ? 'Nenhum pedido novo. Assim que chegar, aparece aqui.' : st === 'Em Preparo' ? 'Nada no fogo agora.' : 'Nada esperando entrega.',
         dotStyle:'width:10px;height:10px;border-radius:50%;background:' + dot};
     });
+    // Celular: abas Novos / Em preparo / Prontos em cima do quadro (uma coluna por vez).
+    v.kTabs = v.kCols.map((c, i) => ({title:c.title === 'Em preparo' ? 'Preparo' : c.title, n:c.n, dotStyle:c.dotStyle,
+      cls:'kz-tab' + (i === (s.kzTab || 0) ? ' on' : ''), sel:i === (s.kzTab || 0) ? 'true' : 'false',
+      pick:() => this.setState({kzTab:i})}));
     v.kDelivered = String(s.adminOrders.filter(k => k.status === 'Entregue').length);
     v.kLate = String(s.adminOrders.filter(k => (k.status === 'Na Fila' || k.status === 'Em Preparo') && k.minAgo > 10).length);
     v.kClock = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
