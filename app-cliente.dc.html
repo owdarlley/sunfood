@@ -380,9 +380,10 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .tr.th{border-top:0;border-bottom:1px solid #E3DDD0;font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#55626A;padding-top:12px;padding-bottom:12px;white-space:nowrap}
 .tr.th + .tr{border-top:0}
 .tblwrap{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);overflow-x:auto}
-/* No celular as tabelas de Pedidos e Pagamentos viram cartões (sem arrastar
-   para os lados): cada linha mostra os campos com o nome em cima. */
-@media (max-width:767px){
+/* No celular e no tablet as tabelas de Pedidos e Pagamentos viram cartões
+   (sem arrastar para os lados nem cortar a coluna Status): cada linha mostra
+   os campos com o nome em cima. */
+@media (max-width:1024px){
   .tbl-cards{min-width:0 !important}
   .tbl-cards .tr.th{display:none}
   .tbl-cards .tr{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:12px;padding:16px}
