@@ -102,17 +102,22 @@ a{color:#1F5A63}
 .info-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .info-close{width:48px;height:48px;border-radius:var(--r-btn);border:1px solid #D9D3C6;background:#fff;color:#1F5A63;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .info-close:hover{background:#EEF4F4;border-color:#1F5A63}
-.tabs{display:flex;gap:4px;margin-top:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs{position:relative;display:flex;gap:4px;margin-top:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;min-height:44px;line-height:20px;padding:12px 14px;border-bottom:3px solid transparent;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A;text-decoration:none;white-space:nowrap;transition:color .15s,border-color .15s}
 .tab:hover{color:#1F5A63}
-.tab[aria-current="page"]{color:#1F5A63;border-bottom-color:#F5B83D}
+.tab[aria-current="page"]{color:#1F5A63}
+/* Barrinha amarela da aba ativa: um elemento só, que desliza de uma aba para
+   a outra (e acompanha o dedo quando se arrasta o conteúdo no celular). */
+.tab-ind{position:absolute;left:0;bottom:0;height:3px;width:0;border-radius:3px 3px 0 0;background:#F5B83D;pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1),width .3s cubic-bezier(.2,.8,.2,1)}
+.tab-ind.arrastando{transition:none}
 .info-body section{animation:sfsec .25s cubic-bezier(.2,.8,.2,1) both}
 .info-body[data-dir="prev"] section{animation-name:sfsecprev}
-@keyframes sfsec{from{transform:translateX(24px);opacity:0}}
-@keyframes sfsecprev{from{transform:translateX(-24px);opacity:0}}
-@media (prefers-reduced-motion:reduce){.info-body section{animation:none}}
-.info-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:var(--sec) var(--px);outline:none}
+.info-body[data-dir="none"] section{animation:none}
+@keyframes sfsec{from{transform:translateX(32%);opacity:0}}
+@keyframes sfsecprev{from{transform:translateX(-32%);opacity:0}}
+@media (prefers-reduced-motion:reduce){.info-body section{animation:none}.tab-ind{transition:none}}
+.info-body{position:relative;flex:1;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;padding:var(--sec) var(--px);outline:none}
 .info-body section{max-width:640px;margin:0 auto}
 .info-body .eyebrow{font:800 var(--fs-cap) 'Manrope',system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#1F5A63;margin:0 0 8px}
 .info-body h2{font:800 var(--fs-h1)/1.1 'Manrope',system-ui,sans-serif;letter-spacing:-.025em;margin:0}
@@ -420,6 +425,7 @@ select{caret-color:auto}
         <button type="button" class="info-close" data-close aria-label="Fechar e voltar ao login"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg></button>
       </div>
       <nav class="tabs" aria-label="Seções">
+        <span class="tab-ind" id="tab-ind" aria-hidden="true"></span>
         <a class="tab" href="#conheca">Conheça o Sunfood</a>
         <a class="tab" href="#fale-conosco">Fale conosco</a>
         <a class="tab" href="#termos">Termos de uso</a>
@@ -796,7 +802,9 @@ function abrirSecao() {
   if (info.hidden) { voltarFoco = document.activeElement; info.hidden = false; document.body.style.overflow = 'hidden'; }
   // A seção nova entra pelo lado certo (da direita se vier depois, da esquerda se vier antes).
   var antes = SECOES.indexOf(info.getAttribute('data-atual'));
-  $('info-body').setAttribute('data-dir', antes > SECOES.indexOf(sec) ? 'prev' : 'next');
+  // Depois de arrastar, a seção nova já está no lugar: entra sem animação de novo.
+  var semAnim = info.getAttribute('data-sem-anim') === '1'; info.removeAttribute('data-sem-anim');
+  $('info-body').setAttribute('data-dir', semAnim ? 'none' : antes > SECOES.indexOf(sec) ? 'prev' : 'next');
   info.setAttribute('data-atual', sec);
   info.querySelectorAll('[data-sec]').forEach(function (el) { el.hidden = el.getAttribute('data-sec') !== sec; });
   info.querySelectorAll('.tab').forEach(function (a) {
@@ -804,6 +812,7 @@ function abrirSecao() {
   });
   var ativa = info.querySelector('.tab[aria-current]');
   if (ativa && ativa.scrollIntoView) ativa.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  moverBarrinha(sec);
   $('info-body').scrollTop = 0;
   $('info-body').focus({ preventScroll: true });
   document.title = 'Sunfood · ' + TITULOS[sec];
@@ -821,24 +830,111 @@ info.addEventListener('click', function (e) {
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !info.hidden) fecharSecao(); });
 window.addEventListener('hashchange', abrirSecao);
 
+// Barrinha amarela das abas: vai até a aba da seção (p = 0) ou fica no meio
+// do caminho até a aba vizinha (p entre 0 e 1) enquanto se arrasta.
+function abaDe(sec) { return info.querySelector('.tab[href="#' + sec + '"]'); }
+function moverBarrinha(sec, vizinha, p) {
+  var a = abaDe(sec), ind = $('tab-ind');
+  if (!a || !ind) return;
+  var x = a.offsetLeft, w = a.offsetWidth, b = vizinha && abaDe(vizinha);
+  if (b && p) { x += (b.offsetLeft - x) * p; w += (b.offsetWidth - w) * p; }
+  ind.style.width = w + 'px';
+  ind.style.transform = 'translateX(' + x + 'px)';
+}
+window.addEventListener('resize', function () { if (!info.hidden) moverBarrinha(location.hash.slice(1)); });
+
 // No celular, arrastar o conteúdo para o lado troca de aba (esquerda = próxima,
-// direita = anterior). Gestos mais verticais que horizontais continuam rolando
-// a página normalmente, e arrastar dentro de um campo de texto não troca nada.
+// direita = anterior). O conteúdo acompanha o dedo e a barrinha amarela vai
+// junto; ao soltar depois de um quarto da tela (ou com um gesto rápido), a
+// seção sai pelo lado e a vizinha entra pelo outro. Soltando antes, volta ao
+// lugar. Gestos mais verticais continuam rolando a página, e arrastar dentro
+// de um campo de texto não troca nada.
 (function () {
-  var corpo = $('info-body'), x0 = null, y0 = 0;
+  var corpo = $('info-body'), ind = $('tab-ind');
+  var semMovimento = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var g = null; // gesto em andamento
+  function secao(k) { return corpo.querySelector('[data-sec="' + SECOES[k] + '"]'); }
+  function limpar(el) { if (el) { el.style.cssText = ''; } }
+  function esconderVizinha() { if (g && g.viz) { limpar(g.viz); g.viz.hidden = true; g.viz = null; g.j = null; } }
+  // A aba vizinha fica ao lado da atual (fora da tela) e entra junto com o dedo.
+  function mostrarVizinha(j) {
+    if (g.j === j) return;
+    esconderVizinha();
+    var v = secao(j); if (!v) return;
+    var r = g.el.getBoundingClientRect(), base = corpo.getBoundingClientRect();
+    v.hidden = false;
+    // Entra pelo topo da vizinha, mesmo com a atual já rolada para baixo (ao trocar, a rolagem volta ao topo).
+    v.style.cssText = 'position:absolute;margin:0;animation:none;transition:none;top:' + (corpo.scrollTop + parseFloat(getComputedStyle(corpo).paddingTop)) + 'px;left:' + (r.left - base.left) + 'px;width:' + r.width + 'px';
+    g.viz = v; g.j = j;
+  }
+  function posicionar(dx, W) {
+    var p = Math.min(Math.abs(dx) / W, 1);
+    g.el.style.transform = 'translateX(' + dx + 'px)';
+    g.el.style.opacity = String(1 - p * 0.6);
+    if (g.viz) { g.viz.style.transform = 'translateX(' + (dx + (dx < 0 ? W : -W)) + 'px)'; g.viz.style.opacity = String(0.4 + p * 0.6); }
+  }
+
   corpo.addEventListener('touchstart', function (e) {
-    if (e.touches.length !== 1 || e.target.closest('input,textarea,select')) { x0 = null; return; }
-    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    if (e.touches.length !== 1 || e.target.closest('input,textarea,select') || (g && g.saindo)) { if (!(g && g.saindo)) g = null; return; }
+    var i = SECOES.indexOf(location.hash.slice(1));
+    if (i < 0) { g = null; return; }
+    g = { x0: e.touches[0].clientX, y0: e.touches[0].clientY, t0: Date.now(), i: i, eixo: null, dx: 0, el: secao(i), viz: null, j: null };
   }, { passive: true });
-  corpo.addEventListener('touchend', function (e) {
-    if (x0 === null) return;
-    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
-    x0 = null;
-    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    var i = SECOES.indexOf(location.hash.slice(1)), j = i + (dx < 0 ? 1 : -1);
-    if (i < 0 || j < 0 || j >= SECOES.length) return;
-    location.replace('#' + SECOES[j]);
+
+  corpo.addEventListener('touchmove', function (e) {
+    if (!g || g.saindo) return;
+    var dx = e.touches[0].clientX - g.x0, dy = e.touches[0].clientY - g.y0;
+    if (!g.eixo) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      g.eixo = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+      if (g.eixo === 'x' && !semMovimento && g.el) { g.el.style.transition = 'none'; ind.classList.add('arrastando'); }
+    }
+    if (g.eixo !== 'x') return;
+    var j = g.i + (dx < 0 ? 1 : -1), temVizinha = j >= 0 && j < SECOES.length;
+    g.dx = temVizinha ? dx : dx * 0.25; // na primeira e na última aba, o conteúdo resiste
+    if (semMovimento || !g.el) return;
+    var W = corpo.clientWidth;
+    if (temVizinha) mostrarVizinha(j); else esconderVizinha();
+    posicionar(g.dx, W);
+    moverBarrinha(SECOES[g.i], temVizinha ? SECOES[j] : null, Math.min(Math.abs(g.dx) / W, 1));
   }, { passive: true });
+
+  function soltar() {
+    if (!g || g.saindo) return;
+    var gesto = g;
+    ind.classList.remove('arrastando');
+    if (gesto.eixo !== 'x') { g = null; return; }
+    var W = corpo.clientWidth, dx = gesto.dx, rapido = Math.abs(dx) / Math.max(Date.now() - gesto.t0, 1) > 0.5;
+    var j = gesto.i + (dx < 0 ? 1 : -1);
+    var troca = j >= 0 && j < SECOES.length && Math.abs(dx) > 24 && (Math.abs(dx) > W * 0.25 || rapido);
+    if (semMovimento || !gesto.el) { g = null; if (troca) location.replace('#' + SECOES[j]); return; }
+    var anim = 'transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s';
+    gesto.saindo = true;
+    gesto.el.style.transition = anim;
+    if (gesto.viz) gesto.viz.style.transition = anim;
+    if (!troca) {
+      // Volta ao lugar; a vizinha sai de novo pelo lado.
+      posicionar(0, W);
+      if (gesto.viz) gesto.viz.style.transform = 'translateX(' + (dx < 0 ? W : -W) + 'px)';
+      moverBarrinha(SECOES[gesto.i]);
+      setTimeout(function () { esconderVizinha(); limpar(gesto.el); g = null; }, 230);
+      return;
+    }
+    // Termina o movimento: a atual sai pelo lado do gesto e a vizinha chega ao lugar.
+    moverBarrinha(SECOES[j]);
+    gesto.el.style.transform = 'translateX(' + (dx < 0 ? -W : W) + 'px)';
+    gesto.el.style.opacity = '0';
+    if (gesto.viz) { gesto.viz.style.transform = 'translateX(0)'; gesto.viz.style.opacity = '1'; }
+    setTimeout(function () {
+      corpo.setAttribute('data-dir', 'none');
+      info.setAttribute('data-sem-anim', '1');
+      g = null;
+      location.replace('#' + SECOES[j]);
+      limpar(gesto.el); limpar(gesto.viz);
+    }, 230);
+  }
+  corpo.addEventListener('touchend', soltar, { passive: true });
+  corpo.addEventListener('touchcancel', soltar, { passive: true });
 })();
 abrirSecao();
 
