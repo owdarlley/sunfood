@@ -81,6 +81,13 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
   VW = { width: w, height: h };
   await step(`admin ${w}px`, async () => {
     const p = await open('app-cliente.dc.html?module=admin&screen=dashboard', 'admin');
+    // Um </div> a mais no cardápio já deixou uma tela inteira em branco acima da administração e da cozinha no celular.
+    for (const [mod, scr] of [['admin', 'dashboard'], ['cozinha', 'kanban']]) {
+      const q = mod === 'admin' ? p : await open(`app-cliente.dc.html?module=${mod}&screen=${scr}`, mod);
+      const topo = await q.locator('.adm-brand:visible').first().evaluate(e => e.getBoundingClientRect().top + scrollY);
+      check(`${mod} ${w}px: abre com a marca no topo, sem espaço em branco em cima`, topo < 40, String(topo));
+      if (q !== p) await q.context().close();
+    }
     check(`admin ${w}px: menu cabe sem arrastar para os lados`, await semRolagemLateral(p) && await p.locator('.adm-side').evaluate(e => e.scrollWidth <= e.clientWidth + 1));
     await tap(p, 'Menu');
     const itens = await p.locator('.adm-item').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return r.right <= innerWidth + 1 && r.height >= 40; }));
