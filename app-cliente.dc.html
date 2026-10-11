@@ -266,6 +266,14 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .orow{display:flex;align-items:center;gap:16px;padding:var(--cpad);border-top:1px solid #EFEADF;cursor:pointer}
 .orow:first-child{border-top:0}
 .orow:hover{background:#FBFAF6}
+/* Celular: a etiqueta de status desce para baixo do número do pedido, e o
+   pedido, a mesa e a data deixam de ficar espremidos em 3 ou 4 linhas. */
+@media (max-width:560px){
+  .orow:not(.cartrow){display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:8px;align-items:center}
+  .orow:not(.cartrow) > :nth-child(1){grid-row:1}
+  .orow:not(.cartrow) > :nth-child(3){grid-column:2;grid-row:2;justify-self:start}
+  .orow:not(.cartrow) > :nth-child(4){grid-column:3;grid-row:1}
+}
 .pref-row{display:flex;justify-content:space-between;align-items:center;gap:16px}
 .avatar-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .avatar-grid{display:grid;grid-template-columns:repeat(4,56px);gap:12px}
@@ -393,6 +401,9 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
   .tbl-cards .tr > .wide:empty{display:none}
   .tbl-cards .tr > div > span{display:inline-block;max-width:100%;white-space:normal !important;overflow-wrap:anywhere}
 }
+/* Celular estreito: 2 colunas, para as etiquetas de pagamento e status não
+   quebrarem em 3 linhas ("Cobrar na / entrega · / R$ 70,00"). */
+@media (max-width:480px){.tbl-cards .tr{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
 /* Mapa da Localização (Google Maps sem chave de API, a partir do endereço). */
 .locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:var(--r-card);overflow:hidden;background:#D2E3E5;border:1px solid #E3DDD0}
 .locmap iframe{display:block;width:100%;height:100%;border:0}
@@ -402,9 +413,11 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .msg-reply-actions .btn{min-width:180px}
 @media (max-width:767px){.msg-reply-actions{flex-direction:column-reverse}.msg-reply-actions .btn{width:100%;min-width:0}}
 .locform{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px}
-.locform .wide{grid-column:span 2}
+.locform .wide{grid-column:auto}
 @media (max-width:767px){.locform .wide{grid-column:auto}}
 /* Cardápio do admin: 1 coluna no celular, 2 no tablet, 3 a 4 no computador */
+.exportbar > *{justify-content:center}
+@media (max-width:767px){.exportbar > *{flex:1 1 100%}}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:var(--gap)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
 .tile{border-radius:var(--r-card);padding:16px 8px;text-align:center;cursor:pointer;transition:transform .15s}
@@ -472,7 +485,6 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 }
 @media (max-width:1024px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:767px){ .kz-board{grid-template-columns:1fr} }
-/* Carrinho no celular: foto e nome na primeira linha; +/− e preço embaixo. */
 /* Resumo "Seu pedido": nome inteiro em cima (até 2 linhas) e o seletor de
    quantidade embaixo, em vez de espremer tudo numa linha só. */
 .sumitem{display:flex;flex-direction:column;gap:8px}
@@ -481,6 +493,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .sumitem-price{font-weight:700;white-space:nowrap}
 .sumitem-bot{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .stepper-sm .sb{width:32px;height:32px;font-size:16px}.stepper-sm .sb::after{inset:-6px}.stepper-sm .sq{min-width:20px;font-size:14px}
+/* Carrinho no celular: foto e nome na primeira linha; +/− e preço embaixo. */
 @media (max-width:767px){.cartrow{flex-wrap:wrap;row-gap:12px}.cartrow .cr-info{flex:1 1 calc(100% - 80px) !important}.cartrow .stepper{margin-left:80px}.cartrow .cr-price{flex:1;width:auto !important}}
 @media (max-width:767px){.bars{gap:4px}.kpi .k{font-size:var(--fs-cap)}}
 /* No cartão do cardápio o +/− tem a mesma altura do botão Adicionar (44 px),
@@ -973,7 +986,7 @@ select{caret-color:auto}
                             <span class="sq">{{ c.qty }}</span>
                             <span onClick="{{ c.inc }}" class="sb on">+</span>
                           </div>
-                          <div class="cr-price" style="width:92px;text-align:right;font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;flex-shrink:0">{{ c.lineStr }}</div>
+                          <div class="cr-price" style="width:92px;text-align:right;font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;flex-shrink:0;white-space:nowrap">{{ c.lineStr }}</div>
                         </div>
                       </sc-for>
                     </div>
@@ -1468,7 +1481,7 @@ select{caret-color:auto}
                     <div onClick="{{ rp.pick }}" class="{{ rp.cls }}">{{ rp.label }}</div>
                   </sc-for>
                 </div>
-                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <div class="exportbar" style="display:flex;gap:12px;flex-wrap:wrap">
                   <div onClick="{{ exportReportCsv }}" class="btn btn-ghost btn-sm" style="{{ reportExportStyle }}" role="button" title="Baixa um arquivo .csv que abre no Excel ou no Google Planilhas"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z M4 10h16 M4 15h16 M10 4v16"></path></svg>Exportar planilha</div>
                   <div onClick="{{ exportReportPdf }}" class="btn btn-dark btn-sm" style="{{ reportExportStyle }}" role="button" title="Abre a versão para imprimir ou salvar como PDF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z M14 3v5h5 M10 13h6 M10 17h6"></path></svg>Exportar PDF</div>
                 </div>
@@ -1727,7 +1740,7 @@ select{caret-color:auto}
 
           <sc-if value="{{ is_kioskPage }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:16px" class="rise">
-              <div class="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+              <div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr))">
                 <div class="panel" style="{{ pausePanelStyle }}">
                   <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
                     <div><h2 style="margin:0">Recebendo pedidos</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">{{ pauseSub }}</div></div>
@@ -1738,7 +1751,7 @@ select{caret-color:auto}
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <div><h2 style="margin:0">Pedido mínimo</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ minOrderStr }}. O cliente só fecha o pedido se o subtotal (sem a taxa) chegar nesse valor. Use 0 para não ter mínimo.</div></div>
                   <div style="display:flex;gap:8px">
-                    <input class="inp" value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" placeholder="Novo valor (ex: 15,00)" style="flex:1;min-width:0" />
+                    <input class="inp" value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" placeholder="Ex.: 15,00" style="flex:1;min-width:0" />
                     <div onClick="{{ saveMinOrder }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar mínimo</div>
                   </div>
                   <sc-if value="{{ hasMinOrderMsg }}" hint-placeholder-val="{{ false }}"><div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63">{{ minOrderMsg }}</div></sc-if>
