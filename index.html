@@ -49,6 +49,9 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
 }
 @media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px}}
 @media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
+:root{--px:16px;--gap:10px;--sec:20px;--cpad:14px;--ctl:46px;--fs-h1:22px;--fs-h2:18px;--fs-h3:16px;--fs-body:14px;--fs-sm:13px;--r-card:14px;--r-btn:12px;--r-ctl:10px}
+@media (min-width:768px){:root{--px:20px;--gap:14px;--sec:28px;--cpad:16px;--fs-h1:26px;--fs-h2:20px;--fs-h3:17px}}
+@media (min-width:1025px){:root{--px:28px;--gap:20px;--sec:40px;--cpad:20px;--ctl:48px;--fs-h1:30px;--fs-h2:22px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px}}
 
 /* Mesmo visual da tela de login do app (app-cliente.dc.html): areia, mar e sol. */
 *{box-sizing:border-box}
@@ -205,6 +208,10 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 }
 @media (min-width:768px){:root{--lg-pad:var(--lg-s32);--lg-fs-title:28px;--lg-fs-sub:15px;--lp-max:608px;--lp-px:24px;--lp-fs-hero:36px;--lp-cat-h:200px;--lp-cat-gap:16px}}
 @media (min-width:1024px){:root{--lp-max:1280px;--lg-pad:var(--lg-s40);--lp-px:32px;--lp-logo:28px;--lp-fs-brand:22px;--lp-fs-hero:40px;--lp-cat-h:240px;--lp-cat-gap:24px;--lp-cat-pad:20px;--lp-ico:64px;--lp-fs-cat:20px}}
+/* Escala mais enxuta (2026-10-11): cerca de 10% menor. Campos continuam em 16 px (iPhone). */
+:root{--lg-pad:var(--lg-s20);--lg-h:46px;--lg-fs-title:22px;--lg-fs-sub:13px;--lg-fs-label:13px;--lg-fs-btn:14px;--lg-fs-link:13px;--lp-px:16px;--lp-logo:22px;--lp-fs-brand:18px;--lp-fs-hero:24px;--lp-cat-w:136px;--lp-cat-h:160px;--lp-ico:48px;--lp-fs-cat:16px;--lp-fs-cat-sub:12px}
+@media (min-width:768px){:root{--lg-pad:var(--lg-s24);--lg-fs-title:24px;--lp-px:20px;--lp-fs-hero:30px;--lp-cat-h:170px}}
+@media (min-width:1024px){:root{--lg-pad:var(--lg-s32);--lg-h:48px;--lg-fs-title:26px;--lp-px:28px;--lp-logo:24px;--lp-fs-brand:20px;--lp-fs-hero:34px;--lp-cat-h:200px;--lp-ico:56px;--lp-fs-cat:18px}}
 
 /* ---- Página de entrada (design "Cardápio em destaque", 2026-10-10) ----
    Celular: marca + "Ver cardápio", chamada, cartões do cardápio que rolam
