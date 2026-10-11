@@ -115,6 +115,11 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
    a outra (e acompanha o dedo quando se arrasta o conteúdo no celular). */
 .tab-ind{position:absolute;left:0;bottom:0;height:3px;width:0;border-radius:3px 3px 0 0;background:#F5B83D;pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1),width .3s cubic-bezier(.2,.8,.2,1)}
 .tab-ind.arrastando{transition:none}
+/* Rolagem lateral (abas do painel, cards do celular): esmaece a borda que
+   ainda tem conteúdo escondido, para mostrar que dá para arrastar. */
+.fx-r{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent)}
+.fx-l{-webkit-mask-image:linear-gradient(to left,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to left,#000 calc(100% - 40px),transparent)}
+.fx-l.fx-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
 .info-body section{animation:sfsec .25s cubic-bezier(.2,.8,.2,1) both}
 .info-body[data-dir="prev"] section{animation-name:sfsecprev}
 .info-body[data-dir="none"] section{animation:none}
@@ -846,6 +851,19 @@ function moverBarrinha(sec, vizinha, p) {
   ind.style.transform = 'translateX(' + x + 'px)';
 }
 window.addEventListener('resize', function () { if (!info.hidden) moverBarrinha(location.hash.slice(1)); });
+
+// Esmaecido nas bordas das listas que rolam de lado (abas do painel e cards do celular).
+(function () {
+  var listas = document.querySelectorAll('.tabs, .lp-cats');
+  function fx(el) {
+    var max = el.scrollWidth - el.clientWidth;
+    el.classList.toggle('fx-r', max > 2 && el.scrollLeft < max - 2);
+    el.classList.toggle('fx-l', max > 2 && el.scrollLeft > 2);
+  }
+  listas.forEach(function (el) { el.addEventListener('scroll', function () { fx(el); }, { passive: true }); fx(el); });
+  window.addEventListener('resize', function () { listas.forEach(fx); });
+  window.addEventListener('hashchange', function () { setTimeout(function () { listas.forEach(fx); }, 50); });
+})();
 
 // No celular, arrastar o conteúdo para o lado troca de aba (esquerda = próxima,
 // direita = anterior). O conteúdo acompanha o dedo e a barrinha amarela vai
