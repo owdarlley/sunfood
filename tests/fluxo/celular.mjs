@@ -107,6 +107,23 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
 
 // Painel do rodapé (Conheça o Sunfood, Fale conosco...): arrastar para o lado troca de aba,
 // com o conteúdo acompanhando o dedo e a aba vizinha entrando junto.
+// Cozinha no celular: uma coluna por vez, em abas; no tablet, as 3 colunas lado a lado.
+await step('cozinha em abas', async () => {
+  const p = await open('app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha');
+  const visiveis = () => p.locator('.kz-board > .kz-col').evaluateAll(els => els.filter(e => e.offsetParent).length);
+  check('cozinha celular: abas Novos / Preparo / Prontos aparecem', await p.locator('.kz-tabs').isVisible() && (await p.locator('.kz-tab').count()) === 3);
+  check('cozinha celular: uma coluna por vez', await visiveis() === 1, String(await visiveis()));
+  await p.locator('.kz-tab', { hasText: 'Prontos' }).tap(); await p.waitForTimeout(400);
+  check('cozinha celular: tocar na aba troca a coluna', (await p.locator('.kz-tab.on').innerText()).includes('Prontos'));
+  check('cozinha celular: sem rolagem para os lados', await semRolagemLateral(p));
+  await p.context().close();
+  const VW0 = VW; VW = { width: 820, height: 1180 };
+  const t = await open('app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha');
+  const cols = await t.locator('.kz-board > .kz-col').evaluateAll(els => els.filter(e => e.offsetParent).map(e => Math.round(e.getBoundingClientRect().top)));
+  check('cozinha tablet: as 3 colunas lado a lado', cols.length === 3 && new Set(cols).size === 1, JSON.stringify(cols));
+  await t.context().close(); VW = VW0;
+});
+
 await step('arrastar entre as abas do rodapé', async () => {
   const p = await open('#conheca');
   const arrastar = (xs, pausa = 30, soltar = true) => p.evaluate(async ([xs, pausa, soltar]) => {
