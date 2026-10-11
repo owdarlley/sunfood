@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="./support.js"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1F5A63">
@@ -109,6 +109,8 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 body{caret-color:transparent;-webkit-user-select:none;user-select:none;cursor:default;-webkit-tap-highlight-color:transparent}
 input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable="true"]{caret-color:auto;-webkit-user-select:text;user-select:text;cursor:text}
 select{caret-color:auto}
+/* Área segura do iPhone (app instalado: barra de status translúcida, entalhe). */
+body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 </style>
 </helmet>
 

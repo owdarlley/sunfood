@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sunfood · Entrar</title>
 <meta name="description" content="Entre no Sunfood para pedir do seu guarda-sol. Cliente, cozinha e administração usam o mesmo login.">
 <link rel="manifest" href="manifest.json">
@@ -98,6 +98,10 @@ a{color:#1F5A63}
 /* Cabeçalho claro, no mesmo visual da tela de login: fundo areia, marca em
    verde-petróleo e abas sublinhadas. */
 .info-head{flex:none;background:#F7F5F0;color:#1F5A63;padding:16px var(--px) 0;border-bottom:1px solid #E5E0D5}
+/* Área segura do iPhone (app instalado: barra de status translúcida, entalhe). */
+.info-head{padding-top:calc(16px + env(safe-area-inset-top,0px))}
+.lp{padding-top:calc(var(--lg-s16) + env(safe-area-inset-top,0px));padding-bottom:calc(var(--lg-s16) + env(safe-area-inset-bottom,0px))}
+body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .info-head .brand{color:#1F5A63}
 .info-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .info-close{width:48px;height:48px;border-radius:var(--r-btn);border:1px solid #D9D3C6;background:#fff;color:#1F5A63;display:flex;align-items:center;justify-content:center;cursor:pointer}
