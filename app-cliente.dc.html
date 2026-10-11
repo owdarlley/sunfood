@@ -353,7 +353,9 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 @media (min-width:1025px){.kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}}
 .kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad)}
 .kpi .k{font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A}
-.kpi .v{font:800 var(--fs-h1) 'Manrope',system-ui,sans-serif;letter-spacing:-.03em;margin:8px 0 4px;line-height:1.1}
+.kpi .v{font:800 var(--fs-h1) 'Manrope',system-ui,sans-serif;letter-spacing:-.03em;margin:8px 0 4px;line-height:1.1;white-space:nowrap}
+/* No celular os números grandes encolhem em vez de quebrar em duas linhas ("R$ / 1284,50"). */
+@media (max-width:767px){.kpi .v{font-size:clamp(20px,6vw,26px)}}
 .kpi .s{font:500 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#1E6B36}
 .panel{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad)}
 .panel h2{margin:0 0 16px;font:800 var(--fs-h3)/1.25 'Manrope',system-ui,sans-serif;letter-spacing:-.015em}
@@ -514,6 +516,17 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
   .adm-side.open .adm-item.on{background:var(--brand-tint);border-color:var(--brand-tint)}
   .adm-side.open .adm-foot{border-top-color:var(--line)}
   .adm-item.on::before{display:none}
+}
+
+/* Mais vendidos (Relatórios): no celular as unidades vão para baixo do nome,
+   para o nome do produto não ficar espremido numa coluna estreita. */
+.tr-top{grid-template-columns:32px minmax(0,1fr) 88px 104px !important;padding-left:4px !important;padding-right:4px !important}
+.tp-name{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.tp-un{display:none;font-weight:500;color:var(--ink-2);font-size:var(--fs-sm)}
+@media (max-width:767px){
+  .tr-top{grid-template-columns:24px minmax(0,1fr) auto !important}
+  .tr-top .tp-qty,.tr-top.th > div:nth-child(3){display:none}
+  .tp-un{display:block;margin-top:2px}
 }
 
 /* Tabelas: cabeçalho em caixa alta e cor de apoio, linhas com destaque
@@ -1820,9 +1833,9 @@ select{caret-color:auto}
                   <h2>Mais vendidos no período</h2>
                   <sc-if value="{{ hasReportTop }}" hint-placeholder-val="{{ true }}">
                     <div class="tbl">
-                      <div class="tr th" style="grid-template-columns:34px minmax(0,1fr) 90px 100px;padding-left:4px;padding-right:4px"><div>#</div><div>Produto</div><div style="text-align:right">Unidades</div><div style="text-align:right">Receita</div></div>
+                      <div class="tr th tr-top"><div>#</div><div>Produto</div><div style="text-align:right">Unidades</div><div style="text-align:right">Receita</div></div>
                       <sc-for list="{{ reportTop }}" as="tp" hint-placeholder-count="5">
-                        <div class="tr" style="grid-template-columns:34px minmax(0,1fr) 90px 100px;padding-left:4px;padding-right:4px"><div class="muted">{{ tp.rank }}</div><div style="font-weight:700;overflow:hidden;text-overflow:ellipsis">{{ tp.name }}</div><div style="text-align:right;white-space:nowrap">{{ tp.qty }} un.</div><div style="text-align:right;white-space:nowrap">{{ tp.revenueStr }}</div></div>
+                        <div class="tr tr-top"><div class="muted">{{ tp.rank }}</div><div class="tp-name">{{ tp.name }}<small class="tp-un">{{ tp.qty }} un.</small></div><div class="tp-qty" style="text-align:right;white-space:nowrap">{{ tp.qty }} un.</div><div style="text-align:right;white-space:nowrap">{{ tp.revenueStr }}</div></div>
                       </sc-for>
                     </div>
                   </sc-if>
