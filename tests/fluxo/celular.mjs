@@ -90,6 +90,8 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
     }
     check(`admin ${w}px: menu cabe sem arrastar para os lados`, await semRolagemLateral(p) && await p.locator('.adm-side').evaluate(e => e.scrollWidth <= e.clientWidth + 1));
     await tap(p, 'Menu');
+    const sobrepoe = () => p.evaluate(() => { const b = document.querySelector('.adm-brand').getBoundingClientRect(), m = document.querySelector('.adm-menubtn').getBoundingClientRect(); return b.width < 100 || b.right > m.left || b.top !== m.top; });
+    check(`admin ${w}px: menu aberto, marca e botão Fechar lado a lado sem se sobrepor`, !(await sobrepoe()));
     const itens = await p.locator('.adm-item').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return r.right <= innerWidth + 1 && r.height >= 40; }));
     check(`admin ${w}px: todos os itens do menu aparecem e são fáceis de tocar`, itens.length >= 9 && itens.every(Boolean), JSON.stringify(itens));
     await tap(p, 'Pedidos');
@@ -115,6 +117,12 @@ await step('fonte grande (300 px)', async () => {
     check(`300px: ${path.split('screen=')[1]} sem rolagem para os lados`, await semRolagemLateral(p), String(await p.evaluate(() => document.documentElement.scrollWidth)));
     await p.context().close();
   }
+  // Menu do admin aberto com fonte grande: a marca não pode ficar por baixo do botão Fechar.
+  const adm = await open('app-cliente.dc.html?module=admin&screen=payments', 'admin');
+  await adm.locator('.adm-menubtn').first().tap(); await adm.waitForTimeout(400);
+  const lado = await adm.evaluate(() => { const b = document.querySelector('.adm-brand').getBoundingClientRect(), m = document.querySelector('.adm-menubtn').getBoundingClientRect(); return [Math.round(b.width), Math.round(b.right), Math.round(m.left)]; });
+  check('300px: menu do admin aberto sem a marca por baixo do botão Fechar', lado[0] >= 100 && lado[1] <= lado[2], JSON.stringify(lado));
+  await adm.context().close();
   // Topo cheio: marca + mesa + carrinho (revisão do pedido, depois de informar a mesa).
   const c = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
   await c.locator('.addbtn').first().tap(); await c.waitForTimeout(300);

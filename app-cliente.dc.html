@@ -584,7 +584,7 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
 }
 @media (max-width:340px){.mesa-lbl{display:none}}
 @media (max-width:400px){
-  .adm-brand{gap:6px;min-width:0}
+  .adm-brand{gap:6px}
   .adm-brand svg{width:28px;height:28px}
   .adm-brand b{font-size:18px}
   .adm-menubtn{padding-left:12px !important;padding-right:12px !important}
@@ -668,6 +668,13 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
   .adm-side.open .adm-item{background:#fff;border:1px solid var(--line)}
   .adm-side.open .adm-item.on{background:var(--brand-tint);border-color:var(--brand-tint)}
   .adm-side.open .adm-foot{border-top-color:var(--line)}
+  /* Menu aberto: marca e botão Fechar sempre sozinhos na primeira linha; os
+     itens começam embaixo. Antes, o primeiro item (Painel) entrava na mesma
+     linha e espremia a marca, que ficava por baixo do botão Fechar. */
+  .adm-side.open::before{content:'';order:1;flex-basis:100%;height:0}
+  .adm-side.open > .adm-item,.adm-side.open > .adm-sep,.adm-side.open > .adm-foot{order:2}
+  .adm-brand{flex:1 1 auto;min-width:max-content}
+  .adm-menubtn{flex:none}
   .adm-item.on::before{display:none}
 }
 
