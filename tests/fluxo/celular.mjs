@@ -107,6 +107,26 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
 
 // Painel do rodapé (Conheça o Sunfood, Fale conosco...): arrastar para o lado troca de aba,
 // com o conteúdo acompanhando o dedo e a aba vizinha entrando junto.
+// Fonte grande no celular (~130%) equivale a uma tela de uns 300 px: nada pode empurrar a página para os lados.
+await step('fonte grande (300 px)', async () => {
+  const VW0 = VW; VW = { width: 300, height: 650 };
+  for (const [path, role] of [['app-cliente.dc.html?module=cliente&screen=menu', 'cliente'], ['app-cliente.dc.html?module=cliente&screen=status', 'cliente'], ['app-cliente.dc.html?module=admin&screen=orders', 'admin'], ['app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha']]) {
+    const p = await open(path, role);
+    check(`300px: ${path.split('screen=')[1]} sem rolagem para os lados`, await semRolagemLateral(p), String(await p.evaluate(() => document.documentElement.scrollWidth)));
+    await p.context().close();
+  }
+  // Topo cheio: marca + mesa + carrinho (revisão do pedido, depois de informar a mesa).
+  const c = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
+  await c.locator('.addbtn').first().tap(); await c.waitForTimeout(300);
+  await c.locator('.mobilebar > div').first().tap(); await c.waitForTimeout(400); await tap(c, 'Ir para pagamento');
+  await c.getByPlaceholder('00').fill('1'); await tap(c, 'Confirmar mesa');
+  await c.locator('.brand:visible').first().tap(); await c.waitForTimeout(500);
+  await c.locator('.pcard').nth(1).tap(); await c.waitForTimeout(600);
+  check('300px: topo com mesa e carrinho cabe na tela', (await c.locator('.mesachip').isVisible()) && (await c.locator('.cartpill').isVisible()) && await semRolagemLateral(c), String(await c.evaluate(() => document.documentElement.scrollWidth)));
+  await c.context().close();
+  VW = VW0;
+});
+
 // Cozinha no celular: uma coluna por vez, em abas; no tablet, as 3 colunas lado a lado.
 await step('cozinha em abas', async () => {
   const p = await open('app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha');

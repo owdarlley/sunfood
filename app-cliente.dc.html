@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 // Sem isto o support.js baixa esta página (1 MB) de novo logo depois de abrir
 // e remonta a tela inteira: gastava internet e travava os primeiros toques.
@@ -561,6 +561,36 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
 @media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}}
 
+/* ===== Área segura do iPhone (entalhe, barra de status e barra de gestos) =====
+   Com o app instalado na tela inicial, a barra de status é translúcida e o
+   conteúdo começa por baixo dela. viewport-fit=cover libera as medidas
+   (env(safe-area-inset-*)) e cada barra fixa soma esse espaço ao seu. */
+:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
+body{padding-left:var(--sal);padding-right:var(--sar)}
+.topbar{padding-top:var(--sat)}
+.auth{padding-top:var(--sat)}
+.adm-side{padding-top:calc(24px + var(--sat))}
+@media (max-width:900px){.adm-side{padding-top:calc(8px + var(--sat))}}
+@media (max-width:920px){.mobilebar{bottom:calc(80px + var(--sab))}}
+/* Celular estreito ou com fonte grande: a barra do topo (marca, mesa e
+   carrinho) encolhe em vez de empurrar a página para os lados. */
+@media (max-width:400px){
+  .topbar-in{gap:8px}
+  .brand{gap:6px}
+  .brand svg{width:28px;height:28px}
+  .brand b{font-size:18px}
+  .toplinks{gap:6px;min-width:0}
+  .mesachip,.cartpill{padding:0 12px;gap:6px}
+}
+@media (max-width:340px){.mesa-lbl{display:none}}
+@media (max-width:400px){
+  .adm-brand{gap:6px;min-width:0}
+  .adm-brand svg{width:28px;height:28px}
+  .adm-brand b{font-size:18px}
+  .adm-menubtn{padding-left:12px !important;padding-right:12px !important}
+}
+@media (max-width:340px){.adm-brand small{display:none}}
+
 /* ===== Padrão da tela de login em todo o app (2026-10-10) =====
    Uma camada só, por cima dos componentes acima, para cliente, administração
    e cozinha falarem a mesma língua visual da tela de login: superfícies
@@ -811,7 +841,7 @@ select{caret-color:auto}
                 <div onClick="{{ goHome }}" class="brand"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
                 <div class="toplinks">
                   <sc-if value="{{ hasTable }}" hint-placeholder-val="{{ false }}">
-                    <span class="mesachip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M5 10v10M19 10v10M8 6h8l2 4H6z"></path></svg>Mesa {{ tableStr }}</span>
+                    <span class="mesachip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M5 10v10M19 10v10M8 6h8l2 4H6z"></path></svg><span class="mesa-lbl">Mesa </span>{{ tableStr }}</span>
                   </sc-if>
                   <sc-for list="{{ topLinks }}" as="t" hint-placeholder-count="3">
                     <span onClick="{{ t.go }}" class="toplink {{ t.cls }}">{{ t.label }}</span>
