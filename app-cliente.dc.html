@@ -3474,7 +3474,8 @@ class Component extends DCLogic {
   irParaLogin(aviso, ok, email){
     if(this._indoProLogin) return;
     this._indoProLogin = true;
-    try { if(aviso || email) sessionStorage.setItem('sunfood_login_aviso', JSON.stringify({texto:aviso || '', ok:!!ok, email:email || ''})); } catch(e){}
+    // Sempre marca que veio do app, para a tela principal já abrir com o formulário à mostra.
+    try { sessionStorage.setItem('sunfood_login_aviso', JSON.stringify({texto:aviso || '', ok:!!ok, email:email || ''})); } catch(e){}
     window.location.replace('index.html');
   }
 
