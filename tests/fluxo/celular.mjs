@@ -105,6 +105,32 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
   }
 }
 
+// Painel do rodapé (Conheça o Sunfood, Fale conosco...): arrastar para o lado troca de aba,
+// com o conteúdo acompanhando o dedo e a aba vizinha entrando junto.
+await step('arrastar entre as abas do rodapé', async () => {
+  const p = await open('#conheca');
+  const arrastar = (xs, pausa = 30, soltar = true) => p.evaluate(async ([xs, pausa, soltar]) => {
+    const el = document.getElementById('info-body');
+    const T = x => new Touch({ identifier: 1, target: el, clientX: x, clientY: 500 });
+    el.dispatchEvent(new TouchEvent('touchstart', { touches: [T(xs[0])], changedTouches: [T(xs[0])], bubbles: true }));
+    for (const x of xs.slice(1)) { await new Promise(r => setTimeout(r, pausa)); el.dispatchEvent(new TouchEvent('touchmove', { touches: [T(x)], changedTouches: [T(x)], bubbles: true })); }
+    const meio = [...el.querySelectorAll('[data-sec]')].filter(s => !s.hidden).map(s => s.dataset.sec);
+    if (soltar) el.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [T(xs[xs.length - 1])], bubbles: true }));
+    return meio;
+  }, [xs, pausa, soltar]);
+  const meio = await arrastar([320, 280, 220, 160, 120]);
+  check('abas: durante o arrasto a aba vizinha aparece junto', meio.join() === 'conheca,fale-conosco', meio.join());
+  await p.waitForTimeout(450);
+  check('abas: arrastar para a esquerda abre a próxima', p.url().endsWith('#fale-conosco'), p.url());
+  await arrastar([300, 280, 260, 240, 230], 40); await p.waitForTimeout(450);
+  check('abas: arrasto curto volta para a mesma aba', p.url().endsWith('#fale-conosco'), p.url());
+  await arrastar([60, 120, 180, 240, 300]); await p.waitForTimeout(450);
+  const vis = await p.evaluate(() => [...document.querySelectorAll('#info-body [data-sec]')].filter(s => !s.hidden).map(s => s.dataset.sec + (s.style.cssText ? '*' : '')).join());
+  check('abas: arrastar para a direita volta à anterior, sem sobrar nada fora do lugar', p.url().endsWith('#conheca') && vis === 'conheca', p.url() + ' ' + vis);
+  check('abas: sem erro de JavaScript', p.jsErrors.length === 0, p.jsErrors.join(' | '));
+  await p.context().close();
+});
+
 await step('detalhe do produto', async () => {
   // Celular pequeno: nome, preço e o botão Adicionar aparecem sem rolar, e o botão funciona.
   VW = { width: 360, height: 640 };
