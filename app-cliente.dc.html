@@ -518,7 +518,25 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .sumitem-bot{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .stepper-sm .sb{width:32px;height:32px;font-size:16px}.stepper-sm .sb::after{inset:-6px}.stepper-sm .sq{min-width:20px;font-size:14px}
 /* Carrinho no celular: foto e nome na primeira linha; +/− e preço embaixo. */
-@media (max-width:767px){.cartrow{flex-wrap:wrap;row-gap:12px}.cartrow .cr-info{flex:1 1 calc(100% - 80px) !important}.cartrow .stepper{margin-left:80px}.cartrow .cr-price{flex:1;width:auto !important}}
+/* Celular: foto à esquerda; ao lado, o nome em cima e o seletor + preço na
+   mesma linha embaixo (antes eram 3 faixas: nome, seletor sozinho e preço
+   sozinho, com muito espaço vazio). */
+@media (max-width:767px){
+  .cartrow{display:grid;grid-template-columns:64px minmax(0,1fr) auto;grid-template-areas:"img info info" "img step price";column-gap:12px;row-gap:8px;align-items:center;padding:14px 16px}
+  .cartrow > :nth-child(1){grid-area:img;align-self:start}
+  .cartrow .cr-info{grid-area:info}
+  .cartrow .stepper{grid-area:step;justify-self:start;padding:2px}
+  .cartrow .stepper .sb{width:34px;height:34px;font-size:17px}
+  .cartrow .stepper .sq{min-width:20px;font-size:15px}
+  .cartrow .cr-price{grid-area:price;width:auto !important;padding-left:8px}
+}
+/* Celular estreito ou com fonte grande: foto menor, para sobrar espaço para
+   o seletor e o preço lado a lado. */
+@media (max-width:359px){
+  .cartrow{grid-template-columns:48px minmax(0,1fr) auto;column-gap:10px;padding:12px}
+  .cartrow > :nth-child(1){width:48px !important;height:48px !important}
+  .cartrow .stepper .sb{width:32px;height:32px}
+}
 @media (max-width:767px){.bars{gap:4px}.kpi .k{font-size:var(--fs-cap)}}
 /* No cartão do cardápio o +/− tem a mesma altura do botão Adicionar (44 px),
    para o cartão não mudar de tamanho ao adicionar. */
