@@ -68,6 +68,10 @@ function checkImageUrl(req, res, next) {
   next();
 }
 
+// A chave estrangeira recusou: a categoria foi excluída ou renomeada enquanto
+// o formulário estava aberto.
+const MISSING_CATEGORY = "Essa categoria não existe mais. Escolha outra.";
+
 // Público: cardápio do cliente.
 productsRouter.get("/", async (req, res) => {
   const { data, error } = await supabaseAdmin
@@ -107,6 +111,7 @@ productsRouter.post("/", requireAuth, requireRole("admin"), validate(productSche
     .insert(fromApi(req.body))
     .select()
     .single();
+  if (error?.code === "23503") return res.status(400).json({ error: MISSING_CATEGORY });
   if (error) return res.status(500).json({ error: "Não foi possível criar o produto." });
   res.status(201).json(toApi(data));
 });
@@ -120,6 +125,7 @@ productsRouter.put("/:id", requireAuth, requireRole("admin"), validate(productSc
     .is("archived_at", null)
     .select()
     .single();
+  if (error?.code === "23503") return res.status(400).json({ error: MISSING_CATEGORY });
   if (error || !data) return res.status(404).json({ error: "Produto não encontrado." });
   res.json(toApi(data));
 });

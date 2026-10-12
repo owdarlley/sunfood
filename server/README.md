@@ -37,7 +37,7 @@ npm test    # roda os testes (ver abaixo)
 | Onde | O que testa | Como rodar |
 | --- | --- | --- |
 | `test/*.test.js` | Regras de negócio, permissões por papel, validação, assinatura do webhook e o fluxo completo da API (cadastro → pedido → entregue → excluir conta) com um Supabase falso em memória | `npm test` (roda sozinho no GitHub a cada push) |
-| `test/banco/*.sql` | As funções do banco de verdade: CPF do cadastro, estoque, status do pedido, formas de pagamento, prazo de cancelamento, pedido mínimo, quantidade de mesas, painel, encerrar o dia e relatórios | Colar no SQL Editor do Supabase |
+| `test/banco/*.sql` | As funções do banco de verdade: CPF do cadastro, estoque, status do pedido, formas de pagamento, prazo de cancelamento, pedido mínimo, quantidade de mesas, categorias do cardápio, painel, encerrar o dia e relatórios | Colar no SQL Editor do Supabase |
 
 Os `.sql` terminam com um erro **de propósito**: o Postgres desfaz tudo o que fizeram, então nada fica gravado. Passou = a mensagem começa com `TESTE_..._PASSOU`; qualquer `FALHA ...` é um bug.
 
@@ -76,6 +76,11 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | PUT | `/products/:id` | admin | Editar produto (inclui estoque e foto) |
 | POST | `/products/images` | admin | Enviar foto do produto (JPG/PNG/WebP até 2 MB, corpo = o arquivo); devolve `{ url }` pra usar em `imageUrl` |
 | PATCH | `/products/:id/sold-out` | admin, cozinha | Sinalizar item (in)disponível |
+| GET | `/categories` | — | Categorias do cardápio, na ordem das abas (`name`, `color`, `position`) |
+| POST | `/categories` | admin | Criar categoria (`name`, `color` opcional: `mar`, `sol`, `coral`, `uva`, `verde` ou `areia`) |
+| PUT | `/categories/:name` | admin | Renomear e/ou trocar a cor (os itens vão junto para o nome novo) |
+| POST | `/categories/reorder` | admin | Nova ordem: `{ names: [...] }` com todas as categorias |
+| DELETE | `/categories/:name` | admin | Excluir categoria sem itens (com itens, 409) |
 | GET | `/tables` | — | Lista de mesas |
 | PATCH | `/tables/:number/active` | admin | Ativar/desativar mesa |
 | POST | `/orders` | cliente | Criar pedido (pedido mínimo, mesa ativa, estoque, quiosque aberto) |

@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { authRouter } from "./routes/auth.js";
 import { productsRouter } from "./routes/products.js";
+import { categoriesRouter } from "./routes/categories.js";
 import { tablesRouter } from "./routes/tables.js";
 import { ordersRouter } from "./routes/orders.js";
 import { adminRouter } from "./routes/admin.js";
@@ -41,6 +42,7 @@ app.get("/health", (req, res) => res.json({ ok: true }));
 
 app.use("/auth", authRouter);
 app.use("/products", productsRouter);
+app.use("/categories", categoriesRouter);
 app.use("/tables", tablesRouter);
 app.use("/orders", ordersRouter);
 app.use("/payments", paymentsRouter);
