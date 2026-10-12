@@ -18,9 +18,10 @@ Testam o app de ponta a ponta **sem deixar nada gravado em produção**.
 | `mesas.mjs` | Quantidade de mesas: o admin escolhe quantas mesas existem (celular, tablet e computador) e o cliente só consegue pedir de 1 até esse número | `node fluxo/mesas.mjs` |
 | `responder-mensagens.mjs` | Responder o Fale conosco pela tela Mensagens do admin: contato com e-mail recebe a resposta por e-mail (com aviso se o envio não estiver configurado no servidor), contato com telefone abre o WhatsApp com o texto pronto, e a resposta fica salva no cartão em Respondidas (celular, tablet e computador) | `node fluxo/responder-mensagens.mjs` |
 | `perfil.mjs` | Tela Perfil do cliente: editar nome, telefone e nascimento (e-mail e CPF travados), foto enviada (reduzida no navegador) ou avatar pronto, trocar senha confirmando a atual (some para conta do Google), avisos do pedido pronto (vibração/notificação e som) e sem rolagem lateral (celular, tablet e computador) | `node fluxo/perfil.mjs` |
+| `abertura.mjs` | Abertura da tela de login ("Sol na areia"): cobre a tela ao abrir, some sozinha com o logo no lugar, pula com toque, fica curta com "reduzir movimento", aparece no app para quem já entrou (esperando o app montar) e não aparece ao recarregar nem em link direto para painel do rodapé (celular, tablet, computador e tela larga) | `node fluxo/abertura.mjs` |
 
 Os testes abrem um Chromium de verdade, mas todas as chamadas para a API são respondidas por `fake-api.mjs`, uma API falsa em memória: nada chega ao servidor nem ao banco.
 
 Para rodar todos, de dentro da pasta `tests`: `npm ci`, `npx playwright install chromium` e `npm test`. Os comandos da tabela rodam um de cada vez (também de dentro de `tests`). Se o `unpkg.com` estiver bloqueado, baixe `react@18.3.1`, `react-dom@18.3.1` e `@babel/standalone@7.29.0` com npm numa pasta e rode com `CDN_DIR=<pasta>`.
 
-Os testes da API e do banco ficam no repositório [`sunfood-backend`](https://github.com/owdarlley/sunfood-backend) (`test/` e `test/banco/`).
+Os testes da API e do banco ficam na pasta [`server`](../../server/README.md) (`server/test/` e `server/test/banco/`).
