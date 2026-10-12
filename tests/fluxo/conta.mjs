@@ -86,6 +86,10 @@ await step('cadastro', async () => {
   await page.getByPlaceholder('Mínimo 6 caracteres').fill('senha123');
   await page.getByPlaceholder('Repita a senha').fill('senha123');
   await page.locator('input[type=checkbox]').check();
+  await page.getByPlaceholder('voce@email.com').fill('ana@teste');
+  await click(page, 'Criar minha conta');
+  check('cadastro: e-mail sem domínio completo não envia', called(page, '/auth/signup').length === 0 && (await text(page)).includes('Informe um e-mail válido'));
+  await page.getByPlaceholder('voce@email.com').fill('ana@teste.com');
   const cpf = page.getByPlaceholder('000.000.000-00');
   await cpf.pressSequentially('12345678900');
   check('cadastro: pontua o CPF enquanto digita', await cpf.inputValue() === '123.456.789-00', await cpf.inputValue());
