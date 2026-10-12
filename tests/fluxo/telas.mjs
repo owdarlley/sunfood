@@ -206,11 +206,11 @@ await step('fluxo do cliente', async () => {
   check('cliente: carrinho soma subtotal + 10% de taxa', t.includes('R$ 50,00') && t.includes('R$ 5,00') && t.includes('R$ 55,00'));
   await click(page, 'Ir para pagamento');
   t = await text(page);
-  check('cliente: grade de mesas vem do cadastro de mesas', await page.getByRole('radio').count() === 5 && await page.getByRole('radio', { name: 'Mesa 2, desativada' }).count() === 1);
-  await page.getByRole('radio', { name: 'Mesa 2, desativada' }).click({ force: true });
+  check('cliente: aviso de mesas ativas vem do cadastro de mesas', t.includes('Mesas ativas: 1, 3 a 5.'), (t.match(/Mesas? ativas?:[^\n]*/) || [])[0]);
+  await page.getByPlaceholder('Ex.: 12').fill('2');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa inativa é recusada', !(await text(page)).includes('Total do pedido · Mesa 2'));
-  await page.getByRole('radio', { name: 'Mesa 1', exact: true }).click();
+  await page.getByPlaceholder('Ex.: 12').fill('1');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa ativa leva ao pagamento', (await text(page)).includes('Mesa 1'));
   await click(page, 'PIX', true);

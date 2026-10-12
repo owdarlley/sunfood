@@ -61,7 +61,7 @@ async function ateOPagamento(page) {
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
   await click(page, 'Ir para pagamento');
-  await page.getByRole('radio', { name: 'Mesa 1', exact: true }).click();
+  await page.getByPlaceholder('Ex.: 12').fill('1');
   await click(page, 'Confirmar mesa');
 }
 
