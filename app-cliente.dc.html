@@ -145,6 +145,8 @@ a:hover{color:#174A52}
 textarea.inp{min-height:96px;padding:12px 16px;resize:vertical;line-height:1.5}
 select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2355626A' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;padding-right:40px}
 .alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;display:flex;gap:12px;align-items:flex-start}
+.pf-photo{position:relative;width:100%;aspect-ratio:4/3;max-height:240px;border-radius:var(--r-ctl);overflow:hidden;background:var(--surface-off);border:1px dashed var(--field)}
+.pf-photo-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;text-align:center;color:var(--ink-2);font:500 var(--fs-sm)/1.4 'Manrope',system-ui,sans-serif}
 .alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
 .alert-warn{background:#FFF4DB;color:#5C3900;border:1px solid #F0D9A8}
 .alert-ok{background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB}
@@ -1842,7 +1844,8 @@ select{caret-color:auto}
                   <sc-for list="{{ productRows }}" as="p" hint-placeholder-count="6">
                     <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px;{{ p.cardStyle }}">
                       <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
-                        <div style="min-width:0"><div class="eyebrow" style="font-size:12px">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif;margin-top:2px">{{ p.name }}</div></div>
+                        <span style="{{ p.thumbStyle }}" aria-hidden="true"></span>
+                        <div style="min-width:0;flex:1"><div class="eyebrow" style="font-size:12px">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif;margin-top:2px">{{ p.name }}</div></div>
                         <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
                       </div>
                       <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;flex-grow:1">{{ p.desc }}</div>
@@ -1872,6 +1875,20 @@ select{caret-color:auto}
               <div class="col-side" style="position:sticky;top:20px">
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <div style="font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif">{{ pfFormTitle }}</div>
+                  <div>
+                    <span class="lbl">Foto</span>
+                    <div class="pf-photo">
+                      <sc-if value="{{ pfHasOwnPhoto }}" hint-placeholder-val="{{ false }}"><span style="{{ pfOwnPhotoStyle }}" role="img" aria-label="Foto do produto"></span></sc-if>
+                      <sc-if value="{{ pfNoOwnPhoto }}" hint-placeholder-val="{{ false }}">
+                        <span class="pf-photo-empty"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Sem foto: o cardápio usa a ilustração padrão</span>
+                      </sc-if>
+                      <sc-if value="{{ pfPhotoBusy }}" hint-placeholder-val="{{ false }}"><span class="pf-photo-empty">Enviando foto…</span></sc-if>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+                      <label class="btn btn-ghost btn-sm" style="position:relative;flex:1;min-height:44px;cursor:pointer">{{ pfPhotoBtnLabel }}<input type="file" accept="image/*" onChange="{{ pickPfPhoto }}" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" /></label>
+                      <sc-if value="{{ pfHasOwnPhoto }}" hint-placeholder-val="{{ false }}"><div onClick="{{ removePfPhoto }}" class="btn btn-ghost btn-sm" style="min-height:44px">Remover</div></sc-if>
+                    </div>
+                  </div>
                   <div><span class="lbl">Nome</span><input class="inp" value="{{ pfName }}" onChange="{{ setPfName }}" placeholder="Nome do produto" /></div>
                   <div>
                     <span class="lbl">Categoria</span>
@@ -2262,8 +2279,10 @@ function shrinkAvatar(file){
   });
 }
 
-const photoBg = (mark, base) => (base || 'width:100%;height:100%;') +
-  'background-image:url(' + PHOTO[mark] + ');background-size:cover;background-position:center;display:block';
+// Foto enviada pelo admin (Storage) quando existe; senão a ilustração padrão do item.
+const photoSrc = p => (p && p.photo) || (p && PHOTO[p.mark]) || '';
+const photoBg = (p, base) => (base || 'width:100%;height:100%;') +
+  'background-image:url("' + photoSrc(p) + '");background-size:cover;background-position:center;display:block';
 
 const PRODUCTS = [
   {id:'p1',cat:'Bebidas',name:'Água de Coco Gelada',desc:'Fresquinha, direto do coco',price:8,mark:'coco',soldOut:false,
@@ -2423,6 +2442,32 @@ async function sha256Hex(text){
 // Estoque controlado e zerado: o item fica esgotado até alguém repor o saldo.
 function noStock(p){ return p.stock != null && p.stock <= 0; }
 
+// Reduz e comprime a foto escolhida (câmera ou galeria) para JPEG de até
+// 1200 px no lado maior, ficando bem abaixo do limite de 2 MB da API.
+async function shrinkPhoto(file){
+  let img;
+  try { img = await createImageBitmap(file); }
+  catch(e){
+    img = await new Promise((ok, fail) => {
+      const el = new Image(); const url = URL.createObjectURL(file);
+      el.onload = () => { URL.revokeObjectURL(url); ok(el); };
+      el.onerror = () => { URL.revokeObjectURL(url); fail(Object.assign(new Error('decode'), {userMsg:'Não consegui abrir essa foto. Tente outra (JPG ou PNG).'})); };
+      el.src = url;
+    });
+  }
+  const w0 = img.width, h0 = img.height, scale = Math.min(1, 1200 / Math.max(w0, h0));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(w0 * scale)); canvas.height = Math.max(1, Math.round(h0 * scale));
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); // PNG transparente não vira fundo preto
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  for(const q of [0.82, 0.7, 0.55]){
+    const blob = await new Promise(ok => canvas.toBlob(ok, 'image/jpeg', q));
+    if(blob && blob.size <= 1.8 * 1024 * 1024) return blob;
+  }
+  throw Object.assign(new Error('big'), {userMsg:'A foto ficou grande demais. Tente outra.'});
+}
+
 // Último cardápio recebido da API, guardado no aparelho. Ao recarregar a
 // página o app já abre com ele e só atualiza o que mudou, em vez de mostrar
 // o cardápio de exemplo e trocar tudo quando a resposta chega (os cartões
@@ -2440,7 +2485,7 @@ function saveCatalogCache(c){
 }
 
 function apiProductToState(p){
-  return {id:p.id, cat:p.category, name:p.name, desc:p.description, price:p.price, mark:p.imageKey,
+  return {id:p.id, cat:p.category, name:p.name, desc:p.description, price:p.price, mark:p.imageKey, photo:p.imageUrl || '',
     soldOut:p.soldOut, stock:p.stockQty, long:p.longDescription, porcao:p.portion, tempo:p.prepTime, kcal:p.kcal,
     nota:p.rating, avaliacoes:p.reviewCount, ingredientes:p.ingredients, tags:p.tags};
 }
@@ -2849,7 +2894,7 @@ class Component extends DCLogic {
     contactMsgs:null, msgFilter:'novo', msgErr:'', msgAt:0,
     // Resposta em andamento na tela Mensagens (só uma aberta por vez).
     replyId:null, replyText:'', replyBusy:false, replyErr:'',
-    pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:'', pfDeleting:null, pfDeletingBusy:false,
+    pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:'', photo:''}, pfMsg:'', pfDeleting:null, pfDeletingBusy:false,
     // Admin: filtro/busca da lista de pedidos e filtro do cardápio.
     admFilter:'Todos', admSearch:'', admCat:'Todos',
     // Cozinha: som de pedido novo (o navegador só toca depois de um toque).
@@ -3619,6 +3664,9 @@ class Component extends DCLogic {
     // Na edição, só manda o estoque se o admin mexeu no campo: senão o saldo
     // carregado no formulário sobrescreveria as baixas dos pedidos feitos nesse meio-tempo.
     if(!pf.id || stockTrim !== String(pf.stockOrig || '').trim()) body.stockQty = stockTrim ? Number(stockTrim) : null;
+    // Mesma ideia para a foto: só manda quando mudou (null = tirou a foto).
+    if((pf.photo || '') !== (pf.photoOrig || '')) body.imageUrl = pf.photo || null;
+    if(this.state.pfPhotoBusy) return this.setState({pfMsg:'Espere a foto terminar de enviar.'});
     try {
       const res = await authFetch(API_BASE + '/products' + (pf.id ? '/' + pf.id : ''), {
         method: pf.id ? 'PUT' : 'POST',
@@ -3632,9 +3680,32 @@ class Component extends DCLogic {
         const exists = x.products.some(p => p.id === saved.id);
         const products = exists ? x.products.map(p => p.id === saved.id ? saved : p) : x.products.concat([saved]);
         return {products, pfMsg: pf.id ? 'Produto atualizado.' : 'Produto criado.',
-          pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}};
+          pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:'', photo:''}};
       });
     } catch(e){ this.setState({pfMsg:'Falha de conexão com o servidor.'}); }
+  }
+
+  // Foto do produto: reduz no próprio aparelho (lado maior até 1200 px, JPEG)
+  // antes de enviar — foto de celular tem 3–10 MB e a praia nem sempre tem
+  // sinal bom. A API guarda no Storage e devolve o endereço da foto.
+  async uploadProductPhoto(file){
+    if(!file) return;
+    if(!/^image\//.test(file.type || '')) return this.setState({pfMsg:'Escolha um arquivo de imagem (foto).'});
+    this.setState({pfPhotoBusy:true, pfMsg:''});
+    try {
+      const blob = await shrinkPhoto(file);
+      const res = await fetch(API_BASE + '/products/images', {
+        method:'POST',
+        headers:{'Content-Type':'image/jpeg', Authorization:'Bearer ' + this.state.token},
+        body:blob
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setState({pfPhotoBusy:false, pfMsg:data.error || 'Não foi possível enviar a foto.'});
+      this.setState(x => ({pfPhotoBusy:false, pf:Object.assign({}, x.pf, {photo:data.url}),
+        pfMsg:'Foto pronta. Toque em Salvar produto para aplicar.'}));
+    } catch(e){
+      this.setState({pfPhotoBusy:false, pfMsg:e && e.userMsg ? e.userMsg : 'Falha de conexão ao enviar a foto.'});
+    }
   }
 
   // Sem pedidos o produto é apagado de vez; com pedidos a API só arquiva
@@ -3650,7 +3721,7 @@ class Component extends DCLogic {
       this.setState(x => ({
         products:x.products.filter(p => p.id !== id),
         cart:x.cart.filter(c => c.id !== id),
-        pf:x.pf.id === id ? {id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''} : x.pf,
+        pf:x.pf.id === id ? {id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:'', photo:''} : x.pf,
         pfMsg:x.pf.id === id ? '' : x.pfMsg
       }));
       this.flash('Produto excluído do cardápio.');
@@ -3944,7 +4015,7 @@ class Component extends DCLogic {
       const i = s.cart.findIndex(c => c.id === p.id && c.note === (note || ''));
       const cart = s.cart.slice();
       if(i >= 0) cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty + qty});
-      else cart.push({id:p.id, name:p.name, price:p.price, mark:p.mark, qty, note:note || ''});
+      else cart.push({id:p.id, name:p.name, price:p.price, mark:p.mark, photo:p.photo, qty, note:note || ''});
       return {cart};
     });
     this.flash(p.name + ' adicionado ao carrinho');
@@ -4170,7 +4241,7 @@ class Component extends DCLogic {
       const qty = inCartQty(p.id), tile = catTile(p.cat);
       return {
       name:p.name, desc:p.desc, markPath:MARK[p.mark], priceStr:f(p.price), soldOut:p.soldOut, avail:!p.soldOut,
-      photoStyle:photoBg(p.mark, 'position:absolute;inset:0;'), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
+      photoStyle:photoBg(p, 'position:absolute;inset:0;'), hasPhoto:!!photoSrc(p), noPhoto:!photoSrc(p),
       tileStyle:'background:' + tile[0], iconColor:tile[1],
       prep:p.tempo || '', hasPrep:!!p.tempo,
       qty, inCart:!p.soldOut && qty > 0, showAdd:!p.soldOut && qty === 0,
@@ -4208,7 +4279,7 @@ class Component extends DCLogic {
     }));
     const selTile = catTile(sel.cat);
     v.pTileStyle = 'background:' + selTile[0]; v.pIconColor = selTile[1];
-    v.pPhotoStyle = photoBg(sel.mark, 'position:absolute;inset:0;'); v.pHasPhoto = !!PHOTO[sel.mark]; v.pNoPhoto = !PHOTO[sel.mark];
+    v.pPhotoStyle = photoBg(sel, 'position:absolute;inset:0;'); v.pHasPhoto = !!photoSrc(sel); v.pNoPhoto = !photoSrc(sel);
     v.pSoldOut = !!sel.soldOut; v.pAvail = !sel.soldOut;
     v.pPriceStr = f(sel.price); v.qty = s.qty; v.note = s.note;
     v.noteCount = (s.note || '').length;
@@ -4220,7 +4291,7 @@ class Component extends DCLogic {
 
     // cart
     v.cartRows = s.cart.map((c, i) => ({
-      name:c.name, markPath:MARK[c.mark], photoStyle:photoBg(c.mark), hasPhoto:!!PHOTO[c.mark], noPhoto:!PHOTO[c.mark], qty:c.qty,
+      name:c.name, markPath:MARK[c.mark], photoStyle:photoBg(c), hasPhoto:!!photoSrc(c), noPhoto:!photoSrc(c), qty:c.qty,
       tileStyle:'background:' + catTile((s.products.find(p => p.id === c.id) || {}).cat)[0],
       iconColor:catTile((s.products.find(p => p.id === c.id) || {}).cat)[1],
       unitStr:f(c.price),
@@ -4687,13 +4758,20 @@ class Component extends DCLogic {
     v.pfEditing = !!s.pf.id;
     v.pfFormTitle = v.pfEditing ? 'Editar produto' : 'Novo produto';
     v.savePf = () => this.saveProduct();
+    v.pickPfPhoto = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; this.uploadProductPhoto(f); };
+    v.removePfPhoto = () => this.setState(x => ({pf:Object.assign({}, x.pf, {photo:''}), pfMsg:''}));
+    v.pfPhotoBusy = !!s.pfPhotoBusy;
+    v.pfHasOwnPhoto = !!s.pf.photo && !s.pfPhotoBusy; v.pfNoOwnPhoto = !s.pf.photo && !s.pfPhotoBusy;
+    v.pfOwnPhotoStyle = 'position:absolute;inset:0;background-image:url("' + (s.pf.photo || '') + '");background-size:cover;background-position:center';
+    v.pfPhotoBtnLabel = s.pf.photo ? 'Trocar foto' : 'Adicionar foto';
     v.pfMsg = s.pfMsg; v.hasPfMsg = !!s.pfMsg;
-    v.newProduct = () => this.setState({pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:''}, pfMsg:''});
+    v.newProduct = () => this.setState({pf:{id:null, name:'', price:'', cat:'Bebidas', desc:'', portion:'', prepTime:'', stock:'', photo:''}, pfMsg:''});
     v.admCats = ['Todos','Bebidas','Lanches','Pratos','Sobremesas'].map(c => ({c, cls:s.admCat === c ? 'on' : '', pick:() => this.setState({admCat:c})}));
     v.productRows = s.products.filter(p => s.admCat === 'Todos' || p.cat === s.admCat).map(p => ({
       id:p.id, name:p.name, cat:p.cat, priceStr:'R$ ' + p.price.toFixed(2).replace('.', ','), desc:p.desc || '',
       meta:[p.porcao, p.tempo].filter(x => x && x !== '1').join(' · '),
-      markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
+      markPath:MARK[p.mark], photoStyle:photoBg(p), hasPhoto:!!photoSrc(p), noPhoto:!photoSrc(p),
+      thumbStyle:photoBg(p, 'width:52px;height:52px;flex:none;border-radius:12px;background-color:var(--surface-off);'),
       pill:noStock(p) ? 'Sem estoque' : p.stock != null ? p.stock + ' em estoque' + (p.stock <= 5 ? ' · baixo' : '') : 'Estoque ilimitado',
       pillStyle:pillStyle(noStock(p) ? 'err' : p.stock != null && p.stock <= 5 ? 'warn' : 'muted'),
       cardStyle:s.pf.id === p.id ? 'border-color:#1F5A63;box-shadow:0 0 0 2px #1F5A63' : '',
@@ -4707,7 +4785,7 @@ class Component extends DCLogic {
       doDelete:() => this.deleteProduct(p.id),
       toggle:() => noStock(p) ? this.flash('Sem estoque. Edite o produto e reponha o estoque para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
 
-      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : '', stockOrig:p.stock != null ? String(p.stock) : ''}, pfMsg:''})
+      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : '', stockOrig:p.stock != null ? String(p.stock) : '', photo:p.photo || '', photoOrig:p.photo || ''}, pfMsg:''})
     }));
 
     v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
@@ -4783,7 +4861,7 @@ class Component extends DCLogic {
     v.kBoardOn = s.screen !== 'unavailable';
 
     v.availRows = s.products.map(p => ({
-      name:p.name, cat:p.cat, markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
+      name:p.name, cat:p.cat, markPath:MARK[p.mark], photoStyle:photoBg(p), hasPhoto:!!photoSrc(p), noPhoto:!photoSrc(p),
       pill:noStock(p) ? 'Sem estoque' : p.soldOut ? 'Indisponível' : (p.stock != null ? 'Disponível · estoque ' + p.stock : 'Disponível'),
       pillStyle:"font:700 12px 'Manrope',system-ui,sans-serif;padding:4px 12px;border-radius:999px;background:" + (p.soldOut ? '#FDECEA;color:#8A1C12' : '#E5F7EA;color:#1E6B36'),
       // Esgotado por estoque zerado não se resolve no interruptor (o PATCH só
@@ -4803,14 +4881,14 @@ class Component extends DCLogic {
     const tsMax = dash && dash.topProducts.length ? Math.max(1, ...dash.topProducts.map(tp => tp.qty)) : 1;
     v.topSellers = dash && dash.topProducts.length ? dash.topProducts.map((tp, i) => {
       const p = s.products.find(x => x.name === tp.name) || {name:tp.name, mark:'coco'};
-      return {name:p.name, n:String(tp.qty), markPath:MARK[p.mark], photoStyle:photoBg(p.mark), hasPhoto:!!PHOTO[p.mark], noPhoto:!PHOTO[p.mark],
+      return {name:p.name, n:String(tp.qty), markPath:MARK[p.mark], photoStyle:photoBg(p), hasPhoto:!!photoSrc(p), noPhoto:!photoSrc(p),
         barStyle:'height:100%;border-radius:999px;width:' + Math.round(tp.qty / tsMax * 100) + '%;background:' + (i === 0 ? '#F5B83D' : '#1F5A63')};
     }) : [];
     v.hasTopSellers = v.topSellers.length > 0;
 
     const pfProd = s.products.find(p => p.name === s.pf.name) || {mark:'camarao'};
     v.pfMarkPath = MARK[pfProd.mark];
-    v.pfPhotoStyle = photoBg(pfProd.mark, 'width:100%;height:112px;border-radius:10px;margin-bottom:11px;'); v.pfHasPhoto = !!PHOTO[pfProd.mark]; v.pfNoPhoto = !PHOTO[pfProd.mark];
+    v.pfPhotoStyle = photoBg(pfProd, 'width:100%;height:112px;border-radius:10px;margin-bottom:11px;'); v.pfHasPhoto = !!photoSrc(pfProd); v.pfNoPhoto = !photoSrc(pfProd);
 
     // ramos "senão" dos <sc-if> (o sc-if só testa verdadeiro)
     v.noCart = !v.hasCart; v.noPixQrImg = !v.hasPixQrImg; v.cardNotWaiting = !v.cardWaiting;
