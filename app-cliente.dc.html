@@ -196,12 +196,6 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 /* Coluna lateral com largura fixa: o resumo do carrinho crescer não pode
    apertar o cardápio ao lado (antes os cartões mudavam de tamanho ao adicionar). */
 .col-side{flex:0 0 360px;min-width:0;max-width:100%;display:flex;flex-direction:column;gap:var(--gap)}
-.hero{display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--ink);margin-bottom:var(--sec)}
-.hero-txt{display:flex;flex-direction:column;align-items:flex-start;gap:16px;min-width:0}
-.hero-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--ink-2);font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif}
-.hero h1{margin:0;font-size:clamp(28px,4vw,44px);line-height:1.08;letter-spacing:-.025em;color:var(--ink);text-wrap:balance}
-.hero-sun{flex:none;width:clamp(56px,8vw,96px);height:clamp(56px,8vw,96px)}
-.hero p{margin:12px 0 16px;font-size:var(--fs-body);line-height:1.5;color:#E1EEEF;max-width:620px;position:relative}
 .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
 /* Cardápio: 2 colunas no celular, 3 no tablet, 4 no computador e 5 em tela larga */
@@ -223,7 +217,7 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 .addbtn:hover{background:#174A52}
 .addbtn:active{transform:scale(.94)}
 .addbtn .plus{font-size:20px;line-height:1;font-weight:800}
-.cartpanel{position:sticky;top:96px}
+.cartpanel{position:sticky;top:85px}
 .mobilebar{display:none}
 .bottomnav{display:none}
 .auth{min-height:100vh;display:flex}
@@ -573,14 +567,9 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .pcard .stepper{padding:2px}
 .pcard .stepper .sb{width:30px;height:30px;font-size:16px}.pcard .stepper .sq{min-width:16px;font-size:14px}
 /* Celular: card estreito. O seletor − 1 + desce para baixo do preço em vez
-   de sair pela borda, e o topo do cardápio fica mais baixo para os produtos
-   aparecerem antes. */
+   de sair pela borda. */
 @media (max-width:639px){
   .pcard .pbody > div:nth-child(3){flex-wrap:wrap !important;row-gap:8px}
-  .hero{margin-bottom:16px;gap:12px}
-  .hero-txt{gap:10px}
-  .hero h1{font-size:22px}
-  .hero-sun{width:44px;height:44px}
 }
 
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
@@ -632,9 +621,6 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
   .mobilebar > div{height:48px !important}
   .pd-act{padding-top:6px;padding-bottom:calc(6px + var(--sab))}
   .adm-side{padding-top:calc(4px + var(--sat));padding-bottom:4px}
-  .hero{margin-bottom:16px}
-  .hero h1{font-size:24px}
-  .hero-sun{width:44px;height:44px}
 }
 
 /* Telas de estado no computador (carrinho vazio, pedido confirmado,
@@ -650,8 +636,6 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
 .adm-brand b{font-size:18px}
 .adm-brand svg{width:28px;height:28px}
 .topbar-in{padding-top:8px;padding-bottom:8px}
-.hero h1{font-size:clamp(22px,3.4vw,36px)}
-.hero-sun{width:clamp(44px,6vw,80px);height:clamp(44px,6vw,80px)}
 .kz-clock{font-size:var(--fs-h2)}
 @media (max-width:920px){.bottomnav > div{min-height:50px}}
 
@@ -959,14 +943,6 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_menu }}" hint-placeholder-val="{{ false }}">
                 <div>
-                  <div class="hero">
-                    <div class="hero-txt">
-                      <span class="hero-chip"><span style="{{ heroDotStyle }}"></span>{{ heroChip }}</span>
-                      <h1 class="tt">Peça da mesa.<br>A gente leva até a areia.</h1>
-                    </div>
-                    <svg class="hero-sun" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
-                  </div>
-
                   <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-warn" style="margin-bottom:20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B26B00" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"></circle><path d="M10 9v6M14 9v6"></path></svg><span>Quiosque pausado pelo Admin. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
                   </sc-if>
@@ -985,10 +961,6 @@ select{caret-color:auto}
 
                   <div class="cols">
                     <div class="col-main" style="gap:0">
-                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-                        <h2 class="tt" style="margin:0;font-size:var(--fs-h1)">Cardápio</h2>
-                        <span class="muted" style="font-size:var(--fs-sm)">{{ countLabel }}</span>
-                      </div>
                       <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-ctl);padding:0 16px;min-height:48px;margin-bottom:16px">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#55626A" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
                         <input value="{{ menuSearch }}" onChange="{{ setMenuSearch }}" placeholder="Buscar no cardápio" style="flex:1;min-width:0;border:none;outline:none;font:500 16px 'Manrope',system-ui,sans-serif;color:#14232A;background:transparent;min-height:46px">
@@ -4199,11 +4171,8 @@ class Component extends DCLogic {
       remove:e => { e.stopPropagation(); this.removeOneFromCart(p.id); }
     };});
     v.noMenuItems = !s.catalogPending && v.menuItems.length === 0;
-    v.countLabel = s.catalogPending ? '' : v.menuItems.length + (v.menuItems.length === 1 ? ' item' : ' itens');
     v.paused = s.paused;
     v.menuDayClosed = s.dayClosed && !s.paused;
-    v.heroChip = s.paused ? 'Pedidos pausados agora' : s.dayClosed ? 'Quiosque fechado por hoje' : 'Quiosque aberto agora';
-    v.heroDotStyle = 'width:8px;height:8px;border-radius:50%;display:inline-block;background:' + (s.paused || s.dayClosed ? '#E0A11B' : '#1E9E52');
     v.cartCount = s.cart.reduce((a, c) => a + c.qty, 0);
     v.hasCart = v.cartCount > 0;
     v.showCartPill = v.hasCart && ['menu','cart','table','payment'].indexOf(s.screen) < 0;
