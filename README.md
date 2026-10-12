@@ -4,7 +4,7 @@ Sistema de pedidos online para quiosques de praia.
 
 O site resolve a dor de quiosques com alta rotatividade de clientes e atendimento disperso entre mesas e guarda-sóis: hoje o processo é quase todo em papel. O Sunfood propõe cardápio digital, pedido pelo celular, pagamento por PIX, cartão ou na entrega, e acompanhamento em tempo real para cozinha e administração.
 
-> **O Sunfood tem dois repositórios.** Este (`sunfood`) é o **site**: as páginas e o app que o cliente, a cozinha e o admin usam. A **API e o banco** (servidor, Supabase, migrações, modelos de e-mail) ficam em [`owdarlley/sunfood-backend`](https://github.com/owdarlley/sunfood-backend).
+> **Tudo do Sunfood fica neste repositório.** Na raiz está o **site** (as páginas e o app que o cliente, a cozinha e o admin usam, publicado pelo GitHub Pages). A **API e o banco** (servidor, Supabase, migrações, modelos de e-mail) ficam na pasta [`server/`](server/README.md), publicada pela Vercel.
 
 ## 🔗 Acesse pelo GitHub Pages
 
@@ -44,7 +44,7 @@ Quem já entrou naquele aparelho vai direto para o seu módulo (exceto quando ab
 
 ## Rodando localmente
 
-O site não tem build nem dependências: basta servir a pasta. Para login, cardápio e pedidos funcionarem, a API precisa estar rodando em `http://localhost:8787` (veja o README do [`sunfood-backend`](https://github.com/owdarlley/sunfood-backend)).
+O site não tem build nem dependências: basta servir a pasta. Para login, cardápio e pedidos funcionarem, a API precisa estar rodando em `http://localhost:8787` (veja o [README da pasta `server`](server/README.md)).
 
 ```bash
 python3 -m http.server 8000
@@ -72,6 +72,7 @@ O `sw.js` guarda as páginas e arquivos do site para abrirem mais rápido e most
 ## Estrutura de pastas
 
 ```
+server/                                      → a API (Node/Express) e o banco (Supabase), publicada pela Vercel
 index.html                                   → login + painéis Conheça, Fale conosco, Termos e Privacidade
 inicio.html, sobre.html, termos.html, ...    → endereços antigos, redirecionam para o painel certo
 redefinir-senha.html                         → segunda etapa da recuperação de senha
