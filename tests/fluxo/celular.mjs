@@ -127,7 +127,7 @@ await step('fonte grande (300 px)', async () => {
   const c = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
   await c.locator('.addbtn').first().tap(); await c.waitForTimeout(300);
   await c.locator('.mobilebar > div').first().tap(); await c.waitForTimeout(400); await tap(c, 'Ir para pagamento');
-  await c.getByPlaceholder('00').fill('1'); await tap(c, 'Confirmar mesa');
+  await c.getByPlaceholder('Ex.: 12').fill('1'); await tap(c, 'Confirmar mesa');
   await c.locator('.brand:visible').first().tap(); await c.waitForTimeout(500);
   await c.locator('.pcard').nth(1).tap(); await c.waitForTimeout(600);
   check('300px: topo com mesa e carrinho cabe na tela', (await c.locator('.mesachip').isVisible()) && (await c.locator('.cartpill').isVisible()) && await semRolagemLateral(c), String(await c.evaluate(() => document.documentElement.scrollWidth)));

@@ -207,10 +207,10 @@ await step('fluxo do cliente', async () => {
   await click(page, 'Ir para pagamento');
   t = await text(page);
   check('cliente: aviso de mesas ativas vem do cadastro de mesas', t.includes('Mesas ativas: 1, 3 a 5.'), (t.match(/Mesas? ativas?:[^\n]*/) || [])[0]);
-  await page.getByPlaceholder('00').fill('2');
+  await page.getByPlaceholder('Ex.: 12').fill('2');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa inativa é recusada', !(await text(page)).includes('Total do pedido · Mesa 2'));
-  await page.getByPlaceholder('00').fill('1');
+  await page.getByPlaceholder('Ex.: 12').fill('1');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa ativa leva ao pagamento', (await text(page)).includes('Mesa 1'));
   await click(page, 'PIX', true);
