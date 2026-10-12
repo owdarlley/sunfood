@@ -190,7 +190,7 @@ await step('pedido recusado', async () => {
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
   await click(page, 'Ir para pagamento');
-  await page.getByPlaceholder('00').fill('1');
+  await page.getByRole('radio', { name: 'Mesa 1', exact: true }).click();
   await click(page, 'Confirmar mesa');
   await click(page, 'Pagar na entrega', true);
   await click(page, 'Fazer pedido');

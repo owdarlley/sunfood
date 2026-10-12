@@ -114,21 +114,54 @@ await step('admin quantidade de mesas', async () => {
   await page.close();
 });
 
-// 2. Cliente: mesa acima da quantidade é recusada com a faixa certa
-await step('cliente mesa fora da faixa', async () => {
+// 2. Cliente: escolhe a mesa tocando na grade (a API falsa tem 5 mesas, a 2 desativada)
+await step('cliente grade de mesas', async () => {
   const page = await open('app-cliente.dc.html');
   await login(page);
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
   await click(page, 'Ir para pagamento');
+  const cells = page.getByRole('radio');
+  check('cliente: grade mostra as 5 mesas do cadastro', await cells.count() === 5, String(await cells.count()));
+  check('cliente: sem campo para digitar', await page.getByPlaceholder('00').count() === 0);
+  await click(page, 'Confirmar mesa');
+  check('cliente: confirmar sem mesa pede para tocar no número', (await text(page)).includes('Toque no número da sua mesa.'));
+  await page.getByRole('radio', { name: 'Mesa 2, desativada' }).click({ force: true }); await page.waitForTimeout(300);
+  check('cliente: mesa desativada não é marcada', (await text(page)).includes('Mesa 2 está desativada') && await page.getByRole('radio', { checked: true }).count() === 0);
+  await page.getByRole('radio', { name: 'Mesa 4', exact: true }).click(); await page.waitForTimeout(300);
+  check('cliente: mesa tocada fica marcada', await page.getByRole('radio', { name: 'Mesa 4', exact: true }).getAttribute('aria-checked') === 'true');
+  for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tablet', { width: 768, height: 1000 }], ['computador', { width: 1366, height: 900 }], ['tela larga', { width: 1920, height: 1080 }]]) {
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    const box = await page.getByRole('radio', { name: 'Mesa 1', exact: true }).boundingBox();
+    const scroll = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    const alvo = viewport.width > 1024 ? 44 : 48;
+    check(`cliente ${nome}: botão da mesa com ${alvo}px de altura e sem rolagem de lado`, box && Math.round(box.height) === alvo && box.width >= 48 && scroll <= 0, JSON.stringify({ box, scroll }));
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/mesa-grade-${nome.replace(' ', '-')}.png` });
+  }
+  await page.setViewportSize({ width: 400, height: 860 }); await page.waitForTimeout(300);
+  await click(page, 'Confirmar mesa');
+  check('cliente: mesa da grade leva ao pagamento', (await text(page)).includes('Mesa 4'));
+  check('cliente: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+  await page.close();
+});
+
+// 3. Cliente: com muitas mesas volta o campo digitado, e mesa acima da quantidade é recusada
+await step('cliente mesa fora da faixa', async () => {
+  const page = await open('app-cliente.dc.html');
+  page.api.db.tables = Array.from({ length: 60 }, (_, i) => ({ number: i + 1, active: true, seats: 4 }));
+  await login(page);
+  await click(page, '+', true); await click(page, '+', true);
+  await click(page, 'itens no carrinho');
+  await click(page, 'Ir para pagamento');
+  check('cliente: 60 mesas mostram o campo em vez da grade', await page.getByRole('radio').count() === 0);
   const mesa = page.getByPlaceholder('00');
   await mesa.fill('123');
   check('cliente: aceita número de 3 dígitos', await mesa.inputValue() === '123', await mesa.inputValue());
-  await mesa.fill('9');
+  await mesa.fill('90');
   await click(page, 'Confirmar mesa');
   const t = await text(page);
-  check('cliente: avisa "Mesa 9 não existe (o quiosque tem mesas de 1 a 5)"', t.includes('Mesa 9 não existe (o quiosque tem mesas de 1 a 5)'), (t.match(/Mesa 9[^\n]*/) || [])[0]);
-  check('cliente: não vai para o pagamento', !t.includes('Total do pedido · Mesa 9'));
+  check('cliente: avisa "Mesa 90 não existe (o quiosque tem mesas de 1 a 60)"', t.includes('Mesa 90 não existe (o quiosque tem mesas de 1 a 60)'), (t.match(/Mesa 90[^\n]*/) || [])[0]);
+  check('cliente: não vai para o pagamento', !t.includes('Total do pedido · Mesa 90'));
   check('cliente: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
 });
