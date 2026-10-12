@@ -18,6 +18,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     ].map(([id, category, name, price, imageKey, stockQty]) => ({ id, category, name, description: name, longDescription: name,
       price, imageKey, stockQty, soldOut: stockQty === 0, portion: '1', prepTime: '10 min', kcal: 100, rating: 4.5,
       reviewCount: 10, ingredients: '-', tags: [] })),
+    categories: [['Petiscos','sol'],['Bebidas','mar'],['Pratos','coral'],['Sobremesas','uva']].map(([name, color], i) => ({ name, color, position: i + 1 })),
     tables: [1, 2, 3, 4, 5].map(number => ({ number, active: number !== 2, seats: 4 })),
     kiosk: { paused: false, dayClosed: false, cancelWindowMinutes: 0 },
     orders: [],
@@ -68,6 +69,35 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     if (p === '/auth/forgot-password') { db.resetFor = body.email; return json(200, { message: 'ok' }); }
     if (p === '/products' && m === 'GET') return json(200, db.products);
     if (p === '/tables') return json(200, db.tables);
+    // Categorias: mesmas regras do servidor (nome único sem diferenciar
+    // maiúsculas, renomear leva os itens, excluir só sem item).
+    if (p.startsWith('/categories')) {
+      const sameName = (a, b) => a.toLowerCase() === b.toLowerCase();
+      if (p === '/categories' && m === 'GET') return json(200, [...db.categories].sort((a, b) => a.position - b.position));
+      if (p === '/categories' && m === 'POST') {
+        const name = String(body.name || '').trim();
+        if (name.length < 2) return json(400, { error: 'Dados inválidos.', details: [{ message: 'Nome da categoria muito curto.' }] });
+        if (db.categories.some(c => sameName(c.name, name))) return json(409, { error: 'Já existe uma categoria com esse nome.' });
+        const c = { name, color: body.color || 'areia', position: Math.max(0, ...db.categories.map(c => c.position)) + 1 };
+        db.categories.push(c); return json(201, c);
+      }
+      if (p === '/categories/reorder') {
+        if (body.names.length !== db.categories.length) return json(409, { error: 'As categorias mudaram. Recarregue a tela.' });
+        db.categories.forEach(c => { c.position = body.names.indexOf(c.name) + 1; }); return json(200, { ok: true });
+      }
+      const c = db.categories.find(c => c.name === decodeURIComponent(p.slice('/categories/'.length)));
+      if (!c) return json(404, { error: 'Categoria não encontrada.' });
+      if (m === 'PUT') {
+        const name = String(body.name || '').trim();
+        if (db.categories.some(o => o !== c && sameName(o.name, name))) return json(409, { error: 'Já existe uma categoria com esse nome.' });
+        db.products.filter(pr => pr.category === c.name).forEach(pr => { pr.category = name; });
+        Object.assign(c, { name }, body.color ? { color: body.color } : {}); return json(200, c);
+      }
+      if (m === 'DELETE') {
+        if (db.products.some(pr => pr.category === c.name)) return json(409, { error: 'Essa categoria ainda tem itens. Mova ou exclua os itens antes.' });
+        db.categories = db.categories.filter(o => o !== c); return json(200, { ok: true });
+      }
+    }
     if (p === '/kiosk-settings/cancel-window') { db.kiosk.cancelWindowMinutes = body.minutes; return json(200, db.kiosk); }
     if (p === '/kiosk-settings') return json(200, db.kiosk);
     if (p === '/orders/mine') return json(200, db.orders);

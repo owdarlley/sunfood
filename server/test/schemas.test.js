@@ -88,10 +88,13 @@ test("orderStatusUpdateSchema só aceita os 4 status de destino válidos", () =>
   assert.equal(orderStatusUpdateSchema.safeParse({ status: "qualquer coisa" }).success, false);
 });
 
-test("productSchema rejeita categoria fora da lista e preço não positivo", () => {
+test("productSchema rejeita categoria vazia ou longa e preço não positivo", () => {
   const base = { name: "Suco", category: "Bebidas", price: 10 };
   assert.equal(productSchema.safeParse(base).success, true);
-  assert.equal(productSchema.safeParse({ ...base, category: "Outra" }).success, false);
+  // A lista de categorias é do banco: aqui só o formato do nome.
+  assert.equal(productSchema.safeParse({ ...base, category: "Porções" }).success, true);
+  assert.equal(productSchema.safeParse({ ...base, category: " " }).success, false);
+  assert.equal(productSchema.safeParse({ ...base, category: "x".repeat(41) }).success, false);
   assert.equal(productSchema.safeParse({ ...base, price: 0 }).success, false);
   assert.equal(productSchema.safeParse({ ...base, price: -5 }).success, false);
 });

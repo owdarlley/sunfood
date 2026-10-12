@@ -87,7 +87,7 @@ await step('foto: enviar e salvar', async () => {
   await click(page, 'Salvar produto', true);
   await page.waitForTimeout(400);
   check('foto: salvar manda o endereço da foto', api.db.lastProductBody.imageUrl === FAKE_PHOTO_BASE + 'foto1.jpg', JSON.stringify(api.db.lastProductBody));
-  const thumb = await page.evaluate(u => [...document.querySelectorAll('.pgrid span[aria-hidden]')].some(s => (s.getAttribute('style') || '').includes(u)), FAKE_PHOTO_BASE + 'foto1.jpg');
+  const thumb = await page.evaluate(u => [...document.querySelectorAll('.pgrid .pthumb span')].some(s => (s.getAttribute('style') || '').includes(u)), FAKE_PHOTO_BASE + 'foto1.jpg');
   check('foto: lista do admin mostra a miniatura', thumb);
 
   await page.getByText('Editar').first().click(); await page.waitForTimeout(400);
