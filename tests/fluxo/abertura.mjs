@@ -1,7 +1,7 @@
 // Abertura "Sol na areia" da tela de login: aparece na primeira abertura da
 // sessão, some sozinha com o logo no lugar, pula com toque, fica curta com
-// "reduzir movimento" e não aparece ao recarregar, em painel do rodapé nem
-// para quem já entrou. Celular, tablet, computador e tela larga.
+// "reduzir movimento", aparece no app para quem já entrou e não aparece ao
+// recarregar nem em painel do rodapé. Celular, tablet, computador e tela larga.
 // Uso: node fluxo/abertura.mjs (de dentro de tests)
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
@@ -9,8 +9,10 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { fakeApi } from './fake-api.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const CDN = process.env.CDN_DIR;
 const TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };
 const server = createServer(async (req, res) => {
   try { const path = decodeURIComponent(new URL(req.url, 'http://x').pathname); const file = path === '/' ? 'index.html' : path;
@@ -32,7 +34,10 @@ async function open(path, { viewport = { width: 390, height: 844 }, reducedMotio
   const ctx = await browser.newContext({ viewport, reducedMotion, serviceWorkers: 'block' });
   await ctx.addInitScript(() => Object.defineProperty(navigator, 'webdriver', { get: () => false }));
   if (session) await ctx.addInitScript(() => localStorage.setItem('sunfood_session', JSON.stringify({ token: 'tok', user: { id: 'u1', email: 'c@teste', name: 'Teste', role: 'cliente' } })));
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com|unpkg\.com|localhost:8787/, r => r.abort());
+  await ctx.route(/fonts\.(googleapis|gstatic)\.com|accounts\.google|supabase/, r => r.abort());
+  if (CDN) await ctx.route('https://unpkg.com/**', r => { const mod = new URL(r.request().url()).pathname.replace(/^\/(@?[^@]+)@[^/]+/, '$1'); r.fulfill({ path: join(CDN, 'node_modules', mod), contentType: 'application/javascript' }); });
+  const api = fakeApi('cliente'); api.seed();
+  await ctx.route('http://localhost:8787/**', api);
   const page = await ctx.newPage();
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
@@ -85,7 +90,15 @@ await step('painel do rodapé', async () => {
 await step('quem já entrou', async () => {
   const p = await open('index.html', { session: true });
   await p.waitForURL(/app-cliente/);
-  check('quem já entrou vai direto para o app, sem abertura', await tem(p) === 0);
+  await p.waitForTimeout(300);
+  check('quem já entrou vai direto para o app e vê a abertura lá', await tem(p) === 1);
+  await p.waitForTimeout(4500);
+  check('quem já entrou: abertura some depois que o app monta', await tem(p) === 0);
+  const raiz = await p.locator('#dc-root > *').count();
+  check('quem já entrou: app aparece montado por baixo', raiz > 0);
+  check('quem já entrou: sem erro de JavaScript', p.jsErrors.length === 0, p.jsErrors.join(' | '));
+  await p.reload(); await p.waitForTimeout(300);
+  check('quem já entrou: não repete ao recarregar o app', await tem(p) === 0);
   await p.context().close();
 });
 
