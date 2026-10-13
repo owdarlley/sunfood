@@ -80,7 +80,7 @@ for (const [nome, vp] of [['celular', { width: 390, height: 844 }], ['tablet', {
   const coz = await cctx.newPage();
   await coz.goto(BASE + 'app-cliente.dc.html?module=cozinha&screen=kanban');
   await coz.waitForTimeout(1500);
-  const botao = coz.getByText(/^(Iniciar preparo|Começar|Preparar|Marcar como pronto|Pronto)/).first();
+  const botao = coz.locator('.kz-act').filter({ hasText: /^(Iniciar preparo|Começar|Preparar|Marcar como pronto|Pronto)/ }).first(); // só os botões dos cartões (as abas Novos/Preparo/Prontos não contam)
   if (await botao.count()) {
     const antes = await coz.locator('body').innerText();
     lento = true;

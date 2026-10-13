@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sunfood · Entrar</title>
 <meta name="description" content="Entre no Sunfood para pedir do seu guarda-sol. Cliente, cozinha e administração usam o mesmo login.">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0B6670">
+<meta name="theme-color" content="#1F5A63">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <script>
 // Esta é a página do endereço principal (sunfood.app.br): a tela de login.
 // Link de "esqueci minha senha" que caiu aqui: manda pra tela de nova senha.
-if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefinir-senha.html' + location.hash);
+if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) { window.SUNFOOD_SAINDO = true; location.replace('redefinir-senha.html' + location.hash); }
 // Quem já entrou neste aparelho vai direto para o seu módulo do app.
 (function () {
   var DEST = {
@@ -28,146 +28,323 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) location.replace('redefini
   window.SUNFOOD_DEST = DEST;
   try {
     var s = JSON.parse(localStorage.getItem('sunfood_session') || 'null');
-    if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash) && !/^#(conheca|fale-conosco|termos|privacidade)$/.test(location.hash)) location.replace(DEST[s.user.role] || DEST.cliente);
+    if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash) && !/^#(conheca|fale-conosco|termos|privacidade)$/.test(location.hash)) { window.SUNFOOD_SAINDO = true; location.replace(DEST[s.user.role] || DEST.cliente); }
   } catch (e) {}
 })();
 </script>
 <script src="./pwa.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Escala geral: tudo um pouco menor que o tamanho "cru" do CSS, para as telas
-   não parecerem ampliadas (pedido do Dárlley, 2026-10-06). As alturas de tela
-   cheia usam calc(100vh / var(--sfz)) porque o zoom também encolhe o vh.
-   No celular e no tablet os campos ficam com 16px reais na tela, senão o
-   iPhone dá zoom sozinho ao tocar num campo. */
-:root{--sfz:.86}
-@media (max-width:1100px){:root{--sfz:.92}}
-html{zoom:var(--sfz)}
-@media (max-width:1100px){input,select,textarea{font-size:calc(16px / var(--sfz)) !important}}
+/* Design system (2026-10-07) com o visual da tela de login (2026-10-10): os
+   mesmos tokens do app (app-cliente.dc.html). Margem lateral 24/24/32, espaço
+   entre itens 12/16/24, entre seções 24/32/48, padding de cards 16/20/24,
+   botões e campos com 52 px, cantos 16 (cards), 14 (botões) e 12 (campos),
+   fonte Manrope, títulos 26/30/36 em peso 800 e texto 15/16 (line-height 1.5). */
+:root{
+  --px:24px;--gap:12px;--sec:24px;--cpad:16px;--ctl:52px;
+  --fs-h1:26px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;
+  --r-card:16px;--r-btn:14px;--r-ctl:12px
+}
+@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px}}
+@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
+:root{--px:16px;--gap:10px;--sec:20px;--cpad:14px;--ctl:46px;--fs-h1:22px;--fs-h2:18px;--fs-h3:16px;--fs-body:14px;--fs-sm:13px;--r-card:14px;--r-btn:12px;--r-ctl:10px}
+@media (min-width:768px){:root{--px:20px;--gap:14px;--sec:28px;--cpad:16px;--fs-h1:26px;--fs-h2:20px;--fs-h3:17px}}
+@media (min-width:1025px){:root{--px:28px;--gap:20px;--sec:40px;--cpad:20px;--ctl:48px;--fs-h1:30px;--fs-h2:22px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px}}
 
 /* Mesmo visual da tela de login do app (app-cliente.dc.html): areia, mar e sol. */
 *{box-sizing:border-box}
-body{margin:0;background:#F6F3EC;font-family:'DM Sans',system-ui,sans-serif;color:#12232E;-webkit-font-smoothing:antialiased}
-a{color:#0B6670}
+body{margin:0;background:#F7F5F0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--fs-body);line-height:1.5;color:#14232A;-webkit-font-smoothing:antialiased}
+a{color:#1F5A63}
 @keyframes sfspin{to{transform:rotate(360deg)}}
-@keyframes sfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sfup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes sfwave{0%,100%{transform:translateX(0)}50%{transform:translateX(-24px)}}
 .sun{animation:sfspin 24s linear infinite;transform-origin:50% 50%}
 .wave{animation:sfwave 7s ease-in-out infinite}
-.rise{animation:sfup .35s cubic-bezier(.2,.8,.2,1) both}
+.rise{animation:sfup .25s ease-out both}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
-.tt{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.025em;line-height:1.05}
-.muted{color:#5A6670}
-.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
-.brand b{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.auth{min-height:calc(100vh / var(--sfz));display:flex}
-.auth-art{flex:0 0 48%;max-width:620px;background:#0B6670;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
-.auth-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
-.auth-box{width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px}
-.auth-mobile{display:none}
-.lbl{display:block;font:700 14px 'DM Sans',sans-serif;color:#12232E;margin-bottom:6px}
-.inp{width:100%;min-height:48px;border:1px solid #D6CFBF;border-radius:14px;padding:12px 14px;font:500 16px 'DM Sans',sans-serif;color:#12232E;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
-.inp:focus{border-color:#0B6670;box-shadow:0 0 0 3px rgba(11,102,112,.16)}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:0 20px;border-radius:16px;font:800 16px 'DM Sans',sans-serif;cursor:pointer;text-align:center;border:0;transition:background .2s,transform .15s}
+.tt{font-family:'Manrope',system-ui,sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.muted{color:#55626A}
+.brand{display:flex;align-items:center;gap:8px;min-height:48px;color:#fff;text-decoration:none}
+.brand b{font:800 22px 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
+.lbl{display:block;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#14232A;margin-bottom:8px}
+.inp{width:100%;min-height:var(--ctl);border:1px solid #D6CFBF;border-radius:var(--r-ctl);padding:8px 12px;font:500 16px 'Manrope',system-ui,sans-serif;color:#14232A;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.inp:focus{border-color:#1F5A63;box-shadow:0 0 0 3px rgba(31,90,99,.16)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-btn);font:700 16px 'Manrope',system-ui,sans-serif;cursor:pointer;text-align:center;border:0;transition:background .2s,transform .15s}
 .btn:active{transform:scale(.98)}
-.btn-dark{background:#12232E;color:#fff}
-.btn-dark:hover{background:#1E3642}
+.btn-dark{background:#1F5A63;color:#fff}
+.btn-dark:hover{background:#174A52}
 .btn-dark[disabled]{opacity:.6;cursor:wait}
-.btn-ghost{background:#fff;color:#0B6670;border:1px solid #0B6670;font-weight:700}
-.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;border-radius:14px;border:1px solid #D6CFBF;background:#fff;font:700 16px 'DM Sans',sans-serif;cursor:pointer;color:#12232E}
-.gbtn:hover{border-color:#12232E}
-.divider{display:flex;align-items:center;gap:12px;color:#6B6458;font:500 13px 'DM Sans',sans-serif}
+.btn-ghost{background:#fff;color:#1F5A63;border:1px solid #1F5A63;font-weight:700}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:var(--ctl);border-radius:var(--r-btn);border:1px solid #D6CFBF;background:#fff;font:700 16px 'Manrope',system-ui,sans-serif;cursor:pointer;color:#14232A}
+.gbtn:hover{border-color:#14232A}
+.divider{display:flex;align-items:center;gap:12px;color:#55626A;font:500 var(--fs-cap) 'Manrope',system-ui,sans-serif}
 .divider span{flex:1;height:1px;background:#E3DDD0;display:block}
-.link{font:700 14px 'DM Sans',sans-serif;color:#0B6670;text-decoration:underline;text-underline-offset:3px}
-.link:hover{color:#084C53}
-.alert{border-radius:14px;padding:12px 14px;font:600 14px/1.45 'DM Sans',sans-serif}
+.link{font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;text-decoration:underline;text-underline-offset:3px}
+.link:hover{color:#174A52}
+.info-body .link,.info-body a{position:relative}
+.info-body .link::after,.info-body p a::after,.info-body li a::after{content:"";position:absolute;inset:-12px -4px}
+.alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif}
 .alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
 .alert-ok{background:#E7F7ED;color:#14532D;border:1px solid #BFE3CB}
-.foot{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;margin-top:28px;font:500 14px 'DM Sans',sans-serif}
-.foot a{color:#5A6670;text-decoration:none}
-.foot a:hover{color:#0B6670}
+.foot{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;margin-top:var(--sec);font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif}
+.foot a{color:#55626A;text-decoration:none}
+.foot a:hover{color:#1F5A63}
 /* Painel "Conheça o Sunfood / Fale conosco / Termos / Privacidade": abre por
    cima do login (gaveta à direita no computador, tela cheia no celular). */
 .info{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end}
-.info-bg{position:absolute;inset:0;background:rgba(18,35,46,.45);animation:sffade .2s ease both}
-.info-sheet{position:relative;width:min(760px,100%);height:100%;background:#F6F3EC;display:flex;flex-direction:column;box-shadow:-24px 0 60px -20px rgba(18,35,46,.35);animation:sfslide .28s cubic-bezier(.2,.8,.2,1) both}
+.info-bg{position:absolute;inset:0;background:rgba(20,35,42,.45);animation:sffade .2s ease both}
+.info-sheet{position:relative;width:min(760px,100%);height:100%;background:#F7F5F0;display:flex;flex-direction:column;box-shadow:-24px 0 60px -20px rgba(20,35,42,.35);animation:sfslide .28s cubic-bezier(.2,.8,.2,1) both}
 @keyframes sffade{from{opacity:0}}
 @keyframes sfslide{from{transform:translateX(40px);opacity:0}}
-.info-head{flex:none;background:#0B6670;color:#fff;padding:18px 28px 0}
+/* Cabeçalho claro, no mesmo visual da tela de login: fundo areia, marca em
+   verde-petróleo e abas sublinhadas. */
+.info-head{flex:none;background:#F7F5F0;color:#1F5A63;padding:16px var(--px) 0;border-bottom:1px solid #E5E0D5}
+/* Área segura do iPhone (app instalado: barra de status translúcida, entalhe). */
+.info-head{padding-top:calc(16px + env(safe-area-inset-top,0px))}
+.lp{padding-top:calc(var(--lg-s16) + env(safe-area-inset-top,0px));padding-bottom:calc(var(--lg-s16) + env(safe-area-inset-bottom,0px))}
+body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.info-head .brand{color:#1F5A63}
 .info-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.info-close{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.info-close:hover{background:rgba(255,255,255,.12)}
-.tabs{display:flex;gap:4px;margin-top:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.info-close{width:48px;height:48px;border-radius:var(--r-btn);border:1px solid #D9D3C6;background:#fff;color:#1F5A63;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.info-close:hover{background:#EEF4F4;border-color:#1F5A63}
+.tabs{position:relative;display:flex;gap:4px;margin-top:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:none;padding:12px 14px;border-radius:12px 12px 0 0;font:700 15px 'DM Sans',sans-serif;color:#CFE7E8;text-decoration:none;white-space:nowrap}
-.tab:hover{color:#fff}
-.tab[aria-current="page"]{background:#F6F3EC;color:#12232E}
-.info-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:32px 28px 48px;outline:none}
+.tab{flex:none;min-height:44px;line-height:20px;padding:12px 14px;border-bottom:3px solid transparent;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A;text-decoration:none;white-space:nowrap;transition:color .15s,border-color .15s}
+.tab:hover{color:#1F5A63}
+.tab[aria-current="page"]{color:#1F5A63}
+/* Barrinha amarela da aba ativa: um elemento só, que desliza de uma aba para
+   a outra (e acompanha o dedo quando se arrasta o conteúdo no celular). */
+.tab-ind{position:absolute;left:0;bottom:0;height:3px;width:0;border-radius:3px 3px 0 0;background:#F5B83D;pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1),width .3s cubic-bezier(.2,.8,.2,1)}
+.tab-ind.arrastando{transition:none}
+/* Rolagem lateral (abas do painel, cards do celular): esmaece a borda que
+   ainda tem conteúdo escondido, para mostrar que dá para arrastar. */
+.fx-r{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent)}
+.fx-l{-webkit-mask-image:linear-gradient(to left,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to left,#000 calc(100% - 40px),transparent)}
+.fx-l.fx-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+.info-body section{animation:sfsec .25s cubic-bezier(.2,.8,.2,1) both}
+.info-body[data-dir="prev"] section{animation-name:sfsecprev}
+.info-body[data-dir="none"] section{animation:none}
+@keyframes sfsec{from{transform:translateX(32%);opacity:0}}
+@keyframes sfsecprev{from{transform:translateX(-32%);opacity:0}}
+@media (prefers-reduced-motion:reduce){.info-body section{animation:none}.tab-ind{transition:none}}
+.info-body{position:relative;flex:1;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;padding:var(--sec) var(--px);outline:none}
 .info-body section{max-width:640px;margin:0 auto}
-.info-body .eyebrow{font:800 12px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#0B6670;margin:0 0 8px}
-.info-body h2{font:800 clamp(28px,4vw,38px)/1.08 'Bricolage Grotesque',sans-serif;letter-spacing:-.025em;margin:0}
-.info-body h3{font:800 21px/1.2 'Bricolage Grotesque',sans-serif;letter-spacing:-.015em;margin:36px 0 12px}
-.info-body p,.info-body li{font:400 16px/1.65 'DM Sans',sans-serif;color:#3D4A53}
+.info-body .eyebrow{font:800 var(--fs-cap) 'Manrope',system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#1F5A63;margin:0 0 8px}
+.info-body h2{font:800 var(--fs-h1)/1.1 'Manrope',system-ui,sans-serif;letter-spacing:-.025em;margin:0}
+.info-body h3{font:800 var(--fs-h2)/1.2 'Manrope',system-ui,sans-serif;letter-spacing:-.015em;margin:var(--sec) 0 12px}
+.info-body p,.info-body li{font:400 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53}
 .info-body p{margin:12px 0 0}
-.info-body ul{margin:10px 0 0;padding-left:20px}
-.info-body li+li{margin-top:6px}
-.info-body strong{color:#12232E}
-.lead{font-size:18px !important;color:#12232E !important}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}
+.info-body ul{margin:12px 0 0;padding-left:20px}
+.info-body li+li{margin-top:8px}
+.info-body strong{color:#14232A}
+.lead{font-size:var(--fs-h3) !important;color:#14232A !important}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);margin-top:4px}
 .grid.g2{grid-template-columns:repeat(2,1fr)}
-.card{background:#fff;border:1px solid #E3DDD0;border-radius:18px;padding:18px}
-.card b{display:block;font:800 17px/1.25 'Bricolage Grotesque',sans-serif;color:#12232E}
-.card p{font-size:15px !important;margin-top:6px !important}
-.num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#FFB21E;color:#12232E;font:800 14px 'DM Sans',sans-serif;margin-bottom:10px}
-.tag{font:800 12px 'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#0B6670;margin-bottom:6px}
+.card{background:#fff;border:1px solid #E5E0D5;border-radius:var(--r-card);padding:var(--cpad);box-shadow:0 1px 2px rgba(20,35,42,.04),0 8px 24px -16px rgba(20,35,42,.16)}
+.card b{display:block;font:800 var(--fs-h3)/1.25 'Manrope',system-ui,sans-serif;color:#14232A}
+.card p{font-size:var(--fs-sm) !important;margin-top:8px !important}
+.num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#F5B83D;color:#14232A;font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif;margin-bottom:12px}
+.tag{font:800 var(--fs-cap) 'Manrope',system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#1F5A63;margin-bottom:8px}
 .card ul{padding-left:18px}
-.card li{font-size:15px !important}
-.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
-.cta a{display:inline-flex;align-items:center;min-height:48px;padding:0 18px;border-radius:14px;font:700 15px 'DM Sans',sans-serif;text-decoration:none}
-.cta .pri{background:#FFB21E;color:#12232E}
-.cta .pri:hover{background:#F5A300}
-.cta .sec{background:#fff;border:1px solid #0B6670;color:#0B6670}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
-.stats div{font:500 14px/1.4 'DM Sans',sans-serif;color:#5A6670}
-.stats b{display:block;font:800 22px/1.1 'Bricolage Grotesque',sans-serif;color:#0B6670;margin-bottom:4px}
-.quote{margin:36px 0 0;background:#0B6670;color:#fff;border-radius:22px;padding:26px 24px}
-.quote blockquote{margin:0;font:700 19px/1.45 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
-.quote figcaption{margin-top:14px;font:500 14px 'DM Sans',sans-serif;color:#CFE7E8}
-.quote figcaption b{color:#FFB21E}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px 20px;margin-top:14px}
+.card li{font-size:var(--fs-sm) !important}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.cta a{display:inline-flex;align-items:center;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-btn);font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;text-decoration:none}
+.cta .pri{background:#1F5A63;color:#fff}
+.cta .pri:hover{background:#174A52}
+.cta .sec{background:#fff;border:1px solid #1F5A63;color:#1F5A63}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);margin-top:24px}
+.stats div{font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#55626A}
+.stats b{display:block;font:800 var(--fs-h2)/1.1 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-bottom:4px}
+.quote{margin:var(--sec) 0 0;background:#1F5A63;color:#fff;border-radius:var(--r-card);padding:var(--cpad)}
+.quote blockquote{margin:0;font:700 var(--fs-h3)/1.5 'Manrope',system-ui,sans-serif;letter-spacing:-.01em}
+.quote figcaption{margin-top:16px;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#D2E3E5}
+.quote figcaption b{color:#FFD88A}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 24px;margin-top:16px}
 .facts.f2{grid-template-columns:repeat(2,1fr)}
-.facts div{padding:10px 0;border-bottom:1px solid #E3DDD0;font:500 14px 'DM Sans',sans-serif;color:#5A6670}
-.facts b{display:block;font:700 15px 'DM Sans',sans-serif;color:#12232E}
-.note{background:#FFF4DB;border:1px solid #F5DDA4;border-radius:16px;padding:16px 18px;margin-top:28px}
-.note p{margin:0 !important;font-size:15px !important;color:#5A4210 !important}
-.form{display:flex;flex-direction:column;gap:14px;margin-top:20px}
-.form textarea.inp{min-height:130px;resize:vertical;line-height:1.5}
+.facts div{padding:12px 0;border-bottom:1px solid #E3DDD0;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A}
+.facts b{display:block;font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;color:#14232A}
+.note{background:#FFF4DB;border:1px solid #F5DDA4;border-radius:var(--r-card);padding:var(--cpad);margin-top:var(--sec)}
+.note p{margin:0 !important;font-size:var(--fs-sm) !important;color:#5A4210 !important}
+.form{display:flex;flex-direction:column;gap:16px;margin-top:24px}
+.form textarea.inp{min-height:128px;padding:12px;resize:vertical;line-height:1.5}
 .form select.inp{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235A6670' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px}
-.ferr{font:600 13px 'DM Sans',sans-serif;color:#B42318;margin-top:6px}
+.ferr{font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:8px}
 .inp[aria-invalid="true"]{border-color:#B42318}
-.hint{font:500 13px 'DM Sans',sans-serif;color:#6B6458;margin-top:6px}
+.hint{font:500 13px 'Manrope',system-ui,sans-serif;color:#55626A;margin-top:8px}
 @media (max-width:920px){.info-sheet{width:100%}}
-@media (max-width:640px){
+@media (max-width:767px){
   .grid,.grid.g2{grid-template-columns:1fr}
   .facts,.facts.f2{grid-template-columns:1fr}
   .stats{grid-template-columns:1fr 1fr}
-  .quote blockquote{font-size:17px}
-  .info-head{padding:14px 16px 0}
-  .info-body{padding:24px 18px 40px}
-  .tab{padding:11px 12px;font-size:14px}
+  .tab{padding:12px}
 }
 [hidden]{display:none !important}
-@media (max-width:920px){
-  .auth{flex-direction:column}
-  .auth-art{display:none}
-  .auth-mobile{display:flex}
-  .auth-main{justify-content:flex-start;padding:24px 18px 40px}
+/* Ícones: o mesmo traço fino (1,75 px) do resto do app. */
+svg[stroke]{stroke-width:1.75px;stroke-linecap:round;stroke-linejoin:round}
+svg[stroke] *{vector-effect:non-scaling-stroke}
+
+/* ---- Tela de login (refino de 2026-10-10) ----
+   Tudo da tela sai destes tokens: escala de 4 px (com o meio-passo de 6 px
+   entre rótulo, campo e erro), campos e botão principal com 48 px, botões
+   secundários com 44 px, três tons de texto e três pesos de fonte (400, 500
+   e 700). Cores são as do projeto; a borda do campo ficou um pouco mais
+   escura para ter contraste 3:1 (WCAG AA) com o branco. */
+:root{
+  --lg-s4:4px;--lg-s6:6px;--lg-s8:8px;--lg-s12:12px;--lg-s16:16px;--lg-s20:20px;--lg-s24:24px;--lg-s32:32px;--lg-s40:40px;
+  --lg-pad:var(--lg-s24);--lg-h:52px;--lg-h2:44px;--lg-w:408px;
+  --lg-fs-title:24px;--lg-fs-sub:14px;--lg-fs-label:14px;--lg-fs-input:16px;--lg-fs-btn:15px;--lg-fs-link:14px;--lg-fs-err:13px;--lg-fs-foot:12px;
+  --lg-w-regular:400;--lg-w-medium:500;--lg-w-strong:700;
+  --lg-ink:#14232A;--lg-ink-2:#55626A;--lg-ink-3:#55626A;
+  --lg-pri:#1F5A63;--lg-pri-hover:#174A52;--lg-ring:0 0 0 3px rgba(31,90,99,.2);
+  --lg-bg:#F7F5F0;--lg-surface:#fff;--lg-surface-off:#F1EEE6;--lg-line:#E3DDD0;
+  --lg-field:#8F8676;--lg-field-hover:#55626A;
+  --lg-s48:48px;
+  --lp-max:1280px;--lp-px:24px;--lp-logo:24px;--lp-fs-brand:20px;--lp-fs-hero:28px;--lp-cat-w:150px;--lp-cat-h:190px;--lp-cat-gap:12px;--lp-cat-pad:16px;--lp-ico:56px;--lp-fs-cat:17px;--lp-fs-cat-sub:13px;
+  --lp-coral:#F07B4F;--lp-sun:#F5B83D;--lp-sea:#5BA9AE;--lp-berry:#7B3F6E;
+  --lg-err:#B42318;--lg-err-ink:#8A1C12;--lg-err-bg:#FDECEA;--lg-err-line:#F0C2BC;--lg-err-ring:0 0 0 3px rgba(180,35,24,.2);
+  --lg-ease:150ms ease-out
+}
+@media (min-width:768px){:root{--lg-pad:var(--lg-s32);--lg-fs-title:28px;--lg-fs-sub:15px;--lp-max:608px;--lp-px:24px;--lp-fs-hero:36px;--lp-cat-h:200px;--lp-cat-gap:16px}}
+@media (min-width:1024px){:root{--lp-max:1280px;--lg-pad:var(--lg-s40);--lp-px:32px;--lp-logo:28px;--lp-fs-brand:22px;--lp-fs-hero:40px;--lp-cat-h:240px;--lp-cat-gap:24px;--lp-cat-pad:20px;--lp-ico:64px;--lp-fs-cat:20px}}
+/* Escala mais enxuta (2026-10-11): cerca de 10% menor. Campos continuam em 16 px (iPhone). */
+:root{--lg-pad:var(--lg-s20);--lg-h:46px;--lg-fs-title:22px;--lg-fs-sub:13px;--lg-fs-label:13px;--lg-fs-btn:14px;--lg-fs-link:13px;--lp-px:16px;--lp-logo:22px;--lp-fs-brand:18px;--lp-fs-hero:24px;--lp-cat-w:136px;--lp-cat-h:160px;--lp-ico:48px;--lp-fs-cat:16px;--lp-fs-cat-sub:12px}
+@media (min-width:768px){:root{--lg-pad:var(--lg-s24);--lg-fs-title:24px;--lp-px:20px;--lp-fs-hero:30px;--lp-cat-h:170px}}
+@media (min-width:1024px){:root{--lg-pad:var(--lg-s32);--lg-h:48px;--lg-fs-title:26px;--lp-px:28px;--lp-logo:24px;--lp-fs-brand:20px;--lp-fs-hero:34px;--lp-cat-h:200px;--lp-ico:56px;--lp-fs-cat:18px}}
+
+/* ---- Página de entrada (design "Cardápio em destaque", 2026-10-10) ----
+   Celular: marca + "Ver cardápio", chamada, cartões do cardápio que rolam
+   para o lado e, embaixo, "Entrar com e-mail" e Google. Tocar em "Entrar com
+   e-mail" troca a chamada pelo formulário (data-step="form"). Do tablet para
+   cima o formulário já aparece direto, num cartão branco. */
+.lp{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;width:100%;max-width:var(--lp-max);margin:0 auto;padding:var(--lg-s16) var(--lp-px) var(--lg-s16)}
+.lp-top{display:flex;align-items:center;justify-content:space-between;gap:var(--lg-s16)}
+.lp-logo{display:inline-flex;align-items:center;gap:var(--lg-s8);min-height:var(--lg-h);color:var(--lg-pri);text-decoration:none;border-radius:var(--r-ctl)}
+.lp-logo svg{display:block;width:var(--lp-logo);height:var(--lp-logo)}
+.lp-logo b{font:800 var(--lp-fs-brand)/1 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
+.lp-menu{display:inline-flex;align-items:center;min-height:var(--lg-h);padding:0 var(--lg-s4);font:var(--lg-w-strong) var(--lg-fs-link)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-pri);text-decoration:none;border-radius:var(--r-ctl);transition:color var(--lg-ease)}
+.lp-menu:hover,.lp-menu:focus-visible{color:var(--lg-pri-hover);text-decoration:underline;text-underline-offset:3px}
+.lp-logo:focus-visible,.lp-menu:focus-visible,.lp-cat:focus-visible,.lp-back:focus-visible{outline:none;box-shadow:var(--lg-ring)}
+
+.lp-main{flex:1;display:flex;flex-direction:column}
+.lp-title{margin:var(--lg-s24) 0 0;font:800 var(--lp-fs-hero)/1.15 'Manrope',system-ui,sans-serif;letter-spacing:-.03em;color:var(--lg-ink)}
+.lp-cats{list-style:none;margin:var(--lg-s16) calc(-1 * var(--lp-px)) 0;padding:0 var(--lp-px);display:flex;gap:var(--lg-s12);overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--lp-px);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.lp-cats::-webkit-scrollbar{display:none}
+.lp-cats li{flex:0 0 var(--lp-cat-w);scroll-snap-align:start}
+.lp-cat{display:flex;flex-direction:column;justify-content:space-between;height:var(--lp-cat-h);padding:var(--lg-s16);border-radius:var(--r-card);color:var(--lg-ink);text-decoration:none;transition:transform var(--lg-ease),box-shadow var(--lg-ease)}
+.lp-cat:hover{transform:translateY(-2px);box-shadow:0 12px 24px -16px rgba(20,35,42,.45)}
+.lp-cat svg{display:block;width:var(--lp-ico);height:var(--lp-ico)}
+.lp-cat b{display:block;font:800 var(--lp-fs-cat)/1.25 'Manrope',system-ui,sans-serif;letter-spacing:-.01em}
+.lp-cat small{display:block;margin-top:var(--lg-s4);font:var(--lg-w-medium) var(--lp-fs-cat-sub)/18px 'Manrope',system-ui,sans-serif}
+.lp-cat-porcoes{background:var(--lp-coral)}
+.lp-cat-bebidas{background:var(--lg-pri);color:#fff}
+.lp-cat-acai{background:var(--lp-sun)}
+
+/* Ações e formulário */
+.login{margin-top:auto;padding-top:var(--lg-s24);display:flex;flex-direction:column}
+.lp-back{align-self:flex-start;display:inline-flex;align-items:center;gap:var(--lg-s4);min-height:var(--lg-h2);margin:0 0 var(--lg-s8) calc(-1 * var(--lg-s8));padding:0 var(--lg-s8);border:0;border-radius:var(--r-ctl);background:transparent;font:var(--lg-w-medium) var(--lg-fs-link)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-pri);cursor:pointer}
+.lp-back svg{width:20px;height:20px}
+.lp-back:hover{background:var(--lg-surface-off)}
+.login-head{text-align:center}
+.login-title{margin:0;font:800 var(--lg-fs-title)/1.2 'Manrope',system-ui,sans-serif;letter-spacing:-.02em;color:var(--lg-ink);text-wrap:balance}
+.login-sub{margin:var(--lg-s8) 0 0;font:var(--lg-w-regular) var(--lg-fs-sub)/1.5 'Manrope',system-ui,sans-serif;color:var(--lg-ink-2)}
+.login .lp-email + .gbtn{margin-top:var(--lg-s12)}
+
+/* Celular: duas etapas (chamada → formulário). */
+@media (max-width:767px){
+  .lp[data-step="inicio"] .lp-back,.lp[data-step="inicio"] .login-head,.lp[data-step="inicio"] #login,.lp[data-step="inicio"] .login .divider{display:none}
+  .lp[data-step="form"] .lp-hero,.lp[data-step="form"] .lp-email,.lp[data-step="form"] .login .divider,.lp[data-step="form"] .login .gbtn{display:none}
+  .lp[data-step="form"] .login{margin-top:0;padding-top:var(--lg-s16)}
+  .lp[data-step="inicio"] .login-foot{margin-top:var(--lg-s16)}
+}
+/* Tablet para cima: formulário direto, num cartão. */
+@media (min-width:768px){
+  .lp-back,.lp-email{display:none}
+  .lp-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--lp-cat-gap);margin:var(--lg-s24) 0 0;padding:0;overflow:visible}
+  .lp-cat{padding:var(--lp-cat-pad)}
+  .login{margin-top:var(--lg-s32);padding:var(--lg-pad);background:var(--lg-surface);border:1px solid var(--lg-line);border-radius:var(--r-card);box-shadow:0 1px 2px rgba(20,35,42,.04),0 12px 32px -16px rgba(20,35,42,.18)}
+  .lp-main{width:100%;max-width:560px;margin:0 auto;justify-content:center}
+}
+@media (min-width:1024px){
+  .lp-main{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) calc(var(--lg-w) + 2 * var(--lg-pad) + 2px);gap:var(--lg-s48);align-items:center;padding:var(--lg-s40) 0}
+  .lp-title{margin-top:0}
+  .lp-cats{margin-top:var(--lg-s32)}
+  .login{margin-top:0}
 }
 
-/* Links de texto: área de toque maior no celular sem mudar o desenho. */
-@media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}.foot{gap:0 12px;margin-top:20px}.foot a{padding:12px 4px}}
+.login-form{margin-top:var(--lg-s24);display:flex;flex-direction:column}
+.field + .field{margin-top:var(--lg-s8)}
+.field-label{display:block;font:600 var(--lg-fs-label)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-ink)}
+.field-control{position:relative;margin-top:var(--lg-s6)}
+.login .inp{display:block;height:var(--lg-h);min-height:0;padding:0 var(--lg-s16);border:1px solid var(--lg-field);border-radius:var(--r-ctl);background:var(--lg-surface);font:var(--lg-w-regular) var(--lg-fs-input)/1.5 'Manrope',system-ui,sans-serif;color:var(--lg-ink);transition:border-color var(--lg-ease),box-shadow var(--lg-ease),background-color var(--lg-ease);scroll-margin-bottom:160px}
+.login .inp::placeholder{color:var(--lg-ink-3);opacity:1}
+.login .inp:hover{border-color:var(--lg-field-hover)}
+.login .inp:not(:placeholder-shown){border-color:var(--lg-field-hover)}
+.login .inp:focus{box-shadow:none}
+.login .inp:focus-visible{border-color:var(--lg-pri);box-shadow:var(--lg-ring)}
+.login .inp[aria-invalid="true"]{border-color:var(--lg-err)}
+.login .inp[aria-invalid="true"]:focus-visible{box-shadow:var(--lg-err-ring)}
+.login .inp:disabled{background:var(--lg-surface-off);color:var(--lg-ink-2);border-color:var(--lg-line);cursor:not-allowed}
+/* Preenchimento automático do navegador com as cores do projeto. */
+.login .inp:-webkit-autofill,.login .inp:-webkit-autofill:hover{-webkit-text-fill-color:var(--lg-ink);box-shadow:inset 0 0 0 100px var(--lg-surface);caret-color:var(--lg-ink)}
+.login .inp:-webkit-autofill:focus-visible{box-shadow:inset 0 0 0 100px var(--lg-surface),var(--lg-ring)}
+.login .inp-pw{padding-right:var(--lg-h)}
+.pw-toggle{position:absolute;top:var(--lg-s4);right:var(--lg-s4);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:0;border-radius:var(--r-ctl);background:transparent;color:var(--lg-ink-2);cursor:pointer;transition:color var(--lg-ease),background-color var(--lg-ease)}
+.pw-toggle::after{content:"";position:absolute;inset:-2px}
+.pw-toggle:hover{color:var(--lg-ink);background:var(--lg-surface-off)}
+.pw-toggle svg{display:block;width:20px;height:20px}
+.pw-toggle .ico-hide,.pw-toggle[aria-pressed="true"] .ico-show{display:none}
+.pw-toggle[aria-pressed="true"] .ico-hide{display:block}
+.pw-toggle:disabled{cursor:not-allowed;opacity:.5}
+
+/* Espaço reservado para o erro: o layout não pula quando ele aparece. */
+.field-msg{display:flex;align-items:flex-start;gap:var(--lg-s4);min-height:18px;margin:var(--lg-s6) 0 0;font:var(--lg-w-medium) var(--lg-fs-err)/18px 'Manrope',system-ui,sans-serif;color:var(--lg-err)}
+.field-msg:empty{visibility:hidden}
+.field-msg:not(:empty){animation:sffade .15s ease-out both}
+.field-msg svg{flex:none;width:16px;height:16px;margin-top:1px}
+.field-msg.is-hint{color:var(--lg-ink-2)}
+
+.login-row{display:flex;justify-content:flex-end;margin-top:var(--lg-s4)}
+.login .link{position:relative;display:inline-block;padding:0;margin:0;font:var(--lg-w-medium) var(--lg-fs-link)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-pri);text-decoration:none;text-underline-offset:3px;border-radius:var(--r-ctl)}
+/* Área de toque de 44 px sem mudar o desenho do link. */
+.login .link::after{content:"";position:absolute;inset:-12px -4px}
+.login .link:hover,.login .link:focus-visible{color:var(--lg-pri-hover);text-decoration:underline}
+@media (max-width:359px){.login-row{justify-content:flex-start}}
+
+.login .alert{margin-top:var(--lg-s16);display:flex;gap:var(--lg-s8);align-items:flex-start;padding:var(--lg-s12) var(--lg-s16);border-radius:var(--r-ctl);font:var(--lg-w-medium) var(--lg-fs-label)/20px 'Manrope',system-ui,sans-serif;animation:sffade .15s ease-out both}
+.login .alert svg{flex:none;width:16px;height:16px;margin-top:2px}
+.login .alert-err{background:var(--lg-err-bg);color:var(--lg-err-ink);border:1px solid var(--lg-err-line)}
+.login .btn{height:var(--lg-h);min-height:0;padding:0 var(--lg-s20);border-radius:var(--r-btn);font:var(--lg-w-strong) var(--lg-fs-btn)/1 'Manrope',system-ui,sans-serif;letter-spacing:.01em;transition:background-color var(--lg-ease),box-shadow var(--lg-ease),transform var(--lg-ease)}
+.login #entrar{margin-top:var(--lg-s24)}
+.login .alert + #entrar,.login .alert + .btn-ghost{margin-top:var(--lg-s16)}
+.login .btn-ghost{height:var(--lg-h);margin-top:var(--lg-s12);font-weight:var(--lg-w-strong)}
+.login .btn-ghost + #entrar{margin-top:var(--lg-s16)}
+.login .btn-pri{background:var(--lg-pri);color:#fff}
+.login .btn-pri:hover:not(:disabled){background:var(--lg-pri-hover)}
+.login .btn:active:not(:disabled){transform:scale(.98)}
+.login .btn-pri:disabled{opacity:.6;cursor:not-allowed}
+.login .btn-pri[aria-busy="true"]{opacity:1;cursor:progress}
+.login .btn .spin{display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sfspin .7s linear infinite}
+.login .btn[aria-busy="true"] .spin{display:block}
+.login .divider{margin-top:var(--lg-s24);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'Manrope',system-ui,sans-serif;color:var(--lg-ink-3)}
+.login .divider span{background:var(--lg-line)}
+.login .gbtn{margin-top:var(--lg-s16);height:var(--lg-h);min-height:0;gap:var(--lg-s12);border:1px solid var(--lg-field);border-radius:var(--r-btn);font:600 var(--lg-fs-btn)/1 'Manrope',system-ui,sans-serif;letter-spacing:.01em;color:var(--lg-ink);transition:border-color var(--lg-ease),background-color var(--lg-ease),transform var(--lg-ease)}
+.login .gbtn:hover:not(:disabled){border-color:var(--lg-ink);background:var(--lg-bg)}
+.login .gbtn:active:not(:disabled){transform:scale(.98)}
+.login .gbtn:disabled{opacity:.6;cursor:not-allowed}
+.login .btn:focus-visible,.login .gbtn:focus-visible,.login .link:focus-visible,.pw-toggle:focus-visible{outline:none;box-shadow:var(--lg-ring)}
+.login .btn-pri:focus-visible{box-shadow:0 0 0 2px var(--lg-surface),0 0 0 4px var(--lg-pri)}
+
+.login-foot{margin-top:var(--lg-s32);text-align:center}
+.login-foot p{margin:0;font:var(--lg-w-regular) var(--lg-fs-link)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-ink-2)}
+.login-foot .login-note{margin-top:var(--lg-s8);font-size:var(--lg-fs-foot);line-height:18px;color:var(--lg-ink-3)}
+
+.lp .foot{margin-top:var(--lg-s24);gap:0 var(--lg-s16);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'Manrope',system-ui,sans-serif}
+.lp .foot a{display:inline-flex;align-items:center;min-height:var(--lg-h2);padding:0 var(--lg-s4);color:var(--lg-ink-3);border-radius:var(--r-ctl);transition:color var(--lg-ease)}
+.lp .foot a:hover,.lp .foot a:focus-visible{color:var(--lg-pri);text-decoration:underline;text-underline-offset:3px}
+.lp .foot a:focus-visible{outline:none;box-shadow:var(--lg-ring)}
+@media (max-width:479px){.lp .foot{display:grid;grid-template-columns:auto auto;justify-content:center}}
 
 /* Clicar ou tocar perto de um texto não seleciona nada nem mostra o cursor de
    texto (o "tracinho"): só os campos de digitação são selecionáveis e
@@ -178,51 +355,79 @@ select{caret-color:auto}
 </style>
 </head>
 <body>
-<div class="auth">
-  <div class="auth-art">
-    <a class="brand" href="./" aria-label="Sunfood: ir para o login"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></a>
-    <svg style="position:absolute;right:-40px;top:140px;width:300px;height:300px;opacity:.95" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="1.2" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 3v4M18 29v4M3 18h4M29 18h4M7.4 7.4l2.8 2.8M25.8 25.8l2.8 2.8M7.4 28.6l2.8-2.8M25.8 10.2l2.8-2.8"></path></g></svg>
-    <div style="position:relative;max-width:460px">
-      <div class="tt" style="font-size:clamp(34px,3.6vw,48px)">Peça direto do seu guarda-sol.</div>
-      <p style="font-size:18px;line-height:1.5;color:#DDF1F2;margin:16px 0 0">Entre com sua conta para ver o cardápio, pagar pelo celular e acompanhar o pedido até a sua mesa.</p>
-    </div>
-    <div style="position:relative;font:500 14px 'DM Sans',sans-serif;color:#CFE7E8">Seus dados são protegidos conforme a LGPD.</div>
-    <svg class="wave" style="position:absolute;left:-40px;bottom:-6px;width:calc(100% + 80px);height:80px" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 50 C150 20 300 80 450 50 S750 20 900 50 S1100 80 1200 50 V90 H0Z" fill="#0E7A85"></path><path d="M0 66 C200 40 350 90 550 66 S850 40 1000 66 S1150 84 1200 70 V90 H0Z" fill="#12909C" opacity=".7"></path></svg>
-  </div>
-  <div class="auth-mobile" style="background:#0B6670;color:#fff;padding:22px 18px 20px;flex-direction:column;gap:12px">
-    <a class="brand" href="./" aria-label="Sunfood: ir para o login"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></a>
-    <div style="font:500 15px/1.45 'DM Sans',sans-serif;color:#DDF1F2;max-width:320px">Peça direto do seu guarda-sol.</div>
-  </div>
-  <main class="auth-main">
-    <form id="login" class="auth-box rise" novalidate>
-      <div>
-        <h1 class="tt" style="font-size:36px;margin:0">Bem-vindo de volta</h1>
-        <div class="muted" style="font-size:16px;margin-top:6px">Novo por aqui? <a class="link" style="font-size:16px" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Cadastre-se</a></div>
-      </div>
-      <div>
-        <label class="lbl" for="email">E-mail</label>
-        <input class="inp" id="email" type="email" autocomplete="email" placeholder="voce@email.com">
-      </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline"><label class="lbl" for="pass">Senha</label><a class="link" style="font-weight:600" href="app-cliente.dc.html?module=cliente&amp;screen=forgot">Esqueci minha senha</a></div>
-        <input class="inp" id="pass" type="password" autocomplete="current-password" placeholder="••••••••">
-      </div>
-      <div id="msg" class="alert alert-err" role="alert" hidden></div>
-      <button type="button" id="resend" class="btn btn-ghost" hidden>Reenviar e-mail de confirmação</button>
-      <button type="submit" id="entrar" class="btn btn-dark" style="margin-top:4px">Entrar</button>
+<script src="./abertura.js"></script>
+<div class="lp rise" id="lp" data-step="inicio">
+  <header class="lp-top">
+    <a class="lp-logo" href="./" aria-label="Sunfood: ir para o início"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#F5B83D"/><g stroke="#F5B83D" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg><b>Sunfood</b></a>
+    <a class="lp-menu" href="#acesso" data-pede-login>Ver cardápio</a>
+  </header>
+  <main class="lp-main">
+    <section class="lp-hero" aria-labelledby="lp-titulo">
+      <h1 class="lp-title" id="lp-titulo">Fome na praia?<br>A gente leva.</h1>
+      <ul class="lp-cats" aria-label="Destaques do cardápio">
+        <li><a class="lp-cat lp-cat-porcoes" href="#acesso" data-pede-login>
+          <svg viewBox="0 0 56 56" fill="none" aria-hidden="true"><path d="M10 34h36l-4 10H14z" fill="#fff" opacity=".9"/><circle cx="20" cy="28" r="7" fill="var(--lp-sun)"/><circle cx="32" cy="26" r="8" fill="var(--lp-sun)"/><circle cx="40" cy="30" r="5" fill="var(--lp-sun)"/></svg>
+          <span><b>Porções</b><small>Isca, camarão, batata</small></span>
+        </a></li>
+        <li><a class="lp-cat lp-cat-bebidas" href="#acesso" data-pede-login>
+          <svg viewBox="0 0 56 56" fill="none" aria-hidden="true"><path d="M18 14h20l-3 32H21z" fill="var(--lp-sea)"/><path d="M19 22h18" stroke="#fff" stroke-width="2"/><path d="M32 8l-2 10" stroke="var(--lp-sun)" stroke-width="3" stroke-linecap="round"/></svg>
+          <span><b>Bebidas</b><small>Sucos, coco, cerveja</small></span>
+        </a></li>
+        <li><a class="lp-cat lp-cat-acai" href="#acesso" data-pede-login>
+          <svg viewBox="0 0 56 56" fill="none" aria-hidden="true"><path d="M12 28h32a16 16 0 0 1-32 0z" fill="#fff"/><circle cx="22" cy="24" r="6" fill="var(--lp-berry)"/><circle cx="32" cy="22" r="7" fill="var(--lp-berry)"/></svg>
+          <span><b>Açaí</b><small>Monte o seu</small></span>
+        </a></li>
+      </ul>
+    </section>
+    <div class="login" id="acesso">
+      <button type="button" class="lp-back" id="voltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Voltar</button>
+      <header class="login-head">
+        <h2 class="login-title">Bem-vindo de volta</h2>
+        <p class="login-sub">Entre para continuar</p>
+      </header>
+      <button type="button" class="btn btn-pri lp-email" id="com-email">Entrar com e-mail</button>
+      <form id="login" class="login-form" novalidate>
+        <div class="field">
+          <label class="field-label" for="email">E-mail</label>
+          <div class="field-control">
+            <input class="inp" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" aria-describedby="email-msg">
+          </div>
+          <p class="field-msg" id="email-msg"></p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="pass">Senha</label>
+          <div class="field-control">
+            <input class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" placeholder="••••••••" aria-describedby="pass-msg">
+            <button type="button" class="pw-toggle" id="pw-toggle" aria-controls="pass" aria-pressed="false" aria-label="Mostrar senha">
+              <svg class="ico-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="ico-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.7 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></svg>
+            </button>
+          </div>
+          <p class="field-msg" id="pass-msg" aria-live="polite"></p>
+        </div>
+        <div class="login-row">
+          <a class="link" href="app-cliente.dc.html?module=cliente&amp;screen=forgot">Esqueci minha senha</a>
+        </div>
+        <div id="msg" class="alert alert-err" role="alert" hidden></div>
+        <button type="button" id="resend" class="btn btn-ghost" hidden>Reenviar e-mail de confirmação</button>
+        <button type="submit" id="entrar" class="btn btn-pri"><span class="spin" aria-hidden="true"></span><span id="entrar-txt">Entrar</span></button>
+      </form>
       <div class="divider"><span></span>ou<span></span></div>
       <button type="button" id="google" class="gbtn">
-        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
+        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Continuar com Google
       </button>
-      <div class="muted" style="text-align:center;font-size:14px">Equipe da cozinha e administração usam este mesmo login.</div>
-    </form>
-    <nav class="foot" aria-label="Sobre o Sunfood">
-      <a href="#conheca">Conheça o Sunfood</a>
-      <a href="#fale-conosco">Fale conosco</a>
-      <a href="#termos">Termos de uso</a>
-      <a href="#privacidade">Privacidade</a>
-    </nav>
+      <footer class="login-foot">
+        <p>Novo por aqui? <a class="link" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></p>
+        <p class="login-note">Cozinha e administração usam o mesmo acesso.</p>
+      </footer>
+    </div>
   </main>
+  <nav class="foot" aria-label="Sobre o Sunfood">
+    <a href="#conheca">Conheça o Sunfood</a>
+    <a href="#fale-conosco">Fale conosco</a>
+    <a href="#termos">Termos de uso</a>
+    <a href="#privacidade">Privacidade</a>
+  </nav>
 </div>
 <!-- Conteúdo institucional (antes em inicio.html, sobre.html, contato.html,
      termos.html, privacidade.html...): abre por cima do login pelos links do
@@ -233,10 +438,11 @@ select{caret-color:auto}
   <div class="info-sheet">
     <div class="info-head">
       <div class="info-top">
-        <a class="brand" href="./" id="info-title"><svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><g fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:20px">Sunfood</b></a>
-        <button type="button" class="info-close" data-close aria-label="Fechar e voltar ao login"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+        <a class="brand" href="./" id="info-title"><svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><g fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></a>
+        <button type="button" class="info-close" data-close aria-label="Fechar e voltar ao login"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg></button>
       </div>
       <nav class="tabs" aria-label="Seções">
+        <span class="tab-ind" id="tab-ind" aria-hidden="true"></span>
         <a class="tab" href="#conheca">Conheça o Sunfood</a>
         <a class="tab" href="#fale-conosco">Fale conosco</a>
         <a class="tab" href="#termos">Termos de uso</a>
@@ -337,11 +543,11 @@ select{caret-color:auto}
           <button type="submit" id="c-enviar" class="btn btn-dark">Enviar mensagem</button>
         </form>
         <div id="c-ok" class="card" hidden style="margin-top:20px;padding:24px">
-          <b id="c-ok-title" style="font-size:22px">Recebemos sua mensagem</b>
+          <b id="c-ok-title" style="font-size:var(--fs-h3)">Recebemos sua mensagem</b>
           <p>Protocolo de atendimento <strong id="c-prot"></strong>. Guarde o número: ele identifica sua mensagem caso precise falar com a equipe no quiosque.</p>
           <button type="button" id="c-nova" class="btn btn-ghost" style="margin-top:16px">Enviar outra mensagem</button>
         </div>
-        <div class="facts" style="margin-top:28px">
+        <div class="facts" style="margin-top:32px">
           <div>E-mail<b><a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a></b></div>
           <div>Atendimento no quiosque<b>Todos os dias, 9h às 19h</b></div>
           <div>Resposta em<b>Até 1 dia útil</b></div>
@@ -430,6 +636,8 @@ var busy = false;
 
 function show(text, ok) {
   $('msg').textContent = text;
+  // Ícone discreto no alerta de erro (o texto continua sendo o da API).
+  if (text && !ok) $('msg').insertAdjacentHTML('afterbegin', ICO_ERRO);
   $('msg').className = 'alert ' + (ok ? 'alert-ok' : 'alert-err');
   $('msg').hidden = !text;
 }
@@ -439,13 +647,117 @@ function show(text, ok) {
 // direto para o Google.
 $('google').addEventListener('click', function () { location.href = 'app-cliente.dc.html?google=1'; });
 
+// ---- Estados visuais do formulário (não mudam a regra de login) ----
+var ICO_ERRO = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11.3" r=".9" fill="currentColor"/></svg>';
+var capsLigado = false;
+
+// Erro embaixo do campo: borda e texto na cor de erro, ligado ao campo por aria-describedby.
+function erroDoCampo(id, texto) {
+  var campo = $(id), slot = $(id + '-msg');
+  campo.setAttribute('aria-invalid', texto ? 'true' : 'false');
+  slot.className = 'field-msg';
+  slot.innerHTML = texto ? ICO_ERRO + '<span>' + texto + '</span>' : '';
+  if (!texto && id === 'pass') avisoCaps();
+}
+
+// Aviso de Caps Lock no campo senha (só aparece quando não há erro ali).
+function avisoCaps() {
+  var slot = $('pass-msg');
+  if ($('pass').getAttribute('aria-invalid') === 'true') return;
+  slot.className = 'field-msg is-hint';
+  slot.textContent = capsLigado ? 'Caps Lock está ativado.' : '';
+}
+['keydown', 'keyup'].forEach(function (ev) {
+  $('pass').addEventListener(ev, function (e) {
+    if (!e.getModifierState) return;
+    var on = e.getModifierState('CapsLock');
+    if (on !== capsLigado) { capsLigado = on; avisoCaps(); }
+  });
+});
+$('pass').addEventListener('blur', function () { if (capsLigado) { capsLigado = false; avisoCaps(); } });
+['email', 'pass'].forEach(function (id) {
+  $(id).addEventListener('input', function () { if ($(id).getAttribute('aria-invalid') === 'true') erroDoCampo(id, ''); });
+});
+
+// Mostrar/ocultar senha.
+$('pw-toggle').addEventListener('click', function () {
+  var mostrar = $('pass').type === 'password';
+  $('pass').type = mostrar ? 'text' : 'password';
+  this.setAttribute('aria-pressed', mostrar ? 'true' : 'false');
+  this.setAttribute('aria-label', mostrar ? 'Ocultar senha' : 'Mostrar senha');
+});
+
+// Celular: "Entrar com e-mail" troca a chamada pelo formulário; "Voltar" desfaz.
+$('com-email').addEventListener('click', function () {
+  $('lp').setAttribute('data-step', 'form'); window.scrollTo(0, 0); $('email').focus();
+});
+// "Ver cardápio" e os cartões levam ao login, e não ao app: sem entrar, o app
+// mostraria o perfil de exemplo como se a pessoa já estivesse logada. Depois
+// do login, o cliente cai direto no cardápio.
+document.querySelectorAll('[data-pede-login]').forEach(function (a) {
+  a.addEventListener('click', function (e) {
+    e.preventDefault();
+    $('lp').setAttribute('data-step', 'form');
+    $('acesso').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    $('email').focus({ preventScroll: true });
+  });
+});
+$('voltar').addEventListener('click', function () {
+  $('lp').setAttribute('data-step', 'inicio'); $('com-email').focus();
+});
+
+// Carregando: spinner + "Entrando...", formulário travado contra duplo envio.
+function carregando(on) {
+  $('acesso').querySelectorAll('input, button').forEach(function (el) { el.disabled = on; });
+  $('entrar').setAttribute('aria-busy', on ? 'true' : 'false');
+  $('entrar-txt').textContent = on ? 'Entrando...' : 'Entrar';
+}
+
+// Veio do app ao sair da conta (ou por sessão expirada, conta criada, conta
+// excluída): mostra o aviso e já deixa o e-mail preenchido, se veio junto.
+(function () {
+  var aviso = null;
+  try { aviso = JSON.parse(sessionStorage.getItem('sunfood_login_aviso') || 'null'); sessionStorage.removeItem('sunfood_login_aviso'); } catch (e) {}
+  if (!aviso) return;
+  // Quem veio do app já vem para entrar: o formulário abre direto, sem o
+  // passo "Entrar com e-mail" do celular.
+  $('lp').setAttribute('data-step', 'form');
+  if (aviso.email) $('email').value = aviso.email;
+  if (aviso.texto) show(aviso.texto, aviso.ok);
+})();
+
+// Foco automático no e-mail só no computador (no celular abriria o teclado).
+if (!location.hash && matchMedia('(min-width:1024px) and (pointer:fine)').matches) $('email').focus({ preventScroll: true });
+
+// Celular: com o teclado aberto, rola só o necessário para o campo ativo e o
+// botão Entrar ficarem visíveis.
+if (window.visualViewport && matchMedia('(pointer:coarse)').matches) {
+  var ajustarTeclado = function () {
+    var ativo = document.activeElement;
+    if (!ativo || ativo.tagName !== 'INPUT' || !$('login').contains(ativo)) return;
+    var vv = window.visualViewport, alvo = $('entrar').getBoundingClientRect(), campo = ativo.getBoundingClientRect();
+    var falta = alvo.bottom + 16 - (vv.offsetTop + vv.height);
+    if (falta > 0) window.scrollBy(0, Math.min(falta, campo.top - vv.offsetTop - 16));
+  };
+  window.visualViewport.addEventListener('resize', function () { setTimeout(ajustarTeclado, 50); });
+  $('login').addEventListener('focusin', function () { setTimeout(ajustarTeclado, 300); });
+}
+
 $('login').addEventListener('submit', async function (e) {
   e.preventDefault();
   if (busy) return;
   var email = $('email').value.trim(), password = $('pass').value;
   $('resend').hidden = true;
-  if (!email || !password) return show('Preencha e-mail e senha.');
-  busy = true; $('entrar').disabled = true; $('entrar').textContent = 'Entrando...'; show('');
+  if (!email || !password) {
+    show('');
+    erroDoCampo('email', email ? '' : 'Informe seu e-mail.');
+    erroDoCampo('pass', password ? '' : 'Informe sua senha.');
+    $(email ? 'pass' : 'email').focus();
+    return;
+  }
+  erroDoCampo('email', ''); erroDoCampo('pass', '');
+  var focoDepois = null;
+  busy = true; carregando(true); show('');
   try {
     var res = await fetch(API_BASE + '/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -455,6 +767,8 @@ $('login').addEventListener('submit', async function (e) {
     if (!res.ok) {
       show(data.error || 'E-mail ou senha inválidos.');
       $('resend').hidden = data.code !== 'email_not_confirmed';
+      // Credenciais erradas: o e-mail fica, o foco volta para a senha.
+      if (data.code !== 'email_not_confirmed') focoDepois = $('pass');
       return;
     }
     try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, refreshToken: data.refreshToken, user: data.user })); } catch (err) {}
@@ -463,7 +777,8 @@ $('login').addEventListener('submit', async function (e) {
   } catch (err) {
     show('Falha de conexão com o servidor. Confira sua internet e tente de novo.');
   } finally {
-    busy = false; $('entrar').disabled = false; $('entrar').textContent = 'Entrar';
+    busy = false; carregando(false);
+    if (focoDepois) { focoDepois.focus(); focoDepois.select(); }
   }
 });
 
@@ -502,10 +817,19 @@ function abrirSecao() {
     return;
   }
   if (info.hidden) { voltarFoco = document.activeElement; info.hidden = false; document.body.style.overflow = 'hidden'; }
+  // A seção nova entra pelo lado certo (da direita se vier depois, da esquerda se vier antes).
+  var antes = SECOES.indexOf(info.getAttribute('data-atual'));
+  // Depois de arrastar, a seção nova já está no lugar: entra sem animação de novo.
+  var semAnim = info.getAttribute('data-sem-anim') === '1'; info.removeAttribute('data-sem-anim');
+  $('info-body').setAttribute('data-dir', semAnim ? 'none' : antes > SECOES.indexOf(sec) ? 'prev' : 'next');
+  info.setAttribute('data-atual', sec);
   info.querySelectorAll('[data-sec]').forEach(function (el) { el.hidden = el.getAttribute('data-sec') !== sec; });
   info.querySelectorAll('.tab').forEach(function (a) {
     if (a.getAttribute('href') === '#' + sec) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
+  var ativa = info.querySelector('.tab[aria-current]');
+  if (ativa && ativa.scrollIntoView) ativa.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  moverBarrinha(sec);
   $('info-body').scrollTop = 0;
   $('info-body').focus({ preventScroll: true });
   document.title = 'Sunfood · ' + TITULOS[sec];
@@ -522,6 +846,126 @@ info.addEventListener('click', function (e) {
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !info.hidden) fecharSecao(); });
 window.addEventListener('hashchange', abrirSecao);
+
+// Barrinha amarela das abas: vai até a aba da seção (p = 0) ou fica no meio
+// do caminho até a aba vizinha (p entre 0 e 1) enquanto se arrasta.
+function abaDe(sec) { return info.querySelector('.tab[href="#' + sec + '"]'); }
+function moverBarrinha(sec, vizinha, p) {
+  var a = abaDe(sec), ind = $('tab-ind');
+  if (!a || !ind) return;
+  var x = a.offsetLeft, w = a.offsetWidth, b = vizinha && abaDe(vizinha);
+  if (b && p) { x += (b.offsetLeft - x) * p; w += (b.offsetWidth - w) * p; }
+  ind.style.width = w + 'px';
+  ind.style.transform = 'translateX(' + x + 'px)';
+}
+window.addEventListener('resize', function () { if (!info.hidden) moverBarrinha(location.hash.slice(1)); });
+
+// Esmaecido nas bordas das listas que rolam de lado (abas do painel e cards do celular).
+(function () {
+  var listas = document.querySelectorAll('.tabs, .lp-cats');
+  function fx(el) {
+    var max = el.scrollWidth - el.clientWidth;
+    el.classList.toggle('fx-r', max > 2 && el.scrollLeft < max - 2);
+    el.classList.toggle('fx-l', max > 2 && el.scrollLeft > 2);
+  }
+  listas.forEach(function (el) { el.addEventListener('scroll', function () { fx(el); }, { passive: true }); fx(el); });
+  window.addEventListener('resize', function () { listas.forEach(fx); });
+  window.addEventListener('hashchange', function () { setTimeout(function () { listas.forEach(fx); }, 50); });
+})();
+
+// No celular, arrastar o conteúdo para o lado troca de aba (esquerda = próxima,
+// direita = anterior). O conteúdo acompanha o dedo e a barrinha amarela vai
+// junto; ao soltar depois de um quarto da tela (ou com um gesto rápido), a
+// seção sai pelo lado e a vizinha entra pelo outro. Soltando antes, volta ao
+// lugar. Gestos mais verticais continuam rolando a página, e arrastar dentro
+// de um campo de texto não troca nada.
+(function () {
+  var corpo = $('info-body'), ind = $('tab-ind');
+  var semMovimento = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var g = null; // gesto em andamento
+  function secao(k) { return corpo.querySelector('[data-sec="' + SECOES[k] + '"]'); }
+  function limpar(el) { if (el) { el.style.cssText = ''; } }
+  function esconderVizinha() { if (g && g.viz) { limpar(g.viz); g.viz.hidden = true; g.viz = null; g.j = null; } }
+  // A aba vizinha fica ao lado da atual (fora da tela) e entra junto com o dedo.
+  function mostrarVizinha(j) {
+    if (g.j === j) return;
+    esconderVizinha();
+    var v = secao(j); if (!v) return;
+    var r = g.el.getBoundingClientRect(), base = corpo.getBoundingClientRect();
+    v.hidden = false;
+    // Entra pelo topo da vizinha, mesmo com a atual já rolada para baixo (ao trocar, a rolagem volta ao topo).
+    v.style.cssText = 'position:absolute;margin:0;animation:none;transition:none;top:' + (corpo.scrollTop + parseFloat(getComputedStyle(corpo).paddingTop)) + 'px;left:' + (r.left - base.left) + 'px;width:' + r.width + 'px';
+    g.viz = v; g.j = j;
+  }
+  function posicionar(dx, W) {
+    var p = Math.min(Math.abs(dx) / W, 1);
+    g.el.style.transform = 'translateX(' + dx + 'px)';
+    g.el.style.opacity = String(1 - p * 0.6);
+    if (g.viz) { g.viz.style.transform = 'translateX(' + (dx + (dx < 0 ? W : -W)) + 'px)'; g.viz.style.opacity = String(0.4 + p * 0.6); }
+  }
+
+  corpo.addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 1 || e.target.closest('input,textarea,select') || (g && g.saindo)) { if (!(g && g.saindo)) g = null; return; }
+    var i = SECOES.indexOf(location.hash.slice(1));
+    if (i < 0) { g = null; return; }
+    g = { x0: e.touches[0].clientX, y0: e.touches[0].clientY, t0: Date.now(), i: i, eixo: null, dx: 0, el: secao(i), viz: null, j: null };
+  }, { passive: true });
+
+  corpo.addEventListener('touchmove', function (e) {
+    if (!g || g.saindo) return;
+    var dx = e.touches[0].clientX - g.x0, dy = e.touches[0].clientY - g.y0;
+    if (!g.eixo) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      g.eixo = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+      if (g.eixo === 'x' && !semMovimento && g.el) { g.el.style.transition = 'none'; ind.classList.add('arrastando'); }
+    }
+    if (g.eixo !== 'x') return;
+    var j = g.i + (dx < 0 ? 1 : -1), temVizinha = j >= 0 && j < SECOES.length;
+    g.dx = temVizinha ? dx : dx * 0.25; // na primeira e na última aba, o conteúdo resiste
+    if (semMovimento || !g.el) return;
+    var W = corpo.clientWidth;
+    if (temVizinha) mostrarVizinha(j); else esconderVizinha();
+    posicionar(g.dx, W);
+    moverBarrinha(SECOES[g.i], temVizinha ? SECOES[j] : null, Math.min(Math.abs(g.dx) / W, 1));
+  }, { passive: true });
+
+  function soltar() {
+    if (!g || g.saindo) return;
+    var gesto = g;
+    ind.classList.remove('arrastando');
+    if (gesto.eixo !== 'x') { g = null; return; }
+    var W = corpo.clientWidth, dx = gesto.dx, rapido = Math.abs(dx) / Math.max(Date.now() - gesto.t0, 1) > 0.5;
+    var j = gesto.i + (dx < 0 ? 1 : -1);
+    var troca = j >= 0 && j < SECOES.length && Math.abs(dx) > 24 && (Math.abs(dx) > W * 0.25 || rapido);
+    if (semMovimento || !gesto.el) { g = null; if (troca) location.replace('#' + SECOES[j]); return; }
+    var anim = 'transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s';
+    gesto.saindo = true;
+    gesto.el.style.transition = anim;
+    if (gesto.viz) gesto.viz.style.transition = anim;
+    if (!troca) {
+      // Volta ao lugar; a vizinha sai de novo pelo lado.
+      posicionar(0, W);
+      if (gesto.viz) gesto.viz.style.transform = 'translateX(' + (dx < 0 ? W : -W) + 'px)';
+      moverBarrinha(SECOES[gesto.i]);
+      setTimeout(function () { esconderVizinha(); limpar(gesto.el); g = null; }, 230);
+      return;
+    }
+    // Termina o movimento: a atual sai pelo lado do gesto e a vizinha chega ao lugar.
+    moverBarrinha(SECOES[j]);
+    gesto.el.style.transform = 'translateX(' + (dx < 0 ? -W : W) + 'px)';
+    gesto.el.style.opacity = '0';
+    if (gesto.viz) { gesto.viz.style.transform = 'translateX(0)'; gesto.viz.style.opacity = '1'; }
+    setTimeout(function () {
+      corpo.setAttribute('data-dir', 'none');
+      info.setAttribute('data-sem-anim', '1');
+      g = null;
+      location.replace('#' + SECOES[j]);
+      limpar(gesto.el); limpar(gesto.viz);
+    }, 230);
+  }
+  corpo.addEventListener('touchend', soltar, { passive: true });
+  corpo.addEventListener('touchcancel', soltar, { passive: true });
+})();
 abrirSecao();
 
 // Fale conosco: grava a mensagem pela API (POST /contact) e mostra o protocolo.

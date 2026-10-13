@@ -81,8 +81,17 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
   VW = { width: w, height: h };
   await step(`admin ${w}px`, async () => {
     const p = await open('app-cliente.dc.html?module=admin&screen=dashboard', 'admin');
+    // Um </div> a mais no cardápio já deixou uma tela inteira em branco acima da administração e da cozinha no celular.
+    for (const [mod, scr] of [['admin', 'dashboard'], ['cozinha', 'kanban']]) {
+      const q = mod === 'admin' ? p : await open(`app-cliente.dc.html?module=${mod}&screen=${scr}`, mod);
+      const topo = await q.locator('.adm-brand:visible').first().evaluate(e => e.getBoundingClientRect().top + scrollY);
+      check(`${mod} ${w}px: abre com a marca no topo, sem espaço em branco em cima`, topo < 40, String(topo));
+      if (q !== p) await q.context().close();
+    }
     check(`admin ${w}px: menu cabe sem arrastar para os lados`, await semRolagemLateral(p) && await p.locator('.adm-side').evaluate(e => e.scrollWidth <= e.clientWidth + 1));
     await tap(p, 'Menu');
+    const sobrepoe = () => p.evaluate(() => { const b = document.querySelector('.adm-brand').getBoundingClientRect(), m = document.querySelector('.adm-menubtn').getBoundingClientRect(); return b.width < 100 || b.right > m.left || b.top !== m.top; });
+    check(`admin ${w}px: menu aberto, marca e botão Fechar lado a lado sem se sobrepor`, !(await sobrepoe()));
     const itens = await p.locator('.adm-item').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return r.right <= innerWidth + 1 && r.height >= 40; }));
     check(`admin ${w}px: todos os itens do menu aparecem e são fáceis de tocar`, itens.length >= 9 && itens.every(Boolean), JSON.stringify(itens));
     await tap(p, 'Pedidos');
@@ -97,6 +106,90 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
     await p.context().close();
   }
 }
+
+// Painel do rodapé (Conheça o Sunfood, Fale conosco...): arrastar para o lado troca de aba,
+// com o conteúdo acompanhando o dedo e a aba vizinha entrando junto.
+// Fonte grande no celular (~130%) equivale a uma tela de uns 300 px: nada pode empurrar a página para os lados.
+await step('fonte grande (300 px)', async () => {
+  const VW0 = VW; VW = { width: 300, height: 650 };
+  for (const [path, role] of [['app-cliente.dc.html?module=cliente&screen=menu', 'cliente'], ['app-cliente.dc.html?module=cliente&screen=status', 'cliente'], ['app-cliente.dc.html?module=admin&screen=orders', 'admin'], ['app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha']]) {
+    const p = await open(path, role);
+    check(`300px: ${path.split('screen=')[1]} sem rolagem para os lados`, await semRolagemLateral(p), String(await p.evaluate(() => document.documentElement.scrollWidth)));
+    await p.context().close();
+  }
+  // Menu do admin aberto com fonte grande: a marca não pode ficar por baixo do botão Fechar.
+  const adm = await open('app-cliente.dc.html?module=admin&screen=payments', 'admin');
+  await adm.locator('.adm-menubtn').first().tap(); await adm.waitForTimeout(400);
+  const lado = await adm.evaluate(() => { const b = document.querySelector('.adm-brand').getBoundingClientRect(), m = document.querySelector('.adm-menubtn').getBoundingClientRect(); return [Math.round(b.width), Math.round(b.right), Math.round(m.left)]; });
+  check('300px: menu do admin aberto sem a marca por baixo do botão Fechar', lado[0] >= 100 && lado[1] <= lado[2], JSON.stringify(lado));
+  await adm.context().close();
+  // Topo cheio: marca + mesa + carrinho (revisão do pedido, depois de informar a mesa).
+  const c = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
+  await c.locator('.addbtn').first().tap(); await c.waitForTimeout(300);
+  await c.locator('.mobilebar > div').first().tap(); await c.waitForTimeout(400); await tap(c, 'Ir para pagamento');
+  await c.getByPlaceholder('Ex.: 12').fill('1'); await tap(c, 'Confirmar mesa');
+  await c.locator('.brand:visible').first().tap(); await c.waitForTimeout(500);
+  await c.locator('.pcard').nth(1).tap(); await c.waitForTimeout(600);
+  check('300px: topo com mesa e carrinho cabe na tela', (await c.locator('.mesachip').isVisible()) && (await c.locator('.cartpill').isVisible()) && await semRolagemLateral(c), String(await c.evaluate(() => document.documentElement.scrollWidth)));
+  await c.context().close();
+  VW = VW0;
+});
+
+// Cozinha no celular: uma coluna por vez, em abas; no tablet, as 3 colunas lado a lado.
+await step('cozinha em abas', async () => {
+  const p = await open('app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha');
+  const visiveis = () => p.locator('.kz-board > .kz-col').evaluateAll(els => els.filter(e => e.offsetParent).length);
+  check('cozinha celular: abas Novos / Preparo / Prontos aparecem', await p.locator('.kz-tabs').isVisible() && (await p.locator('.kz-tab').count()) === 3);
+  check('cozinha celular: uma coluna por vez', await visiveis() === 1, String(await visiveis()));
+  await p.locator('.kz-tab', { hasText: 'Prontos' }).tap(); await p.waitForTimeout(400);
+  check('cozinha celular: tocar na aba troca a coluna', (await p.locator('.kz-tab.on').innerText()).includes('Prontos'));
+  check('cozinha celular: sem rolagem para os lados', await semRolagemLateral(p));
+  await p.context().close();
+  const VW0 = VW; VW = { width: 820, height: 1180 };
+  const t = await open('app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha');
+  const cols = await t.locator('.kz-board > .kz-col').evaluateAll(els => els.filter(e => e.offsetParent).map(e => Math.round(e.getBoundingClientRect().top)));
+  check('cozinha tablet: as 3 colunas lado a lado', cols.length === 3 && new Set(cols).size === 1, JSON.stringify(cols));
+  await t.context().close(); VW = VW0;
+});
+
+await step('arrastar entre as abas do rodapé', async () => {
+  const p = await open('#conheca');
+  const arrastar = (xs, pausa = 30, soltar = true) => p.evaluate(async ([xs, pausa, soltar]) => {
+    const el = document.getElementById('info-body');
+    const T = x => new Touch({ identifier: 1, target: el, clientX: x, clientY: 500 });
+    el.dispatchEvent(new TouchEvent('touchstart', { touches: [T(xs[0])], changedTouches: [T(xs[0])], bubbles: true }));
+    for (const x of xs.slice(1)) { await new Promise(r => setTimeout(r, pausa)); el.dispatchEvent(new TouchEvent('touchmove', { touches: [T(x)], changedTouches: [T(x)], bubbles: true })); }
+    const meio = [...el.querySelectorAll('[data-sec]')].filter(s => !s.hidden).map(s => s.dataset.sec);
+    if (soltar) el.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [T(xs[xs.length - 1])], bubbles: true }));
+    return meio;
+  }, [xs, pausa, soltar]);
+  const meio = await arrastar([320, 280, 220, 160, 120]);
+  check('abas: durante o arrasto a aba vizinha aparece junto', meio.join() === 'conheca,fale-conosco', meio.join());
+  await p.waitForTimeout(450);
+  check('abas: arrastar para a esquerda abre a próxima', p.url().endsWith('#fale-conosco'), p.url());
+  await arrastar([300, 280, 260, 240, 230], 40); await p.waitForTimeout(450);
+  check('abas: arrasto curto volta para a mesma aba', p.url().endsWith('#fale-conosco'), p.url());
+  await arrastar([60, 120, 180, 240, 300]); await p.waitForTimeout(450);
+  const vis = await p.evaluate(() => [...document.querySelectorAll('#info-body [data-sec]')].filter(s => !s.hidden).map(s => s.dataset.sec + (s.style.cssText ? '*' : '')).join());
+  check('abas: arrastar para a direita volta à anterior, sem sobrar nada fora do lugar', p.url().endsWith('#conheca') && vis === 'conheca', p.url() + ' ' + vis);
+  check('abas: sem erro de JavaScript', p.jsErrors.length === 0, p.jsErrors.join(' | '));
+  await p.context().close();
+});
+
+await step('detalhe do produto', async () => {
+  // Celular pequeno: nome, preço e o botão Adicionar aparecem sem rolar, e o botão funciona.
+  VW = { width: 360, height: 640 };
+  const p = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
+  await tap(p, 'Peixe Frito');
+  const dentro = await p.evaluate(() => ['.pd-name', '.pd-mprice', '.pd-desc', '.pd-add'].map(sel => {
+    const r = document.querySelector(sel).getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight + 1; }));
+  check('detalhe do produto 360px: nome, preço, descrição e Adicionar aparecem sem rolar', dentro.every(Boolean), JSON.stringify(dentro));
+  check('detalhe do produto 360px: sem rolagem para os lados', await semRolagemLateral(p));
+  await tap(p, '+');
+  await p.locator('.pd-add').tap(); await p.waitForTimeout(500);
+  check('detalhe do produto 360px: Adicionar põe 2 itens no carrinho e volta ao cardápio', p.url().includes('screen=menu') && (await text(p)).includes('2 itens no carrinho'), p.url());
+  await p.context().close();
+});
 
 await step('tracinho de digitação', async () => {
   // Ao tocar/clicar num botão não pode aparecer o cursor de texto piscando; nos campos, sim.
