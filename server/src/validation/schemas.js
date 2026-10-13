@@ -122,6 +122,8 @@ export const cardCheckoutSchema = z.object({
   returnUrl: z.string().url("Endereço de retorno inválido."),
 });
 
+const HEX_COLOR = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida.");
+
 export const productSchema = z.object({
   name: z.string().trim().min(2).max(120),
   description: z.string().trim().max(280).optional().default(""),
@@ -136,6 +138,14 @@ export const productSchema = z.object({
   stockQty: z.union([z.number().int().min(0), z.null()]).optional(),
   // null = sem foto; ausente = não mexe na foto atual.
   imageUrl: z.union([z.string().url("Foto inválida.").max(500), z.null()]).optional(),
+  // Ausente = mantém o que já está gravado (cliente antigo não apaga nada).
+  ingredients: z.string().trim().max(500, "Ingredientes muito longos.").optional(),
+  // Cada etiqueta é [texto, cor de fundo, cor do texto], o mesmo formato que
+  // o banco já guarda e o cardápio lê.
+  tags: z
+    .array(z.tuple([z.string().trim().min(1).max(30, "Etiqueta muito longa."), HEX_COLOR, HEX_COLOR]))
+    .max(8, "No máximo 8 etiquetas.")
+    .optional(),
 });
 
 export const CATEGORY_COLORS = ["mar", "sol", "coral", "uva", "verde", "areia"];
