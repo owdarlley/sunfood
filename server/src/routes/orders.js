@@ -46,8 +46,11 @@ async function loadCancelWindow() {
 function toApi(row, cancelWindow) {
   return {
     id: row.id,
+    // Número curto do dia (1, 2, 3...), que o app mostra como #001.
+    number: row.daily_number ?? null,
     tableNumber: row.table_number,
     userId: row.customer_id,
+    customerName: row.customer_name,
     waiterId: row.waiter_id ?? null,
     deliveredBy: row.delivered_by ?? null,
     deliveredAt: row.delivered_at ?? null,
@@ -124,7 +127,7 @@ async function placeOrder(res, { tableNumber, items, note, paymentMethod, custom
   // Aritmética em centavos pra não acumular erro de ponto flutuante, e só
   // volta pra reais decimais na hora de gravar.
   const priceCentsOf = (item) => Math.round(Number(byId.get(item.productId).price) * 100);
-  const { subtotalCents, feeCents, totalCents } = computeOrderTotals(items, priceCentsOf);
+  const { subtotalCents, totalCents } = computeOrderTotals(items, priceCentsOf);
   const minOrderCents = minOrderCentsFrom(settings);
   if (!meetsMinimumOrder(subtotalCents, minOrderCents)) {
     return res.status(422).json({ error: `Pedido mínimo de ${formatBRL(minOrderCents)}.` });
@@ -136,7 +139,7 @@ async function placeOrder(res, { tableNumber, items, note, paymentMethod, custom
       waiterId,
       tableNumber,
       subtotal: subtotalCents / 100,
-      fee: feeCents / 100,
+      fee: 0,
       total: totalCents / 100,
       note: note || "",
       paymentMethod,
@@ -196,7 +199,15 @@ ordersRouter.get("/", requireAuth, requireRole("admin", "cozinha", "garcom"), as
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: "Erro ao carregar pedidos." });
   const visible = req.user.role === "admin" ? data : data.filter((row) => !awaitingOnlinePayment(row));
-  res.json(visible.map(toApi));
+  // Nome de quem fez o pedido, para a cozinha e o garçom chamarem o cliente
+  // pelo nome. Conta apagada fica sem nome (customer_id vira nulo).
+  const ids = [...new Set(visible.map((row) => row.customer_id).filter(Boolean))];
+  const names = new Map();
+  if (ids.length) {
+    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, name").in("id", ids);
+    for (const p of profiles || []) names.set(p.id, p.name);
+  }
+  res.json(visible.map((row) => toApi({ ...row, customer_name: names.get(row.customer_id) || null })));
 });
 
 // Qualquer papel autenticado pode ver o detalhe — cliente só o próprio pedido.

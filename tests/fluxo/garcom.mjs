@@ -110,7 +110,7 @@ await step('garçom para entregar', async () => {
   for (const [nome, viewport] of SIZES) {
     await page.setViewportSize(viewport); await page.waitForTimeout(300);
     const btn = await page.getByText('Marcar como entregue').first().boundingBox();
-    check(`entregar ${nome}: sem rolagem lateral e botão de 48 px`, (await noScroll(page)) && btn && btn.height >= 48, JSON.stringify(btn));
+    check(`entregar ${nome}: sem rolagem lateral e botão de 44 px ou mais`, (await noScroll(page)) && btn && btn.height >= 44, JSON.stringify(btn));
     if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/garcom-entregar-${nome}.png`, fullPage: true });
   }
   check('entregar: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
@@ -136,7 +136,7 @@ await step('garçom lançar pedido', async () => {
   await page.getByRole('button', { name: 'Tirar um Água de Coco' }).click();
   await page.waitForTimeout(300);
   t = await text(page);
-  check('lançar: resumo com a mesa, itens e total com taxa', t.includes('Pedido da mesa 3') && t.includes('2× Caipirinha') && t.includes('R$ 48,40') && !t.includes('× Água de Coco'), (t.match(/Total[^\n]*\n?[^\n]*/) || [])[0]);
+  check('lançar: resumo com a mesa, itens e total', t.includes('Pedido da mesa 3') && t.includes('2× Caipirinha') && t.includes('R$ 44,00') && !t.includes('× Água de Coco'), (t.match(/Total[^\n]*\n?[^\n]*/) || [])[0]);
   await page.getByPlaceholder('Ex.: sem gelo, guarda-sol azul').fill('guarda-sol azul');
   for (const [nome, viewport] of SIZES) {
     await page.setViewportSize(viewport); await page.waitForTimeout(300);

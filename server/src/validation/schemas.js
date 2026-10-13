@@ -125,11 +125,15 @@ export const cardCheckoutSchema = z.object({
   returnUrl: z.string().url("Endereço de retorno inválido."),
 });
 
+const HEX_COLOR = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida.");
+
 export const productSchema = z.object({
   name: z.string().trim().min(2).max(120),
   description: z.string().trim().max(280).optional().default(""),
   longDescription: z.string().trim().max(1000).optional().default(""),
-  category: z.enum(["Bebidas", "Lanches", "Pratos", "Sobremesas"]),
+  // A lista de categorias é do banco (o admin cria e renomeia); categoria que
+  // não existe é recusada lá, pela chave estrangeira.
+  category: z.string().trim().min(2).max(40),
   price: z.number().positive().max(10000),
   portion: z.string().trim().max(80).optional().default(""),
   prepTime: z.string().trim().max(40).optional().default(""),
@@ -137,6 +141,26 @@ export const productSchema = z.object({
   stockQty: z.union([z.number().int().min(0), z.null()]).optional(),
   // null = sem foto; ausente = não mexe na foto atual.
   imageUrl: z.union([z.string().url("Foto inválida.").max(500), z.null()]).optional(),
+  // Ausente = mantém o que já está gravado (cliente antigo não apaga nada).
+  ingredients: z.string().trim().max(500, "Ingredientes muito longos.").optional(),
+  // Cada etiqueta é [texto, cor de fundo, cor do texto], o mesmo formato que
+  // o banco já guarda e o cardápio lê.
+  tags: z
+    .array(z.tuple([z.string().trim().min(1).max(30, "Etiqueta muito longa."), HEX_COLOR, HEX_COLOR]))
+    .max(8, "No máximo 8 etiquetas.")
+    .optional(),
+});
+
+export const CATEGORY_COLORS = ["mar", "sol", "coral", "uva", "verde", "areia"];
+
+export const categorySchema = z.object({
+  name: z.string().trim().min(2, "Nome da categoria muito curto.").max(40, "Nome da categoria muito longo."),
+  // Ausente = cor padrão (nova) ou mantém a atual (editar).
+  color: z.enum(CATEGORY_COLORS).optional(),
+});
+
+export const categoryOrderSchema = z.object({
+  names: z.array(z.string()).min(1).max(100),
 });
 
 export const tableToggleSchema = z.object({

@@ -64,19 +64,31 @@ for (const p of ['index.html', 'inicio.html', 'sobre.html', 'funcionalidades.htm
 // 1b. O endereço principal (index.html) é a tela de login, para os três perfis
 await step('login no endereço principal', async () => {
   const page = await open('');
-  check('raiz: abre a tela de login', (await text(page)).includes('Bem-vindo de volta'));
+  check('raiz: abre a tela de entrada', (await text(page)).includes('Fome na praia?') && (await text(page)).includes('Entrar com e-mail'));
+  await click(page, 'Ver cardápio', true);
+  check('raiz: Ver cardápio pede login em vez de abrir o app sem conta', page.url() === BASE && await page.locator('#email').isVisible()
+    && await page.evaluate(() => localStorage.getItem('sunfood_session')) === null, page.url());
+  await page.locator('#voltar').click(); await page.waitForTimeout(300);
+  await page.locator('.lp-cat').first().click(); await page.waitForTimeout(500);
+  check('raiz: cartão do cardápio também pede login', page.url() === BASE && await page.locator('#email').isVisible(), page.url());
+  await page.locator('#voltar').click(); await page.waitForTimeout(300);
+  await click(page, 'Entrar com e-mail', true);
+  check('raiz: Entrar com e-mail mostra o formulário', (await text(page)).includes('Bem-vindo de volta') && await page.locator('#email').isVisible());
   await click(page, 'Entrar', true);
-  check('raiz: pede e-mail e senha', (await text(page)).includes('Preencha e-mail e senha.'));
+  check('raiz: pede e-mail e senha embaixo de cada campo', (await text(page)).includes('Informe seu e-mail.') && (await text(page)).includes('Informe sua senha.')
+    && await page.locator('#email').getAttribute('aria-invalid') === 'true' && await page.evaluate(() => document.activeElement.id) === 'email');
   await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
   await page.getByPlaceholder('••••••••').fill('senha');
   await click(page, 'Entrar', true);
   await page.waitForTimeout(1200);
   check('raiz: cliente cai no cardápio', page.url().includes('module=cliente&screen=menu') && (await text(page)).includes('Batata Frita'), page.url());
+  check('guia do navegador: cardápio mostra "Sunfood · Cardápio"', await page.title() === 'Sunfood · Cardápio', await page.title());
   check('raiz: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();
 
   for (const [role, dest] of [['admin', 'module=admin&screen=dashboard'], ['cozinha', 'module=cozinha&screen=kanban']]) {
     const p = await open('', { role, session: false });
+    await click(p, 'Entrar com e-mail', true);
     await p.getByPlaceholder('voce@email.com').fill(role + '@teste');
     await p.getByPlaceholder('••••••••').fill('senha');
     await click(p, 'Entrar', true);
@@ -92,7 +104,7 @@ await step('login no endereço principal', async () => {
   const inicio = await open('inicio.html');
   check('inicio.html: endereço antigo abre Conheça o Sunfood no login', inicio.url() === BASE + '#conheca' && (await text(inicio)).includes('Um sistema, três telas de trabalho'), inicio.url());
   await inicio.locator('#info').getByText('Entrar', { exact: true }).click(); await inicio.waitForTimeout(300);
-  check('Conheça o Sunfood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Bem-vindo de volta'), inicio.url());
+  check('Conheça o Sunfood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Fome na praia?'), inicio.url());
   await inicio.close();
 
   const app = await open('app-cliente.dc.html', { role: 'admin', session: false });
@@ -152,10 +164,10 @@ await step('rodapé do login', async () => {
 
 // 1c. Logo do Sunfood: sem login leva à tela de login; logado, ao início de cada perfil
 await step('logo do Sunfood', async () => {
-  const logo = page => page.locator('.brand:visible, .adm-brand:visible').first();
+  const logo = page => page.locator('.brand:visible, .adm-brand:visible, .auth-logo:visible').first();
   const anon = await open('app-cliente.dc.html?module=cliente&screen=signup');
   await logo(anon).click(); await anon.waitForTimeout(800);
-  check('logo sem login: vai para a tela de login', anon.url() === BASE && (await text(anon)).includes('Bem-vindo de volta'), anon.url());
+  check('logo sem login: vai para a tela de login', anon.url() === BASE && (await text(anon)).includes('Entrar com e-mail'), anon.url());
   await anon.close();
 
   const cli = await open('app-cliente.dc.html');
@@ -188,18 +200,18 @@ await step('fluxo do cliente', async () => {
   await click(page, 'Entrar', true);
   let t = await text(page);
   check('cliente: login abre o cardápio', t.includes('Batata Frita') && t.includes('Água de Coco'));
-  check('cliente: item sem estoque aparece como Esgotado', /Açaí[\s\S]*Esgotado/.test(t));
+  check('cliente: item sem estoque some do cardápio (sem aviso de Esgotado)', !t.includes('Açaí') && !t.includes('Esgotado'));
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
   t = await text(page);
-  check('cliente: carrinho soma subtotal + 10% de taxa', t.includes('R$ 50,00') && t.includes('R$ 5,00') && t.includes('R$ 55,00'));
+  check('cliente: carrinho sem taxa de serviço (total = subtotal)', t.includes('R$ 50,00') && !t.includes('Taxa de serviço') && !t.includes('R$ 55,00'));
   await click(page, 'Ir para pagamento');
   t = await text(page);
   check('cliente: aviso de mesas ativas vem do cadastro de mesas', t.includes('Mesas ativas: 1, 3 a 5.'), (t.match(/Mesas? ativas?:[^\n]*/) || [])[0]);
-  await page.getByPlaceholder('00').fill('2');
+  await page.getByPlaceholder('Ex.: 12').fill('2');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa inativa é recusada', !(await text(page)).includes('Total do pedido · Mesa 2'));
-  await page.getByPlaceholder('00').fill('1');
+  await page.getByPlaceholder('Ex.: 12').fill('1');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa ativa leva ao pagamento', (await text(page)).includes('Mesa 1'));
   await click(page, 'PIX', true);
@@ -208,7 +220,7 @@ await step('fluxo do cliente', async () => {
   check('cliente: pedido enviado com mesa e itens certos', sent && sent.tableNumber === 1 && sent.items[0].productId === 'p1' && sent.items[0].qty === 2, JSON.stringify(sent?.items));
   t = await text(page);
   check('cliente: tela do PIX abre', t.includes('Pagamento via PIX'));
-  check('cliente: tela do PIX mostra o valor do pedido (R$ 55,00)', /Valor a pagar\s*R\$ 55,00/.test(t), (t.match(/Valor a pagar\s*(R\$ [\d,.]+)/) || [])[1]);
+  check('cliente: tela do PIX mostra o valor do pedido (R$ 50,00)', /Valor a pagar\s*R\$ 50,00/.test(t), (t.match(/Valor a pagar\s*(R\$ [\d,.]+)/) || [])[1]);
   check('cliente: tela do PIX mostra o código copia-e-cola', t.includes('Copiar código PIX'));
   check('cliente: sem pagamento ainda, não confirma', !t.includes('Pedido confirmado'));
   page.api.approvePayment(sent.id);
@@ -223,7 +235,13 @@ await step('fluxo do cliente', async () => {
 await step('fluxo da cozinha', async () => {
   const page = await open('app-cliente.dc.html?module=cozinha&screen=kanban', { role: 'cozinha', seed: true });
   check('cozinha: pedido aparece na fila com observação', (await text(page)).includes('Obs: sem sal'));
-  await click(page, 'Iniciar preparo'); await click(page, 'Marcar como pronto'); await click(page, 'Marcar como entregue');
+  check('guia do navegador: cozinha mostra "Sunfood · Cozinha"', await page.title() === 'Sunfood · Cozinha', await page.title());
+  check('cozinha: cartão mostra o nome de quem pediu', (await text(page)).includes('Ana Teste'));
+  // No celular a cozinha mostra uma coluna por vez, em abas (Novos / Preparo / Prontos).
+  const aba = async t => { if (await page.locator('.kz-tabs').isVisible()) { await page.locator('.kz-tab', { hasText: t }).click(); await page.waitForTimeout(300); } };
+  await click(page, 'Iniciar preparo');
+  await aba('Preparo'); await click(page, 'Marcar como pronto');
+  await aba('Prontos'); await click(page, 'Marcar como entregue');
   check('cozinha: pedido chega a Entregue', page.api.db.orders[0].status === 'Entregue', page.api.db.orders[0].status);
   check('cozinha: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
@@ -235,6 +253,8 @@ for (const sc of ['dashboard', 'orders', 'payments', 'messages', 'productForm', 
     const page = await open(`app-cliente.dc.html?module=admin&screen=${sc}`, { role: 'admin', seed: true });
     const err = page.jsErrors.join(' | ') || await renderError(page);
     check(`admin: tela ${sc} abre sem erro`, !err, err);
+    const aba = await page.title();
+    check(`admin: guia do navegador da tela ${sc} começa com "Sunfood · "`, aba.startsWith('Sunfood · ') && aba.length > 10, aba);
     await page.close();
   });
 }

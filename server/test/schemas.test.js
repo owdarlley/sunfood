@@ -88,10 +88,13 @@ test("orderStatusUpdateSchema só aceita os 4 status de destino válidos", () =>
   assert.equal(orderStatusUpdateSchema.safeParse({ status: "qualquer coisa" }).success, false);
 });
 
-test("productSchema rejeita categoria fora da lista e preço não positivo", () => {
+test("productSchema rejeita categoria vazia ou longa e preço não positivo", () => {
   const base = { name: "Suco", category: "Bebidas", price: 10 };
   assert.equal(productSchema.safeParse(base).success, true);
-  assert.equal(productSchema.safeParse({ ...base, category: "Outra" }).success, false);
+  // A lista de categorias é do banco: aqui só o formato do nome.
+  assert.equal(productSchema.safeParse({ ...base, category: "Porções" }).success, true);
+  assert.equal(productSchema.safeParse({ ...base, category: " " }).success, false);
+  assert.equal(productSchema.safeParse({ ...base, category: "x".repeat(41) }).success, false);
   assert.equal(productSchema.safeParse({ ...base, price: 0 }).success, false);
   assert.equal(productSchema.safeParse({ ...base, price: -5 }).success, false);
 });
@@ -142,4 +145,23 @@ test("forgotPasswordSchema aceita e-mail ou CPF", () => {
 test("maskEmail esconde o meio do e-mail", () => {
   assert.equal(maskEmail("darlley1997@gmail.com"), "d*****7@gmail.com");
   assert.equal(maskEmail("ab@x.com"), "a*@x.com");
+});
+
+test("productSchema: ingredientes e etiquetas são opcionais e validados", () => {
+  const base = { name: "Caipirinha", category: "Bebidas", price: 22 };
+  const parsed = productSchema.parse(base);
+  assert.equal(parsed.ingredients, undefined);
+  assert.equal(parsed.tags, undefined);
+  const full = productSchema.parse({
+    ...base,
+    ingredients: " Cachaça, limão, açúcar, gelo. ",
+    tags: [["Alcoólico", "#FDEBEA", "#E74C3C"], ["+18", "#FFF3DE", "#B0791A"]],
+  });
+  assert.equal(full.ingredients, "Cachaça, limão, açúcar, gelo.");
+  assert.equal(full.tags.length, 2);
+  assert.equal(productSchema.safeParse({ ...base, tags: [] }).success, true);
+  assert.equal(productSchema.safeParse({ ...base, tags: [["", "#FFFFFF", "#000000"]] }).success, false);
+  assert.equal(productSchema.safeParse({ ...base, tags: [["Vegano", "red", "#000000"]] }).success, false);
+  assert.equal(productSchema.safeParse({ ...base, tags: Array(9).fill(["X", "#FFFFFF", "#000000"]) }).success, false);
+  assert.equal(productSchema.safeParse({ ...base, ingredients: "x".repeat(501) }).success, false);
 });

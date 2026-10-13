@@ -3,6 +3,9 @@
 // Página de checkout do Mercado Pago de mentira (o teste responde ela sem rede).
 export const FAKE_CHECKOUT_URL = 'https://www.mercadopago.com.br/checkout/teste';
 
+// Endereço das fotos enviadas (o teste serve uma imagem pequena nele).
+export const FAKE_PHOTO_BASE = 'https://teste.supabase.co/storage/v1/object/public/produtos/';
+
 export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
   const now = () => new Date().toISOString();
   const db = {
@@ -15,6 +18,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     ].map(([id, category, name, price, imageKey, stockQty]) => ({ id, category, name, description: name, longDescription: name,
       price, imageKey, stockQty, soldOut: stockQty === 0, portion: '1', prepTime: '10 min', kcal: 100, rating: 4.5,
       reviewCount: 10, ingredients: '-', tags: [] })),
+    categories: [['Petiscos','sol'],['Bebidas','mar'],['Pratos','coral'],['Sobremesas','uva']].map(([name, color], i) => ({ name, color, position: i + 1 })),
     tables: [1, 2, 3, 4, 5].map(number => ({ number, active: number !== 2, seats: 4 })),
     kiosk: { paused: false, dayClosed: false, cancelWindowMinutes: 0 },
     orders: [],
@@ -29,6 +33,13 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     const req = route.request();
     const url = new URL(req.url());
     const p = url.pathname, m = req.method();
+    // Envio de foto vem como arquivo (binário), não JSON.
+    if (url.pathname === '/products/images' && req.method() === 'POST') {
+      const buf = req.postDataBuffer();
+      db.uploads = (db.uploads || []).concat([{ type: req.headers()['content-type'], size: buf.length, jpeg: buf[0] === 0xff && buf[1] === 0xd8 }]);
+      return route.fulfill({ status: 201, contentType: 'application/json',
+        body: JSON.stringify({ url: FAKE_PHOTO_BASE + 'foto' + db.uploads.length + '.jpg' }) });
+    }
     const isJson = /json/.test(req.headers()['content-type'] || '');
     const body = isJson && req.postData() ? JSON.parse(req.postData()) : {};
     const json = (status, data) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
@@ -58,6 +69,35 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     if (p === '/auth/forgot-password') { db.resetFor = body.email; return json(200, { message: 'ok' }); }
     if (p === '/products' && m === 'GET') return json(200, db.products);
     if (p === '/tables') return json(200, db.tables);
+    // Categorias: mesmas regras do servidor (nome único sem diferenciar
+    // maiúsculas, renomear leva os itens, excluir só sem item).
+    if (p.startsWith('/categories')) {
+      const sameName = (a, b) => a.toLowerCase() === b.toLowerCase();
+      if (p === '/categories' && m === 'GET') return json(200, [...db.categories].sort((a, b) => a.position - b.position));
+      if (p === '/categories' && m === 'POST') {
+        const name = String(body.name || '').trim();
+        if (name.length < 2) return json(400, { error: 'Dados inválidos.', details: [{ message: 'Nome da categoria muito curto.' }] });
+        if (db.categories.some(c => sameName(c.name, name))) return json(409, { error: 'Já existe uma categoria com esse nome.' });
+        const c = { name, color: body.color || 'areia', position: Math.max(0, ...db.categories.map(c => c.position)) + 1 };
+        db.categories.push(c); return json(201, c);
+      }
+      if (p === '/categories/reorder') {
+        if (body.names.length !== db.categories.length) return json(409, { error: 'As categorias mudaram. Recarregue a tela.' });
+        db.categories.forEach(c => { c.position = body.names.indexOf(c.name) + 1; }); return json(200, { ok: true });
+      }
+      const c = db.categories.find(c => c.name === decodeURIComponent(p.slice('/categories/'.length)));
+      if (!c) return json(404, { error: 'Categoria não encontrada.' });
+      if (m === 'PUT') {
+        const name = String(body.name || '').trim();
+        if (db.categories.some(o => o !== c && sameName(o.name, name))) return json(409, { error: 'Já existe uma categoria com esse nome.' });
+        db.products.filter(pr => pr.category === c.name).forEach(pr => { pr.category = name; });
+        Object.assign(c, { name }, body.color ? { color: body.color } : {}); return json(200, c);
+      }
+      if (m === 'DELETE') {
+        if (db.products.some(pr => pr.category === c.name)) return json(409, { error: 'Essa categoria ainda tem itens. Mova ou exclua os itens antes.' });
+        db.categories = db.categories.filter(o => o !== c); return json(200, { ok: true });
+      }
+    }
     if (p === '/kiosk-settings/cancel-window') { db.kiosk.cancelWindowMinutes = body.minutes; return json(200, db.kiosk); }
     if (p === '/kiosk-settings') return json(200, db.kiosk);
     if (p === '/orders/mine') return json(200, db.orders);
@@ -67,7 +107,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
         return { productId: pr.id, name: pr.name, qty: i.qty, unitPrice: pr.price, note: i.note }; });
       const subtotal = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
       const o = { id: 'o' + (db.orders.length + 1), tableNumber: body.tableNumber, status: 'Na Fila', subtotal,
-        total: Math.round(subtotal * 110) / 100, note: body.note, paymentStatus: 'pending', paymentMethod: body.paymentMethod, createdAt: now(), updatedAt: now(), items };
+        total: subtotal, note: body.note, paymentStatus: 'pending', paymentMethod: body.paymentMethod, createdAt: now(), updatedAt: now(), items };
       db.orders.unshift(o); return json(201, o);
     }
     // Garçom: pedido lançado na mesa (pago na entrega, no nome do garçom) e métricas.
@@ -114,6 +154,16 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     if ((r = p.match(/^\/orders\/([^/]+)\/cancel$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = 'Cancelado'; return json(200, o); }
     if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now(); return json(200, o); }
     if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, db.orders.find(o => o.id === r[1]));
+    if ((r = p.match(/^\/products\/([^/]+)$/)) && m === 'PUT') { const pr = db.products.find(x => x.id === r[1]);
+      db.lastProductBody = body;
+      Object.assign(pr, { name: body.name, price: body.price, category: body.category, description: body.description },
+        body.stockQty !== undefined ? { stockQty: body.stockQty } : {}, body.imageUrl !== undefined ? { imageUrl: body.imageUrl } : {},
+        body.ingredients !== undefined ? { ingredients: body.ingredients } : {}, body.tags !== undefined ? { tags: body.tags } : {});
+      return json(200, pr); }
+    if (p === '/products' && m === 'POST') { db.lastProductBody = body;
+      const pr = { id: 'p' + (db.products.length + 1), category: body.category, name: body.name, description: body.description, price: body.price,
+        imageKey: null, imageUrl: body.imageUrl || null, stockQty: body.stockQty ?? null, soldOut: false, ingredients: body.ingredients || '', tags: body.tags || [] };
+      db.products.push(pr); return json(201, pr); }
     if ((r = p.match(/^\/products\/([^/]+)\/sold-out$/))) { const pr = db.products.find(x => x.id === r[1]); pr.soldOut = body.soldOut; return json(200, pr); }
     if (p === '/dashboard') return json(200, { revenueToday: 0, ordersToday: 0, avgTicket: 0, topProducts: [], salesByHour: Array.from({ length: 24 }, (_, hour) => ({ hour, revenue: 0 })) });
     if (p === '/ops-metrics') return json(200, { lateOrders: 0, avgPrepSeconds: null, cancelledToday: 0, avgQueueSeconds: null, soldOutProducts: [], ordersInQueueOrPrep: 1 });
@@ -153,7 +203,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
   handler.approvePayment = id => { db.orders.find(o => o.id === id).paymentStatus = 'approved'; };
   handler.db = db;
   handler.user = user;
-  handler.seed = () => db.orders.push({ id: 'o9', tableNumber: 1, status: 'Na Fila', subtotal: 25, total: 27.5, note: 'sem sal',
+  handler.seed = () => db.orders.push({ id: 'o9', tableNumber: 1, customerName: 'Ana Teste', status: 'Na Fila', subtotal: 25, total: 27.5, note: 'sem sal',
     paymentStatus: 'approved', createdAt: now(), updatedAt: now(), items: [{ productId: 'p1', name: 'Batata Frita', qty: 1, unitPrice: 25, note: '' }] });
   return handler;
 }

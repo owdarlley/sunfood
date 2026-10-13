@@ -48,6 +48,8 @@ function fromApi(p) {
   if (p.stockQty !== undefined) row.stock_qty = p.stockQty;
   // Mesma ideia: ausente = mantém a foto; null = tira a foto.
   if (p.imageUrl !== undefined) row.image_url = p.imageUrl;
+  if (p.ingredients !== undefined) row.ingredients = p.ingredients;
+  if (p.tags !== undefined) row.tags = p.tags;
   return row;
 }
 
@@ -67,6 +69,10 @@ function checkImageUrl(req, res, next) {
     return res.status(400).json({ error: "Foto inválida. Envie a foto pelo botão do formulário." });
   next();
 }
+
+// A chave estrangeira recusou: a categoria foi excluída ou renomeada enquanto
+// o formulário estava aberto.
+const MISSING_CATEGORY = "Essa categoria não existe mais. Escolha outra.";
 
 // Público: cardápio do cliente.
 productsRouter.get("/", async (req, res) => {
@@ -107,6 +113,7 @@ productsRouter.post("/", requireAuth, requireRole("admin"), validate(productSche
     .insert(fromApi(req.body))
     .select()
     .single();
+  if (error?.code === "23503") return res.status(400).json({ error: MISSING_CATEGORY });
   if (error) return res.status(500).json({ error: "Não foi possível criar o produto." });
   res.status(201).json(toApi(data));
 });
@@ -120,6 +127,7 @@ productsRouter.put("/:id", requireAuth, requireRole("admin"), validate(productSc
     .is("archived_at", null)
     .select()
     .single();
+  if (error?.code === "23503") return res.status(400).json({ error: MISSING_CATEGORY });
   if (error || !data) return res.status(404).json({ error: "Produto não encontrado." });
   res.json(toApi(data));
 });

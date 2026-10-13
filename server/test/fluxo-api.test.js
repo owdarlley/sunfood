@@ -16,6 +16,7 @@ const db = {
     { id: P2, name: "Água de Coco", category: "Bebidas", price: 8, stock_qty: null, sold_out: false },
     { id: P3, name: "Açaí", category: "Sobremesas", price: 18, stock_qty: null, sold_out: true },
   ],
+  categories: ["Bebidas", "Lanches", "Pratos", "Sobremesas", "Petiscos"].map((name, i) => ({ name, position: i + 1, color: "areia" })),
   orders: [],
   order_items: [],
   day_reports: [],
@@ -32,17 +33,18 @@ const TRANSITIONS = { "Na Fila": ["Em Preparo", "Cancelado"], "Em Preparo": ["Pr
 // Query builder mínimo, com só o que as rotas usam.
 function query(table) {
   const filters = [];
-  let op = "select", patch = null, rows = null, embed = false, mode = "many";
+  let op = "select", patch = null, rows = null, embed = false, mode = "many", sort = null, max = Infinity;
   const q = {
     select(cols = "*") { if (op === "select") op = "select"; embed = cols.includes("order_items"); return q; },
     insert(r) { op = "insert"; rows = [].concat(r); return q; },
     update(p) { op = "update"; patch = p; return q; },
+    delete() { op = "delete"; return q; },
     eq(c, v) { filters.push((r) => r[c] === v); return q; },
     in(c, vs) { filters.push((r) => vs.includes(r[c])); return q; },
     is(c, v) { filters.push((r) => (r[c] ?? null) === v); return q; },
     lt(c, v) { filters.push((r) => r[c] < v); return q; },
-    order() { return q; },
-    limit() { return q; },
+    order(c, { ascending = true } = {}) { sort ??= { c, dir: ascending ? 1 : -1 }; return q; },
+    limit(n) { max = n; return q; },
     single() { mode = "single"; return q; },
     maybeSingle() { mode = "maybe"; return q; },
     then(ok, fail) { return Promise.resolve(run()).then(ok, fail); },
@@ -50,17 +52,45 @@ function query(table) {
   function run() {
     const all = db[table];
     let out;
+    const err = checkConstraints(table, op, op === "insert" ? rows : patch, op === "insert" ? [] : all.filter((r) => filters.every((f) => f(r))));
+    if (err) return { data: null, error: err };
     if (op === "insert") { out = rows.map((r) => ({ id: "n" + Math.random().toString(36).slice(2), ...r })); all.push(...out); }
     else {
       out = all.filter((r) => filters.every((f) => f(r)));
       if (op === "update") out.forEach((r) => Object.assign(r, patch));
+      if (op === "delete") db[table] = all.filter((r) => !out.includes(r));
     }
+    if (sort) out = [...out].sort((a, b) => (a[sort.c] > b[sort.c] ? 1 : a[sort.c] < b[sort.c] ? -1 : 0) * sort.dir);
+    out = out.slice(0, max);
     out = out.map((r) => (embed ? { ...r, order_items: db.order_items.filter((i) => i.order_id === r.id) } : { ...r }));
     if (mode === "many") return { data: out, error: null };
     if (!out.length) return { data: null, error: mode === "single" ? { message: "no rows" } : null };
     return { data: out[0], error: null };
   }
   return q;
+}
+
+// O que o banco garante nas categorias: nome único (sem diferenciar
+// maiúsculas), produto só em categoria que existe, renomear leva os produtos
+// junto e excluir só sem item ativo (os arquivados ficam sem categoria).
+function checkConstraints(table, op, data, hit) {
+  if (table === "products" && op !== "delete"
+      && [].concat(data || []).some((r) => r.category !== undefined && !db.categories.some((c) => c.name === r.category)))
+    return { code: "23503", message: "fk" };
+  if (table !== "categories") return null;
+  if (op === "delete") {
+    const names = hit.map((c) => c.name);
+    if (db.products.some((p) => names.includes(p.category) && !p.archived_at)) return { code: "23514", message: "check" };
+    db.products.filter((p) => names.includes(p.category)).forEach((p) => (p.category = null));
+    return null;
+  }
+  for (const r of [].concat(data || [])) {
+    if (r.name === undefined) continue;
+    if (db.categories.some((c) => !hit.includes(c) && c.name.toLowerCase() === r.name.toLowerCase()))
+      return { code: "23505", message: "unique" };
+    if (op === "update") for (const c of hit) db.products.filter((p) => p.category === c.name).forEach((p) => (p.category = r.name));
+  }
+  return null;
 }
 
 function setStatus(id, status, actor) {
@@ -85,7 +115,7 @@ const rpc = async (name, args) => {
       if (prod.stock_qty !== null && prod.stock_qty < it.qty) return { error: { message: "out_of_stock:" + prod.name } };
     }
     const id = "o" + (db.orders.length + 1);
-    db.orders.push({ id, customer_id: p.customerId, waiter_id: p.waiterId ?? null, table_number: p.tableNumber, status: "Na Fila", subtotal: p.subtotal,
+    db.orders.push({ id, daily_number: db.orders.length + 1, customer_id: p.customerId, waiter_id: p.waiterId ?? null, table_number: p.tableNumber, status: "Na Fila", subtotal: p.subtotal,
       total: p.total, note: p.note, payment_method: p.paymentMethod || "pix", payment_status: "pending",
       created_at: new Date().toISOString() });
     for (const it of p.items) {
@@ -113,6 +143,13 @@ const rpc = async (name, args) => {
     }
     db.products = db.products.filter((x) => x !== p);
     return { data: { action: "deleted", imageUrl: p.image_url ?? null }, error: null };
+  }
+  if (name === "reorder_categories") {
+    const names = args.p_names;
+    if (names.length !== db.categories.length || db.categories.some((c) => !names.includes(c.name)))
+      return { error: { message: "category_list_mismatch" } };
+    db.categories.forEach((c) => (c.position = names.indexOf(c.name) + 1));
+    return { data: null, error: null };
   }
   if (name === "set_order_status") return setStatus(args.p_order_id, args.p_status, args.p_actor);
   if (name === "waiter_metrics") {
@@ -374,6 +411,7 @@ test("admin muda o pedido mínimo e o cliente sente na hora", async () => {
   assert.equal(r.body.minOrder, 5);
   r = await api("POST", "/orders", { tableNumber: 1, items: [{ productId: P2, qty: 1 }], paymentMethod: "entrega" }, anaToken);
   assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.ok(Number.isInteger(r.body.number) && r.body.number > 0, "pedido vem com o número curto do dia");
   await api("PATCH", "/kiosk-settings/min-order", { minOrder: 10 }, admin);
   r = await api("PATCH", "/kiosk-settings/min-order", { minOrder: 10 }, anaToken);
   assert.equal(r.status, 403, "cliente não pode mudar o mínimo");
@@ -430,7 +468,7 @@ test("admin escolhe quantas mesas existem e o pedido respeita", async () => {
 test("PIX provisório: aprovado na hora e vai para a cozinha", async () => {
   let r = await api("POST", "/orders", { tableNumber: 1, items: [{ productId: P1, qty: 2 }], paymentMethod: "pix" }, anaToken);
   assert.equal(r.status, 201);
-  assert.equal(r.body.total, 55);
+  assert.equal(r.body.total, 50);
   pixOrder = r.body.id;
   const cozinha = staff("cozinha");
   let fila = await api("GET", "/orders", null, cozinha);
@@ -439,6 +477,7 @@ test("PIX provisório: aprovado na hora e vai para a cozinha", async () => {
   assert.equal(r.body.provisional, true);
   fila = await api("GET", "/orders", null, cozinha);
   assert.ok(fila.body.some((o) => o.id === pixOrder && o.paymentProvider === "provisorio"));
+  assert.equal(fila.body.find((o) => o.id === pixOrder).customerName, "Ana Teste", "cozinha vê o nome de quem pediu");
   assert.equal(db.products[0].stock_qty, 1, "estoque baixou 2");
 });
 
@@ -845,7 +884,7 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   assert.equal(pedido.body.paymentMethod, "entrega");
   assert.equal(pedido.body.userId, null);
   assert.equal(pedido.body.waiterId, criado.body.id);
-  assert.equal(pedido.body.total, 33);
+  assert.equal(pedido.body.total, 30);
 
   // Garçom vê só pedidos em andamento e não mexe na cozinha.
   const lista = await api("GET", "/orders", null, garcom);
@@ -875,7 +914,7 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   assert.equal(m.body.period, "7d");
   assert.equal(m.body.delivered, 1);
   assert.equal(m.body.launched, 1);
-  assert.equal(m.body.launchedTotal, 33);
+  assert.equal(m.body.launchedTotal, 30);
   assert.equal(m.body.avgDeliverMin, 2.5);
   assert.equal(m.body.byDay.length, 7);
 
@@ -891,4 +930,46 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   assert.equal((await api("GET", "/waiters", null, admin)).body[0].active, false);
   assert.equal((await api("PATCH", "/waiters/" + criado.body.id, { active: true }, admin)).status, 200);
   assert.equal((await api("POST", "/auth/login", { email: "garcom@sunfood.com", password: "Sunfood@123" })).status, 200);
+});
+
+test("admin cria, renomeia, reordena e exclui categorias; o cardápio acompanha", async () => {
+  const admin = staff("admin");
+  assert.equal((await api("POST", "/categories", { name: "Porções" })).status, 401);
+  assert.equal((await api("POST", "/categories", { name: "Porções" }, staff("cozinha"))).status, 403);
+
+  const nova = await api("POST", "/categories", { name: "  Porções ", color: "verde" }, admin);
+  assert.equal(nova.status, 201, JSON.stringify(nova.body));
+  assert.deepEqual(nova.body, { name: "Porções", color: "verde", position: 6 });
+  assert.equal((await api("POST", "/categories", { name: "porções" }, admin)).status, 409, "nome repetido");
+  assert.equal((await api("POST", "/categories", { name: "X" }, admin)).status, 400, "nome curto");
+  assert.equal((await api("POST", "/categories", { name: "Doces", color: "roxo" }, admin)).status, 400, "cor fora da lista");
+
+  const item = await api("POST", "/products", { name: "Isca de Peixe", category: "Porções", price: 30 }, admin);
+  assert.equal(item.status, 201);
+  const semCat = await api("POST", "/products", { name: "Fantasma", category: "Não existe", price: 5 }, admin);
+  assert.equal(semCat.status, 400);
+  assert.match(semCat.body.error, /categoria não existe/);
+
+  const renomeada = await api("PUT", "/categories/" + encodeURIComponent("Porções"), { name: "Petiscos do Mar" }, admin);
+  assert.equal(renomeada.status, 200);
+  assert.equal(renomeada.body.color, "verde", "renomear sem mandar cor mantém a cor");
+  let menu = await api("GET", "/products");
+  assert.equal(menu.body.find((p) => p.id === item.body.id).category, "Petiscos do Mar", "itens vão junto");
+  assert.equal((await api("PUT", "/categories/Nada", { name: "Outra" }, admin)).status, 404);
+  assert.equal((await api("PUT", "/categories/Bebidas", { name: "pratos" }, admin)).status, 409);
+
+  const cats = (await api("GET", "/categories")).body.map((c) => c.name);
+  assert.equal((await api("POST", "/categories/reorder", { names: cats.slice(1) }, admin)).status, 409, "lista incompleta");
+  const invertida = [...cats].reverse();
+  assert.equal((await api("POST", "/categories/reorder", { names: invertida }, admin)).status, 200);
+  const ordenada = [...db.categories].sort((a, b) => a.position - b.position).map((c) => c.name);
+  assert.deepEqual(ordenada, invertida);
+
+  const emUso = await api("DELETE", "/categories/" + encodeURIComponent("Petiscos do Mar"), null, admin);
+  assert.equal(emUso.status, 409);
+  assert.match(emUso.body.error, /ainda tem itens/);
+  await api("DELETE", "/products/" + item.body.id, null, admin);
+  assert.equal((await api("DELETE", "/categories/" + encodeURIComponent("Petiscos do Mar"), null, admin)).status, 200);
+  assert.ok(!(await api("GET", "/categories")).body.some((c) => c.name === "Petiscos do Mar"));
+  assert.equal((await api("DELETE", "/categories/Nada", null, admin)).status, 404);
 });

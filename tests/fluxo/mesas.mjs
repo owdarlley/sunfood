@@ -121,9 +121,18 @@ await step('cliente mesa fora da faixa', async () => {
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
   await click(page, 'Ir para pagamento');
-  const mesa = page.getByPlaceholder('00');
+  const mesa = page.getByPlaceholder('Ex.: 12');
   await mesa.fill('123');
   check('cliente: aceita número de 3 dígitos', await mesa.inputValue() === '123', await mesa.inputValue());
+  for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tablet', { width: 768, height: 1000 }], ['computador', { width: 1366, height: 900 }], ['tela larga', { width: 1920, height: 1080 }]]) {
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    const box = await page.locator('.mesafield').boundingBox();
+    const scroll = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    const alvo = viewport.width > 1024 ? 44 : 48;
+    check(`cliente ${nome}: campo da mesa com ${alvo}px de altura e sem rolagem de lado`, box && Math.round(box.height) === alvo && scroll <= 0, JSON.stringify({ box, scroll }));
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/mesa-campo-${nome.replace(' ', '-')}.png` });
+  }
+  await page.setViewportSize({ width: 400, height: 860 }); await page.waitForTimeout(300);
   await mesa.fill('9');
   await click(page, 'Confirmar mesa');
   const t = await text(page);

@@ -40,7 +40,7 @@ Os endereços antigos (`inicio.html`, `sobre.html`, `funcionalidades.html`, `com
 | Página | Arquivo | Conteúdo |
 | --- | --- | --- |
 | Redefinir senha | `redefinir-senha.html` | Segunda etapa do "esqueci minha senha" (o link do e-mail cai aqui) |
-| Protótipo | `prototipo-completo.html` | Protótipo navegável de 38 telas (material da faculdade, sem link no site). `prototipo.html`, a antiga página escura que o envolvia, agora só redireciona para `/#conheca` |
+| Protótipo (antigo) | `prototipo.html` | Endereço antigo do protótipo; só redireciona para `/#conheca`. O protótipo navegável foi retirado do sistema |
 
 Quem já entrou naquele aparelho vai direto para o seu módulo (exceto quando abre um dos painéis acima). Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração, cozinha ou garçom).
 
@@ -81,7 +81,6 @@ redefinir-senha.html                         → segunda etapa da recuperação 
 app-cliente.dc.html                          → o app (cliente, cozinha, garçom e administração), fala com a API
 prototipo-completo.html                      → protótipo navegável das telas (material da faculdade)
 support.js                                   → script de apoio às páginas (gerado, não editar)
-assets/                                      → imagens usadas no protótipo
 manifest.json, sw.js, pwa.js, offline.html   → app instalável (PWA): manifesto, service worker, registro e aviso sem internet
 icons/                                       → ícones do app instalado (192, 512, maskable, iPhone, favicon)
 tests/                                       → testes de tela (Playwright)

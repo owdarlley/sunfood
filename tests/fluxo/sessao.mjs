@@ -124,7 +124,7 @@ await step('app sem rota na URL', async () => {
 
 await step('login guarda o refreshToken', async () => {
   const p = await open('index.html', 'cliente', null);
-  await p.fill('#email', 'cliente@teste'); await p.fill('#pass', 'x12345678');
+  await p.click('#com-email'); await p.fill('#email', 'cliente@teste'); await p.fill('#pass', 'x12345678');
   await p.click('#entrar'); await p.waitForTimeout(2000);
   const s = await salvo(p);
   check('login (index.html): guarda o refreshToken junto com o token', s && s.refreshToken === 'r0', JSON.stringify(s));

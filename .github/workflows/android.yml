@@ -1,0 +1,37 @@
+# Gera o APK Android do Sunfood (pasta android/) a cada mudança nela.
+# O APK sai sem assinatura: a chave fica fora do repositório e a assinatura é
+# feita à parte, com apksigner, antes de distribuir.
+name: Android
+
+on:
+  push:
+    paths: ['android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - run: gradle -p android assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sunfood-apk-sem-assinatura
+          path: android/app/build/outputs/apk/release/*.apk
+      # Guarda o APK num ref fora das branches (refs/apk/<branch>), para baixar
+      # com git onde o download de artifacts não está disponível.
+      - name: Publicar APK em refs/apk
+        run: |
+          mkdir /tmp/apk && cp android/app/build/outputs/apk/release/*.apk /tmp/apk/
+          cd /tmp/apk && git init -q && git add . \
+            && git -c user.name=github-actions -c user.email=actions@github.com commit -qm "APK de ${GITHUB_SHA}" \
+            && git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/apk/${GITHUB_REF_NAME}"
