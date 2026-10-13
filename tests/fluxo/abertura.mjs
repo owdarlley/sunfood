@@ -1,6 +1,7 @@
 // Abertura "Sol na areia" da tela de login: aparece na primeira abertura da
 // sessão, some sozinha com o logo no lugar, pula com toque, fica curta com
-// "reduzir movimento", aparece no app para quem já entrou e não aparece ao
+// "reduzir movimento", aparece no app para quem já entrou (com o logo voando
+// para a marca do topo do app) e não aparece ao
 // recarregar nem em painel do rodapé. Celular, tablet, computador e tela larga.
 // Uso: node fluxo/abertura.mjs (de dentro de tests)
 import { chromium } from 'playwright';
@@ -96,6 +97,8 @@ await step('quem já entrou', async () => {
   check('quem já entrou: abertura some depois que o app monta', await tem(p) === 0);
   const raiz = await p.locator('#dc-root > *').count();
   check('quem já entrou: app aparece montado por baixo', raiz > 0);
+  const marca = await p.locator('#dc-root .brand, #dc-root .adm-brand').evaluateAll(ms => ms.filter(m => m.getBoundingClientRect().width).map(m => getComputedStyle(m).visibility));
+  check('quem já entrou: logo voa para a marca do topo do app e ela fica visível', marca.length > 0 && marca.every(v => v === 'visible'), JSON.stringify(marca));
   check('quem já entrou: sem erro de JavaScript', p.jsErrors.length === 0, p.jsErrors.join(' | '));
   await p.reload(); await p.waitForTimeout(300);
   check('quem já entrou: não repete ao recarregar o app', await tem(p) === 0);
