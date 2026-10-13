@@ -107,7 +107,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
         return { productId: pr.id, name: pr.name, qty: i.qty, unitPrice: pr.price, note: i.note }; });
       const subtotal = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
       const o = { id: 'o' + (db.orders.length + 1), tableNumber: body.tableNumber, status: 'Na Fila', subtotal,
-        total: Math.round(subtotal * 110) / 100, note: body.note, paymentStatus: 'pending', paymentMethod: body.paymentMethod, createdAt: now(), updatedAt: now(), items };
+        total: subtotal, note: body.note, paymentStatus: 'pending', paymentMethod: body.paymentMethod, createdAt: now(), updatedAt: now(), items };
       db.orders.unshift(o); return json(201, o);
     }
     let r;

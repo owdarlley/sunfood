@@ -4,7 +4,6 @@
 // RN01: pedido mínimo. O valor real vem de kiosk_settings.min_order_cents
 // (configurável pelo admin); este é só o padrão se a coluna não existir.
 export const MIN_ORDER_CENTS = 1000;
-export const SERVICE_FEE_RATE = 0.1; // 10% de taxa de serviço
 
 export const VALID_TRANSITIONS = {
   "Na Fila": ["Em Preparo", "Cancelado"],
@@ -16,12 +15,13 @@ export function isValidTransition(currentStatus, nextStatus) {
   return (VALID_TRANSITIONS[currentStatus] || []).includes(nextStatus);
 }
 
-// Soma em centavos (evita erro de ponto flutuante) e devolve subtotal/taxa/
-// total também em centavos — quem chama decide a formatação em reais.
+// Soma em centavos (evita erro de ponto flutuante) e devolve subtotal/total
+// também em centavos — quem chama decide a formatação em reais. Não há mais
+// taxa de serviço: o total é o próprio subtotal (pedidos antigos guardam a
+// taxa que pagaram em orders.fee).
 export function computeOrderTotals(items, priceCentsOf) {
   const subtotalCents = items.reduce((sum, item) => sum + priceCentsOf(item) * item.qty, 0);
-  const feeCents = Math.round(subtotalCents * SERVICE_FEE_RATE);
-  return { subtotalCents, feeCents, totalCents: subtotalCents + feeCents };
+  return { subtotalCents, totalCents: subtotalCents };
 }
 
 export function meetsMinimumOrder(subtotalCents, minOrderCents = MIN_ORDER_CENTS) {

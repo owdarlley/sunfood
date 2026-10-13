@@ -122,7 +122,7 @@ ordersRouter.post("/", requireAuth, requireRole("cliente"), requireCompleteProfi
   // Aritmética em centavos pra não acumular erro de ponto flutuante, e só
   // volta pra reais decimais na hora de gravar.
   const priceCentsOf = (item) => Math.round(Number(byId.get(item.productId).price) * 100);
-  const { subtotalCents, feeCents, totalCents } = computeOrderTotals(items, priceCentsOf);
+  const { subtotalCents, totalCents } = computeOrderTotals(items, priceCentsOf);
   const minOrderCents = minOrderCentsFrom(settings);
   if (!meetsMinimumOrder(subtotalCents, minOrderCents)) {
     return res.status(422).json({ error: `Pedido mínimo de ${formatBRL(minOrderCents)}.` });
@@ -133,7 +133,7 @@ ordersRouter.post("/", requireAuth, requireRole("cliente"), requireCompleteProfi
       customerId: req.user.sub,
       tableNumber,
       subtotal: subtotalCents / 100,
-      fee: feeCents / 100,
+      fee: 0,
       total: totalCents / 100,
       note: note || "",
       paymentMethod,

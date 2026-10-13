@@ -6,7 +6,6 @@ import {
   locationFrom,
   tableCountFrom,
   MIN_ORDER_CENTS,
-  SERVICE_FEE_RATE,
   isValidTransition,
   computeOrderTotals,
   meetsMinimumOrder,
@@ -48,10 +47,9 @@ test("computeOrderTotals soma em centavos sem erro de ponto flutuante", () => {
     { productId: "b", qty: 1 }, // 1x R$ 0,20
   ];
   const priceCentsOf = (item) => (item.productId === "a" ? 10 : 20);
-  const { subtotalCents, feeCents, totalCents } = computeOrderTotals(items, priceCentsOf);
+  const { subtotalCents, totalCents } = computeOrderTotals(items, priceCentsOf);
   assert.equal(subtotalCents, 50); // 3*10 + 1*20 — não pode virar 49 ou 51 por float
-  assert.equal(feeCents, Math.round(50 * SERVICE_FEE_RATE));
-  assert.equal(totalCents, subtotalCents + feeCents);
+  assert.equal(totalCents, subtotalCents); // sem taxa de serviço
 });
 
 test("RN04: só cancela enquanto 'Na Fila'", () => {

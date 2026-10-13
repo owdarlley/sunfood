@@ -204,7 +204,7 @@ await step('fluxo do cliente', async () => {
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
   t = await text(page);
-  check('cliente: carrinho soma subtotal + 10% de taxa', t.includes('R$ 50,00') && t.includes('R$ 5,00') && t.includes('R$ 55,00'));
+  check('cliente: carrinho sem taxa de serviço (total = subtotal)', t.includes('R$ 50,00') && !t.includes('Taxa de serviço') && !t.includes('R$ 55,00'));
   await click(page, 'Ir para pagamento');
   t = await text(page);
   check('cliente: aviso de mesas ativas vem do cadastro de mesas', t.includes('Mesas ativas: 1, 3 a 5.'), (t.match(/Mesas? ativas?:[^\n]*/) || [])[0]);
@@ -220,7 +220,7 @@ await step('fluxo do cliente', async () => {
   check('cliente: pedido enviado com mesa e itens certos', sent && sent.tableNumber === 1 && sent.items[0].productId === 'p1' && sent.items[0].qty === 2, JSON.stringify(sent?.items));
   t = await text(page);
   check('cliente: tela do PIX abre', t.includes('Pagamento via PIX'));
-  check('cliente: tela do PIX mostra o valor do pedido (R$ 55,00)', /Valor a pagar\s*R\$ 55,00/.test(t), (t.match(/Valor a pagar\s*(R\$ [\d,.]+)/) || [])[1]);
+  check('cliente: tela do PIX mostra o valor do pedido (R$ 50,00)', /Valor a pagar\s*R\$ 50,00/.test(t), (t.match(/Valor a pagar\s*(R\$ [\d,.]+)/) || [])[1]);
   check('cliente: tela do PIX mostra o código copia-e-cola', t.includes('Copiar código PIX'));
   check('cliente: sem pagamento ainda, não confirma', !t.includes('Pedido confirmado'));
   page.api.approvePayment(sent.id);
