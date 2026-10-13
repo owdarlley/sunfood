@@ -1,0 +1,52 @@
+// App Android do Sunfood: uma Trusted Web Activity que abre https://sunfood.app.br
+// em tela cheia pelo Chrome. O site continua sendo o app; aqui só vão ícone,
+// tela de abertura e o vínculo com o domínio (.well-known/assetlinks.json).
+plugins {
+    id 'com.android.application'
+}
+
+def twa = [
+    host           : 'sunfood.app.br',
+    launchUrl      : '/',
+    name           : 'Sunfood',
+    themeColor     : '#1F5A63',
+    navigationColor: '#F7F5F0',
+    backgroundColor: '#F7F5F0',
+]
+
+android {
+    namespace 'br.app.sunfood'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'br.app.sunfood'
+        minSdk 21
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+
+        manifestPlaceholders = [hostName: twa.host]
+        resValue 'string', 'appName', twa.name
+        resValue 'string', 'launchUrl', "https://${twa.host}${twa.launchUrl}"
+        resValue 'string', 'providerAuthority', 'br.app.sunfood.fileprovider'
+        resValue 'color', 'colorPrimary', twa.themeColor
+        resValue 'color', 'navigationColor', twa.navigationColor
+        resValue 'color', 'backgroundColor', twa.backgroundColor
+        resValue 'string', 'assetStatements', """[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": {"namespace": "web", "site": "https://${twa.host}"}}]"""
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}
