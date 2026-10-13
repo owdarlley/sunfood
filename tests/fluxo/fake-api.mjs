@@ -129,11 +129,12 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     if ((r = p.match(/^\/products\/([^/]+)$/)) && m === 'PUT') { const pr = db.products.find(x => x.id === r[1]);
       db.lastProductBody = body;
       Object.assign(pr, { name: body.name, price: body.price, category: body.category, description: body.description },
-        body.stockQty !== undefined ? { stockQty: body.stockQty } : {}, body.imageUrl !== undefined ? { imageUrl: body.imageUrl } : {});
+        body.stockQty !== undefined ? { stockQty: body.stockQty } : {}, body.imageUrl !== undefined ? { imageUrl: body.imageUrl } : {},
+        body.ingredients !== undefined ? { ingredients: body.ingredients } : {}, body.tags !== undefined ? { tags: body.tags } : {});
       return json(200, pr); }
     if (p === '/products' && m === 'POST') { db.lastProductBody = body;
       const pr = { id: 'p' + (db.products.length + 1), category: body.category, name: body.name, description: body.description, price: body.price,
-        imageKey: null, imageUrl: body.imageUrl || null, stockQty: body.stockQty ?? null, soldOut: false, tags: [] };
+        imageKey: null, imageUrl: body.imageUrl || null, stockQty: body.stockQty ?? null, soldOut: false, ingredients: body.ingredients || '', tags: body.tags || [] };
       db.products.push(pr); return json(201, pr); }
     if ((r = p.match(/^\/products\/([^/]+)\/sold-out$/))) { const pr = db.products.find(x => x.id === r[1]); pr.soldOut = body.soldOut; return json(200, pr); }
     if (p === '/dashboard') return json(200, { revenueToday: 0, ordersToday: 0, avgTicket: 0, topProducts: [], salesByHour: Array.from({ length: 24 }, (_, hour) => ({ hour, revenue: 0 })) });

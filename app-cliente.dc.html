@@ -421,6 +421,11 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .catnew{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:16px}
 .catnew-row{display:flex;gap:8px;flex-wrap:wrap}
 .catnew-row .inp{flex:1;min-width:200px}
+.pf-tags{display:flex;gap:8px;flex-wrap:wrap}
+.pf-tags .fpill{font-size:var(--fs-sm);padding:0 12px}
+.pf-tag-new{display:flex;gap:8px;margin-top:8px}
+.pf-tag-new .inp{flex:1;min-width:0}
+.pf-tag-new .btn{min-height:var(--ctl);flex:none}
 .pthumb{position:relative;width:52px;height:52px;flex:none;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 @media (min-width:1025px){.iconbtn,.swatch{width:44px;height:44px}}
 .fpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer;background:#fff;border:1px solid #E3DDD0;color:#14232A;white-space:nowrap}
@@ -2021,6 +2026,20 @@ select{caret-color:auto}
                     <div><span class="lbl">Preparo</span><input class="inp" value="{{ pfPrepTime }}" onChange="{{ setPfPrepTime }}" placeholder="Ex.: 10 min" /></div>
                   </div>
                   <div><span class="lbl">Descrição</span><textarea class="inp" value="{{ pfDesc }}" onChange="{{ setPfDesc }}" placeholder="Descrição curta que aparece no cardápio"></textarea></div>
+                  <div><span class="lbl">Ingredientes</span><textarea class="inp" value="{{ pfIngredients }}" onChange="{{ setPfIngredients }}" placeholder="Ex.: Cachaça, limão taiti, açúcar, gelo." maxlength="500" style="min-height:72px"></textarea></div>
+                  <div>
+                    <span class="lbl">Etiquetas <span class="muted" style="font-weight:500">({{ pfTagCount }} de 8)</span></span>
+                    <div class="pf-tags">
+                      <sc-for list="{{ pfTagOptions }}" as="tg" hint-placeholder-count="6">
+                        <span onClick="{{ tg.toggle }}" class="fpill {{ tg.cls }}" role="button" aria-pressed="{{ tg.on }}">{{ tg.label }}</span>
+                      </sc-for>
+                    </div>
+                    <div class="pf-tag-new">
+                      <input class="inp" value="{{ pfTagNew }}" onChange="{{ setPfTagNew }}" onKeyDown="{{ pfTagKey }}" placeholder="Outra etiqueta" maxlength="30" />
+                      <div onClick="{{ addPfTag }}" class="btn btn-ghost btn-sm">Adicionar</div>
+                    </div>
+                    <div class="muted" style="font-size:var(--fs-cap);margin-top:6px">Toque para marcar ou desmarcar. Aparecem no detalhe do produto.</div>
+                  </div>
                   <sc-if value="{{ hasPfMsg }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-info">{{ pfMsg }}</div>
                   </sc-if>
@@ -2863,7 +2882,20 @@ const catTile = (cat, cats) => {
   return CAT_COLORS[c && c.color] || CAT_COLORS.areia;
 };
 // Formulário de produto vazio, já na primeira categoria da lista.
-const emptyPf = cats => ({id:null, name:'', price:'', cat:((cats || DEFAULT_CATEGORIES)[0] || {}).name || '', desc:'', portion:'', prepTime:'', stock:'', photo:''});
+const emptyPf = cats => ({id:null, name:'', price:'', cat:((cats || DEFAULT_CATEGORIES)[0] || {}).name || '', desc:'', portion:'', prepTime:'', stock:'', photo:'', ingredients:'', tags:[], tagNew:''});
+
+// Etiquetas do produto: cada uma é [texto, fundo, cor do texto], o mesmo
+// formato que o banco guarda. As sugestões já vêm com a cor do tipo (alerta,
+// "sem"/natural, característica); etiqueta digitada pelo admin usa a lilás.
+const TAG_ALERT = ['#FDEBEA', '#E74C3C'], TAG_WARN = ['#FFF3DE', '#B0791A'], TAG_OK = ['#E7F7ED', '#16A34A'], TAG_INFO = ['#EFEBFF', '#7C5CFF'];
+const TAG_PRESETS = [['Alcoólico', TAG_ALERT], ['+18', TAG_WARN], ['Feito na hora', TAG_INFO], ['Gelado', TAG_INFO],
+  ['Natural', TAG_OK], ['Vegano', TAG_INFO], ['Vegetariano', TAG_OK], ['Sem álcool', TAG_OK], ['Sem glúten', TAG_OK],
+  ['Contém glúten', TAG_WARN], ['Contém lactose', TAG_WARN], ['Frutos do mar', TAG_WARN], ['Picante', TAG_ALERT], ['Serve 2', TAG_INFO]]
+  .map(([t, c]) => [t, c[0], c[1]]);
+const MAX_PF_TAGS = 8;
+const tagLabel = t => Array.isArray(t) ? t[0] : t;
+const sameTag = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+const normTag = t => Array.isArray(t) ? t : (TAG_PRESETS.find(p => sameTag(p[0], t)) || [String(t), TAG_INFO[0], TAG_INFO[1]]);
 
 // Ícones (24×24) do menu lateral do admin.
 const ADM_IC = {
@@ -3822,7 +3854,8 @@ class Component extends DCLogic {
     const stockTrim = String(pf.stock || '').trim();
     if(stockTrim && (!/^\d+$/.test(stockTrim))) return this.setState({pfMsg:'Estoque deve ser um número inteiro (ou vazio p/ ilimitado).'});
     const body = {name:pf.name.trim(), description:pf.desc || '', longDescription:'', category:pf.cat,
-      price, portion:pf.portion || '', prepTime:pf.prepTime || ''};
+      price, portion:pf.portion || '', prepTime:pf.prepTime || '',
+      ingredients:(pf.ingredients || '').trim(), tags:(pf.tags || []).map(normTag)};
     // Na edição, só manda o estoque se o admin mexeu no campo: senão o saldo
     // carregado no formulário sobrescreveria as baixas dos pedidos feitos nesse meio-tempo.
     if(!pf.id || stockTrim !== String(pf.stockOrig || '').trim()) body.stockQty = stockTrim ? Number(stockTrim) : null;
@@ -5008,6 +5041,31 @@ class Component extends DCLogic {
     v.setPfName = v.setPf('name'); v.setPfPrice = v.setPf('price'); v.setPfDesc = v.setPf('desc');
     v.setPfPortion = v.setPf('portion'); v.setPfPrepTime = v.setPf('prepTime'); v.setPfStock = v.setPf('stock');
     v.setPfCat = e => this.setState(x => ({pf:Object.assign({}, x.pf, {cat:e.target.value})}));
+    v.pfIngredients = s.pf.ingredients || ''; v.setPfIngredients = v.setPf('ingredients');
+    const pfTags = s.pf.tags || [];
+    v.pfTagCount = pfTags.length;
+    const setPfTags = fn => this.setState(x => {
+      const tags = fn(x.pf.tags || []);
+      if(tags.length > MAX_PF_TAGS) return {pfMsg:'No máximo ' + MAX_PF_TAGS + ' etiquetas por produto.'};
+      return {pf:Object.assign({}, x.pf, {tags}), pfMsg:''};
+    });
+    const toggleTag = tag => setPfTags(tags => tags.some(t => sameTag(tagLabel(t), tag[0])) ? tags.filter(t => !sameTag(tagLabel(t), tag[0])) : tags.concat([tag]));
+    // Sugestões primeiro; as que o admin digitou (ou que vieram do banco) entram no fim.
+    const extraTags = pfTags.map(normTag).filter(t => !TAG_PRESETS.some(p => sameTag(p[0], t[0])));
+    v.pfTagOptions = TAG_PRESETS.concat(extraTags).map(tag => {
+      const on = pfTags.some(t => sameTag(tagLabel(t), tag[0]));
+      return {label:tag[0], on:on ? 'true' : 'false', cls:on ? 'on' : '', toggle:() => toggleTag(tag)};
+    });
+    v.pfTagNew = s.pf.tagNew || ''; v.setPfTagNew = v.setPf('tagNew');
+    v.addPfTag = () => this.setState(x => {
+      const label = (x.pf.tagNew || '').trim().replace(/\s+/g, ' ').slice(0, 30);
+      const tags = x.pf.tags || [];
+      if(!label) return null;
+      if(tags.some(t => sameTag(tagLabel(t), label))) return {pf:Object.assign({}, x.pf, {tagNew:''})};
+      if(tags.length >= MAX_PF_TAGS) return {pfMsg:'No máximo ' + MAX_PF_TAGS + ' etiquetas por produto.'};
+      return {pf:Object.assign({}, x.pf, {tags:tags.concat([normTag(label)]), tagNew:''}), pfMsg:''};
+    });
+    v.pfTagKey = e => { if(e.key === 'Enter'){ e.preventDefault(); v.addPfTag(); } };
     v.pfOk = !!(s.pf.name.trim() && Number(String(s.pf.price).replace(',', '.')) > 0);
     v.pfBlocked = !v.pfOk;
     v.pfEditing = !!s.pf.id;
@@ -5088,7 +5146,7 @@ class Component extends DCLogic {
       doDelete:() => this.deleteProduct(p.id),
       toggle:() => noStock(p) ? this.flash('Sem estoque. Edite o produto e reponha o estoque para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
 
-      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : '', stockOrig:p.stock != null ? String(p.stock) : '', photo:p.photo || '', photoOrig:p.photo || ''}, pfMsg:''})
+      edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : '', stockOrig:p.stock != null ? String(p.stock) : '', photo:p.photo || '', photoOrig:p.photo || '', ingredients:p.ingredientes || '', tags:(p.tags || []).filter(t => tagLabel(t)).map(normTag), tagNew:''}, pfMsg:''})
     }));
 
     v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
