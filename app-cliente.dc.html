@@ -4299,7 +4299,6 @@ class Component extends DCLogic {
       else cart.push({id:p.id, name:p.name, price:p.price, mark:p.mark, photo:p.photo, qty, note:note || ''});
       return {cart};
     });
-    this.flash(p.name + ' adicionado ao carrinho');
   }
 
   // Cria o pedido no servidor. Retorna o pedido criado (formato da API) ou
