@@ -1096,7 +1096,6 @@ select{caret-color:auto}
                           </div>
                           <div style="border-top:1px dashed #D6CFBF;padding-top:12px">
                             <div class="sumrow"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
-                            <div class="sumrow"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
                             <div class="sumtotal" style="border-top:0;margin-top:2px;padding-top:4px"><span>Total</span><span>{{ totalStr }}</span></div>
                           </div>
                           <div style="margin-top:16px">
@@ -1202,7 +1201,6 @@ select{caret-color:auto}
                     <div class="card" style="padding:var(--cpad)">
                       <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;margin-bottom:8px">Resumo</div>
                       <div class="sumrow"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
-                      <div class="sumrow"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
                       <div class="sumtotal"><span>Total a pagar</span><span>{{ totalStr }}</span></div>
                     </div>
                     <sc-if value="{{ minWarn }}" hint-placeholder-val="{{ false }}">
@@ -1273,7 +1271,6 @@ select{caret-color:auto}
                       </sc-for>
                       <div style="border-top:1px dashed #D6CFBF;margin-top:8px;padding-top:8px">
                         <div class="sumrow" style="font-size:var(--fs-sm)"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
-                        <div class="sumrow" style="font-size:var(--fs-sm)"><span>Taxa de serviço (10%)</span><span>{{ feeStr }}</span></div>
                       </div>
                       <div class="sumtotal" style="border-top:0;margin-top:0;padding-top:8px"><span>Total</span><span>{{ totalStr }}</span></div>
                     </div>
@@ -2060,7 +2057,7 @@ select{caret-color:auto}
                   <div style="display:flex;align-items:center;gap:12px;margin-top:20px"><span style="{{ pauseDotStyle }};width:14px;height:14px"></span><span class="tt" style="font-size:var(--fs-h2)">{{ pauseLabel }}</span></div>
                 </div>
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-                  <div><h2 style="margin:0">Pedido mínimo</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ minOrderStr }}. O cliente só fecha o pedido se o subtotal (sem a taxa) chegar nesse valor. Use 0 para não ter mínimo.</div></div>
+                  <div><h2 style="margin:0">Pedido mínimo</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ minOrderStr }}. O cliente só fecha o pedido se o total chegar nesse valor. Use 0 para não ter mínimo.</div></div>
                   <div style="display:flex;gap:8px">
                     <input class="inp" value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" placeholder="Ex.: 15,00" style="flex:1;min-width:0" />
                     <div onClick="{{ saveMinOrder }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar mínimo</div>
@@ -4555,8 +4552,7 @@ class Component extends DCLogic {
     v.showCartPill = v.hasCart && ['menu','cart','table','payment'].indexOf(s.screen) < 0;
     v.cartCountStr = v.cartCount + (v.cartCount === 1 ? ' item no carrinho' : ' itens no carrinho');
     v.subtotalStr = f(this.subtotal());
-    v.feeStr = f(this.subtotal() * 0.1);
-    v.totalStr = f(this.subtotal() * 1.1);
+    v.totalStr = f(this.subtotal());
     v.goCart = () => this.go(v.hasCart ? 'cart' : 'cartEmpty');
     const minPct = s.minOrder > 0 ? Math.min(100, Math.round(this.subtotal() / s.minOrder * 100)) : 100;
     v.minProgStyle = 'width:' + minPct + '%;background:' + (minPct >= 100 ? '#1F5A63' : '#F5B83D');

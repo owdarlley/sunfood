@@ -447,7 +447,7 @@ test("admin escolhe quantas mesas existem e o pedido respeita", async () => {
 test("PIX provisório: aprovado na hora e vai para a cozinha", async () => {
   let r = await api("POST", "/orders", { tableNumber: 1, items: [{ productId: P1, qty: 2 }], paymentMethod: "pix" }, anaToken);
   assert.equal(r.status, 201);
-  assert.equal(r.body.total, 55);
+  assert.equal(r.body.total, 50);
   pixOrder = r.body.id;
   const cozinha = staff("cozinha");
   let fila = await api("GET", "/orders", null, cozinha);
