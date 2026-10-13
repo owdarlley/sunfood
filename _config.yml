@@ -1,0 +1,4 @@
+# GitHub Pages: publica a pasta .well-known (assetlinks.json do app Android)
+# e deixa o projeto Android fora do site.
+include: [".well-known"]
+exclude: ["android"]

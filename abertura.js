@@ -5,8 +5,8 @@
 // antes do primeiro quadro.
 // - Roda na primeira página da sessão: no login, ou no app quando quem já
 //   entrou é mandado direto para o seu módulo (o login sai antes de mostrar).
-// - No login o logo voa para o seu lugar no topo; no app a abertura espera o
-//   app montar e some esmaecendo.
+// - O logo voa para o seu lugar no topo, no login e no app; no app a
+//   abertura antes espera o app montar.
 // - Não roda em link direto para painel do rodapé (#termos etc.) nem em
 //   navegador automatizado (os testes de fluxo não esperam por ela).
 (function () {
@@ -61,17 +61,35 @@
     timers.forEach(clearTimeout);
     anims.forEach(function (x) { x.finish(); });
     $('.sfb-lock').style.transform = ''; $('.sfb-name').style.clipPath = '';
-    logo = noApp ? null : document.querySelector('.lp-logo');
+    logo = noApp ? marcaDoApp() : document.querySelector('.lp-logo');
     var alvo = logo && logo.querySelector('svg');
-    if (reduz || !alvo || noApp) { el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards' }).onfinish = fim; return; }
-    // O logo (sol + nome) encolhe até o lugar dele no topo do login.
-    var lock = $('.sfb-lock'), sol = $('.sfb-hz').getBoundingClientRect(), r = alvo.getBoundingClientRect();
+    if (reduz || !alvo) { el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards' }).onfinish = fim; return; }
+    // O logo (sol + nome) encolhe até o lugar dele no topo (login ou app).
+    // Os raios do sol do app vão até mais perto da borda do desenho (32 de
+    // 36) que os da abertura (38 de 48); a escala casa o tamanho dos raios
+    // e o centro do sol cai no centro do sol de destino.
+    var lock = $('.sfb-lock'), L = lock.getBoundingClientRect(), sol = $('.sfb-hz').getBoundingClientRect(), r = alvo.getBoundingClientRect();
+    var s = (r.height * (noApp ? 32 / 36 : 38 / 48)) / (sol.height * 38 / 48);
+    var px = sol.left + sol.width / 2 - L.left, py = sol.top + sol.height / 2 - L.top;
+    var tx = r.left + r.width / 2 - L.left - s * px, ty = r.top + r.height / 2 - L.top - s * py;
     logo.style.visibility = 'hidden';
     lock.style.transformOrigin = '0 0';
-    lock.animate([{ transform: 'none' }, { transform: 'translate(' + (r.left - sol.left) + 'px,' + (r.top - sol.top) + 'px) scale(' + (r.height / sol.height) + ')' }],
+    lock.animate([{ transform: 'none' }, { transform: 'translate(' + tx + 'px,' + ty + 'px) scale(' + s + ')' }],
       { duration: 520, easing: 'cubic-bezier(.65,0,.25,1)', fill: 'forwards' }).onfinish = fim;
+    // No app o nome pode ser branco (cabeçalho escuro): a cor acompanha.
+    var cor = getComputedStyle(logo).color;
+    $('.sfb-name').animate([{ color: '#1F5A63' }, { color: cor }], { duration: 520, easing: 'cubic-bezier(.65,0,.25,1)', fill: 'forwards' });
     $('.sfb-sea').animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px)' }], { duration: 260, fill: 'forwards' });
     $('.sfb-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, delay: 80, easing: 'ease-out', fill: 'forwards' });
+  }
+  // Marca (sol + "Sunfood") visível no topo do app, onde o logo pousa.
+  function marcaDoApp() {
+    var marcas = document.querySelectorAll('#dc-root .brand, #dc-root .adm-brand');
+    for (var i = 0; i < marcas.length; i++) {
+      var b = marcas[i].getBoundingClientRect();
+      if (b.width && b.height && b.bottom > 0 && b.top < innerHeight && b.right > 0 && b.left < innerWidth && /Sunfood/.test(marcas[i].textContent)) return marcas[i];
+    }
+    return null;
   }
   // No app, só sai depois que ele montou (no máximo 4 s), para não revelar a tela vazia.
   function quandoPronto(fn) {

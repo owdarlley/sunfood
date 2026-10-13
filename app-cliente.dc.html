@@ -3095,6 +3095,13 @@ class Component extends DCLogic {
       if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue') this.pollOrder(o._apiId);
       if((this.state.module === 'admin' || this.state.module === 'cozinha') && this.state.token) this.loadAdminData();
     }, 3000);
+    // Cardápio do cliente acompanha a disponibilidade a cada 15 s e quando a
+    // aba volta a ficar visível (o celular costuma pausar abas em segundo plano).
+    this.menuTimer = setInterval(() => {
+      if(this.state.module === 'cliente' && !document.hidden) this.refreshProducts();
+    }, 15000);
+    this.onVisible = () => { if(this.state.module === 'cliente' && !document.hidden) this.refreshProducts(); };
+    document.addEventListener('visibilitychange', this.onVisible);
   }
 
   restoreSession(){
@@ -3483,11 +3490,42 @@ class Component extends DCLogic {
       const categories = await categoriesReq;
       if(Array.isArray(categories) && categories.length) catalog.categories = categories.map(c => ({name:c.name, color:c.color}));
       saveCatalogCache(catalog);
-      this.setState(Object.assign({catalogPending:false}, catalog));
+      this.setState(Object.assign({catalogPending:false}, catalog), () => this.dropUnavailableFromCart());
     } catch(e){
       // API fora do ar: mostra o que já tinha (guardado ou de exemplo).
       this.setState({catalogPending:false});
     }
+  }
+
+  // Cliente: busca só os produtos de novo, para que um item marcado como
+  // indisponível pelo admin/cozinha suma do cardápio sem recarregar a página.
+  async refreshProducts(){
+    try {
+      const res = await fetch(API_BASE + '/products');
+      if(!res.ok) return;
+      const products = (await res.json()).map(apiProductToState);
+      // Nada mudou: não redesenha a tela (a consulta roda a cada 15 s).
+      if(JSON.stringify(products) === JSON.stringify(this.state.products)) return;
+      const cache = readCatalogCache();
+      if(cache) saveCatalogCache(Object.assign(cache, {products}));
+      this.setState({products}, () => this.dropUnavailableFromCart());
+    } catch(e){}
+  }
+
+  // Tira do carrinho o que ficou indisponível (ou saiu do cardápio) e avisa.
+  dropUnavailableFromCart(){
+    const s = this.state;
+    const ok = id => s.products.some(p => p.id === id && !p.soldOut);
+    const gone = s.cart.filter(c => !ok(c.id));
+    const leaveProduct = s.screen === 'product' && !ok(s.selId);
+    if(!gone.length && !leaveProduct) return;
+    const update = {cart:s.cart.filter(c => ok(c.id))};
+    if(leaveProduct) update.screen = 'menu';
+    if(gone.length && !update.cart.length && ['cart','table','payment'].indexOf(s.screen) >= 0) update.screen = 'menu';
+    this.setState(update);
+    const names = gone.map(c => c.name).filter((n, i, a) => a.indexOf(n) === i);
+    if(names.length) this.flash(names.join(', ') + (names.length > 1 ? ' acabaram e saíram' : ' acabou e saiu') + ' do seu carrinho.');
+    else this.flash('Esse item acabou e saiu do cardápio.');
   }
 
   // Admin/Cozinha: pedidos (kanban/lista) sempre; dashboard/operação só pro admin.
@@ -4116,9 +4154,11 @@ class Component extends DCLogic {
   async submitSignup(){
     if(this.state.busy) return;
     const s = this.state;
-    if(!(s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6)){
-      return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'});
-    }
+    if(s.suName.trim().length <= 2) return this.setState({suErr:'Informe seu nome completo.'});
+    // Mesmo formato que a API exige (nome@dominio.com): "ana@email" sem o
+    // ".com" passava aqui e só voltava do servidor como "Dados inválidos.".
+    if(!isEmailContact(s.suEmail)) return this.setState({suErr:'Informe um e-mail válido, como nome@email.com.'});
+    if(s.suPass.length < 6) return this.setState({suErr:'A senha precisa ter 6 ou mais caracteres.'});
     if(s.suPass !== s.suPass2) return this.setState({suErr:'As senhas não conferem.'});
     if(s.suPhone.replace(/\D/g, '').length < 10) return this.setState({suErr:'Informe um telefone/WhatsApp válido.'});
     if(!isValidCpf(s.suCpf)) return this.setState({suErr:'CPF inválido. Confira os números.'});
@@ -4134,7 +4174,7 @@ class Component extends DCLogic {
         })
       });
       const data = await res.json();
-      if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível criar a conta.'}); return; }
+      if(!res.ok){ this.setState({suErr: (data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível criar a conta.'}); return; }
       if(data.requiresEmailConfirmation){
         this.irParaLogin('Conta criada. Confirme seu e-mail antes de entrar.', true, s.suEmail.trim());
       } else {
@@ -4191,7 +4231,7 @@ class Component extends DCLogic {
     this.setState({module:mod, screen});
   }
 
-  componentWillUnmount(){ clearInterval(this.timer); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); if(this._fxObs) this._fxObs.disconnect(); }
+  componentWillUnmount(){ clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); if(this._fxObs) this._fxObs.disconnect(); }
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
   go(screen, module){
@@ -4454,7 +4494,10 @@ class Component extends DCLogic {
     const inCartQty = id => s.cart.filter(c => c.id === id).reduce((a, c) => a + c.qty, 0);
     v.catalogPending = !!s.catalogPending;
     v.skeletonCards = s.catalogPending ? [1, 2, 3, 4, 5, 6] : [];
+    // Indisponível/esgotado some do cardápio do cliente (admin e cozinha
+    // continuam vendo o item nas telas deles para poder reativar).
     v.menuItems = s.catalogPending ? [] : s.products
+      .filter(p => !p.soldOut)
       .filter(p => curCat === 'Todos' || p.cat === curCat)
       .slice().sort((a, b) => catOrder(a) - catOrder(b))
       .filter(p => !menuQuery || p.name.toLowerCase().includes(menuQuery) || (p.desc || '').toLowerCase().includes(menuQuery))
