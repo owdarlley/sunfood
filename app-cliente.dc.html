@@ -4145,9 +4145,11 @@ class Component extends DCLogic {
   async submitSignup(){
     if(this.state.busy) return;
     const s = this.state;
-    if(!(s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6)){
-      return this.setState({suErr:'Preencha nome, e-mail válido e senha com 6+ caracteres.'});
-    }
+    if(s.suName.trim().length <= 2) return this.setState({suErr:'Informe seu nome completo.'});
+    // Mesmo formato que a API exige (nome@dominio.com): "ana@email" sem o
+    // ".com" passava aqui e só voltava do servidor como "Dados inválidos.".
+    if(!isEmailContact(s.suEmail)) return this.setState({suErr:'Informe um e-mail válido, como nome@email.com.'});
+    if(s.suPass.length < 6) return this.setState({suErr:'A senha precisa ter 6 ou mais caracteres.'});
     if(s.suPass !== s.suPass2) return this.setState({suErr:'As senhas não conferem.'});
     if(s.suPhone.replace(/\D/g, '').length < 10) return this.setState({suErr:'Informe um telefone/WhatsApp válido.'});
     if(!isValidCpf(s.suCpf)) return this.setState({suErr:'CPF inválido. Confira os números.'});
@@ -4163,7 +4165,7 @@ class Component extends DCLogic {
         })
       });
       const data = await res.json();
-      if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível criar a conta.'}); return; }
+      if(!res.ok){ this.setState({suErr: (data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível criar a conta.'}); return; }
       if(data.requiresEmailConfirmation){
         this.irParaLogin('Conta criada. Confirme seu e-mail antes de entrar.', true, s.suEmail.trim());
       } else {
