@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.app.sunfood",
+      "sha256_cert_fingerprints": [
+        "A3:92:95:4B:72:A9:AA:A9:0F:07:01:A7:6C:38:04:EC:96:62:5A:3D:41:68:6E:38:77:AC:FE:56:52:FE:B6:05"
+      ]
+    }
+  }
+]
