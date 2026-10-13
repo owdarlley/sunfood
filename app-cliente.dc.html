@@ -2596,8 +2596,17 @@ function apiProductToState(p){
     nota:p.rating, avaliacoes:p.reviewCount, ingredientes:p.ingredients, tags:p.tags};
 }
 
+// Número que aparece na tela: o curto do dia (#001, #002...) que o servidor
+// manda em "number". Sem ele (pedido antigo ou banco ainda sem a coluna),
+// encurta o id pra não mostrar o uuid inteiro.
+function orderCode(o){
+  if(Number.isInteger(o.number) && o.number > 0) return '#' + String(o.number).padStart(3, '0');
+  const id = String(o.id || '');
+  return '#' + (id.length > 8 ? id.slice(0, 6).toUpperCase() : id);
+}
+
 function orderFromApi(o){
-  return {id:'#' + o.id, _apiId:o.id, table:o.tableNumber, total:o.total, status:o.status, obs:o.note || '',
+  return {id:orderCode(o), _apiId:o.id, table:o.tableNumber, total:o.total, status:o.status, obs:o.note || '',
     paymentStatus:o.paymentStatus || 'pending', paymentMethod:o.paymentMethod || 'pix', paymentProvider:o.paymentProvider || null, cancelDeadline:o.cancelDeadline || null,
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
 }
@@ -2643,7 +2652,7 @@ function formatWhen(isoDatetime){
 }
 
 function historyEntryFromApi(o){
-  return {id:'#' + o.id, when:formatWhen(o.createdAt), table:o.tableNumber, total:o.total, status:o.status,
+  return {id:orderCode(o), when:formatWhen(o.createdAt), table:o.tableNumber, total:o.total, status:o.status,
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty}))};
 }
 
@@ -2678,7 +2687,7 @@ function secondsToLabel(totalSeconds){
 // numérico real da API preservado (apiId) para as ações de avançar status.
 function adminOrderFromApi(o){
   return {
-    id:'#' + o.id, apiId:o.id, table:o.tableNumber, status:o.status, totalStr:'R$ ' + o.total.toFixed(2).replace('.', ','),
+    id:orderCode(o), apiId:o.id, table:o.tableNumber, status:o.status, totalStr:'R$ ' + o.total.toFixed(2).replace('.', ','),
     itemsStr:o.items.map(it => it.qty + 'x ' + it.name).join(' · '),
     customer:o.customerName || '', obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt,
     paymentMethod:o.paymentMethod || 'pix', paymentStatus:o.paymentStatus || 'pending',
@@ -4421,7 +4430,7 @@ class Component extends DCLogic {
     if(!saved || !saved.token) return;
     const failed = mpStatus === 'rejected' || mpStatus === 'null' || mpStatus === 'failure';
     this.setState({module:'cliente', screen:failed ? 'payFail' : 'card', cardWaiting:!failed,
-      order:{id:'#' + orderId, _apiId:orderId, table:'—', total:0, status:'Na Fila', obs:'', paymentStatus:'pending', paymentMethod:'cartao', items:[]}});
+      order:{id:orderCode({id:orderId}), _apiId:orderId, table:'—', total:0, status:'Na Fila', obs:'', paymentStatus:'pending', paymentMethod:'cartao', items:[]}});
     this.pollOrder(orderId, saved.token);
   }
 

@@ -113,7 +113,7 @@ const rpc = async (name, args) => {
       if (prod.stock_qty !== null && prod.stock_qty < it.qty) return { error: { message: "out_of_stock:" + prod.name } };
     }
     const id = "o" + (db.orders.length + 1);
-    db.orders.push({ id, customer_id: p.customerId, table_number: p.tableNumber, status: "Na Fila", subtotal: p.subtotal,
+    db.orders.push({ id, daily_number: db.orders.length + 1, customer_id: p.customerId, table_number: p.tableNumber, status: "Na Fila", subtotal: p.subtotal,
       total: p.total, note: p.note, payment_method: p.paymentMethod || "pix", payment_status: "pending",
       created_at: new Date().toISOString() });
     for (const it of p.items) {
@@ -390,6 +390,7 @@ test("admin muda o pedido mínimo e o cliente sente na hora", async () => {
   assert.equal(r.body.minOrder, 5);
   r = await api("POST", "/orders", { tableNumber: 1, items: [{ productId: P2, qty: 1 }], paymentMethod: "entrega" }, anaToken);
   assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.ok(Number.isInteger(r.body.number) && r.body.number > 0, "pedido vem com o número curto do dia");
   await api("PATCH", "/kiosk-settings/min-order", { minOrder: 10 }, admin);
   r = await api("PATCH", "/kiosk-settings/min-order", { minOrder: 10 }, anaToken);
   assert.equal(r.status, 403, "cliente não pode mudar o mínimo");

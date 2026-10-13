@@ -43,6 +43,8 @@ async function loadCancelWindow() {
 function toApi(row, cancelWindow) {
   return {
     id: row.id,
+    // Número curto do dia (1, 2, 3...), que o app mostra como #001.
+    number: row.daily_number ?? null,
     tableNumber: row.table_number,
     userId: row.customer_id,
     customerName: row.customer_name,
