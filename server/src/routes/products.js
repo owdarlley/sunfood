@@ -48,6 +48,8 @@ function fromApi(p) {
   if (p.stockQty !== undefined) row.stock_qty = p.stockQty;
   // Mesma ideia: ausente = mantém a foto; null = tira a foto.
   if (p.imageUrl !== undefined) row.image_url = p.imageUrl;
+  if (p.ingredients !== undefined) row.ingredients = p.ingredients;
+  if (p.tags !== undefined) row.tags = p.tags;
   return row;
 }
 
