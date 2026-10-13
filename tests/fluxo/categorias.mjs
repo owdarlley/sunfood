@@ -71,7 +71,7 @@ await step('cardápio sem fotos', async () => {
   const imgs = await page.evaluate(() => [...document.querySelectorAll('.pcard .pimg span')].filter(s => /background-image:\s*url\("?[^")]/.test(s.getAttribute('style') || '')).length);
   const icons = await page.locator('.pcard .pimg svg').count();
   check('cliente: nenhum prato com foto padrão', imgs === 0, String(imgs));
-  check('cliente: cada prato mostra o ícone na cor da categoria', icons === 5, String(icons));
+  check('cliente: cada prato disponível mostra o ícone na cor da categoria (Açaí esgotado fica escondido)', icons === 4, String(icons));
   check('cliente: abas na ordem das categorias', JSON.stringify(await tabs(page)) === JSON.stringify(['Todos', 'Petiscos', 'Bebidas', 'Pratos', 'Sobremesas']), JSON.stringify(await tabs(page)));
   check('cliente: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
