@@ -146,7 +146,12 @@ a:hover{color:#174A52}
 textarea.inp{min-height:96px;padding:12px 16px;resize:vertical;line-height:1.5}
 select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2355626A' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;padding-right:40px}
 .alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;display:flex;gap:12px;align-items:flex-start}
-.pf-photo{position:relative;width:100%;aspect-ratio:4/3;max-height:240px;border-radius:var(--r-ctl);overflow:hidden;background:var(--surface-off);border:1px dashed var(--field)}
+.pf-photo-row{display:flex;gap:12px;align-items:center}
+@media (min-width:1440px){.col-side.pf-side{flex-basis:420px}}
+.pf-actions{display:flex;flex-direction:column;gap:12px}
+.pf-photo-acts{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.pf-photo-acts .btn{width:100%}
+.pf-photo{position:relative;flex:0 0 160px;width:160px;aspect-ratio:4/3;border-radius:var(--r-ctl);overflow:hidden;background:var(--surface-off);border:1px dashed var(--field)}
 .pf-photo-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;text-align:center;color:var(--ink-2);font:500 var(--fs-sm)/1.4 'Manrope',system-ui,sans-serif}
 .alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
 .alert-warn{background:#FFF4DB;color:#5C3900;border:1px solid #F0D9A8}
@@ -200,6 +205,17 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 /* Coluna lateral com largura fixa: o resumo do carrinho crescer não pode
    apertar o cardápio ao lado (antes os cartões mudavam de tamanho ao adicionar). */
 .col-side{flex:0 0 360px;min-width:0;max-width:100%;display:flex;flex-direction:column;gap:var(--gap)}
+/* Formulário de produto (admin): no computador fica preso ao lado da lista,
+   mas com altura limitada à tela e rolagem própria, senão o fim do formulário
+   (ingredientes, etiquetas, salvar) ficava fora da tela. */
+@media (min-width:921px){
+  /* Altura = tela menos o cabeçalho da página (~140px), para o pé com o
+     botão Salvar já aparecer antes de rolar a página. */
+  .pf-side{position:sticky;top:20px;max-height:calc(100vh - 160px);max-height:calc(100dvh - 160px);min-height:min(520px, calc(100dvh - 40px))}
+  .pf-panel{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  /* Salvar sempre à vista no pé do painel enquanto rola o formulário. */
+  .pf-actions{position:sticky;bottom:calc(-1 * var(--cpad));margin:0 calc(-1 * var(--cpad)) calc(-1 * var(--cpad));padding:12px var(--cpad) var(--cpad);background:#fff;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+}
 .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
 /* Cardápio: 2 colunas no celular, 3 no tablet, 4 no computador e 5 em tela larga */
@@ -422,6 +438,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .catnew-row{display:flex;gap:8px;flex-wrap:wrap}
 .catnew-row .inp{flex:1;min-width:200px}
 .pf-tags{display:flex;gap:8px;flex-wrap:wrap}
+.pf-pill{font-size:var(--fs-sm);padding:0 12px}
 .pf-tags .fpill{font-size:var(--fs-sm);padding:0 12px}
 .pf-tag-new{display:flex;gap:8px;margin-top:8px}
 .pf-tag-new .inp{flex:1;min-width:0}
@@ -2067,21 +2084,24 @@ select{caret-color:auto}
                   </sc-for>
                 </div>
               </div>
-              <div class="col-side" style="position:sticky;top:20px">
-                <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+              <div class="col-side pf-side">
+                <div class="panel pf-panel" style="display:flex;flex-direction:column;gap:12px">
                   <div style="font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif">{{ pfFormTitle }}</div>
                   <div>
                     <span class="lbl">Foto</span>
+                    <div class="pf-photo-row">
                     <div class="pf-photo">
                       <sc-if value="{{ pfHasOwnPhoto }}" hint-placeholder-val="{{ false }}"><span style="{{ pfOwnPhotoStyle }}" role="img" aria-label="Foto do produto"></span></sc-if>
                       <sc-if value="{{ pfNoOwnPhoto }}" hint-placeholder-val="{{ false }}">
-                        <span class="pf-photo-empty"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Sem foto: o cardápio mostra a cor da categoria</span>
+                        <span class="pf-photo-empty"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Sem foto</span>
                       </sc-if>
                       <sc-if value="{{ pfPhotoBusy }}" hint-placeholder-val="{{ false }}"><span class="pf-photo-empty">Enviando foto…</span></sc-if>
                     </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-                      <label class="btn btn-ghost btn-sm" style="position:relative;flex:1;min-height:44px;cursor:pointer">{{ pfPhotoBtnLabel }}<input type="file" accept="image/*" onChange="{{ pickPfPhoto }}" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" /></label>
-                      <sc-if value="{{ pfHasOwnPhoto }}" hint-placeholder-val="{{ false }}"><div onClick="{{ removePfPhoto }}" class="btn btn-ghost btn-sm" style="min-height:44px">Remover</div></sc-if>
+                    <div class="pf-photo-acts">
+                      <label class="btn btn-ghost btn-sm" style="position:relative;cursor:pointer">{{ pfPhotoBtnLabel }}<input type="file" accept="image/*" onChange="{{ pickPfPhoto }}" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" /></label>
+                      <sc-if value="{{ pfHasOwnPhoto }}" hint-placeholder-val="{{ false }}"><div onClick="{{ removePfPhoto }}" class="btn btn-ghost btn-sm">Remover</div></sc-if>
+                      <div class="muted" style="font-size:var(--fs-cap);line-height:1.4">Sem foto, o cardápio mostra a cor da categoria.</div>
+                    </div>
                     </div>
                   </div>
                   <div><span class="lbl">Nome</span><input class="inp" value="{{ pfName }}" onChange="{{ setPfName }}" placeholder="Nome do produto" /></div>
@@ -2089,7 +2109,7 @@ select{caret-color:auto}
                     <span class="lbl">Categoria</span>
                     <div style="display:flex;gap:8px;flex-wrap:wrap">
                       <sc-for list="{{ pfCategoryOptions }}" as="co" hint-placeholder-count="4">
-                        <span onClick="{{ co.pick }}" class="fpill {{ co.cls }}" style="min-height:44px;font-size:var(--fs-sm);padding:0 12px">{{ co.cat }}</span>
+                        <span onClick="{{ co.pick }}" class="fpill pf-pill {{ co.cls }}">{{ co.cat }}</span>
                       </sc-for>
                     </div>
                   </div>
@@ -2099,13 +2119,13 @@ select{caret-color:auto}
                     <div><span class="lbl">Porção</span><input class="inp" value="{{ pfPortion }}" onChange="{{ setPfPortion }}" placeholder="Ex.: 300 ml" /></div>
                     <div><span class="lbl">Preparo</span><input class="inp" value="{{ pfPrepTime }}" onChange="{{ setPfPrepTime }}" placeholder="Ex.: 10 min" /></div>
                   </div>
-                  <div><span class="lbl">Descrição</span><textarea class="inp" value="{{ pfDesc }}" onChange="{{ setPfDesc }}" placeholder="Descrição curta que aparece no cardápio"></textarea></div>
+                  <div><span class="lbl">Descrição</span><textarea class="inp" value="{{ pfDesc }}" onChange="{{ setPfDesc }}" placeholder="Descrição curta que aparece no cardápio" style="min-height:72px"></textarea></div>
                   <div><span class="lbl">Ingredientes</span><textarea class="inp" value="{{ pfIngredients }}" onChange="{{ setPfIngredients }}" placeholder="Ex.: Cachaça, limão taiti, açúcar, gelo." maxlength="500" style="min-height:72px"></textarea></div>
                   <div>
                     <span class="lbl">Etiquetas <span class="muted" style="font-weight:500">({{ pfTagCount }} de 8)</span></span>
                     <div class="pf-tags">
                       <sc-for list="{{ pfTagOptions }}" as="tg" hint-placeholder-count="6">
-                        <span onClick="{{ tg.toggle }}" class="fpill {{ tg.cls }}" role="button" aria-pressed="{{ tg.on }}">{{ tg.label }}</span>
+                        <span onClick="{{ tg.toggle }}" class="fpill pf-pill {{ tg.cls }}" role="button" aria-pressed="{{ tg.on }}">{{ tg.label }}</span>
                       </sc-for>
                     </div>
                     <div class="pf-tag-new">
@@ -2114,10 +2134,12 @@ select{caret-color:auto}
                     </div>
                     <div class="muted" style="font-size:var(--fs-cap);margin-top:6px">Toque para marcar ou desmarcar. Aparecem no detalhe do produto.</div>
                   </div>
-                  <sc-if value="{{ hasPfMsg }}" hint-placeholder-val="{{ false }}">
-                    <div class="alert alert-info">{{ pfMsg }}</div>
-                  </sc-if>
-                  <div onClick="{{ savePf }}" class="btn btn-sun">Salvar produto</div>
+                  <div class="pf-actions">
+                    <sc-if value="{{ hasPfMsg }}" hint-placeholder-val="{{ false }}">
+                      <div class="alert alert-info">{{ pfMsg }}</div>
+                    </sc-if>
+                    <div onClick="{{ savePf }}" class="btn btn-sun">Salvar produto</div>
+                  </div>
                 </div>
               </div>
             </div>
