@@ -2464,7 +2464,7 @@ select{caret-color:auto}
           </div>
           <sc-if value="{{ soundOff }}" hint-placeholder-val="{{ true }}">
             <div class="kz-sound">
-              <span style="font:500 var(--fs-body) 'Manrope',system-ui,sans-serif;color:#7A4B00"><b>O som de novos pedidos está desligado.</b> O navegador só libera o som depois de um toque.</span>
+              <span style="font:500 var(--fs-body) 'Manrope',system-ui,sans-serif;color:#7A4B00"><b>O som de novos pedidos está desligado.</b> Ligue para ouvir um aviso quando chegar pedido novo.</span>
               <span onClick="{{ toggleSound }}" class="btn btn-sun btn-sm" style="min-height:var(--ctl)">Ativar som</span>
             </div>
           </sc-if>
@@ -2994,6 +2994,15 @@ async function shrinkPhoto(file){
 // o cardápio de exemplo e trocar tudo quando a resposta chega (os cartões
 // "pulavam"). Na primeira visita mostra cartões vazios até a API responder.
 const CATALOG_KEY = 'sunfood_catalog';
+// Som de pedido novo/pronto da equipe (Cozinha e Garçom): fica salvo neste
+// aparelho e vem ligado por padrão; só desliga se a pessoa desligar.
+const STAFF_SOUND_KEY = 'sunfood_staff_sound';
+function loadStaffSound(){
+  try { return localStorage.getItem(STAFF_SOUND_KEY) !== 'off'; } catch(e){ return true; }
+}
+function saveStaffSound(on){
+  try { localStorage.setItem(STAFF_SOUND_KEY, on ? 'on' : 'off'); } catch(e){}
+}
 function readCatalogCache(){
   try {
     const c = JSON.parse(localStorage.getItem(CATALOG_KEY) || 'null');
@@ -3487,8 +3496,10 @@ class Component extends DCLogic {
     catNewName:'', catNewColor:'areia', catMsg:'', catBusy:false, catDeleting:null,
     // Admin: filtro/busca da lista de pedidos e filtro do cardápio.
     admFilter:'Todos', admSearch:'', admCat:'Todos',
-    // Cozinha: som de pedido novo (o navegador só toca depois de um toque).
-    soundOn:false,
+    // Cozinha/Garçom: som de pedido novo, salvo no aparelho (ligado por padrão).
+    // O navegador só libera o áudio depois do primeiro toque na tela; o
+    // unlockAudio() do componentDidMount cuida disso sozinho.
+    soundOn:loadStaffSound(),
     // Tela Perfil: dados de GET /auth/profile (telefone, nascimento, CPF
     // mascarado, se a conta tem senha) e os campos de Editar perfil / Trocar senha.
     profileInfo:null, meName:'', mePhone:'', meBirth:'', meErr:'', avatarErr:'',
@@ -3508,6 +3519,10 @@ class Component extends DCLogic {
 
 
   componentDidMount(){
+    // O navegador bloqueia som até a pessoa tocar na tela: no primeiro toque
+    // (ou tecla) o áudio é liberado, sem precisar ligar o som de novo.
+    this._unlockAudio = () => this.unlockAudio();
+    ['pointerdown','touchend','keydown'].forEach(ev => document.addEventListener(ev, this._unlockAudio, true));
     // Esmaecido nas bordas das listas que rolam de lado (fx-l / fx-r).
     const FX = '.cats,.kz-tabs';
     const fx = el => { const max = el.scrollWidth - el.clientWidth; el.classList.toggle('fx-r', max > 2 && el.scrollLeft < max - 2); el.classList.toggle('fx-l', max > 2 && el.scrollLeft > 2); };
@@ -4077,11 +4092,31 @@ class Component extends DCLogic {
     }
   }
 
+  audioCtx(){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    this._audio = this._audio || new AC();
+    return this._audio;
+  }
+
+  // Chamado num toque/tecla: cria e destrava o áudio. Depois que destrava,
+  // para de escutar.
+  unlockAudio(){
+    try {
+      const ac = this.audioCtx(); if(!ac) return;
+      if(ac.state === 'suspended') ac.resume().catch(() => {});
+      // Um som mudo dentro do gesto garante a liberação no Safari/iOS.
+      const b = ac.createBuffer(1, 1, 22050), src = ac.createBufferSource();
+      src.buffer = b; src.connect(ac.destination); src.start(0);
+      ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true));
+    } catch(e){}
+  }
+
   beep(){
     try {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      this._audio = this._audio || new AC();
-      const ac = this._audio, t0 = ac.currentTime;
+      const ac = this.audioCtx(); if(!ac) return;
+      if(ac.state === 'suspended') ac.resume().catch(() => {});
+      const t0 = ac.currentTime;
       [0, 0.2].forEach(dt => {
         const osc = ac.createOscillator(), gain = ac.createGain();
         osc.frequency.value = 880;
@@ -4853,7 +4888,7 @@ class Component extends DCLogic {
     this.setState({module:mod, screen});
   }
 
-  componentWillUnmount(){ clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); if(this._fxObs) this._fxObs.disconnect(); }
+  componentWillUnmount(){ clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
   go(screen, module){
@@ -5820,7 +5855,7 @@ class Component extends DCLogic {
     v.soundIc = s.soundOn ? 'M4 9v6h4l5 4V5L8 9z M16 9a4 4 0 0 1 0 6 M19 6a8 8 0 0 1 0 12' : 'M4 9v6h4l5 4V5L8 9z M17 9l5 6 M22 9l-5 6';
     v.kTitle = s.screen === 'unavailable' ? 'Disponibilidade' : 'Pedidos';
     v.kEyebrow = 'Atualiza sozinho, em tempo real';
-    v.toggleSound = () => { const on = !this.state.soundOn; this.setState({soundOn:on}); if(on) this.beep(); };
+    v.toggleSound = () => { const on = !this.state.soundOn; saveStaffSound(on); this.setState({soundOn:on}); if(on) this.beep(); };
     v.isAdminUser = !!(s.authUser && s.authUser.role === 'admin');
     v.goAdminHome = () => this.go('dashboard', 'admin');
     v.kBoardOn = s.screen !== 'unavailable';
