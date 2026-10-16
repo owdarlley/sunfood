@@ -1,7 +1,7 @@
 // Teste do perfil Garçom num navegador de verdade (Chromium): login leva ao
 // módulo do garçom, pedidos prontos com "Marcar como entregue" e recebimento
 // na mesa, lançar pedido escolhendo a mesa, "Meu desempenho" e a tela Garçons
-// do admin. API falsa em memória: nada sai da máquina, nada vai pro banco.
+// do admin (cadastrar, desativar, página de cada garçom e excluir). API falsa em memória: nada sai da máquina, nada vai pro banco.
 // Uso: node tests/fluxo/garcom.mjs   (a partir da raiz do repositório)
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
@@ -218,6 +218,42 @@ await step('admin garçons', async () => {
     if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/admin-garcons-${nome}.png`, fullPage: true });
   }
   check('admin: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+  await page.close();
+});
+
+// 7. Admin: página de cada garçom (métricas e pedidos) e excluir com confirmação
+await step('admin página do garçom e excluir', async () => {
+  const page = await open('app-cliente.dc.html?module=admin&screen=waiters', { role: 'admin' });
+  await click(page, 'Métricas e pedidos', true);
+  let t = await text(page);
+  check('garçom: abre a página com as métricas de hoje', page.api.db.lastWaiterReport?.id === 'w1' && page.api.db.lastWaiterReport.period === 'hoje'
+    && t.includes('Carlos Souza') && t.includes('Pedidos atendidos') && t.includes('R$ 90,00') && t.includes('R$ 45,00') && t.includes('4,5 min'), JSON.stringify(page.api.db.lastWaiterReport));
+  check('garçom: lista os pedidos com o atendimento', t.includes('#007') && t.includes('Lançou e entregou') && t.includes('Entregou') && t.includes('Lançou na mesa') && t.includes('2x Caipirinha, 1x Água de Coco'));
+  await click(page, '30 dias', true);
+  t = await text(page);
+  check('garçom: troca o período', page.api.db.lastWaiterReport.period === '30d' && t.includes('Nenhum pedido atendido nos últimos 30 dias.'));
+  await click(page, '7 dias', true);
+  for (const [nome, viewport] of SIZES) {
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    const btn = await page.locator('.wd-acts .btn', { hasText: 'Excluir' }).boundingBox();
+    check(`garçom ${nome}: sem rolagem lateral e botão de 44 px ou mais`, (await noScroll(page)) && btn && btn.height >= 44, JSON.stringify(btn));
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/admin-garcom-pagina-${nome}.png`, fullPage: true });
+  }
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.locator('.wd-acts .btn', { hasText: 'Excluir' }).click(); await page.waitForTimeout(400);
+  t = await text(page);
+  check('excluir: pede confirmação numa janela', t.includes('Excluir Carlos Souza?') && t.includes('continuam no caixa') && !page.api.db.deletedWaiter);
+  await click(page, 'Manter garçom', true);
+  check('excluir: "Manter garçom" fecha sem excluir', !(await text(page)).includes('Excluir Carlos Souza?') && !page.api.db.deletedWaiter);
+  await page.locator('.wd-acts .btn', { hasText: 'Excluir' }).click(); await page.waitForTimeout(400);
+  for (const [nome, viewport] of SIZES) {
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/admin-garcom-excluir-${nome}.png` });
+  }
+  await click(page, 'Excluir garçom', true);
+  t = await text(page);
+  check('excluir: apaga e volta para a lista', page.api.db.deletedWaiter === 'w1' && t.includes('Carlos Souza foi excluído') && t.includes('Nenhum garçom cadastrado ainda'));
+  check('garçom: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
 });
 

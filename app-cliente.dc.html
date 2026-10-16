@@ -489,6 +489,18 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 /* Cardápio do admin: 1 coluna no celular, 2 no tablet, 3 a 4 no computador */
 .exportbar > *{justify-content:center}
 @media (max-width:767px){.exportbar > *{flex:1 1 100%}}
+/* Admin > Garçons: ações do cartão e a página de cada garçom. */
+.wcard-acts{display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid #EFEADF;padding-top:12px}
+.wcard-acts .btn{flex:1 1 auto}
+.wd-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.wd-top > .btn{flex:none}
+.wd-head{padding:var(--cpad);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.wd-avatar{width:56px;height:56px;flex-shrink:0;border-radius:50%;background:#0B6670;color:#fff;display:flex;align-items:center;justify-content:center;font:800 18px 'DM Sans',sans-serif}
+.wd-acts{display:flex;gap:8px;flex-wrap:wrap}
+/* Seis indicadores: 3 por linha no tablet e no computador, todos numa linha na tela larga. */
+@media (min-width:768px){.kpis.wd-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1600px){.kpis.wd-kpis{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media (max-width:767px){.wd-top > .btn{width:100%}.wd-acts{width:100%}.wd-acts .btn{flex:1 1 0}}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:var(--gap)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
 .tile{border-radius:var(--r-card);padding:16px 8px;text-align:center;cursor:pointer;transition:transform .15s}
@@ -1929,6 +1941,75 @@ select{caret-color:auto}
           </sc-if>
 
           <sc-if value="{{ is_waiters }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ wDetailView }}" hint-placeholder-val="{{ false }}">
+              <div class="gc-page rise">
+                <div class="wd-top">
+                  <div onClick="{{ closeWaiter }}" class="btn btn-ghost btn-sm" role="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Todos os garçons</div>
+                  <div class="seg">
+                    <sc-for list="{{ wPeriods }}" as="rp" hint-placeholder-count="3">
+                      <div onClick="{{ rp.pick }}" class="{{ rp.cls }}">{{ rp.label }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="card wd-head">
+                  <span class="wd-avatar">{{ wdInitials }}</span>
+                  <div style="min-width:0;flex:1 1 180px">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h2 style="margin:0;font-size:var(--fs-h3)">{{ wdName }}</h2><span style="{{ wdPillStyle }}">{{ wdPill }}</span></div>
+                    <div class="muted" style="font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ wdEmail }}</div>
+                  </div>
+                  <div class="wd-acts">
+                    <div onClick="{{ wdToggle }}" class="btn btn-ghost btn-sm">{{ wdToggleLabel }}</div>
+                    <div onClick="{{ wdAskDelete }}" class="btn btn-danger-ghost btn-sm">Excluir</div>
+                  </div>
+                </div>
+                <sc-if value="{{ hasWRepErr }}" hint-placeholder-val="{{ false }}">
+                  <div class="alert alert-err">{{ wRepErr }}</div>
+                </sc-if>
+                <div class="kpis wd-kpis">
+                  <sc-for list="{{ wdKpis }}" as="m" hint-placeholder-count="6">
+                    <div class="kpi"><div class="k">{{ m.lbl }}</div><div class="v">{{ m.val }}</div><div class="s" style="color:#5A6670">{{ m.sub }}</div></div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <h2 class="gc-h2" style="margin:0">Pedidos no período</h2>
+                  <div class="tblwrap">
+                    <sc-if value="{{ wdHasOrders }}" hint-placeholder-val="{{ true }}">
+                      <div class="tbl tbl-cards" style="min-width:980px">
+                        <div class="tr th" style="grid-template-columns:80px 60px 150px minmax(0,1fr) 120px 150px 100px"><div>Pedido</div><div>Mesa</div><div>Quando</div><div>Itens</div><div>Status</div><div>Atendimento</div><div style="text-align:right">Total</div></div>
+                        <sc-for list="{{ wdOrders }}" as="o" hint-placeholder-count="5">
+                          <div class="tr" style="grid-template-columns:80px 60px 150px minmax(0,1fr) 120px 150px 100px">
+                            <div data-l="Pedido" style="font-weight:800;color:#1F5A63">{{ o.code }}</div>
+                            <div data-l="Mesa" style="font-weight:700">{{ o.table }}</div>
+                            <div data-l="Quando" class="muted" style="white-space:nowrap">{{ o.when }}</div>
+                            <div class="wide" style="line-height:1.5">{{ o.items }}</div>
+                            <div data-l="Status"><span style="{{ o.stStyle }}">{{ o.status }}</span></div>
+                            <div data-l="Atendimento">{{ o.role }}</div>
+                            <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ o.totalStr }}</div>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ wdNoOrders }}" hint-placeholder-val="{{ false }}">
+                      <div class="muted" style="padding:40px;text-align:center">{{ wdEmptyText }}</div>
+                    </sc-if>
+                  </div>
+                </div>
+                <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">Atendidos são os pedidos que o garçom lançou na mesa ou marcou como entregues, sem os cancelados. Valor total e ticket médio somam esses pedidos.</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ wDelOpen }}" hint-placeholder-val="{{ false }}">
+              <div class="sf-overlay">
+                <div class="rise sf-dialog" role="alertdialog" aria-modal="true" aria-label="Excluir garçom" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+                  <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
+                  <div class="tt" style="font-size:var(--fs-h2)">Excluir {{ wDelName }}?</div>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">A conta é apagada e não entra mais no Sunfood. Os pedidos que lançou ou entregou continuam no caixa e nos relatórios, só sem o nome do garçom. Esta ação não pode ser desfeita.</p>
+                  <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:0">Para tirar o acesso só por um tempo, use Desativar.</p>
+                  <div onClick="{{ confirmWaiterDelete }}" class="btn btn-danger" style="width:100%">{{ wDelLabel }}</div>
+                  <div onClick="{{ cancelWaiterDelete }}" class="btn btn-ghost" style="width:100%">Manter garçom</div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ wListView }}" hint-placeholder-val="{{ true }}">
             <div class="cols rise">
               <div class="col-main">
                 <sc-if value="{{ waitersLoading }}" hint-placeholder-val="{{ false }}">
@@ -1941,7 +2022,7 @@ select{caret-color:auto}
                   <div class="pgrid">
                     <sc-for list="{{ waiterRows }}" as="w" hint-placeholder-count="3">
                       <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px">
-                        <div style="display:flex;align-items:center;gap:12px">
+                        <div onClick="{{ w.open }}" role="button" title="Ver métricas e pedidos" style="display:flex;align-items:center;gap:12px;cursor:pointer">
                           <span style="width:48px;height:48px;flex-shrink:0;border-radius:50%;background:#0B6670;color:#fff;display:flex;align-items:center;justify-content:center;font:800 16px 'DM Sans',sans-serif">{{ w.initials }}</span>
                           <div style="min-width:0;flex:1">
                             <div style="font:700 var(--fs-body)/1.3 'DM Sans',sans-serif">{{ w.name }}</div>
@@ -1950,8 +2031,10 @@ select{caret-color:auto}
                           <span style="{{ w.pillStyle }}">{{ w.pill }}</span>
                         </div>
                         <div class="muted" style="font-size:var(--fs-sm)">{{ w.today }}</div>
-                        <div style="display:flex;justify-content:flex-end;border-top:1px solid #EFEADF;padding-top:12px">
+                        <div class="wcard-acts">
+                          <div onClick="{{ w.open }}" class="btn btn-ghost btn-sm">Métricas e pedidos</div>
                           <div onClick="{{ w.toggle }}" class="{{ w.btnCls }}">{{ w.btn }}</div>
+                          <div onClick="{{ w.askDelete }}" class="btn btn-danger-ghost btn-sm">Excluir</div>
                         </div>
                       </div>
                     </sc-for>
@@ -1970,6 +2053,7 @@ select{caret-color:auto}
                 </div>
               </div>
             </div>
+            </sc-if>
           </sc-if>
 
           <sc-if value="{{ is_productForm }}" hint-placeholder-val="{{ false }}">
@@ -3416,6 +3500,8 @@ class Component extends DCLogic {
     gPeriod:'hoje', gMetrics:null, gMetricsErr:'', gMetricsAt:0,
     // Admin > Garçons: lista e o formulário de cadastro.
     waiters:null, wName:'', wEmail:'', wPass:'', wErr:'', wMsg:'', wBusy:false, wToggling:null,
+    // Página de um garçom (métricas e pedidos) e a janela de excluir.
+    wSel:null, wRepPeriod:'hoje', wRep:null, wRepErr:'', wDel:null, wDeleting:false,
     kzTab:0,
     toast:''
   };
@@ -4484,9 +4570,48 @@ class Component extends DCLogic {
       });
       const data = await res.json().catch(() => ({}));
       if(!res.ok) this.flash(data.error || 'Não foi possível salvar.');
-      else { this.flash(active ? 'Garçom reativado.' : 'Garçom desativado: não consegue mais entrar.'); await this.loadWaiters(); }
+      else {
+        this.flash(active ? 'Garçom reativado.' : 'Garçom desativado: não consegue mais entrar.');
+        this.setState(x => ({wRep:x.wRep && x.wRep.waiter.id === id ? Object.assign({}, x.wRep, {waiter:Object.assign({}, x.wRep.waiter, {active})}) : x.wRep}));
+        await this.loadWaiters();
+      }
     } catch(e){ this.flash('Falha de conexão com o servidor.'); }
     finally { this.setState({wToggling:null}); }
+  }
+
+  openWaiter(id){
+    this.setState({wSel:id, wRep:null, wRepErr:'', wRepPeriod:'hoje'});
+    this.loadWaiterReport(id, 'hoje');
+    try { window.scrollTo(0, 0); } catch(e){}
+  }
+
+  async loadWaiterReport(id, period){
+    const p = period || this.state.wRepPeriod;
+    this.setState({wRepPeriod:p, wRepErr:''});
+    try {
+      const res = await authFetch(API_BASE + '/waiters/' + encodeURIComponent(id) + '/report?period=' + encodeURIComponent(p), {headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      if(this.state.wSel !== id || this.state.wRepPeriod !== p) return;
+      if(!res.ok) return this.setState({wRepErr:data.error || 'Não foi possível carregar as métricas do garçom.'});
+      this.setChanged({wRep:Object.assign({period:p}, data)});
+    } catch(e){ this.setState({wRepErr:'Falha de conexão com o servidor.'}); }
+  }
+
+  // Exclui de vez (a janela de confirmação já foi aceita). Os pedidos ficam.
+  async deleteWaiter(){
+    const w = this.state.wDel;
+    if(!w || this.state.wDeleting) return;
+    this.setState({wDeleting:true});
+    try {
+      const res = await authFetch(API_BASE + '/waiters/' + encodeURIComponent(w.id), {method:'DELETE', headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.flash(data.error || 'Não foi possível excluir o garçom.');
+      this.setState(x => ({wDel:null, wSel:x.wSel === w.id ? null : x.wSel, wRep:x.wSel === w.id ? null : x.wRep,
+        waiters:(x.waiters || []).filter(r => r.id !== w.id)}));
+      this.flash(w.name + ' foi excluído. Os pedidos continuam nos relatórios.');
+      this.loadWaiters();
+    } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+    finally { this.setState({wDeleting:false}); }
   }
 
   async closeDayReal(){
@@ -4736,6 +4861,7 @@ class Component extends DCLogic {
     if(screen === 'reports' && this.state.token){ this.loadReport(); this.loadLatestDayReport(); }
     if(screen === 'messages' && this.state.token) this.loadMessages();
     if(screen === 'desempenho' && this.state.token) this.loadWaiterMetrics();
+    if(screen === 'waiters') this.setState({wSel:null, wRep:null, wDel:null});
     if(screen === 'waiters' && this.state.token) this.loadWaiters();
     if(screen === 'novoPedido') this.setState({gErr:''});
     if((screen === 'profile' || screen === 'editProfile') && this.state.token) this.loadProfile(screen === 'editProfile');
@@ -5793,10 +5919,52 @@ class Component extends DCLogic {
       pill:w.active ? 'Ativo' : 'Desativado', pillStyle:pillStyle(w.active ? 'ok' : 'muted'),
       today:'Hoje: ' + w.deliveredToday + ' entregue(s) · ' + w.launchedToday + ' lançado(s)',
       btn:s.wToggling === w.id ? 'Salvando...' : w.active ? 'Desativar' : 'Reativar',
-      btnCls:w.active ? 'btn btn-danger-ghost btn-sm' : 'btn btn-ghost btn-sm',
-      toggle:() => this.toggleWaiter(w.id, !w.active)
+      // Vermelho fica só no Excluir; Desativar é reversível.
+      btnCls:'btn btn-ghost btn-sm',
+      toggle:() => this.toggleWaiter(w.id, !w.active),
+      open:() => this.openWaiter(w.id),
+      askDelete:() => this.setState({wDel:{id:w.id, name:w.name}})
     }));
     v.hasWaiters = v.waiterRows.length > 0;
+    v.wDetailView = !!s.wSel; v.wListView = !s.wSel;
+    v.closeWaiter = () => { this.setState({wSel:null, wRep:null, wRepErr:''}); this.loadWaiters(); };
+    v.wPeriods = [['hoje','Hoje'],['7d','7 dias'],['30d','30 dias']].map(([k, label]) => ({
+      label, cls:s.wRepPeriod === k ? 'on' : '', pick:() => s.wSel && this.loadWaiterReport(s.wSel, k)
+    }));
+    // Enquanto a página carrega, usa o que a lista já sabe do garçom.
+    const wr = s.wRep && s.wRep.waiter.id === s.wSel && s.wRep.period === s.wRepPeriod ? s.wRep : null;
+    const wBase = (wr && wr.waiter) || (s.waiters || []).find(w => w.id === s.wSel) || {name:'', email:'', active:true};
+    v.wdName = wBase.name || 'Garçom'; v.wdEmail = wBase.email || '';
+    v.wdInitials = (wBase.name || '?').split(' ').filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join('') || '?';
+    v.wdPill = wBase.active ? 'Ativo' : 'Desativado'; v.wdPillStyle = pillStyle(wBase.active ? 'ok' : 'muted');
+    v.wdToggleLabel = s.wToggling === s.wSel ? 'Salvando...' : wBase.active ? 'Desativar' : 'Reativar';
+    v.wdToggle = () => s.wSel && this.toggleWaiter(s.wSel, !wBase.active);
+    v.wdAskDelete = () => s.wSel && this.setState({wDel:{id:s.wSel, name:wBase.name || 'este garçom'}});
+    v.wRepErr = s.wRepErr; v.hasWRepErr = !!s.wRepErr;
+    const wm = wr && wr.metrics;
+    const wMin = n => n >= 60 ? Math.floor(n / 60) + ' h ' + Math.round(n % 60) + ' min' : (Math.round(n * 10) / 10).toString().replace('.', ',') + ' min';
+    v.wdKpis = [
+      {lbl:'Pedidos atendidos', val:wm ? String(wm.served) : '—', sub:'lançados ou entregues'},
+      {lbl:'Valor total', val:wm ? f(wm.servedTotal) : '—', sub:'soma dos atendidos'},
+      {lbl:'Ticket médio', val:wm ? (wm.served ? f(wm.avgTicket) : '—') : '—', sub:'valor por pedido'},
+      {lbl:'Pedidos entregues', val:wm ? String(wm.delivered) : '—', sub:'marcados como entregues'},
+      {lbl:'Tempo até entregar', val:wm ? (wm.delivered ? wMin(wm.avgDeliverMin) : '—') : '—', sub:'média, de pronto até entregue'},
+      {lbl:'Recebido na mesa', val:wm ? f(wm.received) : '—', sub:'pagamentos na entrega anotados'}
+    ];
+    v.wdOrders = wr ? wr.orders.map(o => ({
+      code:orderCode(o), table:o.tableNumber, when:formatWhen(o.createdAt), status:o.status, stStyle:pillStyle(statusTone(o.status)),
+      items:o.items.map(it => it.qty + 'x ' + it.name).join(', ') || '—',
+      role:o.launched && o.delivered ? 'Lançou e entregou' : o.launched ? 'Lançou na mesa' : 'Entregou',
+      totalStr:f(o.total)
+    })) : [];
+    v.wdHasOrders = v.wdOrders.length > 0;
+    v.wdNoOrders = !v.wdHasOrders;
+    v.wdEmptyText = !wr ? (s.wRepErr ? 'Não deu para carregar os pedidos.' : 'Carregando…')
+      : {hoje:'Nenhum pedido atendido hoje.', '7d':'Nenhum pedido atendido nos últimos 7 dias.', '30d':'Nenhum pedido atendido nos últimos 30 dias.'}[s.wRepPeriod];
+    v.wDelOpen = !!s.wDel; v.wDelName = s.wDel ? s.wDel.name : '';
+    v.wDelLabel = s.wDeleting ? 'Excluindo...' : 'Excluir garçom';
+    v.confirmWaiterDelete = () => this.deleteWaiter();
+    v.cancelWaiterDelete = () => !s.wDeleting && this.setState({wDel:null});
     v.noWaiters = s.waiters !== null && !v.hasWaiters;
     v.waitersLoading = s.waiters === null;
 

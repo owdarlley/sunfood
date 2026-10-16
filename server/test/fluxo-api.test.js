@@ -43,6 +43,7 @@ function query(table) {
     in(c, vs) { filters.push((r) => vs.includes(r[c])); return q; },
     is(c, v) { filters.push((r) => (r[c] ?? null) === v); return q; },
     lt(c, v) { filters.push((r) => r[c] < v); return q; },
+    gte(c, v) { filters.push((r) => r[c] != null && r[c] >= v); return q; },
     order(c, { ascending = true } = {}) { sort ??= { c, dir: ascending ? 1 : -1 }; return q; },
     limit(n) { max = n; return q; },
     single() { mode = "single"; return q; },
@@ -223,8 +224,11 @@ const auth = {
       return { data: { user: { id, email } }, error: null };
     },
     async deleteUser(id) {
+      const gone = db.profiles.find((p) => p.id === id);
+      if (gone) delete db.passwords[gone.email];
       db.profiles = db.profiles.filter((p) => p.id !== id);
-      db.orders.filter((o) => o.customer_id === id).forEach((o) => (o.customer_id = null)); // ON DELETE SET NULL
+      // ON DELETE SET NULL
+      for (const o of db.orders) for (const k of ["customer_id", "waiter_id", "delivered_by"]) if (o[k] === id) o[k] = null;
       for (const [t, u] of Object.entries(db.users)) if (u.id === id) delete db.users[t];
       return { error: null };
     },
@@ -930,6 +934,32 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   assert.equal((await api("GET", "/waiters", null, admin)).body[0].active, false);
   assert.equal((await api("PATCH", "/waiters/" + criado.body.id, { active: true }, admin)).status, 200);
   assert.equal((await api("POST", "/auth/login", { email: "garcom@sunfood.com", password: "Sunfood@123" })).status, 200);
+
+  // Admin abre a página do garçom: métricas e os pedidos dele.
+  const wid = criado.body.id;
+  assert.equal((await api("GET", `/waiters/${wid}/report`, null, garcom)).status, 403);
+  assert.equal((await api("GET", `/waiters/${admin.slice(4)}/report`, null, admin)).status, 404, "só garçom");
+  assert.equal((await api("GET", `/waiters/${wid}/report?period=ontem`, null, admin)).status, 400);
+  const rel = await api("GET", `/waiters/${wid}/report?period=7d`, null, admin);
+  assert.equal(rel.status, 200, JSON.stringify(rel.body));
+  assert.equal(rel.body.waiter.email, "garcom@sunfood.com");
+  assert.equal(rel.body.waiter.active, true);
+  assert.deepEqual([rel.body.metrics.served, rel.body.metrics.servedTotal, rel.body.metrics.avgTicket], [1, 30, 30]);
+  assert.equal(rel.body.metrics.delivered, 1);
+  assert.equal(rel.body.orders.length, 1, "lançou e entregou o mesmo pedido: aparece uma vez");
+  assert.deepEqual([rel.body.orders[0].id, rel.body.orders[0].launched, rel.body.orders[0].delivered], [id, true, true]);
+  assert.deepEqual(rel.body.orders[0].items, [{ name: "Caipirinha", qty: 2 }]);
+
+  // Admin exclui: a conta some, o pedido fica sem o vínculo.
+  assert.equal((await api("DELETE", `/waiters/${wid}`, null, cozinha)).status, 403);
+  assert.equal((await api("DELETE", `/waiters/${admin.slice(4)}`, null, admin)).status, 404, "não apaga quem não é garçom");
+  const excluido = await api("DELETE", `/waiters/${wid}`, null, admin);
+  assert.equal(excluido.status, 200, JSON.stringify(excluido.body));
+  assert.equal((await api("GET", "/waiters", null, admin)).body.length, 0);
+  assert.equal((await api("POST", "/auth/login", { email: "garcom@sunfood.com", password: "Sunfood@123" })).status, 401);
+  const ficou = db.orders.find((o) => o.id === id);
+  assert.deepEqual([ficou.status, ficou.waiter_id, ficou.delivered_by], ["Entregue", null, null]);
+  assert.equal((await api("DELETE", `/waiters/${wid}`, null, admin)).status, 404);
 });
 
 test("admin cria, renomeia, reordena e exclui categorias; o cardápio acompanha", async () => {

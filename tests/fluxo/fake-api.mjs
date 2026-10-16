@@ -145,6 +145,27 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
       if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '' }); }
     if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured });
+    if ((r = p.match(/^\/waiters\/([^/]+)\/report$/)) && m === 'GET') {
+      const w = db.waiters.find(w => w.id === r[1]);
+      if (!w) return json(404, { error: 'Garçom não encontrado.' });
+      const period = url.searchParams.get('period') || 'hoje';
+      const days = { hoje: 1, '7d': 7, '30d': 30 }[period];
+      if (!days) return json(400, { error: 'Período inválido.' });
+      db.lastWaiterReport = { id: w.id, period };
+      const items = [{ name: 'Caipirinha', qty: 2 }, { name: 'Água de Coco', qty: 1 }];
+      const orders = period === '30d' ? [] : [
+        { id: 'ow1', number: 7, tableNumber: 4, status: 'Entregue', total: 56, launched: true, delivered: true, createdAt: now(), items },
+        { id: 'ow2', number: 9, tableNumber: 2, status: 'Entregue', total: 34, launched: false, delivered: true, createdAt: now(), items: items.slice(1) },
+        { id: 'ow3', number: 12, tableNumber: 6, status: 'Cancelado', total: 22, launched: true, delivered: false, createdAt: now(), items: items.slice(0, 1) },
+      ];
+      return json(200, { waiter: { id: w.id, name: w.name, email: w.email, active: w.active },
+        metrics: { period, delivered: 2, avgDeliverMin: 4.5, launched: 1, launchedTotal: 56, received: 56,
+          served: orders.length ? 2 : 0, servedTotal: orders.length ? 90 : 0, avgTicket: orders.length ? 45 : 0, byDay: [] }, orders });
+    }
+    if ((r = p.match(/^\/waiters\/([^/]+)$/)) && m === 'DELETE') {
+      if (!db.waiters.some(w => w.id === r[1])) return json(404, { error: 'Garçom não encontrado.' });
+      db.waiters = db.waiters.filter(w => w.id !== r[1]); db.deletedWaiter = r[1]; return json(200, { id: r[1] });
+    }
     if ((r = p.match(/^\/waiters\/([^/]+)$/)) && m === 'PATCH') { const w = db.waiters.find(w => w.id === r[1]); w.active = body.active; return json(200, { id: w.id, active: w.active }); }
     if ((r = p.match(/^\/orders\/([^/]+)\/payment-received$/))) { const o = db.orders.find(o => o.id === r[1]);
       if (o.paymentMethod !== 'entrega' || o.status === 'Cancelado') return json(409, { error: 'Só pedido na entrega.' });
