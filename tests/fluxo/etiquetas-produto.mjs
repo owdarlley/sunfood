@@ -55,16 +55,16 @@ async function open(path, { role, api, width = 400 } = {}) {
 }
 const click = async (page, t, exact = false) => { await page.getByText(t, { exact }).first().click({ timeout: 5000 }); await page.waitForTimeout(400); };
 const text = page => page.locator('body').innerText();
-const pfPanel = page => page.locator('.col-side .panel').first();
+const pfPanel = page => page.locator('.pf-dialog').first();
 
 const api = fakeApi('admin');
 
 await step('etiquetas: marcar, criar e salvar', async () => {
   const page = await open('app-cliente.dc.html?module=admin&screen=productForm', { role: 'admin', api });
   const form = pfPanel(page);
-  check('etiquetas: formulário tem Ingredientes e Etiquetas', (await form.innerText()).includes('Ingredientes') && (await form.innerText()).includes('Etiquetas'));
   // Caipirinha é o 3º item da lista (Editar índice 2 depois da ordem por categoria): procura pelo nome.
   await page.locator('.pgrid > *').filter({ hasText: 'Caipirinha' }).getByText('Editar').first().click(); await page.waitForTimeout(400);
+  check('etiquetas: formulário tem Ingredientes e Etiquetas', (await form.innerText()).includes('Ingredientes') && (await form.innerText()).includes('Etiquetas'));
   check('etiquetas: edição abre com o nome do produto', (await page.getByPlaceholder('Nome do produto').inputValue()) === 'Caipirinha');
   await page.getByPlaceholder('Ex.: Cachaça, limão taiti, açúcar, gelo.').fill('Cachaça, limão taiti, açúcar, gelo.');
   await form.locator('.pf-tags .fpill', { hasText: /^Alcoólico$/ }).click();
@@ -107,6 +107,7 @@ await step('etiquetas: aparecem no detalhe do produto', async () => {
 for (const [nome, width] of [['celular', 390], ['tablet', 768], ['computador', 1280], ['tela-larga', 1920]]) {
   await step(`etiquetas: tela no ${nome}`, async () => {
     const page = await open('app-cliente.dc.html?module=admin&screen=productForm', { role: 'admin', api, width });
+    await page.getByText('+ Novo produto').first().click(); await page.waitForTimeout(400);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     check(`etiquetas: sem rolagem lateral no ${nome}`, overflow <= 0, String(overflow));
     const box = await page.locator('.pf-tag-new').boundingBox();
@@ -119,25 +120,25 @@ for (const [nome, width] of [['celular', 390], ['tablet', 768], ['computador', 1
   });
 }
 
-await step('formulário: no computador o fim do formulário é alcançável', async () => {
-  // Lista longa de produtos: o formulário fica preso ao lado e precisa rolar por dentro.
-  const page = await open('app-cliente.dc.html?module=admin&screen=productForm', { role: 'admin', width: 1280 });
-  await page.setViewportSize({ width: 1280, height: 720 });
-  await page.addStyleTag({ content: '.cols>.col-main{min-height:4000px}' });
-  const topo = await page.evaluate(() => { const b = [...document.querySelectorAll('.col-side .panel *')].find(e => e.textContent.trim() === 'Salvar produto').getBoundingClientRect(); return b.bottom <= innerHeight; });
-  check('formulário: Salvar produto à vista ao abrir a tela', topo);
-  await page.evaluate(() => window.scrollTo(0, 1500)); await page.waitForTimeout(300);
-  const r = await page.evaluate(async () => {
-    const p = document.querySelector('.col-side .panel');
-    const b = [...p.querySelectorAll('*')].find(e => e.textContent.trim() === 'Salvar produto');
-    // O pé do painel com Salvar fica sempre à vista, sem rolar o formulário.
-    const br = b.getBoundingClientRect(), el = document.elementFromPoint(br.x + br.width / 2, br.y + br.height / 2);
-    return { cabe: p.getBoundingClientRect().bottom <= innerHeight, salvar: b === el || b.contains(el) };
+for (const [nome, width, height] of [['celular', 390, 844], ['computador', 1280, 720]]) {
+  await step(`formulário: janela cabe na tela no ${nome}`, async () => {
+    const page = await open('app-cliente.dc.html?module=admin&screen=productForm', { role: 'admin', width });
+    await page.setViewportSize({ width, height });
+    check(`formulário: fechado até tocar em Novo produto no ${nome}`, (await page.locator('.pf-dialog').count()) === 0);
+    await page.getByText('+ Novo produto').first().click(); await page.waitForTimeout(400);
+    const r = await page.evaluate(async () => {
+      const d = document.querySelector('.pf-dialog').getBoundingClientRect();
+      const salvar = [...document.querySelectorAll('.pf-dialog .btn')].find(e => e.textContent.trim() === 'Salvar produto').getBoundingClientRect();
+      const body = document.querySelector('.pf-body'); body.scrollTop = body.scrollHeight; await new Promise(res => setTimeout(res, 200));
+      const novo = document.querySelector('.pf-tag-new').getBoundingClientRect();
+      return { cabe: d.top >= 0 && d.bottom <= innerHeight + 1 && d.right <= innerWidth, salvar: salvar.bottom <= innerHeight, fim: novo.bottom <= innerHeight };
+    });
+    check(`formulário: janela cabe na tela no ${nome}`, r.cabe, JSON.stringify(r));
+    check(`formulário: Salvar produto à vista no ${nome}`, r.salvar, JSON.stringify(r));
+    check(`formulário: fim do formulário alcançável rolando no ${nome}`, r.fim, JSON.stringify(r));
+    await page.close();
   });
-  check('formulário: painel cabe na altura da tela', r.cabe, JSON.stringify(r));
-  check('formulário: botão Salvar produto à vista sem rolar o painel', r.salvar, JSON.stringify(r));
-  await page.close();
-});
+}
 
 await browser.close();
 server.close();

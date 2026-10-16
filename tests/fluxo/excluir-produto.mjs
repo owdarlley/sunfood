@@ -95,8 +95,11 @@ await step('admin exclui item', async () => {
   t = await text(page);
   check('admin: Cancelar desiste e mantém o item', !t.includes('Excluir Caipirinha?') && t.includes('Caipirinha') && !deletes(page).length);
 
-  // Editando o item que vai ser excluído: o formulário volta para "Novo produto".
+  // Editar abre a janela; Cancelar fecha sem salvar e volta para a lista.
   await card(page, 'Caipirinha').getByText('Editar', { exact: true }).click(); await page.waitForTimeout(400);
+  check('admin: Editar abre a janela do produto', (await page.locator('.pf-dialog').innerText()).includes('Editar produto'));
+  await page.locator('.pf-dialog').getByText('Cancelar', { exact: true }).click(); await page.waitForTimeout(300);
+  check('admin: Cancelar fecha a janela', (await page.locator('.pf-dialog').count()) === 0);
   await card(page, 'Caipirinha').getByText('Excluir', { exact: true }).click(); await page.waitForTimeout(400);
   for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tablet', { width: 768, height: 1000 }], ['computador', { width: 1366, height: 900 }]]) {
     await page.setViewportSize(viewport); await page.waitForTimeout(300);
@@ -111,7 +114,7 @@ await step('admin exclui item', async () => {
   t = await text(page);
   check('admin: item some da lista', !t.includes('Caipirinha') && t.includes('Água de Coco'));
   check('admin: avisa "Produto excluído do cardápio."', t.includes('Produto excluído do cardápio.'));
-  check('admin: formulário volta para Novo produto', t.includes('Novo produto') && !t.includes('Editar produto'));
+  check('admin: janela do produto continua fechada', !t.includes('Editar produto'));
   check('admin: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
 });
