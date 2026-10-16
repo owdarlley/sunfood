@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
+import { removeAvatarFile } from "./auth.js";
 import {
   REPORT_PERIODS,
   salesReportQuerySchema,
@@ -29,6 +30,48 @@ function metricsToApi(period, data) {
     received: Number(data.received),
     byDay: (data.byDay || []).map((d) => ({ date: d.date, delivered: Number(d.delivered), launched: Number(d.launched) })),
   };
+}
+
+// Pedidos do garçom no período: os que ele lançou na mesa e os que entregou.
+// Duas consultas (em vez de um "or") e junta sem repetir quem está nas duas.
+async function waiterOrders(waiterId, fromDate) {
+  // Meia-noite de São Paulo (UTC-3, sem horário de verão) do primeiro dia.
+  const start = new Date(`${fromDate}T00:00:00-03:00`).toISOString();
+  const select = "id, daily_number, table_number, customer_id, waiter_id, delivered_by, delivered_at, status, total, payment_method, received_with, created_at, order_items(name, qty)";
+  const [launched, delivered] = await Promise.all([
+    supabaseAdmin.from("orders").select(select).eq("waiter_id", waiterId).gte("created_at", start),
+    supabaseAdmin.from("orders").select(select).eq("delivered_by", waiterId).gte("delivered_at", start),
+  ]);
+  if (launched.error || delivered.error) return null;
+  const byId = new Map();
+  for (const row of [...launched.data, ...delivered.data]) byId.set(row.id, row);
+  const rows = [...byId.values()].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  const ids = [...new Set(rows.map((row) => row.customer_id).filter(Boolean))];
+  const names = new Map();
+  if (ids.length) {
+    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, name").in("id", ids);
+    for (const p of profiles || []) names.set(p.id, p.name);
+  }
+  return rows.map((row) => ({
+    id: row.id,
+    number: row.daily_number ?? null,
+    tableNumber: row.table_number,
+    customerName: names.get(row.customer_id) || null,
+    status: row.status,
+    total: Number(row.total),
+    paymentMethod: row.payment_method,
+    receivedWith: row.received_with,
+    launched: row.waiter_id === waiterId,
+    delivered: row.delivered_by === waiterId,
+    createdAt: row.created_at,
+    deliveredAt: row.delivered_at,
+    items: (row.order_items || []).map((it) => ({ name: it.name, qty: it.qty })),
+  }));
+}
+
+async function findWaiter(id) {
+  const { data } = await supabaseAdmin.from("profiles").select("id, name, email, role, avatar_path, created_at").eq("id", id).maybeSingle();
+  return data && data.role === "garcom" ? data : null;
 }
 
 // Garçom: as próprias métricas no período (hoje, 7 ou 30 dias).
@@ -112,4 +155,49 @@ waitersRouter.patch("/waiters/:id", requireAuth, requireRole("admin"), validate(
   const { error } = await supabaseAdmin.auth.admin.updateUserById(row.id, { ban_duration: active ? "none" : BAN_FOREVER });
   if (error) return res.status(500).json({ error: "Não foi possível salvar." });
   res.json({ id: row.id, active });
+});
+
+// Admin: métricas e pedidos de um garçom no período (hoje, 7 ou 30 dias).
+// "Atendidos" junta os pedidos que ele lançou ou entregou, sem os cancelados.
+waitersRouter.get(
+  "/waiters/:id/report",
+  requireAuth,
+  requireRole("admin"),
+  validate(salesReportQuerySchema, "query"),
+  async (req, res) => {
+    const waiter = await findWaiter(req.params.id);
+    if (!waiter) return res.status(404).json({ error: "Garçom não encontrado." });
+    const period = req.query.period || "hoje";
+    const [{ data, error }, { data: found }] = await Promise.all([
+      supabaseAdmin.rpc("waiter_metrics", { p_waiter: waiter.id, p_days: REPORT_PERIODS[period] }),
+      supabaseAdmin.auth.admin.getUserById(waiter.id),
+    ]);
+    if (error) return res.status(500).json({ error: "Erro ao calcular as métricas do garçom." });
+    const orders = await waiterOrders(waiter.id, data.from);
+    if (!orders) return res.status(500).json({ error: "Erro ao carregar os pedidos do garçom." });
+    const served = orders.filter((o) => o.status !== "Cancelado");
+    const servedTotal = Math.round(served.reduce((sum, o) => sum + o.total, 0) * 100) / 100;
+    res.json({
+      waiter: { id: waiter.id, name: waiter.name, email: waiter.email, createdAt: waiter.created_at, active: !isBanned(found?.user) },
+      metrics: {
+        ...metricsToApi(period, data),
+        served: served.length,
+        servedTotal,
+        avgTicket: served.length ? Math.round((servedTotal / served.length) * 100) / 100 : 0,
+      },
+      orders,
+    });
+  }
+);
+
+// Admin: exclui a conta do garçom. Os pedidos ficam (relatórios e caixa não
+// mudam), só perdem o vínculo com ele: o banco põe waiter_id e delivered_by
+// em nulo (ON DELETE SET NULL).
+waitersRouter.delete("/waiters/:id", requireAuth, requireRole("admin"), async (req, res) => {
+  const waiter = await findWaiter(req.params.id);
+  if (!waiter) return res.status(404).json({ error: "Garçom não encontrado." });
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(waiter.id);
+  if (error) return res.status(500).json({ error: "Não foi possível excluir o garçom." });
+  await removeAvatarFile(waiter.avatar_path);
+  res.json({ id: waiter.id, message: "Garçom excluído." });
 });

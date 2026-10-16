@@ -84,7 +84,7 @@ async function hasPassword(userId) {
   return !providers.length || providers.includes("email");
 }
 
-async function removeAvatarFile(path) {
+export async function removeAvatarFile(path) {
   if (path) await supabaseAdmin.storage.from(AVATARS_BUCKET).remove([path]);
 }
 

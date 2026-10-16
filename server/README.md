@@ -110,6 +110,8 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | GET | `/waiters` | admin | Garçons cadastrados (ativo ou não) e o que cada um fez hoje |
 | POST | `/waiters` | admin | Cria a conta de um garçom (nome, e-mail, senha inicial) |
 | PATCH | `/waiters/:id` | admin | Desativa (`{ "active": false }`, não entra mais) ou reativa um garçom |
+| GET | `/waiters/:id/report?period=hoje\|7d\|30d` | admin | Página do garçom: métricas (atendidos, valor total, ticket médio, entregas, tempo até entregar) e os pedidos que ele lançou ou entregou no período |
+| DELETE | `/waiters/:id` | admin | Exclui a conta do garçom. Os pedidos continuam, só perdem o vínculo com ele |
 | POST | `/contact` | — | "Fale conosco" do site: grava a mensagem e devolve o protocolo (limite: 5 / 15 min por IP) |
 | GET | `/contact` | admin | Mensagens recebidas pelo Fale conosco, mais novas primeiro |
 | PATCH | `/contact/:id/status` | admin | Marcar mensagem como respondida (ou nova) |
