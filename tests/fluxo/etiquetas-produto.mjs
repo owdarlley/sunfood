@@ -119,6 +119,26 @@ for (const [nome, width] of [['celular', 390], ['tablet', 768], ['computador', 1
   });
 }
 
+await step('formulário: no computador o fim do formulário é alcançável', async () => {
+  // Lista longa de produtos: o formulário fica preso ao lado e precisa rolar por dentro.
+  const page = await open('app-cliente.dc.html?module=admin&screen=productForm', { role: 'admin', width: 1280 });
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.addStyleTag({ content: '.cols>.col-main{min-height:4000px}' });
+  const topo = await page.evaluate(() => { const b = [...document.querySelectorAll('.col-side .panel *')].find(e => e.textContent.trim() === 'Salvar produto').getBoundingClientRect(); return b.bottom <= innerHeight; });
+  check('formulário: Salvar produto à vista ao abrir a tela', topo);
+  await page.evaluate(() => window.scrollTo(0, 1500)); await page.waitForTimeout(300);
+  const r = await page.evaluate(async () => {
+    const p = document.querySelector('.col-side .panel');
+    const b = [...p.querySelectorAll('*')].find(e => e.textContent.trim() === 'Salvar produto');
+    // O pé do painel com Salvar fica sempre à vista, sem rolar o formulário.
+    const br = b.getBoundingClientRect(), el = document.elementFromPoint(br.x + br.width / 2, br.y + br.height / 2);
+    return { cabe: p.getBoundingClientRect().bottom <= innerHeight, salvar: b === el || b.contains(el) };
+  });
+  check('formulário: painel cabe na altura da tela', r.cabe, JSON.stringify(r));
+  check('formulário: botão Salvar produto à vista sem rolar o painel', r.salvar, JSON.stringify(r));
+  await page.close();
+});
+
 await browser.close();
 server.close();
 const failed = results.filter(r => !r.ok);
