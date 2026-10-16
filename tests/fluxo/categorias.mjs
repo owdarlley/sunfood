@@ -92,7 +92,8 @@ await step('admin gerencia categorias', async () => {
   const nova = page.api.db.categories.find(c => c.name === 'Porções');
   check('admin: cria categoria com a cor escolhida', nova && nova.color === 'verde', JSON.stringify(nova));
   check('admin: nova categoria entra no fim da lista', (await catOrder(page)).at(-1) === 'Porções');
-  check('admin: nova categoria aparece no filtro e no formulário', (await page.locator('.pills .fpill', { hasText: 'Porções' }).count()) === 1 && (await page.locator('.col-side .fpill', { hasText: 'Porções' }).count()) === 1);
+  check('admin: nova categoria aparece no filtro e no formulário', (await page.locator('.pills .fpill', { hasText: 'Porções' }).count()) === 1 && (await page.getByText('+ Novo produto').first().click().then(() => page.locator('.pf-dialog .fpill', { hasText: 'Porções' }).count())) === 1);
+  await page.locator('.pf-dialog').getByText('Cancelar', { exact: true }).click(); await page.waitForTimeout(300);
   await page.locator('#catNewInp').fill('porções');
   await click(page, 'Adicionar', true);
   check('admin: avisa nome repetido', (await page.locator('.catpanel').innerText()).includes('Já existe uma categoria com esse nome.'));
