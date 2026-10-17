@@ -95,10 +95,11 @@ await step('editar', async () => {
   check('editar: telefone já preenchido', await page.getByLabel('WhatsApp / telefone', { exact: true }).inputValue() === '11999999999');
   check('editar: e-mail e CPF travados', await page.locator('input[disabled]').count() === 2 && (await text(page)).includes('E-mail e CPF não mudam'));
   check('editar: CPF mascarado', await page.locator('input[disabled]').nth(1).inputValue() === '529.***.***-25');
-  await page.locator('input[type=date]').fill('2015-01-01');
+  check('editar: nascimento em dd/mm/aaaa', await page.getByLabel('Data de nascimento', { exact: true }).inputValue() === '01/01/2000');
+  await page.getByLabel('Data de nascimento', { exact: true }).fill('01/01/2015');
   await pressBtn(page, 'Salvar');
   check('editar: recusa menor de 18', (await text(page)).includes('18 anos'));
-  await page.locator('input[type=date]').fill('1999-05-10');
+  await page.getByLabel('Data de nascimento', { exact: true }).fill('10/05/1999');
   await nome.fill('Ana Maria Souza');
   await page.getByLabel('WhatsApp / telefone', { exact: true }).fill('11 98888-7777');
   await pressBtn(page, 'Salvar');

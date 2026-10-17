@@ -207,14 +207,14 @@ await step('fluxo do cliente', async () => {
   await click(page, 'itens no carrinho');
   t = await text(page);
   check('cliente: carrinho sem taxa de serviço (total = subtotal)', t.includes('R$ 50,00') && !t.includes('Taxa de serviço') && !t.includes('R$ 55,00'));
-  await click(page, 'Ir para pagamento');
+  await click(page, 'Escolher a mesa');
   t = await text(page);
   check('cliente: aviso de mesas ativas vem do cadastro de mesas', t.includes('Mesas ativas: 1, 3 a 5.'), (t.match(/Mesas? ativas?:[^\n]*/) || [])[0]);
   await page.getByLabel('Número da mesa', { exact: true }).fill('2');
-  await click(page, 'Confirmar mesa');
+  await click(page, 'Escolher pagamento');
   check('cliente: mesa inativa é recusada', !(await text(page)).includes('Total do pedido · Mesa 2'));
   await page.getByLabel('Número da mesa', { exact: true }).fill('1');
-  await click(page, 'Confirmar mesa');
+  await click(page, 'Escolher pagamento');
   check('cliente: mesa ativa leva ao pagamento', (await text(page)).includes('Mesa 1'));
   await click(page, 'PIX', true);
   await click(page, 'Pagar R$');

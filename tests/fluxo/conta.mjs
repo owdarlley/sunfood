@@ -79,10 +79,13 @@ async function login(page) {
 await step('cadastro', async () => {
   // O cadastro abre pelo "Criar conta" do login principal, que leva direto a esta tela.
   const page = await open('app-cliente.dc.html?module=cliente&screen=signup');
+  await click(page, 'Criar minha conta');
+  { const t0 = await text(page); check('cadastro: vazio mostra o erro de cada campo de uma vez', called(page, '/auth/signup').length === 0 && ['Informe seu nome completo', 'Informe um e-mail válido', 'telefone/WhatsApp com DDD', 'CPF inválido', 'dd/mm/aaaa', 'aceitar os termos'].every(x => t0.includes(x)), t0.slice(0, 400)); }
+  check('cadastro: campos com erro marcados como inválidos', await page.locator('input[aria-invalid=true]').count() >= 6);
   await page.getByLabel('Nome completo', { exact: true }).fill('Ana Teste');
   await page.getByLabel('E-mail', { exact: true }).fill('ana@teste.com');
   await page.getByLabel('WhatsApp / telefone', { exact: true }).fill('11 91234-5678');
-  await page.locator('input[type=date]').fill('2000-01-01');
+  await page.getByLabel('Data de nascimento', { exact: true }).fill('01/01/2000');
   await page.getByLabel('Senha', { exact: true }).fill('senha123');
   await page.getByLabel('Confirmar senha', { exact: true }).fill('senha123');
   await page.locator('input[type=checkbox]').check();
@@ -133,9 +136,9 @@ await step('pedido mínimo', async () => {
   await click(page, 'no carrinho');
   let t = await text(page);
   check('mínimo: carrinho avisa "Pedido mínimo de R$ 30,00"', t.includes('Pedido mínimo de R$ 30,00'));
-  await click(page, 'Ir para pagamento');
+  await click(page, 'Escolher a mesa');
   t = await text(page);
-  check('mínimo: não deixa ir para a mesa', !t.includes('Confirmar mesa'));
+  check('mínimo: não deixa ir para a mesa', !t.includes('Escolher pagamento'));
   check('mínimo: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
 });
@@ -148,9 +151,9 @@ await step('dia encerrado', async () => {
   check('dia encerrado: cardápio mostra o aviso', t.includes('encerrou o dia'));
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
-  await click(page, 'Ir para pagamento');
+  await click(page, 'Escolher a mesa');
   t = await text(page);
-  check('dia encerrado: não deixa ir para a mesa', !t.includes('Confirmar mesa'));
+  check('dia encerrado: não deixa ir para a mesa', !t.includes('Escolher pagamento'));
   check('dia encerrado: nenhum pedido enviado', page.api.db.orders.length === 0);
   await page.close();
 });

@@ -83,9 +83,13 @@ html.sf-espera #dc-root{opacity:0}
    10% menores em todos os tamanhos de tela. Campos de digitação continuam em
    16 px (abaixo disso o iPhone dá zoom ao tocar no campo) e os alvos de
    toque continuam com pelo menos 44 px. */
-:root{--px:16px;--gap:10px;--sec:20px;--cpad:14px;--ctl:46px;--fs-h1:22px;--fs-h2:18px;--fs-h3:16px;--fs-body:14px;--fs-sm:13px;--fs-cap:12px;--r-card:14px;--r-btn:12px;--r-ctl:10px}
-@media (min-width:768px){:root{--px:20px;--gap:14px;--sec:28px;--cpad:16px;--fs-h1:26px;--fs-h2:20px;--fs-h3:17px}}
-@media (min-width:1025px){:root{--px:28px;--gap:20px;--sec:40px;--cpad:20px;--ctl:48px;--fs-h1:30px;--fs-h2:22px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px}}
+/* Ajuste ao design system (2026-10-17): botões e campos com 48 px no
+   celular e no tablet e 44 px no computador, cantos de 8 px, H1 de 24/28/32 px,
+   corpo de 16 px no computador e 14 px como menor texto de leitura (13 px e
+   menos só em legendas, com --fs-cap). */
+:root{--px:16px;--gap:12px;--sec:24px;--cpad:14px;--ctl:48px;--fs-h1:24px;--fs-h2:18px;--fs-h3:16px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;--r-card:14px;--r-btn:8px;--r-ctl:8px}
+@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:28px;--cpad:16px;--fs-h1:28px;--fs-h2:20px;--fs-h3:17px}}
+@media (min-width:1025px){:root{--px:32px;--gap:20px;--sec:40px;--cpad:20px;--ctl:44px;--fs-h1:32px;--fs-h2:22px;--fs-h3:18px;--fs-body:16px;--fs-sm:14px}}
 
 /* ===== Sunfood · componentes =====
    Botões, campos, cartões e cabeçalhos são os mesmos em todas as telas
@@ -145,6 +149,8 @@ a:hover{color:#174A52}
 .inp{width:100%;min-height:var(--ctl);border:1px solid var(--field);border-radius:var(--r-ctl);padding:8px 16px;font:500 16px 'Manrope',system-ui,sans-serif;color:var(--ink);background:#fff;outline:none;transition:border-color .15s ease-out,box-shadow .15s ease-out}
 .inp:hover{border-color:var(--field-hover)}
 .inp:focus{border-color:var(--brand);box-shadow:var(--ring)}
+.inp.bad{border-color:#B42318}
+.ferr{display:block;font:600 var(--fs-sm)/1.4 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px}
 .inp:disabled,.inp[readonly]{background:var(--surface-off);color:var(--ink-2);border-color:var(--line)}
 textarea{resize:none;overflow-y:auto}
 textarea.inp{min-height:96px;padding:12px 16px;resize:none;overflow-y:auto;line-height:1.5}
@@ -289,7 +295,7 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
   .auth-logo{display:inline-flex;align-items:center;gap:8px;min-height:48px;color:var(--brand);text-decoration:none;border-radius:var(--r-ctl)}
   .auth-logo svg{display:block;width:24px;height:24px}
   .auth-logo b{font:800 20px/1 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
-  .auth-menu{display:inline-flex;align-items:center;min-height:48px;padding:0 4px;font:700 13px/20px 'Manrope',system-ui,sans-serif;color:var(--brand);text-decoration:none;border-radius:var(--r-ctl)}
+  .auth-menu{display:inline-flex;align-items:center;min-height:48px;padding:0 4px;font:700 var(--fs-sm)/20px 'Manrope',system-ui,sans-serif;color:var(--brand);text-decoration:none;border-radius:var(--r-ctl)}
   .auth-menu:hover{text-decoration:underline;text-underline-offset:3px}
   .auth-main{display:grid;grid-template-columns:minmax(0,1fr) calc(408px + 2 * var(--au-box-pad) + 2px);gap:48px;align-items:center;padding:40px 0}
   .auth-title{margin:0;font:800 34px/1.15 'Manrope',system-ui,sans-serif;letter-spacing:-.03em;color:var(--ink);text-wrap:balance}
@@ -369,6 +375,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
    para nome, preço, descrição e botão aparecerem sem rolar. */
 .pd .pd-col{flex:1 1 300px;min-width:0}
 .pd-info{display:flex;flex-direction:column;gap:16px}
+.pd-back{display:flex;align-items:center;gap:12px;margin-bottom:16px}
 .pd-photo{border-radius:var(--r-card);overflow:hidden;aspect-ratio:4/3;max-height:72vh;display:flex;align-items:center;justify-content:center;position:relative}
 .pd-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .pd-name{margin:8px 0 0;font-size:var(--fs-h1)}
@@ -516,7 +523,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .wd-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .wd-top > .btn{flex:none}
 .wd-head{padding:var(--cpad);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.wd-avatar{width:56px;height:56px;flex-shrink:0;border-radius:50%;background:#0B6670;color:#fff;display:flex;align-items:center;justify-content:center;font:800 18px 'DM Sans',sans-serif}
+.wd-avatar{width:56px;height:56px;flex-shrink:0;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font:800 18px 'Manrope',system-ui,sans-serif}
 .wd-acts{display:flex;gap:8px;flex-wrap:wrap}
 /* Seis indicadores: 3 por linha no tablet e no computador, todos numa linha na tela larga. */
 @media (min-width:768px){.kpis.wd-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -600,12 +607,12 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .gc-card{background:#fff}
 .gc-mini{display:flex;flex-direction:column;gap:8px}
 .gc-mesa-sm{font:800 var(--fs-h3) 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
-.gc-tag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;background:#E7F1F1;color:#084C53;font:700 var(--fs-cap) 'DM Sans',sans-serif;white-space:nowrap}
-.gc-cap{font:600 var(--fs-cap) 'DM Sans',sans-serif;color:#5A6670;margin-bottom:8px}
+.gc-tag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;background:#E7F1F1;color:var(--brand-hover);font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;white-space:nowrap}
+.gc-cap{font:600 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:var(--ink-2);margin-bottom:8px}
 .gc-recv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .gc-recv .btn{min-height:48px;padding:0 8px}
 .gc-tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px}
-.gc-table{min-height:56px;border-radius:var(--r-ctl);border:1px solid #D6CFBF;background:#fff;display:flex;align-items:center;justify-content:center;font:800 18px 'DM Sans',sans-serif;cursor:pointer;user-select:none}
+.gc-table{min-height:56px;border-radius:var(--r-ctl);border:1px solid #D6CFBF;background:#fff;display:flex;align-items:center;justify-content:center;font:800 18px 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none}
 .gc-table:hover{border-color:#12232E}
 .gc-table.on{background:#12232E;border-color:#12232E;color:#fff}
 .gc-table.off{background:#EFEADF;color:#9A958A;border-color:#EFEADF;cursor:not-allowed;text-decoration:line-through}
@@ -617,9 +624,9 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .gc-side{position:sticky;top:20px}
 @media (max-width:1024px){.gc-side{position:static}}
 .gc-day{display:flex;align-items:center;gap:12px;min-height:32px}
-.gc-day-lbl{flex:0 0 72px;font:600 var(--fs-sm) 'DM Sans',sans-serif;color:#5A6670}
+.gc-day-lbl{flex:0 0 72px;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2)}
 .gc-day-track{flex:1;height:12px;border-radius:999px;background:#EFEADF;overflow:hidden}
-.gc-day-n{flex:0 0 32px;text-align:right;font:800 var(--fs-sm) 'DM Sans',sans-serif}
+.gc-day-n{flex:0 0 32px;text-align:right;font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif}
 /* Tablet: as 3 colunas de pedidos lado a lado. A Disponibilidade sai do
    quadro (fica na tela própria, pelo menu), para não ir parar no fim da página. */
 @media (max-width:1024px){
@@ -681,11 +688,11 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 /* ===== Cardápio compacto (2026-10-11) =====
    Mesma grade, em escala menor: foto mais baixa, menos espaço interno, nome e
    descrição limitados a 2 e 1 linha, e preço com o botão na mesma linha.
-   Cabem mais produtos na tela antes de rolar: 2 colunas no celular, 4 no
+   Cabem mais produtos na tela antes de rolar: 2 colunas no celular, 3 no
    tablet, 3 a 4 no computador ao lado do resumo do pedido e 5 em tela larga. */
 .grid{gap:12px}
 @media (min-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}}
-@media (min-width:768px){.grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:16px}}
+@media (min-width:768px){.grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:16px}}
 @media (min-width:1025px){.grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}}
 @media (min-width:1200px){.grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important}}
 @media (min-width:1500px){.grid{grid-template-columns:repeat(5,minmax(0,1fr)) !important}}
@@ -955,25 +962,27 @@ select{caret-color:auto}
                       <svg viewBox="0 0 48 48" width="20" height="20" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
                     </div>
                     <div class="divider"><span></span>ou com e-mail<span></span></div>
-                    <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" class="inp" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo"></div>
-                    <div><span class="lbl">E-mail</span><input placeholder="Digite seu e-mail" class="inp" type="email" autocomplete="email" value="{{ suEmail }}" onChange="{{ setSuEmail }}" aria-label="E-mail"></div>
+                    <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo" class="inp {{ suClsName }}" aria-invalid="{{ suInvName }}"><sc-if value="{{ suHasFeName }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeName }}</span></sc-if></div>
+                    <div><span class="lbl">E-mail</span><input placeholder="Digite seu e-mail" type="email" autocomplete="email" value="{{ suEmail }}" onChange="{{ setSuEmail }}" aria-label="E-mail" class="inp {{ suClsEmail }}" aria-invalid="{{ suInvEmail }}"><sc-if value="{{ suHasFeEmail }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeEmail }}</span></sc-if></div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
-                      <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" class="inp" type="tel" autocomplete="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone"></div>
+                      <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" type="tel" autocomplete="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone" class="inp {{ suClsPhone }}" aria-invalid="{{ suInvPhone }}"><sc-if value="{{ suHasFePhone }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePhone }}</span></sc-if></div>
                       <div>
                         <span class="lbl">CPF</span>
-                        <input placeholder="Digite seu CPF" class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ suCpfBorder }}">
-                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
+                        <input placeholder="Digite seu CPF" class="inp {{ suClsCpf }}" aria-invalid="{{ suInvCpf }}" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF">
+                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span class="ferr">CPF inválido. Confira os números.</span></sc-if>
+                        <sc-if value="{{ suHasFeCpf }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeCpf }}</span></sc-if>
                       </div>
                     </div>
-                    <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento"></div>
+                    <div><span class="lbl">Data de nascimento</span><input placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" autocomplete="bday" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento" class="inp {{ suClsBirth }}" aria-invalid="{{ suInvBirth }}"><sc-if value="{{ suHasFeBirth }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeBirth }}</span></sc-if></div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
-                      <div><span class="lbl">Senha</span><input placeholder="Mínimo de 6 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha"></div>
-                      <div><span class="lbl">Confirmar senha</span><input placeholder="Digite a senha novamente" class="inp" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" aria-label="Confirmar senha"></div>
+                      <div><span class="lbl">Senha</span><input placeholder="Mínimo de 6 caracteres" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha" class="inp {{ suClsPass }}" aria-invalid="{{ suInvPass }}"><sc-if value="{{ suHasFePass }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass }}</span></sc-if></div>
+                      <div><span class="lbl">Confirmar senha</span><input placeholder="Digite a senha novamente" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" aria-label="Confirmar senha" class="inp {{ suClsPass2 }}" aria-invalid="{{ suInvPass2 }}"><sc-if value="{{ suHasFePass2 }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass2 }}</span></sc-if></div>
                     </div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
                       <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" aria-label="Li e aceito os Termos de Uso e a Política de Privacidade" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
                       <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
+                    <sc-if value="{{ suHasFeTerms }}" hint-placeholder-val="{{ false }}"><span class="ferr" style="margin-top:-8px">{{ suFeTerms }}</span></sc-if>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
                     <div onClick="{{ doSignup }}" class="btn btn-sun" style="opacity:{{ signupBusyOpacity }}">{{ signupBtnLabel }}</div>
                     <div class="muted auth-lgpd" style="text-align:center;font-size:var(--fs-cap)">Seus dados são protegidos conforme a LGPD.</div>
@@ -999,7 +1008,7 @@ select{caret-color:auto}
                           <div>
                             <span class="lbl">CPF</span>
                             <input placeholder="Digite o CPF da conta" class="inp" value="{{ fpCpf }}" onChange="{{ setFpCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ fpCpfBorder }}">
-                            <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
+                            <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                             <span class="muted" style="display:block;font-size:var(--fs-sm);line-height:1.5;margin-top:8px">Não lembra o e-mail do cadastro? Mandamos o link para o e-mail ligado a este CPF.</span>
                           </div>
                         </sc-if>
@@ -1025,20 +1034,22 @@ select{caret-color:auto}
                       <div class="tt" style="font-size:var(--fs-h1)">Falta pouco</div>
                       <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:8px 0 0">Complete seu cadastro para fazer pedidos.</p>
                     </div>
-                    <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" class="inp" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo"></div>
+                    <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo" class="inp {{ suClsName }}" aria-invalid="{{ suInvName }}"><sc-if value="{{ suHasFeName }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeName }}</span></sc-if></div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
-                      <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" class="inp" type="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone"></div>
+                      <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" type="tel" autocomplete="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone" class="inp {{ suClsPhone }}" aria-invalid="{{ suInvPhone }}"><sc-if value="{{ suHasFePhone }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePhone }}</span></sc-if></div>
                       <div>
                         <span class="lbl">CPF</span>
-                        <input placeholder="Digite seu CPF" class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ suCpfBorder }}">
-                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
+                        <input placeholder="Digite seu CPF" class="inp {{ suClsCpf }}" aria-invalid="{{ suInvCpf }}" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF">
+                        <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span class="ferr">CPF inválido. Confira os números.</span></sc-if>
+                        <sc-if value="{{ suHasFeCpf }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeCpf }}</span></sc-if>
                       </div>
                     </div>
-                    <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento"></div>
+                    <div><span class="lbl">Data de nascimento</span><input placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" autocomplete="bday" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento" class="inp {{ suClsBirth }}" aria-invalid="{{ suInvBirth }}"><sc-if value="{{ suHasFeBirth }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeBirth }}</span></sc-if></div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
                       <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" aria-label="Li e aceito os Termos de Uso e a Política de Privacidade" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
                       <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
+                    <sc-if value="{{ suHasFeTerms }}" hint-placeholder-val="{{ false }}"><span class="ferr" style="margin-top:-8px">{{ suFeTerms }}</span></sc-if>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
                     <div onClick="{{ doCompleteProfile }}" class="btn btn-sun" style="opacity:{{ completeBusyOpacity }}">{{ completeBtnLabel }}</div>
                     <div onClick="{{ goLogin }}" class="link" style="text-align:center;color:#55626A">Sair</div>
@@ -1195,7 +1206,7 @@ select{caret-color:auto}
                           </div>
                           <div style="margin-top:16px">
                             <div class="prog"><div style="{{ minProgStyle }}"></div></div>
-                            <p class="muted" style="margin:8px 0 0;font-size:13px">{{ minHint }}</p>
+                            <p class="muted" style="margin:8px 0 0;font-size:var(--fs-sm)">{{ minHint }}</p>
                           </div>
                           <div onClick="{{ goCart }}" class="btn btn-sun" style="margin-top:16px">Fechar pedido · {{ totalStr }}</div>
                         </sc-if>
@@ -1215,6 +1226,7 @@ select{caret-color:auto}
               <sc-if value="{{ is_product }}" hint-placeholder-val="{{ false }}">
                 <div class="cols rise pd">
                   <div class="pd-col">
+                    <div class="pd-back"><span onClick="{{ onBack }}" class="backbtn" aria-label="Voltar ao cardápio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></span><span onClick="{{ onBack }}" class="link" data-sf-skip="">Cardápio</span></div>
                     <div class="pd-photo" style="{{ pTileStyle }}">
                       <sc-if value="{{ pHasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ pPhotoStyle }}"></span></sc-if>
                       <sc-if value="{{ pNoPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="130" height="130" fill="none" stroke="{{ pIconColor }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ pMarkPath }}"></path></svg></sc-if>
@@ -1301,7 +1313,7 @@ select{caret-color:auto}
                     <sc-if value="{{ minWarn }}" hint-placeholder-val="{{ false }}">
                       <div class="alert alert-warn">{{ minWarnText }}</div>
                     </sc-if>
-                    <div onClick="{{ goTable }}" class="btn btn-sun">Ir para pagamento</div>
+                    <div onClick="{{ goTable }}" class="btn btn-sun">Escolher a mesa</div>
                   </div>
                 </div>
               </sc-if>
@@ -1331,13 +1343,13 @@ select{caret-color:auto}
                   <div>
                     <span class="lbl">Observação para a cozinha</span>
                     <input placeholder="Instruções para a cozinha" class="inp" value="{{ orderNote }}" onChange="{{ setOrderNote }}" aria-label="Observação para a cozinha">
-                    <div class="muted" style="font-size:13px;line-height:1.5;margin-top:8px">A cozinha vê esta observação junto com o pedido, somada às observações de cada item.</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:8px">A cozinha vê esta observação junto com o pedido, somada às observações de cada item.</div>
                   </div>
                   <div class="card" style="padding:var(--cpad)">
                     <div class="sumrow"><span>{{ cartCountStr }}</span><span>{{ subtotalStr }}</span></div>
                     <div class="sumtotal" style="font-size:var(--fs-h3)"><span>Total</span><span>{{ totalStr }}</span></div>
                   </div>
-                  <div onClick="{{ confirmTable }}" class="btn btn-sun">Confirmar mesa</div>
+                  <div onClick="{{ confirmTable }}" class="btn btn-sun">Escolher pagamento</div>
                 </div>
               </sc-if>
 
@@ -1349,14 +1361,13 @@ select{caret-color:auto}
                       <sc-for list="{{ payOpts }}" as="o" hint-placeholder-count="3">
                         <div onClick="{{ o.pick }}" class="payopt {{ o.cls }}">
                           <span class="radio"></span>
-                          <div style="min-width:0"><div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ o.nm }}</div><div class="muted" style="font-size:13px;margin-top:2px">{{ o.sub }}</div></div>
+                          <div style="min-width:0"><div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ o.nm }}</div><div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ o.sub }}</div></div>
                         </div>
                       </sc-for>
                     </div>
                     <sc-if value="{{ payInfoOff }}" hint-placeholder-val="{{ false }}">
                       <div class="alert alert-info" style="font-weight:500">{{ payInfo }}</div>
                     </sc-if>
-                    <div onClick="{{ goPay }}" class="btn btn-sun" style="justify-content:space-between;padding:0 24px;min-height:56px;font-size:var(--fs-body)"><span>{{ payLabel }}</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
                   </div>
                   <div class="col-side">
                     <div class="card" style="padding:var(--cpad)">
@@ -1369,6 +1380,7 @@ select{caret-color:auto}
                       </div>
                       <div class="sumtotal" style="border-top:0;margin-top:0;padding-top:8px"><span>Total</span><span>{{ totalStr }}</span></div>
                     </div>
+                    <div onClick="{{ goPay }}" class="btn btn-sun">{{ payLabel }}</div>
                   </div>
                 </div>
               </sc-if>
@@ -1468,7 +1480,7 @@ select{caret-color:auto}
                     <div onClick="{{ retryPay }}" class="btn btn-sun">Tentar de novo</div>
                     <div onClick="{{ goCart }}" class="btn btn-ghost">Voltar ao carrinho</div>
                   </div>
-                  <div class="muted" style="font-size:13px">Pagamentos processados com segurança pelo {{ cardProviderName }}.</div>
+                  <div class="muted" style="font-size:var(--fs-sm)">Pagamentos processados com segurança pelo {{ cardProviderName }}.</div>
                 </div>
               </sc-if>
 
@@ -1486,7 +1498,7 @@ select{caret-color:auto}
                       <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
                         <div style="display:flex;gap:16px;padding:12px 0">
                           <span style="{{ st.dotStyle }}">{{ st.mark }}</span>
-                          <div><div style="{{ st.txtStyle }}">{{ st.t }}</div><div class="muted" style="font-size:13px;margin-top:2px">{{ st.d }}</div></div>
+                          <div><div style="{{ st.txtStyle }}">{{ st.t }}</div><div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ st.d }}</div></div>
                         </div>
                       </sc-for>
                     </div>
@@ -1554,7 +1566,7 @@ select{caret-color:auto}
                       <span style="{{ h.dotStyle }}"></span>
                       <div style="flex:1;min-width:0">
                         <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
-                        <div class="muted" style="font-size:13px;margin-top:2px">{{ h.when }}</div>
+                        <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ h.when }}</div>
                       </div>
                       <span style="{{ h.stStyle }}">{{ h.status }}</span>
                       <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
@@ -1637,7 +1649,7 @@ select{caret-color:auto}
                               <span style="{{ h.dotStyle }}"></span>
                               <div style="flex:1;min-width:0">
                                 <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
-                                <div class="muted" style="font-size:13px;margin-top:2px">{{ h.when }}</div>
+                                <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ h.when }}</div>
                               </div>
                               <span style="{{ h.stStyle }}">{{ h.status }}</span>
                               <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
@@ -1679,7 +1691,7 @@ select{caret-color:auto}
                     <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" class="inp" autocomplete="name" value="{{ meName }}" onChange="{{ setMeName }}" aria-label="Nome completo"></div>
                     <div class="form-2col">
                       <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" class="inp" type="tel" autocomplete="tel" value="{{ mePhone }}" onChange="{{ setMePhone }}" aria-label="WhatsApp / telefone"></div>
-                      <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ meBirth }}" onChange="{{ setMeBirth }}" aria-label="Data de nascimento"></div>
+                      <div><span class="lbl">Data de nascimento</span><input class="inp" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" autocomplete="bday" value="{{ meBirth }}" onChange="{{ setMeBirth }}" aria-label="Data de nascimento"></div>
                     </div>
                     <div class="form-2col">
                       <div><span class="lbl">E-mail</span><input class="inp" value="{{ profileEmail }}" disabled="disabled" aria-label="E-mail" style="background:#F7F5F0;color:#55626A"></div>
@@ -1777,7 +1789,7 @@ select{caret-color:auto}
           <div class="adm-sep"></div>
           <div onClick="{{ goKanban }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M10 7h4"></path></svg>Tela da cozinha</div>
           <div class="adm-foot">
-            <div class="em" style="font:500 13px 'Manrope',system-ui,sans-serif;color:#C3D8DB;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div class="em" style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#C3D8DB;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
@@ -1790,12 +1802,12 @@ select{caret-color:auto}
             <sc-if value="{{ is_dashboard }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:12px;flex-wrap:wrap">
                 <div onClick="{{ togglePause }}" class="btn btn-ghost btn-sm" style="min-height:var(--ctl)"><span style="{{ pauseDotStyle }}"></span>{{ pauseBtnLabel }}</div>
-                <div onClick="{{ goCloseDay }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Encerrar o dia</div>
+                <div onClick="{{ goCloseDay }}" class="btn btn-danger-ghost btn-sm" style="min-height:var(--ctl)">Encerrar o dia</div>
               </div>
             </sc-if>
             <sc-if value="{{ is_orders }}" hint-placeholder-val="{{ false }}">
               <div style="min-width:240px">
-                <span class="lbl" style="font-size:13px">Buscar por mesa ou código</span>
+                <span class="lbl" style="font-size:var(--fs-sm)">Buscar por mesa ou código</span>
                 <input placeholder="Número da mesa ou código do pedido" class="inp" value="{{ admSearch }}" onChange="{{ setAdmSearch }}" aria-label="Buscar por mesa ou código">
               </div>
             </sc-if>
@@ -1928,7 +1940,7 @@ select{caret-color:auto}
                           <div class="wide">
                             <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
                               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                                <span class="muted" style="font-size:13px">Recebido em:</span>
+                                <span class="muted" style="font-size:var(--fs-sm)">Recebido em:</span>
                                 <span onClick="{{ r.recvCash }}" class="chip" style="background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">Dinheiro</span>
                                 <span onClick="{{ r.recvCard }}" class="chip" style="background:#E6EFF0;color:#174A52;border:1px solid #D2E3E5;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">Cartão</span>
                                 <span onClick="{{ r.recvPix }}" class="chip" style="background:#FFF4DB;color:#7A4B00;border:1px solid #F0D9A8;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">PIX</span>
@@ -2042,12 +2054,12 @@ select{caret-color:auto}
                     <span class="muted" style="font-size:var(--fs-sm)">{{ m.contact }}</span>
                     <span class="chip" style="background:#E6EFF0;color:#174A52">{{ m.reason }}</span>
                     <span style="flex:1"></span>
-                    <span class="muted" style="font-size:13px">{{ m.protocol }} · {{ m.when }}</span>
+                    <span class="muted" style="font-size:var(--fs-sm)">{{ m.protocol }} · {{ m.when }}</span>
                   </div>
                   <div style="font:400 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;color:#14232A;margin-top:12px;white-space:pre-wrap">{{ m.message }}</div>
                   <sc-if value="{{ m.hasReply }}" hint-placeholder-val="{{ false }}">
                     <div style="margin-top:12px;padding:12px 16px;border-radius:var(--r-ctl);background:#E6EFF0;color:#174A52">
-                      <div style="font:700 13px 'Manrope',system-ui,sans-serif;margin-bottom:4px">{{ m.replyInfo }}</div>
+                      <div style="font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;margin-bottom:4px">{{ m.replyInfo }}</div>
                       <div style="font:400 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;white-space:pre-wrap;word-break:break-word">{{ m.reply }}</div>
                     </div>
                   </sc-if>
@@ -2109,7 +2121,7 @@ select{caret-color:auto}
                 </sc-if>
                 <div class="kpis wd-kpis">
                   <sc-for list="{{ wdKpis }}" as="m" hint-placeholder-count="6">
-                    <div class="kpi"><div class="k">{{ m.lbl }}</div><div class="v">{{ m.val }}</div><div class="s" style="color:#5A6670">{{ m.sub }}</div></div>
+                    <div class="kpi"><div class="k">{{ m.lbl }}</div><div class="v">{{ m.val }}</div><div class="s" style="color:var(--ink-2)">{{ m.sub }}</div></div>
                   </sc-for>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:12px">
@@ -2165,9 +2177,9 @@ select{caret-color:auto}
                     <sc-for list="{{ waiterRows }}" as="w" hint-placeholder-count="3">
                       <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px">
                         <div onClick="{{ w.open }}" role="button" title="Ver métricas e pedidos" style="display:flex;align-items:center;gap:12px;cursor:pointer">
-                          <span style="width:48px;height:48px;flex-shrink:0;border-radius:50%;background:#0B6670;color:#fff;display:flex;align-items:center;justify-content:center;font:800 16px 'DM Sans',sans-serif">{{ w.initials }}</span>
+                          <span style="width:48px;height:48px;flex-shrink:0;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font:800 16px 'Manrope',system-ui,sans-serif">{{ w.initials }}</span>
                           <div style="min-width:0;flex:1">
-                            <div style="font:700 var(--fs-body)/1.3 'DM Sans',sans-serif">{{ w.name }}</div>
+                            <div style="font:700 var(--fs-body)/1.3 'Manrope',system-ui,sans-serif">{{ w.name }}</div>
                             <div class="muted" style="font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ w.email }}</div>
                           </div>
                           <span style="{{ w.pillStyle }}">{{ w.pill }}</span>
@@ -2295,7 +2307,7 @@ select{caret-color:auto}
                         <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
                       </div>
                       <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;flex-grow:1">{{ p.desc }}</div>
-                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="{{ p.pillStyle }}">{{ p.pill }}</span><span class="muted" style="font-size:13px">{{ p.meta }}</span></div>
+                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="{{ p.pillStyle }}">{{ p.pill }}</span><span class="muted" style="font-size:var(--fs-sm)">{{ p.meta }}</span></div>
                       <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #EFEADF;padding-top:12px;flex-wrap:wrap;gap:12px">
                         <div style="display:flex;align-items:center;gap:12px;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif">
                           <div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div>{{ p.availLabel }}
@@ -2499,7 +2511,7 @@ select{caret-color:auto}
                       <div title="{{ b.tip }}" class="bar"><div class="bv" style="font-weight:700">{{ b.top }}</div><div style="{{ b.style }}"></div><div class="bl" style="font-size:12px">{{ b.lbl }}</div></div>
                     </sc-for>
                   </div>
-                  <div class="muted" style="font-size:13px;margin-top:12px">Número de pedidos por hora em que foram feitos.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);margin-top:12px">Número de pedidos por hora em que foram feitos.</div>
                 </div>
                 <div class="panel">
                   <h2>Mais vendidos no período</h2>
@@ -2545,20 +2557,34 @@ select{caret-color:auto}
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <h2 style="margin:0">Encerrar o dia</h2>
                   <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Gera o relatório do dia com faturamento, pedidos e ticket médio, e bloqueia novos fechamentos de pedido até reabrir.</p>
-                  <div onClick="{{ closeDay }}" class="btn btn-dark">Encerrar o dia agora</div>
+                  <div onClick="{{ askCloseDay }}" class="btn btn-danger-ghost">Encerrar o dia</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ closeAskOpen }}" hint-placeholder-val="{{ false }}">
+                <div class="sf-overlay">
+                  <div class="rise sf-dialog" role="alertdialog" aria-modal="true" aria-label="Encerrar o dia" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+                    <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
+                    <div class="tt" style="font-size:var(--fs-h2)">Encerrar o dia agora?</div>
+                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ closeAskSummary }}</p>
+                    <sc-if value="{{ closeAskHasOpen }}" hint-placeholder-val="{{ false }}">
+                      <p style="font-size:var(--fs-sm);line-height:1.5;margin:0;color:#7A1A12"><b>{{ closeAskOpenText }}</b> Eles continuam na cozinha, mas novos pedidos ficam bloqueados até reabrir.</p>
+                    </sc-if>
+                    <div onClick="{{ closeDay }}" class="btn btn-danger" style="width:100%">Encerrar o dia</div>
+                    <div onClick="{{ cancelCloseDay }}" class="btn btn-ghost" style="width:100%">Continuar aberto</div>
+                  </div>
                 </div>
               </sc-if>
               <sc-if value="{{ dayClosed }}" hint-placeholder-val="{{ false }}">
                 <div class="panel" style="display:flex;flex-direction:column;gap:16px">
                   <h2 style="margin:0">Dia encerrado</h2>
                   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-                    <div><div class="muted" style="font-size:13px">Faturamento</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportRevenue }}</div></div>
-                    <div><div class="muted" style="font-size:13px">Pedidos</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportOrders }}</div></div>
-                    <div><div class="muted" style="font-size:13px">Ticket médio</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportAvgTicket }}</div></div>
+                    <div><div class="muted" style="font-size:var(--fs-sm)">Faturamento</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportRevenue }}</div></div>
+                    <div><div class="muted" style="font-size:var(--fs-sm)">Pedidos</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportOrders }}</div></div>
+                    <div><div class="muted" style="font-size:var(--fs-sm)">Ticket médio</div><div class="tt" style="font-size:var(--fs-h3);margin-top:4px">{{ reportAvgTicket }}</div></div>
                   </div>
                   <sc-if value="{{ hasDayReport }}" hint-placeholder-val="{{ false }}">
                     <div>
-                      <div class="muted" style="font-size:13px;margin-bottom:8px">Mais vendidos</div>
+                      <div class="muted" style="font-size:var(--fs-sm);margin-bottom:8px">Mais vendidos</div>
                       <sc-for list="{{ reportTopProducts }}" as="tp" hint-placeholder-count="3">
                         <div class="sumrow" style="font-size:var(--fs-sm)"><span style="color:#14232A">{{ tp.name }}</span><span>{{ tp.qty }} un.</span></div>
                       </sc-for>
@@ -2588,7 +2614,7 @@ select{caret-color:auto}
             <div onClick="{{ goAdminHome }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v4h-7z M13 10h7v10h-7z M4 13h7v7H4z"></path></svg>Painel admin</div>
           </sc-if>
           <div class="adm-foot">
-            <div class="em" style="font:500 13px 'Manrope',system-ui,sans-serif;color:#C3D8DB;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div class="em" style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#C3D8DB;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
@@ -2635,7 +2661,7 @@ select{caret-color:auto}
                   <sc-for list="{{ col.cards }}" as="k" hint-placeholder-count="2">
                     <div class="kz-card {{ k.lateCls }}">
                       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                        <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 13px 'Manrope',system-ui,sans-serif;color:#55626A">{{ k.id }}</span></div>
+                        <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A">{{ k.id }}</span></div>
                         <span class="kz-time">{{ k.min }}</span>
                       </div>
                       <sc-if value="{{ k.hasCustomer }}" hint-placeholder-val="{{ true }}">
@@ -2684,7 +2710,7 @@ select{caret-color:auto}
           </sc-for>
           <div onClick="{{ toggleSound }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ soundIc }}"></path></svg>{{ soundLabel }}</div>
           <div class="adm-foot">
-            <div class="em" style="font:500 13px 'DM Sans',sans-serif;color:#9FB2BA;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
+            <div class="em" style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#9FB2BA;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
@@ -2697,7 +2723,7 @@ select{caret-color:auto}
             <sc-if value="{{ is_entregar }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
                 <span class="kz-chip">Prontos <b style="color:#1E6B36">{{ gReadyN }}</b></span>
-                <span class="kz-chip">Na cozinha <b style="color:#0B6670">{{ gKitchenN }}</b></span>
+                <span class="kz-chip">Na cozinha <b style="color:var(--brand)">{{ gKitchenN }}</b></span>
               </div>
             </sc-if>
             <sc-if value="{{ is_desempenho }}" hint-placeholder-val="{{ false }}">
@@ -2713,7 +2739,7 @@ select{caret-color:auto}
             <div class="gc-page rise">
               <sc-if value="{{ soundOff }}" hint-placeholder-val="{{ false }}">
                 <div class="kz-sound" style="margin:0">
-                  <span style="font:500 var(--fs-body) 'DM Sans',sans-serif;color:#7A4B00"><b>O aviso sonoro está desligado.</b> Ligue para ouvir um toque quando um pedido ficar pronto.</span>
+                  <span style="font:500 var(--fs-body) 'Manrope',system-ui,sans-serif;color:#7A4B00"><b>O aviso sonoro está desligado.</b> Ligue para ouvir um toque quando um pedido ficar pronto.</span>
                   <span onClick="{{ toggleSound }}" class="btn btn-sun btn-sm" style="min-height:var(--ctl)">Ativar som</span>
                 </div>
               </sc-if>
@@ -2723,7 +2749,7 @@ select{caret-color:auto}
                   <sc-for list="{{ gReady }}" as="k" hint-placeholder-count="2">
                     <div class="kz-card gc-card {{ k.lateCls }}">
                       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                        <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 13px 'DM Sans',sans-serif;color:#5A6670">{{ k.id }}</span></div>
+                        <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2)">{{ k.id }}</span></div>
                         <span class="kz-time">{{ k.min }}</span>
                       </div>
                       <div>
@@ -2748,7 +2774,7 @@ select{caret-color:auto}
                           </div>
                         </div>
                       </sc-if>
-                      <div onClick="{{ k.deliver }}" class="kz-act" style="background:#1E6B36;color:#fff">Marcar como entregue</div>
+                      <div onClick="{{ k.deliver }}" class="btn btn-sun" style="width:100%">Marcar como entregue</div>
                     </div>
                   </sc-for>
                 </div>
@@ -2757,12 +2783,12 @@ select{caret-color:auto}
                 </sc-if>
               </section>
               <section>
-                <h2 class="gc-h2"><span style="width:10px;height:10px;border-radius:50%;background:#0B6670"></span>Ainda na cozinha</h2>
+                <h2 class="gc-h2"><span style="width:10px;height:10px;border-radius:50%;background:var(--brand)"></span>Ainda na cozinha</h2>
                 <div class="gc-grid">
                   <sc-for list="{{ gKitchen }}" as="k" hint-placeholder-count="2">
                     <div class="panel gc-mini">
                       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                        <div><b class="gc-mesa-sm">{{ k.table }}</b> <span style="font:500 13px 'DM Sans',sans-serif;color:#5A6670">{{ k.id }}</span></div>
+                        <div><b class="gc-mesa-sm">{{ k.table }}</b> <span style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2)">{{ k.id }}</span></div>
                         <span style="{{ k.statusStyle }}">{{ k.status }}</span>
                       </div>
                       <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">{{ k.items }}</div>
@@ -2810,7 +2836,7 @@ select{caret-color:auto}
                     <sc-for list="{{ gProducts }}" as="p" hint-placeholder-count="6">
                       <div class="gc-prod {{ p.offCls }}">
                         <div style="min-width:0;flex:1">
-                          <div style="font:700 var(--fs-body)/1.3 'DM Sans',sans-serif">{{ p.name }}</div>
+                          <div style="font:700 var(--fs-body)/1.3 'Manrope',system-ui,sans-serif">{{ p.name }}</div>
                           <div class="muted" style="font-size:var(--fs-sm)">{{ p.sub }}</div>
                         </div>
                         <sc-if value="{{ p.avail }}" hint-placeholder-val="{{ true }}">
@@ -2865,7 +2891,7 @@ select{caret-color:auto}
               </sc-if>
               <div class="kpis">
                 <sc-for list="{{ gKpis }}" as="m" hint-placeholder-count="5">
-                  <div class="kpi"><div class="k">{{ m.lbl }}</div><div class="v">{{ m.val }}</div><div class="s" style="color:#5A6670">{{ m.sub }}</div></div>
+                  <div class="kpi"><div class="k">{{ m.lbl }}</div><div class="v">{{ m.val }}</div><div class="s" style="color:var(--ink-2)">{{ m.sub }}</div></div>
                 </sc-for>
               </div>
               <sc-if value="{{ gShowDays }}" hint-placeholder-val="{{ false }}">
@@ -3162,6 +3188,38 @@ function isAdult(birthDateStr){
   return birth.getTime() <= limit.getTime();
 }
 
+// Data de nascimento digitada como dd/mm/aaaa (o seletor nativo do navegador
+// aparecia em mm/dd/yyyy); a API continua recebendo aaaa-mm-dd.
+function maskDate(v){
+  const d = String(v || '').replace(/\D/g, '').slice(0, 8);
+  return d.length > 4 ? d.slice(0, 2) + '/' + d.slice(2, 4) + '/' + d.slice(4) : d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
+}
+function brDateToIso(t){
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(t || '');
+  if(!m) return '';
+  const iso = m[3] + '-' + m[2] + '-' + m[1], dt = new Date(iso + 'T00:00:00Z');
+  return !Number.isNaN(dt.getTime()) && dt.toISOString().slice(0, 10) === iso ? iso : '';
+}
+const isoToBrDate = iso => /^\d{4}-\d{2}-\d{2}/.test(iso || '') ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : '';
+
+// Todos os erros do cadastro de uma vez, cada um embaixo do seu campo.
+function signupErrors(s, withAccount){
+  const e = {};
+  if(s.suName.trim().length <= 2) e.name = 'Informe seu nome completo.';
+  if(withAccount){
+    if(!isEmailContact(s.suEmail)) e.email = 'Informe um e-mail válido, como nome@email.com.';
+    if(s.suPass.length < 6) e.pass = 'A senha precisa ter 6 ou mais caracteres.';
+    if(s.suPass !== s.suPass2) e.pass2 = 'As senhas não conferem.';
+  }
+  if(s.suPhone.replace(/\D/g, '').length < 10) e.phone = 'Informe um telefone/WhatsApp com DDD.';
+  if(!isValidCpf(s.suCpf)) e.cpf = 'CPF inválido. Confira os números.';
+  const iso = brDateToIso(s.suBirth);
+  if(!iso) e.birth = 'Informe a data no formato dd/mm/aaaa.';
+  else if(!isAdult(iso)) e.birth = 'É preciso ter 18 anos ou mais para fazer pedidos.';
+  if(!s.suTerms) e.terms = 'É preciso aceitar os termos de uso e a política de privacidade.';
+  return e;
+}
+
 // O Postgres/Supabase devolve timestamps ISO-8601 completos (com fuso) —
 // dá pra passar direto pro Date(), sem a gambiarra que o formato do SQLite
 // antigo ("YYYY-MM-DD HH:MM:SS", sem fuso) exigia.
@@ -3347,7 +3405,7 @@ function reportPrintHtml(d, autoPrint){
     '*{box-sizing:border-box}body{margin:0;background:#F6F1E7;color:#14232A;font:15px/1.45 "Manrope",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}' +
     '.page{max-width:960px;margin:0 auto;padding:24px 16px 40px}.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}' +
     '.bar button{min-height:46px;padding:0 18px;border-radius:12px;border:0;font:800 15px inherit;font-family:inherit;cursor:pointer;background:#14232A;color:#fff}.bar button.g{background:#fff;color:#14232A;border:1px solid #D6CFBF}' +
-    '.sheet{background:#fff;border-radius:20px;padding:24px}h1{font-size:24px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 10px}.muted{color:#55626A;font-size:13px;margin:0}' +
+    '.sheet{background:#fff;border-radius:20px;padding:24px}h1{font-size:24px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 10px}.muted{color:#55626A;font-size:var(--fs-sm);margin:0}' +
     '.story{background:#F6F1E7;border-radius:14px;padding:14px 16px}.story p{margin:0 0 8px;font-size:15px}.story p:last-child{margin:0}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.kpi{border:1px solid #E6DFD1;border-radius:14px;padding:12px}.kpi .k{color:#55626A;font-size:13px}.kpi .v{font-size:20px;font-weight:800;margin-top:2px}' +
     '.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #EEE8DC;vertical-align:top}th{background:#F6F1E7;font-weight:800;white-space:nowrap}td.r,th.r{text-align:right;white-space:nowrap}tr.off td{color:#8A949B}' +
     '.orders td:nth-child(5){min-width:180px}' +
@@ -3520,7 +3578,7 @@ const CART_TTL = 3 * 60 * 60 * 1000;
 const TAB_TITLES = {
   login:'Entrar', signup:'Criar conta', forgot:'Recuperar senha', completeProfile:'Completar cadastro',
   menu:'Cardápio', product:'Cardápio', cart:'Carrinho', cartEmpty:'Carrinho',
-  table:'Confirmar pedido', payment:'Revisar pedido', pix:'Pagamento via PIX', card:'Pagamento com cartão',
+  table:'Sua mesa', payment:'Pagamento', pix:'Pagamento via PIX', card:'Pagamento com cartão',
   confirm:'Pedido confirmado', payFail:'Falha no pagamento',
   status:'Meu pedido', cancelAsk:'Cancelar pedido', cancelDone:'Pedido cancelado', cancelBlocked:'Meu pedido',
   history:'Meus pedidos', historyEmpty:'Meus pedidos', orderDetail:'Meus pedidos',
@@ -3538,10 +3596,10 @@ const TAB_TITLES = {
 const META = {
   menu:{t:'',back:null,nav:'menu',w:'wide'},
   product:{t:'',back:'menu',w:'mid'},
-  cart:{t:'Meu Carrinho',back:'menu',w:'mid'},
-  cartEmpty:{t:'Meu Carrinho',back:'menu',w:'narrow'},
-  table:{t:'Confirmar Pedido',sub:'Em qual mesa a gente entrega?',back:'cart',w:'narrow'},
-  payment:{t:'Revisar pedido',sub:'Confira antes de enviar para a cozinha',back:'table',w:'mid'},
+  cart:{t:'Seu carrinho',back:'menu',w:'mid'},
+  cartEmpty:{t:'Seu carrinho',back:'menu',w:'narrow'},
+  table:{t:'Sua mesa',sub:'Etapa 1 de 2 · Em qual mesa a gente entrega?',back:'cart',w:'narrow'},
+  payment:{t:'Pagamento',sub:'Etapa 2 de 2 · Confira o pedido e escolha como pagar',back:'table',w:'mid'},
   pix:{t:'Pagamento via PIX',back:'payment',w:'narrow'},
   card:{t:'Pagamento com cartão',back:'payment',w:'narrow'},
   confirm:{t:'',back:null,w:'narrow'},
@@ -3582,7 +3640,7 @@ class Component extends DCLogic {
     module:'cliente', screen:'login',
     email:'', pass:'', loginErr:'', loginNeedsConfirm:false,
     token:null, authUser:null, busy:null,
-    suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'',
+    suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'', suFe:{},
     fpEmail:'', fpCpf:'', fpMode:'email', fpSentTo:'', fpSent:false, fpErr:'',
     cat:'Todos', menuSearch:'', products:[], catalogError:false,
     cart:[], selId:'p4', qty:1, note:'',
@@ -3964,16 +4022,13 @@ class Component extends DCLogic {
   async submitCompleteProfile(){
     if(this.state.busy) return;
     const s = this.state;
-    if(s.suName.trim().length < 2) return this.setState({suErr:'Informe seu nome.'});
-    if(s.suPhone.replace(/\D/g, '').length < 10) return this.setState({suErr:'Informe um telefone/WhatsApp válido.'});
-    if(!isValidCpf(s.suCpf)) return this.setState({suErr:'CPF inválido. Confira os números.'});
-    if(!isAdult(s.suBirth)) return this.setState({suErr:'É preciso ter 18 anos ou mais para fazer pedidos.'});
-    if(!s.suTerms) return this.setState({suErr:'É preciso aceitar os termos de uso e a política de privacidade.'});
-    this.setState({suErr:'', busy:'complete'});
+    const fe = signupErrors(s, false);
+    if(Object.keys(fe).length) return this.setState({suFe:fe, suErr:''});
+    this.setState({suFe:{}, suErr:'', busy:'complete'});
     try {
       const res = await authFetch(API_BASE + '/auth/complete-profile', {
         method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + s.token},
-        body:JSON.stringify({name:s.suName.trim(), phone:s.suPhone.trim(), cpf:cpfDigits(s.suCpf), birthDate:s.suBirth, termsAccepted:s.suTerms})
+        body:JSON.stringify({name:s.suName.trim(), phone:s.suPhone.trim(), cpf:cpfDigits(s.suCpf), birthDate:brDateToIso(s.suBirth), termsAccepted:s.suTerms})
       });
       const data = await res.json();
       if(!res.ok){ this.setState({suErr: data.error || 'Não foi possível salvar seu cadastro.'}); return; }
@@ -4023,7 +4078,7 @@ class Component extends DCLogic {
       const data = await res.json();
       this.setAuthUser(data.user);
       const upd = {profileInfo:{phone:data.phone, birthDate:data.birthDate, cpf:data.cpf, hasPassword:data.hasPassword}};
-      if(fillForm) Object.assign(upd, {meName:data.user.name, mePhone:data.phone, meBirth:data.birthDate, meErr:'', avatarErr:''});
+      if(fillForm) Object.assign(upd, {meName:data.user.name, mePhone:data.phone, meBirth:isoToBrDate(data.birthDate), meErr:'', avatarErr:''});
       this.setState(upd);
     } catch(e){}
   }
@@ -4045,10 +4100,12 @@ class Component extends DCLogic {
     if(s.meName.trim().length < 2) return this.setState({meErr:'Informe seu nome.'});
     const isCliente = (s.authUser && s.authUser.role || 'cliente') === 'cliente';
     if((s.mePhone || isCliente) && s.mePhone.replace(/\D/g, '').length < 10) return this.setState({meErr:'Informe um telefone/WhatsApp válido.'});
-    if((s.meBirth || isCliente) && !isAdult(s.meBirth)) return this.setState({meErr:'É preciso ter 18 anos ou mais.'});
+    const meIso = brDateToIso(s.meBirth);
+    if((s.meBirth || isCliente) && !meIso) return this.setState({meErr:'Informe a data de nascimento no formato dd/mm/aaaa.'});
+    if(meIso && !isAdult(meIso)) return this.setState({meErr:'É preciso ter 18 anos ou mais.'});
     const body = {name:s.meName.trim()};
     if(s.mePhone) body.phone = s.mePhone.trim();
-    if(s.meBirth) body.birthDate = s.meBirth;
+    if(meIso) body.birthDate = meIso;
     this.setState({meErr:'', busy:'profile'});
     try {
       await this.patchProfile(body);
@@ -5118,23 +5175,17 @@ class Component extends DCLogic {
   async submitSignup(){
     if(this.state.busy) return;
     const s = this.state;
-    if(s.suName.trim().length <= 2) return this.setState({suErr:'Informe seu nome completo.'});
-    // Mesmo formato que a API exige (nome@dominio.com): "ana@email" sem o
-    // ".com" passava aqui e só voltava do servidor como "Dados inválidos.".
-    if(!isEmailContact(s.suEmail)) return this.setState({suErr:'Informe um e-mail válido, como nome@email.com.'});
-    if(s.suPass.length < 6) return this.setState({suErr:'A senha precisa ter 6 ou mais caracteres.'});
-    if(s.suPass !== s.suPass2) return this.setState({suErr:'As senhas não conferem.'});
-    if(s.suPhone.replace(/\D/g, '').length < 10) return this.setState({suErr:'Informe um telefone/WhatsApp válido.'});
-    if(!isValidCpf(s.suCpf)) return this.setState({suErr:'CPF inválido. Confira os números.'});
-    if(!isAdult(s.suBirth)) return this.setState({suErr:'É preciso ter 18 anos ou mais para se cadastrar.'});
-    if(!s.suTerms) return this.setState({suErr:'É preciso aceitar os termos de uso e a política de privacidade.'});
-    this.setState({suErr:'', busy:'signup'});
+    // O e-mail segue o formato que a API exige (nome@dominio.com): "ana@email"
+    // sem o ".com" só voltava do servidor como "Dados inválidos.".
+    const fe = signupErrors(s, true);
+    if(Object.keys(fe).length) return this.setState({suFe:fe, suErr:''});
+    this.setState({suFe:{}, suErr:'', busy:'signup'});
     try {
       const res = await authFetch(API_BASE + '/auth/signup', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           name:s.suName.trim(), email:s.suEmail.trim(), password:s.suPass,
-          phone:s.suPhone.trim(), cpf:cpfDigits(s.suCpf), birthDate:s.suBirth, termsAccepted:s.suTerms
+          phone:s.suPhone.trim(), cpf:cpfDigits(s.suCpf), birthDate:brDateToIso(s.suBirth), termsAccepted:s.suTerms
         })
       });
       const data = await res.json();
@@ -5644,7 +5695,7 @@ class Component extends DCLogic {
     v.authArtTitle = art[0]; v.authArtSub = art[1];
     v.hdrTitle = meta.t || ''; v.showPageHead = !!meta.t;
     v.hdrSub = meta.sub || ''; v.hasHdrSub = !!meta.sub;
-    if(s.screen === 'payment' && s.table) v.hdrSub = 'Mesa ' + s.table + ' · ' + meta.sub;
+    if(s.screen === 'payment' && s.table) v.hdrSub = 'Etapa 2 de 2 · Mesa ' + s.table + ' · confira o pedido e escolha como pagar';
     if(s.screen === 'orderDetail' && s.history[s.histSel]) v.hdrTitle = 'Pedido ' + s.history[s.histSel].id;
     v.hdrBack = !!meta.back; v.onBack = () => meta.back && this.go(meta.back);
     v.wrapClass = 'wrap-' + (meta.w || 'mid') + (['cartEmpty','historyEmpty','confirm','payFail','cancelDone','cancelBlocked','offline'].indexOf(s.screen) >= 0 ? ' wrap-estado' : '');
@@ -5726,7 +5777,7 @@ class Component extends DCLogic {
     v.pNota = sel.nota; v.pAvaliacoes = sel.avaliacoes + ' avaliações';
     v.pFacts = [{k:'Porção', v:sel.porcao},{k:'Preparo', v:sel.tempo}].filter(x => x.v).map(x => ({t:x.k + ': ' + x.v}));
     v.pTags = (sel.tags || []).map(t => Array.isArray(t) ? t[0] : t).filter(Boolean).map(t => ({
-      t, style:'background:#E6EFF0;color:#174A52;padding:8px 12px;font-size:13px'
+      t, style:'background:#E6EFF0;color:#174A52;padding:8px 12px;font-size:var(--fs-sm)'
     }));
     const selTile = catTile(sel.cat, s.categories);
     v.pTileStyle = 'background:' + selTile[0]; v.pIconColor = selTile[1];
@@ -5906,19 +5957,28 @@ class Component extends DCLogic {
     v.suName = s.suName; v.suEmail = s.suEmail; v.suPass = s.suPass; v.suPass2 = s.suPass2; v.suErr = s.suErr; v.hasSuErr = !!s.suErr;
     v.suPhone = s.suPhone; v.suBirth = s.suBirth; v.suTerms = s.suTerms;
     v.suCpf = s.suCpf;
-    v.suCpfBad = cpfDigits(s.suCpf).length === 11 && !isValidCpf(s.suCpf);
-    v.suCpfBorder = v.suCpfBad ? '#B42318' : '';
-    v.setSuName = e => this.setState({suName:e.target.value, suErr:''});
-    v.setSuEmail = e => this.setState({suEmail:e.target.value, suErr:''});
-    v.setSuPass = e => this.setState({suPass:e.target.value, suErr:''});
-    v.setSuPass2 = e => this.setState({suPass2:e.target.value, suErr:''});
-    v.setSuPhone = e => this.setState({suPhone:e.target.value, suErr:''});
-    v.setSuCpf = e => this.setState({suCpf:formatCpf(e.target.value), suErr:''});
-    v.setSuBirth = e => this.setState({suBirth:e.target.value, suErr:''});
-    v.toggleSuTerms = () => this.setState(st => ({suTerms:!st.suTerms, suErr:''}));
+    // Erro de cada campo do cadastro: some quando a pessoa mexe naquele campo.
+    const fe = s.suFe || {};
+    const suField = (k, val) => st => ({[k]:val, suErr:'', suFe:Object.assign({}, st.suFe, {[FE_OF[k]]:''})});
+    const FE_OF = {suName:'name', suEmail:'email', suPass:'pass', suPass2:'pass2', suPhone:'phone', suCpf:'cpf', suBirth:'birth', suTerms:'terms'};
+    ['name', 'email', 'pass', 'pass2', 'phone', 'cpf', 'birth', 'terms'].forEach(k => {
+      const K = k.charAt(0).toUpperCase() + k.slice(1);
+      v['suFe' + K] = fe[k] || ''; v['suHasFe' + K] = !!fe[k];
+      v['suCls' + K] = fe[k] ? 'bad' : ''; v['suInv' + K] = fe[k] ? 'true' : 'false';
+    });
+    v.suCpfBad = !fe.cpf && cpfDigits(s.suCpf).length === 11 && !isValidCpf(s.suCpf);
+    if(v.suCpfBad){ v.suClsCpf = 'bad'; v.suInvCpf = 'true'; }
+    v.setSuName = e => this.setState(suField('suName', e.target.value));
+    v.setSuEmail = e => this.setState(suField('suEmail', e.target.value));
+    v.setSuPass = e => this.setState(suField('suPass', e.target.value));
+    v.setSuPass2 = e => this.setState(suField('suPass2', e.target.value));
+    v.setSuPhone = e => this.setState(suField('suPhone', e.target.value));
+    v.setSuCpf = e => this.setState(suField('suCpf', formatCpf(e.target.value)));
+    v.setSuBirth = e => this.setState(suField('suBirth', maskDate(e.target.value)));
+    v.toggleSuTerms = () => this.setState(st => suField('suTerms', !st.suTerms)(st));
     v.stopProp = e => e.stopPropagation();
     v.suOk = s.suName.trim().length > 2 && /@/.test(s.suEmail) && s.suPass.length >= 6 && s.suPass === s.suPass2
-      && s.suPhone.replace(/\D/g, '').length >= 10 && isValidCpf(s.suCpf) && isAdult(s.suBirth) && s.suTerms;
+      && s.suPhone.replace(/\D/g, '').length >= 10 && isValidCpf(s.suCpf) && isAdult(brDateToIso(s.suBirth)) && s.suTerms;
     v.suBlocked = !v.suOk;
     v.doSignup = () => this.submitSignup();
     v.doCompleteProfile = () => this.submitCompleteProfile();
@@ -6403,7 +6463,17 @@ class Component extends DCLogic {
     }));
 
     v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
-    v.closeDay = () => this.closeDayReal();
+    v.askCloseDay = () => this.setState({closeAsk:true});
+    v.cancelCloseDay = () => this.setState({closeAsk:false});
+    v.closeDay = () => { this.setState({closeAsk:false}); this.closeDayReal(); };
+    v.closeAskOpen = !!s.closeAsk && !s.dayClosed;
+    {
+      const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios);
+      const abertos = (s.adminOrders || []).filter(o => ['Na Fila', 'Em Preparo', 'Pronto'].indexOf(o.status) >= 0).length;
+      v.closeAskSummary = dash ? 'Hoje: ' + plural(dash.ordersToday, 'pedido', 'pedidos') + ' e R$ ' + dash.revenueToday.toFixed(2).replace('.', ',') + ' de faturamento. O relatório do dia é gerado na hora.' : 'O relatório do dia é gerado na hora.';
+      v.closeAskHasOpen = abertos > 0;
+      v.closeAskOpenText = abertos === 1 ? '1 pedido ainda está aberto.' : abertos + ' pedidos ainda estão abertos.';
+    }
     v.reopenDay = () => this.reopenDayReal();
     const report = s.lastDayReport;
     v.hasDayReport = !!report;
@@ -6551,7 +6621,7 @@ class Component extends DCLogic {
     const gDayMax = gm ? Math.max(1, ...gm.byDay.map(d => d.delivered)) : 1;
     v.gDays = gm ? gm.byDay.slice().reverse().map(d => ({
       label:d.date.slice(8, 10) + '/' + d.date.slice(5, 7), n:String(d.delivered),
-      barStyle:'height:100%;border-radius:999px;background:#0B6670;width:' + Math.round(d.delivered / gDayMax * 100) + '%'
+      barStyle:'height:100%;border-radius:999px;background:var(--brand);width:' + Math.round(d.delivered / gDayMax * 100) + '%'
     })) : [];
     v.gShowDays = !!gm && gm.byDay.length > 1;
     v.gMetricsErr = s.gMetricsErr; v.hasGMetricsErr = !!s.gMetricsErr;
@@ -6703,7 +6773,7 @@ class Component extends DCLogic {
     v.meCpf = (s.profileInfo && s.profileInfo.cpf) || 'Não informado';
     v.setMeName = e => this.setState({meName:e.target.value, meErr:''});
     v.setMePhone = e => this.setState({mePhone:e.target.value, meErr:''});
-    v.setMeBirth = e => this.setState({meBirth:e.target.value, meErr:''});
+    v.setMeBirth = e => this.setState({meBirth:maskDate(e.target.value), meErr:''});
     v.meErr = s.meErr; v.hasMeErr = !!s.meErr;
     v.saveProfile = () => this.saveProfile();
     v.meSaveLabel = s.busy === 'profile' ? 'Salvando…' : 'Salvar';

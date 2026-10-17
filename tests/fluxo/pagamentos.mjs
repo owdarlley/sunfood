@@ -80,9 +80,9 @@ async function ateOPagamento(page) {
   await click(page, 'Entrar', true);
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
-  await click(page, 'Ir para pagamento');
+  await click(page, 'Escolher a mesa');
   await page.getByLabel('Número da mesa', { exact: true }).fill('1');
-  await click(page, 'Confirmar mesa');
+  await click(page, 'Escolher pagamento');
 }
 
 await step('pagar na entrega', async () => {
@@ -358,7 +358,7 @@ await step('carrinho só some depois do pagamento aprovado', async () => {
   check('carrinho: PIX aberto, pedido criado e ainda pendente', page.api.db.orders.length === 1 && page.api.db.orders[0].paymentStatus === 'pending');
   await page.locator('[aria-label="Voltar"]').first().click(); await page.waitForTimeout(500);
   let t = await text(page);
-  check('carrinho: voltar do PIX mostra o pedido com os itens e o mesmo total', t.includes('Revisar pedido') && t.includes(total) && !t.includes('R$ 0,00'), total);
+  check('carrinho: voltar do PIX mostra o pedido com os itens e o mesmo total', t.includes('Etapa 2 de 2') && t.includes(total) && !t.includes('R$ 0,00'), total);
   await click(page, 'PIX', true);
   await click(page, 'Pagar R$'); await page.waitForTimeout(600);
   check('carrinho: tentar de novo com o mesmo carrinho reaproveita o pedido', page.api.db.orders.length === 1);
