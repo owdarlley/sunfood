@@ -87,7 +87,7 @@ await step('admin quantidade de mesas', async () => {
   let t = await text(page);
   check('admin: campo "Quantidade de mesas" aparece', t.includes('Quantidade de mesas'));
   const inp = page.locator('#tableCountInp');
-  check('admin: mostra a quantidade de hoje', t.includes('Hoje: 5') && !(await inp.getAttribute('placeholder')), await inp.getAttribute('placeholder'));
+  check('admin: mostra a quantidade de hoje', t.includes('Hoje: 5'), await inp.getAttribute('placeholder'));
   const salvar = async () => { await page.locator('#tableCountInp ~ div').click(); await page.waitForTimeout(600); };
   await inp.fill('0');
   await salvar();

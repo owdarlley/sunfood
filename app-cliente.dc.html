@@ -142,10 +142,13 @@ a:hover{color:#174A52}
 .inp:hover{border-color:var(--field-hover)}
 .inp:focus{border-color:var(--brand);box-shadow:var(--ring)}
 .inp:disabled,.inp[readonly]{background:var(--surface-off);color:var(--ink-2);border-color:var(--line)}
-textarea.inp{min-height:96px;padding:12px 16px;resize:vertical;line-height:1.5}
+textarea{resize:none;overflow-y:auto}
+textarea.inp{min-height:96px;padding:12px 16px;resize:none;overflow-y:auto;line-height:1.5}
 select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2355626A' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;padding-right:40px}
 /* Avisos (erro, atenção, sucesso, informação): um estilo só em todo o app.
    Fundo branco como os cartões, borda e ícone na cor do tipo, texto escuro. */
+.inp::placeholder{color:#737C82;opacity:1}
+.mesafield input::placeholder{color:#737C82;font-weight:600}
 .alert{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E");position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 16px 12px 44px;border-radius:12px;background:#fff;border:1px solid var(--al-line);box-shadow:0 1px 2px rgba(20,35,42,.04);color:#14232A;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;text-align:left}
 .alert::before{content:"";position:absolute;left:16px;top:13px;width:18px;height:18px;background:var(--al);-webkit-mask:var(--al-ico) center/contain no-repeat;mask:var(--al-ico) center/contain no-repeat}
 .alert:has(> svg){padding-left:16px}
@@ -905,11 +908,11 @@ select{caret-color:auto}
                     </div>
                     <div>
                       <span class="lbl">E-mail</span>
-                      <input class="inp" type="email" autocomplete="email" value="{{ email }}" onChange="{{ setEmail }}" aria-label="E-mail">
+                      <input placeholder="Digite seu e-mail" class="inp" type="email" autocomplete="email" value="{{ email }}" onChange="{{ setEmail }}" aria-label="E-mail">
                     </div>
                     <div>
                       <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl">Senha</span><span onClick="{{ goForgot }}" class="link" style="font-weight:600">Esqueci minha senha</span></div>
-                      <input class="inp" type="password" autocomplete="current-password" value="{{ pass }}" onChange="{{ setPass }}" aria-label="Senha">
+                      <input placeholder="Digite sua senha" class="inp" type="password" autocomplete="current-password" value="{{ pass }}" onChange="{{ setPass }}" aria-label="Senha">
                     </div>
                     <sc-if value="{{ hasLoginErr }}" hint-placeholder-val="{{ false }}">
                       <div class="alert alert-err">{{ loginErr }}</div>
@@ -936,20 +939,20 @@ select{caret-color:auto}
                       <svg viewBox="0 0 48 48" width="20" height="20" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
                     </div>
                     <div class="divider"><span></span>ou com e-mail<span></span></div>
-                    <div><span class="lbl">Nome completo</span><input class="inp" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo"></div>
-                    <div><span class="lbl">E-mail</span><input class="inp" type="email" autocomplete="email" value="{{ suEmail }}" onChange="{{ setSuEmail }}" aria-label="E-mail"></div>
+                    <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" class="inp" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo"></div>
+                    <div><span class="lbl">E-mail</span><input placeholder="Digite seu e-mail" class="inp" type="email" autocomplete="email" value="{{ suEmail }}" onChange="{{ setSuEmail }}" aria-label="E-mail"></div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
-                      <div><span class="lbl">WhatsApp / telefone</span><input class="inp" type="tel" autocomplete="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone"></div>
+                      <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" class="inp" type="tel" autocomplete="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone"></div>
                       <div>
                         <span class="lbl">CPF</span>
-                        <input class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ suCpfBorder }}">
+                        <input placeholder="Digite seu CPF" class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ suCpfBorder }}">
                         <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                       </div>
                     </div>
                     <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}"></div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
-                      <div><span class="lbl">Senha</span><input class="inp" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha"></div>
-                      <div><span class="lbl">Confirmar senha</span><input class="inp" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" aria-label="Confirmar senha"></div>
+                      <div><span class="lbl">Senha</span><input placeholder="Mínimo de 6 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha"></div>
+                      <div><span class="lbl">Confirmar senha</span><input placeholder="Digite a senha novamente" class="inp" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" aria-label="Confirmar senha"></div>
                     </div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
                       <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
@@ -974,12 +977,12 @@ select{caret-color:auto}
                           <div onClick="{{ fpByCpf }}" class="{{ fpCpfTabCls }}" style="flex:1;text-align:center">CPF</div>
                         </div>
                         <sc-if value="{{ fpModeEmail }}" hint-placeholder-val="{{ true }}">
-                          <div><span class="lbl">E-mail</span><input class="inp" type="email" value="{{ fpEmail }}" onChange="{{ setFp }}" aria-label="E-mail"></div>
+                          <div><span class="lbl">E-mail</span><input placeholder="Digite o e-mail da conta" class="inp" type="email" value="{{ fpEmail }}" onChange="{{ setFp }}" aria-label="E-mail"></div>
                         </sc-if>
                         <sc-if value="{{ fpModeCpf }}" hint-placeholder-val="{{ false }}">
                           <div>
                             <span class="lbl">CPF</span>
-                            <input class="inp" value="{{ fpCpf }}" onChange="{{ setFpCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ fpCpfBorder }}">
+                            <input placeholder="Digite o CPF da conta" class="inp" value="{{ fpCpf }}" onChange="{{ setFpCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ fpCpfBorder }}">
                             <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                             <span class="muted" style="display:block;font-size:var(--fs-sm);line-height:1.5;margin-top:8px">Não lembra o e-mail do cadastro? Mandamos o link para o e-mail ligado a este CPF.</span>
                           </div>
@@ -1006,12 +1009,12 @@ select{caret-color:auto}
                       <div class="tt" style="font-size:var(--fs-h1)">Falta pouco</div>
                       <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:8px 0 0">Complete seu cadastro para fazer pedidos.</p>
                     </div>
-                    <div><span class="lbl">Nome completo</span><input class="inp" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo"></div>
+                    <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" class="inp" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo"></div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
-                      <div><span class="lbl">WhatsApp / telefone</span><input class="inp" type="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone"></div>
+                      <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" class="inp" type="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone"></div>
                       <div>
                         <span class="lbl">CPF</span>
-                        <input class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ suCpfBorder }}">
+                        <input placeholder="Digite seu CPF" class="inp" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ suCpfBorder }}">
                         <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                       </div>
                     </div>
@@ -1092,7 +1095,7 @@ select{caret-color:auto}
                     <div class="col-main" style="gap:0">
                       <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #E3DDD0;border-radius:var(--r-ctl);padding:0 16px;min-height:48px;margin-bottom:16px">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#55626A" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-                        <input value="{{ menuSearch }}" onChange="{{ setMenuSearch }}" aria-label="Buscar no cardápio" style="flex:1;min-width:0;border:none;outline:none;font:500 16px 'Manrope',system-ui,sans-serif;color:#14232A;background:transparent;min-height:46px">
+                        <input placeholder="Buscar no cardápio" value="{{ menuSearch }}" onChange="{{ setMenuSearch }}" aria-label="Buscar no cardápio" style="flex:1;min-width:0;border:none;outline:none;font:500 16px 'Manrope',system-ui,sans-serif;color:#14232A;background:transparent;min-height:46px">
                       </div>
                       <div class="cats" style="margin-bottom:24px">
                         <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
@@ -1221,7 +1224,7 @@ select{caret-color:auto}
                     <div class="card pd-buy">
                       <div class="pd-note">
                         <span class="lbl">Observação deste item <span class="muted" style="font-weight:500">(opcional)</span></span>
-                        <textarea class="inp" value="{{ note }}" onChange="{{ setNote }}" maxlength="280" aria-label="Observação deste item"></textarea>
+                        <textarea placeholder="Preferências para este item" class="inp" value="{{ note }}" onChange="{{ setNote }}" maxlength="280" aria-label="Observação deste item"></textarea>
                         <div class="muted" style="text-align:right;font-size:12px;margin-top:4px">{{ noteCount }}/280</div>
                       </div>
                       <div class="pd-act">
@@ -1299,7 +1302,7 @@ select{caret-color:auto}
                     <span style="font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#55626A;text-transform:uppercase;letter-spacing:.08em">Nº da mesa ou guarda-sol</span>
                     <div class="mesafield">
                       <span class="pre"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M4 9c2-4 14-4 16 0z"></path></svg>Mesa</span>
-                      <input id="mesaInp" value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" aria-label="Número da mesa">
+                      <input placeholder="Número da mesa" id="mesaInp" value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" aria-label="Número da mesa">
                     </div>
                     <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">O número está na plaquinha de madeira do guarda-sol. {{ activeTablesHint }}</div>
                   </div>
@@ -1308,7 +1311,7 @@ select{caret-color:auto}
                   </sc-if>
                   <div>
                     <span class="lbl">Observação para a cozinha</span>
-                    <input class="inp" value="{{ orderNote }}" onChange="{{ setOrderNote }}" aria-label="Observação para a cozinha">
+                    <input placeholder="Instruções para a cozinha" class="inp" value="{{ orderNote }}" onChange="{{ setOrderNote }}" aria-label="Observação para a cozinha">
                     <div class="muted" style="font-size:13px;line-height:1.5;margin-top:8px">A cozinha vê esta observação junto com o pedido, somada às observações de cada item.</div>
                   </div>
                   <div class="card" style="padding:var(--cpad)">
@@ -1624,9 +1627,9 @@ select{caret-color:auto}
                     <sc-if value="{{ hasAvatarErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ avatarErr }}</div></sc-if>
                   </div>
                   <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:16px">
-                    <div><span class="lbl">Nome completo</span><input class="inp" autocomplete="name" value="{{ meName }}" onChange="{{ setMeName }}" aria-label="Nome completo"></div>
+                    <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" class="inp" autocomplete="name" value="{{ meName }}" onChange="{{ setMeName }}" aria-label="Nome completo"></div>
                     <div class="form-2col">
-                      <div><span class="lbl">WhatsApp / telefone</span><input class="inp" type="tel" autocomplete="tel" value="{{ mePhone }}" onChange="{{ setMePhone }}" aria-label="WhatsApp / telefone"></div>
+                      <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" class="inp" type="tel" autocomplete="tel" value="{{ mePhone }}" onChange="{{ setMePhone }}" aria-label="WhatsApp / telefone"></div>
                       <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ meBirth }}" onChange="{{ setMeBirth }}"></div>
                     </div>
                     <div class="form-2col">
@@ -1642,9 +1645,9 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_changePassword }}" hint-placeholder-val="{{ false }}">
                 <div class="card rise" style="padding:var(--cpad);display:flex;flex-direction:column;gap:16px">
-                  <div><span class="lbl">Senha atual</span><input class="inp" type="password" autocomplete="current-password" value="{{ pwCur }}" onChange="{{ setPwCur }}" aria-label="Senha atual"></div>
-                  <div><span class="lbl">Nova senha</span><input class="inp" type="password" autocomplete="new-password" value="{{ pwNew }}" onChange="{{ setPwNew }}" aria-label="Nova senha"></div>
-                  <div><span class="lbl">Repita a nova senha</span><input class="inp" type="password" autocomplete="new-password" value="{{ pwNew2 }}" onChange="{{ setPwNew2 }}" aria-label="Repita a nova senha"></div>
+                  <div><span class="lbl">Senha atual</span><input placeholder="Digite sua senha atual" class="inp" type="password" autocomplete="current-password" value="{{ pwCur }}" onChange="{{ setPwCur }}" aria-label="Senha atual"></div>
+                  <div><span class="lbl">Nova senha</span><input placeholder="Mínimo de 6 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ pwNew }}" onChange="{{ setPwNew }}" aria-label="Nova senha"></div>
+                  <div><span class="lbl">Repita a nova senha</span><input placeholder="Digite a nova senha novamente" class="inp" type="password" autocomplete="new-password" value="{{ pwNew2 }}" onChange="{{ setPwNew2 }}" aria-label="Repita a nova senha"></div>
                   <sc-if value="{{ hasPwErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ pwErr }}</div></sc-if>
                   <div onClick="{{ submitChangePassword }}" class="btn btn-sun" style="opacity:{{ pwBusyOpacity }}">{{ pwSaveLabel }}</div>
                   <div onClick="{{ goForgotFromProfile }}" class="link" style="text-align:center;color:#55626A">Esqueci minha senha atual: mandar link por e-mail</div>
@@ -1744,7 +1747,7 @@ select{caret-color:auto}
             <sc-if value="{{ is_orders }}" hint-placeholder-val="{{ false }}">
               <div style="min-width:240px">
                 <span class="lbl" style="font-size:13px">Buscar por mesa ou código</span>
-                <input class="inp" value="{{ admSearch }}" onChange="{{ setAdmSearch }}" aria-label="Buscar por mesa ou código">
+                <input placeholder="Número da mesa ou código do pedido" class="inp" value="{{ admSearch }}" onChange="{{ setAdmSearch }}" aria-label="Buscar por mesa ou código">
               </div>
             </sc-if>
             <sc-if value="{{ is_productForm }}" hint-placeholder-val="{{ false }}">
@@ -1922,7 +1925,7 @@ select{caret-color:auto}
                   <sc-if value="{{ m.replying }}" hint-placeholder-val="{{ false }}">
                     <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
                       <span class="lbl" style="margin:0">{{ m.replyHint }}</span>
-                      <textarea class="inp" value="{{ replyText }}" onChange="{{ setReplyText }}" maxlength="4000" aria-label="Resposta para {{ m.firstName }}" style="min-height:120px"></textarea>
+                      <textarea placeholder="Escreva sua resposta" class="inp" value="{{ replyText }}" onChange="{{ setReplyText }}" maxlength="4000" aria-label="Resposta para {{ m.firstName }}" style="min-height:120px"></textarea>
                       <sc-if value="{{ hasReplyErr }}" hint-placeholder-val="{{ false }}">
                         <div class="alert alert-err">{{ replyErr }}</div>
                       </sc-if>
@@ -2054,9 +2057,9 @@ select{caret-color:auto}
               <div class="col-side">
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <div><h2 style="margin:0;font-size:var(--fs-h3)">Cadastrar garçom</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Ele entra pela mesma tela de login do Sunfood e vai direto para os pedidos prontos.</div></div>
-                  <div><span class="lbl">Nome</span><input class="inp" value="{{ wName }}" onChange="{{ setWName }}" aria-label="Nome" autocomplete="off" /></div>
-                  <div><span class="lbl">E-mail</span><input class="inp" type="email" value="{{ wEmail }}" onChange="{{ setWEmail }}" aria-label="E-mail" autocomplete="off" /></div>
-                  <div><span class="lbl">Senha inicial</span><input class="inp" type="password" value="{{ wPass }}" onChange="{{ setWPass }}" aria-label="Senha inicial" autocomplete="new-password" /></div>
+                  <div><span class="lbl">Nome</span><input placeholder="Nome completo do garçom" class="inp" value="{{ wName }}" onChange="{{ setWName }}" aria-label="Nome" autocomplete="off" /></div>
+                  <div><span class="lbl">E-mail</span><input placeholder="E-mail de acesso" class="inp" type="email" value="{{ wEmail }}" onChange="{{ setWEmail }}" aria-label="E-mail" autocomplete="off" /></div>
+                  <div><span class="lbl">Senha inicial</span><input placeholder="Mínimo de 6 caracteres" class="inp" type="password" value="{{ wPass }}" onChange="{{ setWPass }}" aria-label="Senha inicial" autocomplete="new-password" /></div>
                   <sc-if value="{{ hasWErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ wErr }}</div></sc-if>
                   <sc-if value="{{ hasWMsg }}" hint-placeholder-val="{{ false }}"><div class="alert alert-ok">{{ wMsg }}</div></sc-if>
                   <div onClick="{{ createWaiter }}" class="btn btn-sun">{{ wBtnLabel }}</div>
@@ -2129,7 +2132,7 @@ select{caret-color:auto}
                 <div class="pf-actions catnew">
                   <label for="catNewInp" class="lbl" style="margin:0">Nova categoria</label>
                   <div class="catnew-row">
-                    <input id="catNewInp" class="inp" value="{{ catNewName }}" onChange="{{ setCatNewName }}" onKeyDown="{{ catNewKey }}" maxlength="40" />
+                    <input placeholder="Nome da categoria" id="catNewInp" class="inp" value="{{ catNewName }}" onChange="{{ setCatNewName }}" onKeyDown="{{ catNewKey }}" maxlength="40" />
                     <div onClick="{{ addCategory }}" class="btn btn-sun btn-sm" style="min-height:var(--ctl)">{{ catAddLabel }}</div>
                   </div>
                   <div class="swatches" aria-label="Cor da nova categoria">
@@ -2213,7 +2216,7 @@ select{caret-color:auto}
                         </div>
                         </div>
                       </div>
-                      <div><span class="lbl">Nome</span><input class="inp" value="{{ pfName }}" onChange="{{ setPfName }}" aria-label="Nome" /></div>
+                      <div><span class="lbl">Nome</span><input placeholder="Nome do produto" class="inp" value="{{ pfName }}" onChange="{{ setPfName }}" aria-label="Nome" /></div>
                       <div>
                         <span class="lbl">Categoria</span>
                         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -2223,15 +2226,15 @@ select{caret-color:auto}
                         </div>
                       </div>
                       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                        <div><span class="lbl">Preço</span><input class="inp" value="{{ pfPrice }}" onChange="{{ setPfPrice }}" aria-label="Preço" /></div>
-                        <div><span class="lbl">Estoque</span><input class="inp" value="{{ pfStock }}" onChange="{{ setPfStock }}" aria-label="Estoque" /></div>
-                        <div><span class="lbl">Porção</span><input class="inp" value="{{ pfPortion }}" onChange="{{ setPfPortion }}" aria-label="Porção" /></div>
-                        <div><span class="lbl">Preparo</span><input class="inp" value="{{ pfPrepTime }}" onChange="{{ setPfPrepTime }}" aria-label="Preparo" /></div>
+                        <div><span class="lbl">Preço</span><input placeholder="Valor em reais" class="inp" value="{{ pfPrice }}" onChange="{{ setPfPrice }}" aria-label="Preço" /></div>
+                        <div><span class="lbl">Estoque</span><input placeholder="Vazio para ilimitado" class="inp" value="{{ pfStock }}" onChange="{{ setPfStock }}" aria-label="Estoque" /></div>
+                        <div><span class="lbl">Porção</span><input placeholder="Quantidade ou tamanho" class="inp" value="{{ pfPortion }}" onChange="{{ setPfPortion }}" aria-label="Porção" /></div>
+                        <div><span class="lbl">Preparo</span><input placeholder="Tempo de preparo" class="inp" value="{{ pfPrepTime }}" onChange="{{ setPfPrepTime }}" aria-label="Preparo" /></div>
                       </div>
                     </div>
                     <div class="pf-col">
-                      <div><span class="lbl">Descrição</span><textarea class="inp" value="{{ pfDesc }}" onChange="{{ setPfDesc }}" aria-label="Descrição" style="min-height:72px"></textarea></div>
-                      <div><span class="lbl">Ingredientes</span><textarea class="inp" value="{{ pfIngredients }}" onChange="{{ setPfIngredients }}" aria-label="Ingredientes" maxlength="500" style="min-height:72px"></textarea></div>
+                      <div><span class="lbl">Descrição</span><textarea placeholder="Descrição exibida no cardápio" class="inp" value="{{ pfDesc }}" onChange="{{ setPfDesc }}" aria-label="Descrição" style="min-height:72px"></textarea></div>
+                      <div><span class="lbl">Ingredientes</span><textarea placeholder="Liste os ingredientes" class="inp" value="{{ pfIngredients }}" onChange="{{ setPfIngredients }}" aria-label="Ingredientes" maxlength="500" style="min-height:72px"></textarea></div>
                       <div>
                         <span class="lbl">Etiquetas <span class="muted" style="font-weight:500">({{ pfTagCount }} de 8)</span></span>
                         <div class="pf-tags">
@@ -2240,7 +2243,7 @@ select{caret-color:auto}
                           </sc-for>
                         </div>
                         <div class="pf-tag-new">
-                          <input class="inp" value="{{ pfTagNew }}" onChange="{{ setPfTagNew }}" onKeyDown="{{ pfTagKey }}" aria-label="Nova etiqueta" maxlength="30" />
+                          <input placeholder="Nome da etiqueta" class="inp" value="{{ pfTagNew }}" onChange="{{ setPfTagNew }}" onKeyDown="{{ pfTagKey }}" aria-label="Nova etiqueta" maxlength="30" />
                           <div onClick="{{ addPfTag }}" class="btn btn-ghost btn-sm">Adicionar</div>
                         </div>
                         <div class="muted" style="font-size:var(--fs-cap);margin-top:6px">Toque para marcar ou desmarcar. Aparecem no detalhe do produto.</div>
@@ -2274,7 +2277,7 @@ select{caret-color:auto}
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <div><h2 style="margin:0">Pedido mínimo</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ minOrderStr }}. O cliente só fecha o pedido se o total chegar nesse valor. Use 0 para não ter mínimo.</div></div>
                   <div style="display:flex;gap:8px">
-                    <input class="inp" value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" aria-label="Pedido mínimo, em reais" style="flex:1;min-width:0" />
+                    <input placeholder="Valor em reais" class="inp" value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" aria-label="Pedido mínimo, em reais" style="flex:1;min-width:0" />
                     <div onClick="{{ saveMinOrder }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar mínimo</div>
                   </div>
                   <sc-if value="{{ hasMinOrderMsg }}" hint-placeholder-val="{{ false }}"><div class="alert {{ minOrderMsgCls }}" role="status">{{ minOrderMsg }}</div></sc-if>
@@ -2282,7 +2285,7 @@ select{caret-color:auto}
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <div><h2 style="margin:0">Prazo para o cliente cancelar</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ cancelWindowStr }}. Contado a partir do pedido; só vale enquanto ele está na fila. Use 0 para não ter prazo.</div></div>
                   <div style="display:flex;gap:8px">
-                    <input class="inp" value="{{ cancelWindowInput }}" onChange="{{ setCancelWindowInput }}" aria-label="Prazo para cancelar, em minutos" inputmode="numeric" style="flex:1;min-width:0" />
+                    <input placeholder="Tempo em minutos" class="inp" value="{{ cancelWindowInput }}" onChange="{{ setCancelWindowInput }}" aria-label="Prazo para cancelar, em minutos" inputmode="numeric" style="flex:1;min-width:0" />
                     <div onClick="{{ saveCancelWindow }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar</div>
                   </div>
                   <sc-if value="{{ hasCancelWindowMsg }}" hint-placeholder-val="{{ false }}"><div class="alert {{ cancelWindowMsgCls }}" role="status">{{ cancelWindowMsg }}</div></sc-if>
@@ -2297,9 +2300,9 @@ select{caret-color:auto}
               <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                 <div><h2 style="margin:0">Localização do quiosque</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Aparece para o cliente em "Localização do quiosque". O mapa e o botão "Abrir no mapa" usam o endereço.</div></div>
                 <div class="locform">
-                  <div><label for="locNameInp" class="lbl">Nome do local</label><input id="locNameInp" class="inp" value="{{ locNameInput }}" onChange="{{ setLocNameInput }}" maxlength="80" /></div>
-                  <div class="wide"><label for="locAddressInp" class="lbl">Endereço</label><input id="locAddressInp" class="inp" value="{{ locAddressInput }}" onChange="{{ setLocAddressInput }}" maxlength="200" /></div>
-                  <div><label for="locHoursInp" class="lbl">Horário (opcional)</label><input id="locHoursInp" class="inp" value="{{ locHoursInput }}" onChange="{{ setLocHoursInput }}" maxlength="120" /></div>
+                  <div><label for="locNameInp" class="lbl">Nome do local</label><input placeholder="Nome exibido ao cliente" id="locNameInp" class="inp" value="{{ locNameInput }}" onChange="{{ setLocNameInput }}" maxlength="80" /></div>
+                  <div class="wide"><label for="locAddressInp" class="lbl">Endereço</label><input placeholder="Rua, número, bairro, cidade e UF" id="locAddressInp" class="inp" value="{{ locAddressInput }}" onChange="{{ setLocAddressInput }}" maxlength="200" /></div>
+                  <div><label for="locHoursInp" class="lbl">Horário (opcional)</label><input placeholder="Dias e horário de funcionamento" id="locHoursInp" class="inp" value="{{ locHoursInput }}" onChange="{{ setLocHoursInput }}" maxlength="120" /></div>
                 </div>
                 <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
                   <div onClick="{{ saveLocation }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar localização</div>
@@ -2315,7 +2318,7 @@ select{caret-color:auto}
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
                   <label for="tableCountInp" style="font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif">Quantidade de mesas</label>
                   <div style="display:flex;gap:8px;flex:1;min-width:220px;max-width:360px">
-                    <input id="tableCountInp" class="inp" value="{{ tableCountInput }}" onChange="{{ setTableCountInput }}" inputmode="numeric" style="flex:1;min-width:0" />
+                    <input placeholder="Total de mesas" id="tableCountInp" class="inp" value="{{ tableCountInput }}" onChange="{{ setTableCountInput }}" inputmode="numeric" style="flex:1;min-width:0" />
                     <div onClick="{{ saveTableCount }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar</div>
                   </div>
                 </div>
@@ -2666,7 +2669,7 @@ select{caret-color:auto}
                   <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
                     <h2 class="gc-h2" style="margin:0">Itens</h2>
                     <div style="flex:1 1 220px;max-width:360px">
-                      <input class="inp" value="{{ gSearch }}" onChange="{{ setGSearch }}" aria-label="Buscar no cardápio" />
+                      <input placeholder="Buscar no cardápio" class="inp" value="{{ gSearch }}" onChange="{{ setGSearch }}" aria-label="Buscar no cardápio" />
                     </div>
                   </div>
                   <div class="pills">
@@ -2707,7 +2710,7 @@ select{caret-color:auto}
                   </sc-if>
                   <div>
                     <span class="lbl">Observação</span>
-                    <textarea class="inp" value="{{ gNote }}" onChange="{{ setGNote }}" aria-label="Observação"></textarea>
+                    <textarea placeholder="Instruções para a cozinha" class="inp" value="{{ gNote }}" onChange="{{ setGNote }}" aria-label="Observação"></textarea>
                   </div>
                   <div>
                     <div class="sumrow"><span>Subtotal</span><b>{{ gSubtotal }}</b></div>

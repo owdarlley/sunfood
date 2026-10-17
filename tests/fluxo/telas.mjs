@@ -77,7 +77,7 @@ await step('login no endereço principal', async () => {
   await click(page, 'Entrar', true);
   check('raiz: pede e-mail e senha embaixo de cada campo', (await text(page)).includes('Informe seu e-mail.') && (await text(page)).includes('Informe sua senha.')
     && await page.locator('#email').getAttribute('aria-invalid') === 'true' && await page.evaluate(() => document.activeElement.id) === 'email');
-  check('raiz: campos sem texto de exemplo dentro', await page.locator('[placeholder]').count() === 0);
+  check('raiz: campos com orientação formal, sem exemplos', await page.locator('#email').getAttribute('placeholder') === 'Digite seu e-mail' && await page.locator('[placeholder^="Ex"]').count() === 0);
   await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
   await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);

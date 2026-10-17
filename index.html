@@ -176,7 +176,8 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
 .note{background:#FFF4DB;border:1px solid #F5DDA4;border-radius:var(--r-card);padding:var(--cpad);margin-top:var(--sec)}
 .note p{margin:0 !important;font-size:var(--fs-sm) !important;color:#5A4210 !important}
 .form{display:flex;flex-direction:column;gap:16px;margin-top:24px}
-.form textarea.inp{min-height:128px;padding:12px;resize:vertical;line-height:1.5}
+textarea{resize:none;overflow-y:auto}
+.form textarea.inp{min-height:128px;padding:12px;resize:none;overflow-y:auto;line-height:1.5}
 .form select.inp{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235A6670' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px}
 .ferr{font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:8px}
 .inp[aria-invalid="true"]{border-color:#B42318}
@@ -286,7 +287,9 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .field-label{display:block;font:600 var(--lg-fs-label)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-ink)}
 .field-control{position:relative;margin-top:var(--lg-s6)}
 .login .inp{display:block;height:var(--lg-h);min-height:0;padding:0 var(--lg-s16);border:1px solid var(--lg-field);border-radius:var(--r-ctl);background:var(--lg-surface);font:var(--lg-w-regular) var(--lg-fs-input)/1.5 'Manrope',system-ui,sans-serif;color:var(--lg-ink);transition:border-color var(--lg-ease),box-shadow var(--lg-ease),background-color var(--lg-ease);scroll-margin-bottom:160px}
+.login .inp::placeholder{color:var(--lg-ink-3);opacity:1}
 .login .inp:hover{border-color:var(--lg-field-hover)}
+.login .inp:not(:placeholder-shown){border-color:var(--lg-field-hover)}
 .login .inp:focus{box-shadow:none}
 .login .inp:focus-visible{border-color:var(--lg-pri);box-shadow:var(--lg-ring)}
 .login .inp[aria-invalid="true"]{border-color:var(--lg-err)}
@@ -394,14 +397,14 @@ select{caret-color:auto}
         <div class="field">
           <label class="field-label" for="email">E-mail</label>
           <div class="field-control">
-            <input class="inp" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" aria-describedby="email-msg">
+            <input placeholder="Digite seu e-mail" class="inp" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" aria-describedby="email-msg">
           </div>
           <p class="field-msg" id="email-msg"></p>
         </div>
         <div class="field">
           <label class="field-label" for="pass">Senha</label>
           <div class="field-control">
-            <input class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" aria-describedby="pass-msg">
+            <input placeholder="Digite sua senha" class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" aria-describedby="pass-msg">
             <button type="button" class="pw-toggle" id="pw-toggle" aria-controls="pass" aria-pressed="false" aria-label="Mostrar senha">
               <svg class="ico-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="ico-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.7 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></svg>
@@ -520,12 +523,12 @@ select{caret-color:auto}
         <form id="contact" class="form" novalidate>
           <div>
             <label class="lbl" for="c-nome">Nome</label>
-            <input class="inp" id="c-nome" autocomplete="name">
+            <input placeholder="Digite seu nome" class="inp" id="c-nome" autocomplete="name">
             <div class="ferr" id="e-nome" hidden>Informe seu nome para a equipe saber com quem falar.</div>
           </div>
           <div>
             <label class="lbl" for="c-contato">E-mail ou telefone</label>
-            <input class="inp" id="c-contato" autocomplete="email">
+            <input placeholder="E-mail ou telefone com DDD" class="inp" id="c-contato" autocomplete="email">
             <div class="ferr" id="e-contato" hidden>Informe um e-mail válido ou um telefone com DDD.</div>
           </div>
           <div>
@@ -540,7 +543,7 @@ select{caret-color:auto}
           </div>
           <div>
             <label class="lbl" for="c-msg">Mensagem</label>
-            <textarea class="inp" id="c-msg"></textarea>
+            <textarea placeholder="Descreva como podemos ajudar" class="inp" id="c-msg"></textarea>
             <div class="ferr" id="e-msg" hidden>Escreva pelo menos algumas palavras sobre o que precisa.</div>
           </div>
           <div id="c-alert" class="alert alert-err" role="alert" hidden></div>
