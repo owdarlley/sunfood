@@ -2863,6 +2863,8 @@ const BLANK_PRODUCT = {id:'', cat:'', name:'', desc:'', price:0, soldOut:false, 
 // de verdade (Node/Express + SQLite) rodando localmente durante o desenvolvimento.
 // Local (python -m http.server) fala com a API local; publicado (GitHub
 // Pages ou qualquer outro domínio) fala com a API de produção na Vercel.
+// Sessão do cliente no Stripe: vale 30 min lá; o app renova depois de 20.
+const CARD_SESSION_TTL = 20 * 60 * 1000;
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:8787'
   : 'https://sunfood-api-nine.vercel.app';
@@ -3488,7 +3490,7 @@ class Component extends DCLogic {
     cardProvider:null, pixProvider:null, cardTestMode:false,
     // Com a chave publicável do Stripe, o cartão é digitado na própria tela
     // (Payment Element) em vez de abrir a página do Stripe.
-    stripePk:null, cardFormLoading:false, cardErr:'', cardHolderName:'', cardHolderCpf:'',
+    stripePk:null, cardFormLoading:false, cardOrderPending:false, cardErr:'', cardHolderName:'', cardHolderCpf:'',
     payingPix:false, pixQrCode:'', pixQrImg:'', pixTestPayUrl:'',
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
@@ -3549,7 +3551,9 @@ class Component extends DCLogic {
   guardScreen(s){
     if(s.module !== 'cliente') return s.screen;
     const semPedido = s.history && s.history.length ? 'history' : 'historyEmpty';
-    if(NEEDS_ORDER.indexOf(s.screen) >= 0 && !s.order) return semPedido;
+    // Cartão no app: os campos aparecem enquanto o pedido ainda está sendo criado.
+    const cardPending = s.screen === 'card' && s.cardOrderPending;
+    if(NEEDS_ORDER.indexOf(s.screen) >= 0 && !s.order && !cardPending) return semPedido;
     if(NEEDS_CART.indexOf(s.screen) >= 0 && !s.cart.length) return 'cartEmpty';
     if(s.screen === 'product' && !s.catalogPending && !s.products.some(p => p.id === s.selId)) return 'menu';
     if(s.screen === 'orderDetail' && !(s.history && s.history[s.histSel])) return semPedido;
@@ -4076,7 +4080,7 @@ class Component extends DCLogic {
         stripePk:cardProvider === 'stripe' && data.stripePublishableKey ? data.stripePublishableKey : null});
       // Já baixa o Stripe.js em segundo plano: na hora de pagar, os campos do
       // cartão aparecem sem esperar o download.
-      if(cardProvider === 'stripe' && data.stripePublishableKey) setTimeout(() => this.loadStripeJs().catch(() => {}), 1500);
+      if(cardProvider === 'stripe' && data.stripePublishableKey) this.loadStripeJs().catch(() => {});
     } catch(e){}
   }
 
@@ -5169,11 +5173,22 @@ class Component extends DCLogic {
     }
   }
 
-  // Cartão: cria o pedido e manda o cliente pro checkout (Stripe ou Mercado Pago). Os
-  // dados do cartão são digitados lá, nunca aqui. Na volta, handleCardReturn()
-  // retoma o pedido e o polling confirma quando o webhook aprovar.
+  // Cartão: com a chave publicável do Stripe, os campos aparecem na hora e o
+  // pedido é criado ao mesmo tempo, em segundo plano. Sem ela, cria o pedido e
+  // manda o cliente pro checkout (Stripe ou Mercado Pago); na volta,
+  // handleCardReturn() retoma o pedido e o polling confirma quando o webhook aprovar.
   async payWithCard(){
     if(this.state.busy) return;
+    if(this.state.stripePk){
+      this.setState({screen:'card', cardWaiting:false, cardErr:'', cardOrderPending:true});
+      this.openCardInApp(async () => {
+        const created = await this.createOrderOnServer('cartao');
+        this.setState({cardOrderPending:false});
+        if(!created){ if(this.state.screen === 'card') this.setState({screen:'payment'}); return null; }
+        return created.id;
+      });
+      return;
+    }
     this.setState({busy:'card'});
     try {
       const created = await this.createOrderOnServer('cartao');
@@ -5182,8 +5197,7 @@ class Component extends DCLogic {
     } finally {
       this.setState({busy:null});
     }
-    if(this.state.stripePk) this.openCardInApp();
-    else this.openCardCheckout();
+    this.openCardCheckout();
   }
 
   // Stripe.js só é baixado quando o cliente chega no pagamento com cartão.
@@ -5199,31 +5213,35 @@ class Component extends DCLogic {
     return this.stripeJsPromise;
   }
 
-  // Campos do cartão dentro do app: o servidor cria o pagamento do pedido
-  // (PaymentIntent) e o Stripe desenha os campos em quadros seguros, com as
-  // cores e a fonte do Sunfood. Quem aprova o pedido é o webhook.
-  async openCardInApp(){
-    const o = this.state.order;
-    if(!o || !o._apiId) return;
-    this.setState(st => ({cardFormLoading:true, cardErr:'', cardHolderName:st.cardHolderName || (st.authUser && st.authUser.name) || ''}));
-    try {
-      // Stripe.js e o pagamento do pedido são buscados ao mesmo tempo.
-      const jsReady = this.loadStripeJs();
-      jsReady.catch(() => {});
-      const res = await authFetch(API_BASE + '/payments/card-intent/' + o._apiId, {
-        method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
-      });
-      const data = await res.json();
-      if(!res.ok){ this.setState({cardFormLoading:false, cardErr:data.error || 'Não foi possível abrir o pagamento com cartão.'}); return; }
-      const StripeJs = await jsReady;
-      if(!this.stripe || this.stripeKey !== data.publishableKey){ this.stripe = StripeJs(data.publishableKey, {locale:'pt-BR'}); this.stripeKey = data.publishableKey; }
+  // Sessão do cliente no Stripe (cartões salvos e a caixa "salvar cartão").
+  // Vale 30 min no Stripe; aqui é renovada depois de 20.
+  loadCardSession(){
+    const c = this.cardSession;
+    if(c && Date.now() - c.at < CARD_SESSION_TTL) return c.promise;
+    const promise = authFetch(API_BASE + '/payments/card-session', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}})
+      .then(r => r.ok ? r.json() : null).then(d => (d && d.customerSessionClientSecret) || null).catch(() => null);
+    this.cardSession = {at:Date.now(), promise};
+    promise.then(v => { if(!v && this.cardSession && this.cardSession.promise === promise) this.cardSession = null; });
+    return promise;
+  }
+
+  // Campos do cartão sem PaymentIntent (modo "deferred" do Stripe): dá pra
+  // desenhar antes de o pedido existir. O valor é o do carrinho e é acertado
+  // com o do servidor quando o pagamento do pedido chega.
+  buildCardElement(){
+    if(this.stripeElements && Date.now() - this.stripeElementsAt < CARD_SESSION_TTL) return Promise.resolve();
+    if(this.cardBuild) return this.cardBuild;
+    this.cardBuild = (async () => {
+      const [StripeJs, cuss] = await Promise.all([this.loadStripeJs(), this.loadCardSession()]);
+      const pk = this.state.stripePk;
+      if(!this.stripe || this.stripeKey !== pk){ this.stripe = StripeJs(pk, {locale:'pt-BR'}); this.stripeKey = pk; }
       const css = getComputedStyle(document.documentElement);
       const token = (name, fb) => (css.getPropertyValue(name) || '').trim() || fb;
-      // customerSessionClientSecret: mostra os cartões salvos do cliente e a
-      // caixa "salvar cartão" (os cartões ficam guardados só no Stripe).
+      if(this.stripeCard) try { this.stripeCard.destroy(); } catch(e){}
+      this.cardAmountSent = Math.max(50, Math.round(this.subtotal() * 100));
       this.stripeElements = this.stripe.elements({
-        clientSecret:data.clientSecret, locale:'pt-BR',
-        customerSessionClientSecret:data.customerSessionClientSecret || undefined,
+        mode:'payment', currency:'brl', amount:this.cardAmountSent, paymentMethodTypes:['card'],
+        locale:'pt-BR', customerSessionClientSecret:cuss || undefined,
         fonts:[{cssSrc:'https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap'}],
         appearance:{
           theme:'stripe',
@@ -5239,20 +5257,68 @@ class Component extends DCLogic {
           }
         }
       });
+      this.stripeElementsAt = Date.now();
       this.stripeCard = this.stripeElements.create('payment', {layout:'tabs', fields:{billingDetails:{address:'never'}},
         wallets:{applePay:'never', googlePay:'never'}});
-      this.stripeCard.on('ready', () => this.setState({cardFormLoading:false}));
+      this.stripeCard.on('ready', () => { if(this.stripeCardMountedOn && this.stripeCardMountedOn.id === 'sf-stripe-card') this.setState({cardFormLoading:false}); });
       // Cartão salvo escolhido: o Stripe já tem os dados dele, então o
       // confirmPayment vai sem payment_method_data (só vale pra cartão novo).
       this.stripeSavedPm = false;
       this.stripeCard.on('change', e => { this.stripeSavedPm = !!(e && e.value && e.value.payment_method); });
       this.stripeCard.on('loaderror', () => this.setState({cardFormLoading:false, cardErr:'Não foi possível carregar os campos do cartão. Tente de novo.'}));
       this.stripeCardMountedOn = null;
+    })().finally(() => { this.cardBuild = null; });
+    return this.cardBuild;
+  }
+
+  // Deixa os campos prontos enquanto o cliente ainda está no carrinho: baixa
+  // o Stripe.js, pega a sessão do cliente e monta os campos escondidos (o
+  // navegador já guarda o quadro do Stripe). Não cria pedido nem pagamento.
+  warmCard(){
+    if(this.cardWarm || !this.state.stripePk || !this.state.token) return;
+    this.cardWarm = this.buildCardElement().then(() => {
+      if(this.stripeCardMountedOn) return;
+      let host = document.getElementById('sf-stripe-warm');
+      if(!host){
+        host = document.createElement('div'); host.id = 'sf-stripe-warm'; host.setAttribute('aria-hidden', 'true');
+        host.style.cssText = 'position:fixed;left:-10000px;top:0;width:360px;visibility:hidden;pointer-events:none';
+        document.body.appendChild(host);
+      }
+      this.stripeCard.mount(host); this.stripeCardMountedOn = host;
+    }).catch(() => { this.cardWarm = null; });
+  }
+
+  // Campos do cartão dentro do app: aparecem na hora (já montados no
+  // carrinho) e o pagamento do pedido (PaymentIntent) é criado em paralelo,
+  // pra ser usado só no "Pagar". Quem aprova o pedido é o webhook.
+  // orderIdPromise: cria o pedido; sem ele, usa o pedido já aberto.
+  openCardInApp(orderIdPromise){
+    const shown = this.stripeCardMountedOn && this.stripeCardMountedOn.id === 'sf-stripe-card' && this.stripeCardMountedOn.isConnected;
+    this.setState(st => ({cardFormLoading:!shown, cardErr:'', cardHolderName:st.cardHolderName || (st.authUser && st.authUser.name) || ''}));
+    const orderId = orderIdPromise ? orderIdPromise() : Promise.resolve(this.state.order && this.state.order._apiId);
+    // A sessão vem antes do pagamento: os dois usam o mesmo Customer, e assim
+    // o servidor não cria o cliente duas vezes no Stripe.
+    const intent = Promise.all([orderId, this.loadCardSession()]).then(async ([id]) => {
+      if(!id) return null;
+      const res = await authFetch(API_BASE + '/payments/card-intent/' + id + '?session=0', {
+        method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Não foi possível abrir o pagamento com cartão.');
+      return {...data, orderId:id};
+    });
+    this.cardIntent = intent;
+    const setAmount = cents => { if(this.stripeElements && cents && cents !== this.cardAmountSent){ this.stripeElements.update({amount:cents}); this.cardAmountSent = cents; } };
+    intent.then(d => { if(d && this.cardIntent === intent) setAmount(d.amount); })
+      .catch(e => { if(this.cardIntent === intent) this.setState({cardErr:e.message === 'Failed to fetch' ? 'Falha de conexão com o pagamento. Verifique a internet e tente de novo.' : e.message}); });
+    this.buildCardElement().then(() => {
+      // O carrinho pode ter mudado desde que os campos foram preparados.
+      if(this.cardIntent === intent) setAmount(Math.max(50, Math.round(this.subtotal() * 100)));
       this.ensureCardMounted();
-    } catch(e){
+    }).catch(e => {
       console.error('[Sunfood] Stripe', e);
       this.setState({cardFormLoading:false, cardErr:'Falha de conexão com o pagamento. Verifique a internet e tente de novo.'});
-    }
+    });
   }
 
   // O quadro do cartão vive dentro de um <div> da tela; se a tela for
@@ -5262,33 +5328,48 @@ class Component extends DCLogic {
       const el = document.getElementById('sf-stripe-card');
       if(!el || !this.stripeCard || this.stripeCardMountedOn === el) return;
       try { if(this.stripeCardMountedOn) this.stripeCard.unmount(); } catch(e){}
+      // Esqueleto até o Stripe avisar que os campos estão prontos (ready).
+      if(!this.state.cardFormLoading) this.setState({cardFormLoading:true});
       this.stripeCard.mount(el);
       this.stripeCardMountedOn = el;
     });
   }
 
   async confirmCardInApp(){
-    const o = this.state.order;
-    if(this.state.busy || !o || !o._apiId) return;
-    if(!this.stripe || !this.stripeElements) return this.openCardInApp();
+    if(this.state.busy) return;
+    if(!this.stripe || !this.stripeElements || !this.cardIntent) return this.openCardInApp();
     // Titular do cartão: nome completo e CPF válido, conferidos aqui e no servidor.
     const name = this.state.cardHolderName.trim().replace(/\s+/g, ' ');
     if(name.length < 5 || !name.includes(' ')) return this.setState({cardErr:'Informe o nome completo do titular, como está no cartão.'});
     if(!isValidCpf(this.state.cardHolderCpf)) return this.setState({cardErr:'CPF do titular inválido. Confira os números.'});
     this.setState({busy:'card', cardErr:''});
+    const elements = this.stripeElements;
     try {
-      const hr = await authFetch(API_BASE + '/payments/card-holder/' + o._apiId, {
+      // Confere os campos do cartão antes de esperar o servidor.
+      let sub = await elements.submit();
+      if(sub.error) return this.setState({cardErr:sub.error.type === 'validation_error' ? '' : (sub.error.message || 'Confira os dados do cartão.')});
+      let intent;
+      try { intent = await this.cardIntent; }
+      catch(e){ this.cardIntent = null; return this.setState({cardErr:e.message === 'Failed to fetch' ? 'Falha de conexão com o pagamento. Verifique a internet e tente de novo.' : e.message}); }
+      if(!intent) return;
+      // Valor do servidor diferente do carrinho: acerta e confere de novo.
+      if(intent.amount && intent.amount !== this.cardAmountSent){
+        elements.update({amount:intent.amount}); this.cardAmountSent = intent.amount;
+        sub = await elements.submit();
+        if(sub.error) return this.setState({cardErr:sub.error.type === 'validation_error' ? '' : (sub.error.message || 'Confira os dados do cartão.')});
+      }
+      const hr = await authFetch(API_BASE + '/payments/card-holder/' + intent.orderId, {
         method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
         body:JSON.stringify({name, cpf:cpfDigits(this.state.cardHolderCpf)})
       });
       if(!hr.ok){ const d = await hr.json().catch(() => ({})); this.setState({cardErr:d.error || 'Não foi possível registrar o titular do cartão.'}); return; }
-      const back = window.location.origin + window.location.pathname + '?module=cliente&screen=card&pedido=' + encodeURIComponent(o._apiId);
+      const back = window.location.origin + window.location.pathname + '?module=cliente&screen=card&pedido=' + encodeURIComponent(intent.orderId);
       // Só sai do app se o banco pedir verificação extra (3D Secure).
       // O endereço não é pedido na tela (fields.billingDetails.address:'never'),
       // então o Stripe exige que ele venha aqui; sem isso confirmPayment lança erro.
       const address = {line1:'', line2:'', city:'', state:'', postal_code:'', country:'BR'};
       const withData = {return_url:back, payment_method_data:{billing_details:{name, address}}};
-      const confirm = confirmParams => this.stripe.confirmPayment({elements:this.stripeElements, redirect:'if_required', confirmParams});
+      const confirm = confirmParams => this.stripe.confirmPayment({elements, clientSecret:intent.clientSecret, redirect:'if_required', confirmParams});
       let r;
       if(this.stripeSavedPm){
         // Se o Stripe.js ainda exigir o endereço com cartão salvo, tenta de novo com ele.
@@ -5300,7 +5381,7 @@ class Component extends DCLogic {
         return;
       }
       this.setState({cardWaiting:true});
-      this.pollOrder(o._apiId);
+      this.pollOrder(intent.orderId);
     } catch(e){
       console.error('[Sunfood] Stripe confirmPayment', e);
       this.setState({cardErr:'Não foi possível concluir o pagamento. Tente de novo.'});
@@ -5576,6 +5657,8 @@ class Component extends DCLogic {
     v.cardPayOpacity = s.busy === 'card' || s.cardFormLoading ? 0.6 : 1;
     v.confirmCardInApp = () => this.confirmCardInApp();
     if(s.screen === 'card' && this.stripeCard) this.ensureCardMounted();
+    // Cliente com itens no carrinho: os campos do cartão já ficam prontos.
+    if(s.stripePk && s.token && s.module === 'cliente' && s.cart.length && (s.authUser && s.authUser.role || 'cliente') === 'cliente') this.warmCard();
     v.openCardCheckout = () => this.openCardCheckout();
 
     // pix
@@ -5590,7 +5673,8 @@ class Component extends DCLogic {
     const o = s.order;
     v.hasOrder = !!o;
     v.orderId = o ? o.id : '#—';
-    v.orderTotalStr = o ? f(o.total) : v.totalStr;
+    // Cartão: enquanto o pedido é criado (campos já na tela), vale o carrinho.
+    v.orderTotalStr = o && !(s.screen === 'card' && s.cardOrderPending) ? f(o.total) : v.totalStr;
     v.cardPayLabel = s.busy === 'card' ? 'Processando…' : 'Pagar ' + v.orderTotalStr;
     v.orderTable = o ? String(o.table) : v.tableStr;
     v.orderStatus = o ? o.status : 'Na Fila';

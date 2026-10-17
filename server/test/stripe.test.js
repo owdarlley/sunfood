@@ -176,7 +176,7 @@ test("campos no app: cria o PaymentIntent em reais e devolve s처 o client_secret
   const r = await api("POST", `/payments/card-intent/${ORDER2}`);
   assert.equal(r.status, 200, JSON.stringify(r.body));
   const id = Object.keys(intents)[0];
-  assert.deepEqual(r.body, { clientSecret: id + "_secret_x", publishableKey: "pk_test_123", customerSessionClientSecret: "cuss_secret_1" });
+  assert.deepEqual(r.body, { clientSecret: id + "_secret_x", amount: 4100, publishableKey: "pk_test_123", customerSessionClientSecret: "cuss_secret_1" });
   assert.equal(intents[id].body.currency, "brl");
   assert.equal(intents[id].body.amount, 4100);
   assert.equal(intents[id].metadata.order_id, ORDER2);
@@ -202,6 +202,25 @@ test("cart찾o salvo: um Customer por cliente, ligado ao PaymentIntent, salvar s�
   assert.equal(f.features.payment_method_save, "enabled");
   assert.equal(f.features.payment_method_save_usage, "on_session");
   assert.equal(f.features.payment_method_redisplay, "enabled");
+});
+
+test("sess찾o do cliente antes do pedido: mesmo Customer, sem criar PaymentIntent", async () => {
+  const before = Object.keys(intents).length;
+  const r = await api("POST", "/payments/card-session");
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.publishableKey, "pk_test_123");
+  assert.match(r.body.customerSessionClientSecret, /^cuss_secret_/);
+  assert.equal(customers.length, 1);
+  assert.equal(customerSessions.at(-1).customer, "cus_1");
+  assert.equal(Object.keys(intents).length, before);
+});
+
+test("campos no app: com ?session=0 n찾o cria outra sess찾o do cliente", async () => {
+  const n = customerSessions.length;
+  const r = await api("POST", `/payments/card-intent/${ORDER2}?session=0`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.customerSessionClientSecret, null);
+  assert.equal(customerSessions.length, n);
 });
 
 test("campos no app: o navegador n찾o aprova; s처 o webhook payment_intent.succeeded rebuscado na API", async () => {

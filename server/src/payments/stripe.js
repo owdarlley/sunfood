@@ -65,7 +65,7 @@ export async function createStripeCheckout({ orderId, amount, payerEmail, succes
 // pelo e-mail + metadata sunfood_user_id, sem coluna nova no banco). O
 // CustomerSession deixa o Payment Element mostrar a caixa "salvar cartão" e
 // os cartões já salvos. O número do cartão fica só no Stripe.
-export async function createOrReuseCardIntent({ orderId, amount, payerEmail, payerName, userId, description, existingId }) {
+export async function createOrReuseCardIntent({ orderId, amount, payerEmail, payerName, userId, description, existingId, withSession = true }) {
   const cents = Math.round(Number(amount) * 100);
   // As chamadas ao Stripe que não dependem uma da outra vão juntas, pra os
   // campos do cartão aparecerem mais rápido.
@@ -85,9 +85,17 @@ export async function createOrReuseCardIntent({ orderId, amount, payerEmail, pay
       receipt_email: payerEmail || undefined,
       metadata: { order_id: orderId },
     }),
-    customer ? createCustomerSession(customer) : null,
+    customer && withSession ? createCustomerSession(customer) : null,
   ]);
-  return { paymentIntentId: pi.id, clientSecret: pi.client_secret, customerSessionClientSecret };
+  return { paymentIntentId: pi.id, clientSecret: pi.client_secret, amount: pi.amount, customerSessionClientSecret };
+}
+
+// Sessão do cliente pedida antes de existir o pedido: o app desenha os campos
+// do cartão (e os cartões salvos) logo que o cliente chega no pagamento, sem
+// esperar o pedido nem o PaymentIntent.
+export async function createCardSession({ userId, email, name }) {
+  const customer = await findOrCreateCustomer({ userId, email, name });
+  return { customerSessionClientSecret: await createCustomerSession(customer) };
 }
 
 async function findOrCreateCustomer({ userId, email, name }) {
