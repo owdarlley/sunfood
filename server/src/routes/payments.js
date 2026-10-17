@@ -21,6 +21,7 @@ import {
   refundStripePayment,
   stripePublishableKey,
   createOrReuseCardIntent,
+  createCardSession,
   fetchPaymentIntent,
   createStripePix,
   setCardHolder,
@@ -31,6 +32,14 @@ import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
 
 export const paymentsRouter = Router();
+
+const sessionLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Muitas tentativas de pagamento. Tente novamente em alguns minutos." },
+});
 
 const pixLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -224,6 +233,22 @@ paymentsRouter.post(
   }
 );
 
+// Sessão do cliente no Stripe (cartões salvos e a caixa "salvar cartão"),
+// pedida pelo app assim que o cliente chega no carrinho. Com ela e a chave
+// publicável, os campos do cartão aparecem antes de o pedido existir.
+paymentsRouter.post("/card-session", requireAuth, requireRole("cliente"), sessionLimiter, async (req, res) => {
+  if (!stripeConfigured || !stripePublishableKey) {
+    return res.status(409).json({ error: "Pagamento com cartão no app indisponível." });
+  }
+  try {
+    const session = await createCardSession({ userId: req.user.sub, email: req.user.email, name: req.user.name });
+    res.json({ ...session, publishableKey: stripePublishableKey });
+  } catch (e) {
+    console.error("Erro ao criar sessão do cliente no Stripe:", e);
+    res.status(502).json({ error: "Falha ao preparar o pagamento com cartão." });
+  }
+});
+
 // Cliente: campos do cartão dentro do app (Stripe Payment Element). Devolve o
 // client_secret do PaymentIntent do pedido; quem aprova o pedido continua
 // sendo o webhook (payment_intent.succeeded), nunca o navegador.
@@ -242,6 +267,8 @@ paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente")
       userId: req.user.sub,
       description: `Pedido Sunfood — mesa ${order.table_number}`,
       existingId: String(order.payment_id || "").startsWith("pi_") ? order.payment_id : null,
+      // ?session=0: o app já pegou a sessão do cliente em /card-session.
+      withSession: req.query.session !== "0",
     });
     // payment_id guarda o PaymentIntent desde já: é por ele que o webhook e
     // o estorno acham o pagamento. needsRefund só estorna se estiver aprovado.
@@ -251,6 +278,7 @@ paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente")
       .eq("id", order.id);
     res.json({
       clientSecret: intent.clientSecret,
+      amount: intent.amount,
       publishableKey: stripePublishableKey,
       customerSessionClientSecret: intent.customerSessionClientSecret,
     });

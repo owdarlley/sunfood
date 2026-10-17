@@ -103,6 +103,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
     if (p === '/orders/mine') return json(200, db.orders);
     if (p === '/orders' && m === 'GET') return json(200, db.orders);
     if (p === '/orders' && m === 'POST') {
+      if (db.orderDelayMs) await new Promise(res => setTimeout(res, db.orderDelayMs));
       const items = body.items.map(i => { const pr = db.products.find(x => x.id === i.productId);
         return { productId: pr.id, name: pr.name, qty: i.qty, unitPrice: pr.price, note: i.note }; });
       const subtotal = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
@@ -154,7 +155,13 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
       return json(200, { ok: true }); }
     if ((r = p.match(/^\/payments\/card-intent\/([^/]+)$/))) {
       db.cardIntentCalls = (db.cardIntentCalls || 0) + 1;
-      return json(200, { clientSecret: 'pi_fake_secret_' + r[1], publishableKey: 'pk_test_fake', customerSessionClientSecret: 'cuss_fake_secret' }); }
+      db.cardIntentSession = url.searchParams.get('session');
+      const ord = db.orders.find(o => o.id === r[1]);
+      return json(200, { clientSecret: 'pi_fake_secret_' + r[1], amount: Math.round((ord ? ord.total : 0) * 100), publishableKey: 'pk_test_fake',
+        customerSessionClientSecret: db.cardIntentSession === '0' ? null : 'cuss_fake_secret' }); }
+    if (p === '/payments/card-session') {
+      db.cardSessionCalls = (db.cardSessionCalls || 0) + 1;
+      return json(200, { customerSessionClientSecret: 'cuss_fake_secret', publishableKey: 'pk_test_fake' }); }
     if ((r = p.match(/^\/waiters\/([^/]+)\/report$/)) && m === 'GET') {
       const w = db.waiters.find(w => w.id === r[1]);
       if (!w) return json(404, { error: 'Garçom não encontrado.' });

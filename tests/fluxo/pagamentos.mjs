@@ -45,11 +45,15 @@ async function open(path, { role, seed, session, paymentsConfigured = true, stri
   // (address:'never') e o confirmPayment não manda o endereço.
   await page.route('https://js.stripe.com/**', r => r.fulfill({ contentType: 'application/javascript', body: `
     window.Stripe = function(pk){ window.__stripePk = pk; var semEndereco = false; return {
-      elements: function(o){ window.__stripeOpts = o; return { create: function(t, eo){ semEndereco = !!(eo && eo.fields && eo.fields.billingDetails && eo.fields.billingDetails.address === 'never'); var h = {}; window.__stripeHandlers = h; return {
+      elements: function(o){ window.__stripeOpts = o; window.__stripeUpdates = []; window.__stripeSubmits = 0; return {
+        update: function(u){ window.__stripeUpdates.push(u); Object.assign(window.__stripeOpts, u); },
+        submit: function(){ window.__stripeSubmits++; return Promise.resolve({}); },
+        create: function(t, eo){ semEndereco = !!(eo && eo.fields && eo.fields.billingDetails && eo.fields.billingDetails.address === 'never'); var h = {}, at = null; window.__stripeHandlers = h; return {
         on: function(ev, cb){ h[ev] = cb; },
-        mount: function(el){ el.innerHTML = '<div class="fake-stripe" style="height:120px;border:1px solid #8F8676;border-radius:8px;padding:12px">Número do cartão</div>'; setTimeout(function(){ h.ready && h.ready(); }, 30); },
-        unmount: function(){} }; } }; },
+        mount: function(el){ at = el; window.__stripeMounts = (window.__stripeMounts || 0) + 1; el.innerHTML = '<div class="fake-stripe" style="height:120px;border:1px solid #8F8676;border-radius:8px;padding:12px">Número do cartão</div>'; setTimeout(function(){ h.ready && h.ready(); }, 30); },
+        unmount: function(){ if(at) at.innerHTML = ''; at = null; }, destroy: function(){ if(at) at.innerHTML = ''; } }; } }; },
       confirmPayment: function(a){ window.__stripeConfirm = a;
+        if(!window.__stripeSubmits) throw new Error('IntegrationError: elements.submit() must be called before stripe.confirmPayment()');
         var bd = a.confirmParams && a.confirmParams.payment_method_data && a.confirmParams.payment_method_data.billing_details;
         if(semEndereco && !window.__stripeSaved && !(bd && bd.address)) throw new Error('IntegrationError: You specified "never" for fields.billing_details.address');
         return Promise.resolve(window.__stripeRecusa ? { error: { type: 'card_error', message: 'Seu cartão foi recusado.' } } : { paymentIntent: { status: 'succeeded' } }); }
@@ -291,13 +295,21 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
     await ateOPagamento(page);
     await page.setViewportSize(viewport); await page.waitForTimeout(1600);
     check(`no app ${tela}: Stripe.js já baixado antes de pagar`, await page.evaluate(() => typeof window.Stripe === 'function'));
+    check(`no app ${tela}: campos do cartão já preparados no carrinho, sem pedido`, await page.evaluate(() => !!document.querySelector('#sf-stripe-warm .fake-stripe'))
+      && page.api.db.orders.length === 0 && !page.api.db.cardIntentCalls);
     await click(page, 'Cartão de crédito ou débito', true);
+    // Servidor lento pra criar o pedido: os campos aparecem mesmo assim.
+    page.api.db.orderDelayMs = 1500;
     await click(page, 'Pagar R$');
-    await page.waitForSelector('#sf-stripe-card .fake-stripe', { timeout: 5000 });
+    await page.waitForSelector('#sf-stripe-card .fake-stripe', { timeout: 400 });
+    check(`no app ${tela}: campos aparecem antes de o pedido ficar pronto`, page.api.db.orders.length === 0 && !page.api.db.cardIntentCalls);
+    page.api.db.orderDelayMs = 0;
+    await page.waitForTimeout(1700);
     let t = await text(page);
     check(`no app ${tela}: não sai do app (campos do cartão na tela)`, page.url().startsWith(BASE) && t.includes('Dados do cartão'), page.url());
     check(`no app ${tela}: Stripe com a chave publicável e as cores do Sunfood`, await page.evaluate(() => window.__stripePk === 'pk_test_fake'
-      && window.__stripeOpts.clientSecret.startsWith('pi_fake_secret_') && window.__stripeOpts.appearance.variables.colorPrimary.toUpperCase() === '#1F5A63'
+      && window.__stripeOpts.mode === 'payment' && window.__stripeOpts.currency === 'brl' && window.__stripeOpts.paymentMethodTypes.join() === 'card'
+      && !window.__stripeOpts.clientSecret && window.__stripeOpts.appearance.variables.colorPrimary.toUpperCase() === '#1F5A63'
       && window.__stripeOpts.appearance.variables.fontFamily.startsWith('Manrope')));
     check(`no app ${tela}: aviso do cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
     check(`no app ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
@@ -322,6 +334,9 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
     await page.evaluate(() => { window.__stripeRecusa = false; });
     await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(500);
     check(`no app ${tela}: depois de pagar, espera a confirmação do servidor`, (await text(page)).includes('Aguardando confirmação do pagamento'));
+    check(`no app ${tela}: confirma com o pagamento do pedido criado no servidor`, await page.evaluate(() => window.__stripeConfirm.clientSecret === 'pi_fake_secret_o1'));
+    check(`no app ${tela}: valor dos campos acertado com o do servidor`, await page.evaluate(t => window.__stripeOpts.amount === t, Math.round(page.api.db.orders[0].total * 100)));
+    check(`no app ${tela}: pagamento do pedido sem pedir outra sessão do cliente`, page.api.db.cardIntentSession === '0' && page.api.db.cardSessionCalls >= 1);
     check(`no app ${tela}: volta do 3D Secure aponta pro pedido`, await page.evaluate(() => /pedido=/.test(window.__stripeConfirm.confirmParams.return_url)));
     check(`no app ${tela}: Stripe recebe a sessão do cliente (cartões salvos)`, await page.evaluate(() => window.__stripeOpts.customerSessionClientSecret === 'cuss_fake_secret'));
     check(`no app ${tela}: titular vai pro servidor e o nome pro Stripe`, page.api.db.cardHolder?.name === 'Ana Souza' && page.api.db.cardHolder?.cpf === '52998224725'
