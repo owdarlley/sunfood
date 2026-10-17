@@ -189,6 +189,21 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
       Object.assign(o, body.receivedWith ? { paymentStatus: 'approved', receivedWith: body.receivedWith } : { paymentStatus: 'pending', receivedWith: null });
       return json(200, o); }
     if ((r = p.match(/^\/payments\/pix\/([^/]+)\/status$/))) return json(200, { paymentStatus: db.orders.find(o => o.id === r[1]).paymentStatus });
+    // Estorno pelo painel do admin (total cancela; parcial mantém o pedido).
+    if ((r = p.match(/^\/orders\/([^/]+)\/refunds$/))) return json(200, (db.refunds || []).filter(x => x.orderId === r[1]));
+    if ((r = p.match(/^\/orders\/([^/]+)\/refund$/))) { const o = db.orders.find(o => o.id === r[1]);
+      db.refundCalls = (db.refundCalls || []).concat({ id: r[1], ...body });
+      const paid = o.paymentMethod !== 'entrega' && o.paymentStatus === 'approved' && o.paymentProvider !== 'provisorio';
+      const left = paid ? Math.round((o.total - (o.refundedAmount || 0)) * 100) / 100 : 0;
+      const amount = body.cancel ? left : body.amount;
+      if (!body.cancel && (!left || amount > left)) return json(400, { error: 'Valor maior do que dá para estornar.' });
+      if (amount > 0) {
+        o.refundedAmount = Math.round(((o.refundedAmount || 0) + amount) * 100) / 100;
+        if (o.refundedAmount >= o.total) o.paymentStatus = 'refunded';
+        db.refunds = (db.refunds || []).concat({ orderId: o.id, amount, reason: body.reason, by: 'Admin Teste', at: now() });
+      }
+      if (body.cancel) o.status = 'Cancelado';
+      return json(200, { ...o, refundedNow: amount }); }
     if ((r = p.match(/^\/orders\/([^/]+)\/cancel$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = 'Cancelado'; return json(200, o); }
     if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now(); return json(200, o); }
     if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, db.orders.find(o => o.id === r[1]));

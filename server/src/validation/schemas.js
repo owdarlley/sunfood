@@ -210,6 +210,16 @@ export const orderStatusUpdateSchema = z.object({
   status: z.enum(["Em Preparo", "Pronto", "Entregue", "Cancelado"]),
 });
 
+// Estorno pelo painel do admin. cancel: tira o pedido da cozinha e devolve
+// tudo; sem cancel, amount (em reais) é o estorno parcial.
+export const orderRefundSchema = z
+  .object({
+    cancel: z.boolean().default(false),
+    amount: z.number().positive().max(100000).optional(),
+    reason: z.string().trim().min(3, "Informe o motivo do estorno.").max(200),
+  })
+  .refine((b) => b.cancel || b.amount !== undefined, { message: "Informe o valor do estorno.", path: ["amount"] });
+
 // Relatórios do admin: período em dias (hoje, últimos 7 ou últimos 30 dias).
 export const REPORT_PERIODS = { hoje: 1, "7d": 7, "30d": 30 };
 export const salesReportQuerySchema = z.object({

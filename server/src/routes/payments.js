@@ -27,6 +27,7 @@ import {
   setCardHolder,
   isStripePaymentId,
 } from "../payments/stripe.js";
+import { syncStripeRefunds } from "../order-refunds.js";
 import { isValidCpf, onlyDigits } from "../validation/cpf.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
@@ -411,6 +412,17 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
   } catch (e) {
     console.error("Webhook do Stripe recusado:", e.message);
     return res.status(400).json({ error: "Assinatura inválida." });
+  }
+
+  // Estorno feito no painel do Stripe (ou pelo app): acerta o pedido.
+  if (event.type === "charge.refunded") {
+    try {
+      await syncStripeRefunds(event.data.object.id);
+      return res.status(200).end();
+    } catch (e) {
+      console.error("Erro ao registrar estorno do Stripe:", e);
+      return res.status(500).end();
+    }
   }
 
   const checkoutEvents = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
