@@ -40,14 +40,19 @@ async function open(path, { role, seed, session, paymentsConfigured = true, stri
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   const api = fakeApi(role || 'cliente', { paymentsConfigured, stripeTest, stripeInApp, stripePix });
   // Stripe.js falso: desenha um campo no lugar do quadro do Stripe e responde
-  // ao confirmPayment (recusa se window.__stripeRecusa estiver ligado).
+  // ao confirmPayment (recusa se window.__stripeRecusa estiver ligado). Como o
+  // Stripe.js de verdade, lança erro se o campo foi criado sem endereço
+  // (address:'never') e o confirmPayment não manda o endereço.
   await page.route('https://js.stripe.com/**', r => r.fulfill({ contentType: 'application/javascript', body: `
-    window.Stripe = function(pk){ window.__stripePk = pk; return {
-      elements: function(o){ window.__stripeOpts = o; return { create: function(){ var h = {}; return {
+    window.Stripe = function(pk){ window.__stripePk = pk; var semEndereco = false; return {
+      elements: function(o){ window.__stripeOpts = o; return { create: function(t, eo){ semEndereco = !!(eo && eo.fields && eo.fields.billingDetails && eo.fields.billingDetails.address === 'never'); var h = {}; return {
         on: function(ev, cb){ h[ev] = cb; },
         mount: function(el){ el.innerHTML = '<div class="fake-stripe" style="height:120px;border:1px solid #8F8676;border-radius:8px;padding:12px">Número do cartão</div>'; setTimeout(function(){ h.ready && h.ready(); }, 30); },
         unmount: function(){} }; } }; },
-      confirmPayment: function(a){ window.__stripeConfirm = a; return Promise.resolve(window.__stripeRecusa ? { error: { type: 'card_error', message: 'Seu cartão foi recusado.' } } : { paymentIntent: { status: 'succeeded' } }); }
+      confirmPayment: function(a){ window.__stripeConfirm = a;
+        var bd = a.confirmParams && a.confirmParams.payment_method_data && a.confirmParams.payment_method_data.billing_details;
+        if(semEndereco && !(bd && bd.address)) throw new Error('IntegrationError: You specified "never" for fields.billing_details.address');
+        return Promise.resolve(window.__stripeRecusa ? { error: { type: 'card_error', message: 'Seu cartão foi recusado.' } } : { paymentIntent: { status: 'succeeded' } }); }
     }; };` }));
   if (seed) api.seed();
   if (setup) setup(api.db);
