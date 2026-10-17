@@ -36,6 +36,8 @@ function query(table) {
     order: () => q,
     update: (p) => ((patch = p), q),
     insert: (row) => {
+      // Banco sem a coluna de itens (SQL 20261017220000 não rodado): erro do PostgREST.
+      if (db.noItemsColumn && "items" in row) { inserted = { error: { code: "PGRST204", message: "Could not find the 'items' column" } }; return q; }
       // Índice único do id do estorno no provedor.
       if (row.provider_refund_id && db[table].some((r) => r.provider_refund_id === row.provider_refund_id)) inserted = { error: { code: "23505" } };
       else { db[table].push({ id: "rf_" + (db[table].length + 1), created_at: new Date().toISOString(), ...row }); inserted = { error: null }; }
@@ -192,8 +194,13 @@ test("webhook assinado de sessão paga aprova o pedido e guarda o PaymentIntent"
 test("cancelar pedido pago pelo Stripe estorna no Stripe", async () => {
   const r = await api("POST", `/orders/${ORDER}/cancel`);
   assert.equal(r.status, 200, JSON.stringify(r.body));
-  assert.deepEqual(refunds, [{ payment_intent: "pi_teste_1" }]);
+  assert.deepEqual(refunds, [{ payment_intent: "pi_teste_1", metadata: { order_id: ORDER, sunfood_reason: "Você cancelou o pedido" } }]);
   assert.equal(db.orders[0].payment_status, "refunded");
+  // Fica no histórico do pedido, que o cliente vê nos detalhes.
+  const reg = db.order_refunds.filter((x) => x.order_id === ORDER);
+  assert.deepEqual(reg.map(({ amount, reason, provider_refund_id }) => ({ amount, reason, provider_refund_id })),
+    [{ amount: db.orders[0].total, reason: "Você cancelou o pedido", provider_refund_id: "re_1" }]);
+  assert.deepEqual(r.body.refunds.map(({ amount, reason }) => ({ amount, reason })), [{ amount: db.orders[0].total, reason: "Você cancelou o pedido" }]);
 });
 
 const ORDER2 = "00000000-0000-4000-8000-0000000000bb";
@@ -418,4 +425,54 @@ test("estorno feito no painel do Stripe chega pelo webhook charge.refunded", asy
   // O mesmo evento de novo não duplica.
   await webhook({ id: "evt_ref", type: "charge.refunded", data: { object: { id: "ch_painel" } } });
   assert.equal(db.order_refunds.filter((x) => x.order_id === id).length, 1);
+});
+
+const ITENS = "00000000-0000-4000-8000-000000000022";
+test("estorno parcial com itens: o cliente vê valor, itens, motivo e data, sem quem estornou", async () => {
+  db.orders.push({ id: ITENS, customer_id: "ana", total: 40, refunded_amount: 0, status: "Entregue", payment_method: "cartao", payment_status: "approved",
+    payment_provider: "stripe", payment_id: "pi_itens", table_number: 3, created_at: new Date().toISOString(),
+    order_items: [{ product_id: "p1", name: "Água", qty: 2, price: 5 }, { product_id: "p2", name: "Pastel", qty: 1, price: 30 }] });
+  const n = refunds.length;
+  const r = await adm("POST", `/orders/${ITENS}/refund`, { amount: 10, reason: "Item em falta", items: [{ name: "Água", qty: 2 }] });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(refunds[n].metadata.sunfood_items, "2x Água");
+  assert.deepEqual(db.order_refunds.find((x) => x.order_id === ITENS).items, [{ name: "Água", qty: 2 }]);
+
+  const one = await api("GET", `/orders/${ITENS}`);
+  assert.equal(one.status, 200);
+  assert.equal(one.body.refunds.length, 1);
+  const [rf] = one.body.refunds;
+  assert.deepEqual({ amount: rf.amount, reason: rf.reason, items: rf.items }, { amount: 10, reason: "Item em falta", items: [{ name: "Água", qty: 2 }] });
+  assert.ok(rf.at);
+  assert.equal("by" in rf || "actor" in rf || "provider" in rf, false);
+
+  const mine = await api("GET", "/orders/mine");
+  assert.equal(mine.status, 200);
+  assert.equal(mine.body.find((o) => o.id === ITENS).refunds[0].reason, "Item em falta");
+  // Pedido sem estorno vem com a lista vazia.
+  assert.ok(mine.body.filter((o) => !o.refundedAmount && o.paymentStatus !== "refunded").every((o) => o.refunds.length === 0));
+});
+
+test("sem a coluna de itens no banco, o estorno é registrado sem eles", async () => {
+  db.noItemsColumn = true;
+  const before = db.order_refunds.length;
+  const r = await adm("POST", `/orders/${ITENS}/refund`, { amount: 5, reason: "Pedido errado", items: [{ name: "Pastel", qty: 1 }] });
+  delete db.noItemsColumn;
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(db.order_refunds.length, before + 1);
+  assert.equal(db.order_refunds.at(-1).reason, "Pedido errado");
+  assert.equal(db.order_refunds.at(-1).items, undefined);
+});
+
+test("itens do estorno chegam também pelo webhook (metadata do Stripe)", async () => {
+  const id = "00000000-0000-4000-8000-000000000033";
+  db.orders.push({ id, customer_id: "ana", total: 30, refunded_amount: 0, status: "Entregue", payment_method: "cartao", payment_status: "approved",
+    payment_id: "pi_meta", table_number: 1, created_at: new Date().toISOString(), order_items: [] });
+  charges.ch_meta = { id: "ch_meta", payment_intent: "pi_meta", amount_refunded: 1200, refunded: false,
+    refunds: { data: [{ id: "re_meta", amount: 1200, status: "succeeded", metadata: { sunfood_reason: "Item em falta", sunfood_items: "2x Água, 1x Suco de laranja" } }] } };
+  const r = await webhook({ id: "evt_meta", type: "charge.refunded", data: { object: { id: "ch_meta" } } });
+  assert.equal(r.status, 200);
+  const reg = db.order_refunds.find((x) => x.order_id === id);
+  assert.equal(reg.reason, "Item em falta");
+  assert.deepEqual(reg.items, [{ name: "Água", qty: 2 }, { name: "Suco de laranja", qty: 1 }]);
 });

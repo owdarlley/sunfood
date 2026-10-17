@@ -19,7 +19,7 @@ import {
   VALID_TRANSITIONS,
 } from "../business-rules.js";
 import { cancelOrderWithRefund, expireUnpaidOrders } from "../order-payments.js";
-import { refundOrderByAdmin } from "../order-refunds.js";
+import { refundOrderByAdmin, customerRefunds } from "../order-refunds.js";
 
 export const ordersRouter = Router();
 
@@ -65,6 +65,8 @@ function toApi(row, cancelWindow) {
     paymentStatus: row.payment_status,
     // Soma dos estornos (total ou parciais) feitos pelo painel ou pelo Stripe.
     refundedAmount: Number(row.refunded_amount || 0),
+    // Só nas respostas pro cliente: valor, motivo, itens e quando de cada estorno.
+    refunds: row.refunds,
     receivedWith: row.received_with,
     receivedAt: row.received_at,
     cancelDeadline: cancelWindow === undefined ? undefined : cancelDeadline(row.created_at, cancelWindow),
@@ -81,6 +83,8 @@ function toApi(row, cancelWindow) {
 }
 
 const ORDER_SELECT = "*, order_items(*)";
+
+const hasRefund = (row) => Number(row.refunded_amount || 0) > 0 || row.payment_status === "refunded";
 
 // Valida e grava um pedido. Todas as regras de negócio são checadas aqui,
 // no servidor — o front pode ser enganado, o backend não. Usado pelo cliente
@@ -187,7 +191,8 @@ ordersRouter.get("/mine", requireAuth, requireRole("cliente"), async (req, res) 
     .eq("customer_id", req.user.sub)
     .order("created_at", { ascending: false });
   if (error) return res.status(500).json({ error: "Erro ao carregar histórico." });
-  res.json(data.map(toApi));
+  const refunds = await customerRefunds(data.filter(hasRefund).map((row) => row.id));
+  res.json(data.map((row) => toApi({ ...row, refunds: refunds.get(row.id) || [] })));
 });
 
 // Admin/cozinha/garçom: lista de pedidos (opcionalmente filtrada por status), para o kanban/painel.
@@ -219,9 +224,10 @@ ordersRouter.get("/", requireAuth, requireRole("admin", "cozinha", "garcom"), as
 ordersRouter.post("/:id/refund", requireAuth, requireRole("admin"), validate(orderRefundSchema), async (req, res) => {
   const { data: row, error } = await supabaseAdmin.from("orders").select("*").eq("id", req.params.id).maybeSingle();
   if (error || !row) return res.status(404).json({ error: "Pedido não encontrado." });
-  const { cancel, amount, reason } = req.body;
+  const { cancel, amount, reason, items } = req.body;
   const result = await refundOrderByAdmin(row, {
     cancel,
+    items,
     amountCents: amount === undefined ? undefined : Math.round(amount * 100),
     reason,
     actor: req.user.sub,
@@ -249,6 +255,7 @@ ordersRouter.get("/:id/refunds", requireAuth, requireRole("admin"), async (req, 
     amount: Number(r.amount),
     reason: r.reason,
     provider: r.provider,
+    items: r.items || [],
     by: names.get(r.actor) || (r.actor ? null : "Painel do Stripe"),
     at: r.created_at,
   })));
@@ -265,7 +272,9 @@ ordersRouter.get("/:id", requireAuth, async (req, res) => {
   if (req.user.role === "cliente" && row.customer_id !== req.user.sub) {
     return res.status(403).json({ error: "Sem permissão para ver este pedido." });
   }
-  res.json(toApi(row, req.user.role === "cliente" ? await loadCancelWindow() : undefined));
+  if (req.user.role !== "cliente") return res.json(toApi(row));
+  const refunds = hasRefund(row) ? (await customerRefunds([row.id])).get(row.id) || [] : [];
+  res.json(toApi({ ...row, refunds }, await loadCancelWindow()));
 });
 
 // Cliente: cancelar — RN04, só permitido enquanto o status for "Na Fila" e
@@ -297,7 +306,8 @@ ordersRouter.post("/:id/cancel", requireAuth, requireRole("cliente"), async (req
   if (!result.ok) return res.status(result.httpStatus).json({ error: result.error });
 
   const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();
-  res.json(toApi(updated, cancelWindow));
+  const refunds = hasRefund(updated) ? (await customerRefunds([row.id])).get(row.id) || [] : [];
+  res.json(toApi({ ...updated, refunds }, cancelWindow));
 });
 
 // Admin ou o próprio garçom: anota que o garçom recebeu um pedido "pagar na

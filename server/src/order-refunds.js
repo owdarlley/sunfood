@@ -14,14 +14,65 @@ export function refundableCents(row) {
   return Math.max(0, cents(row.total) - cents(row.refunded_amount));
 }
 
+// "2x Água, 1x Pastel" (cabe no limite de 500 caracteres do metadata do Stripe).
+const itemsLabel = (items) => items.map((it) => `${it.qty}x ${it.name}`).join(", ").slice(0, 500);
+const parseItemsLabel = (label) =>
+  String(label || "")
+    .split(", ")
+    .map((part) => /^(\d+)x (.+)$/.exec(part))
+    .filter(Boolean)
+    .map((m) => ({ name: m[2], qty: Number(m[1]) }));
+
 const fail = (httpStatus, error) => ({ ok: false, httpStatus, error });
+
+// Grava um estorno no histórico do pedido. O mesmo estorno chegando de novo
+// (painel + webhook do Stripe) é ignorado pelo índice único do id. Sem a
+// coluna de itens (SQL 20261017220000 ainda não rodado), grava sem eles.
+export async function recordRefund(orderId, { amount, reason, provider, refundId, actor, items }) {
+  const row = {
+    order_id: orderId,
+    amount,
+    reason,
+    provider,
+    provider_refund_id: refundId || null,
+    actor: actor || null,
+  };
+  let { error } = await supabaseAdmin.from("order_refunds").insert(items?.length ? { ...row, items } : row);
+  if (error && items?.length && (error.code === "PGRST204" || error.code === "42703")) {
+    ({ error } = await supabaseAdmin.from("order_refunds").insert(row));
+  }
+  if (error && error.code !== "23505") console.error("Estorno feito mas não registrado:", orderId, error);
+}
+
+// O que o cliente vê dos estornos de cada pedido: valor, motivo, itens e
+// quando. Quem da equipe estornou e o meio de pagamento ficam de fora.
+export async function customerRefunds(orderIds) {
+  const byOrder = new Map();
+  if (!orderIds.length) return byOrder;
+  const { data, error } = await supabaseAdmin
+    .from("order_refunds")
+    .select("*")
+    .in("order_id", orderIds)
+    .order("created_at", { ascending: true });
+  if (error) return byOrder;
+  for (const r of data || []) {
+    if (!byOrder.has(r.order_id)) byOrder.set(r.order_id, []);
+    byOrder.get(r.order_id).push({
+      amount: Number(r.amount),
+      reason: r.reason,
+      items: (r.items || []).map((it) => ({ name: it.name, qty: it.qty })),
+      at: r.created_at,
+    });
+  }
+  return byOrder;
+}
 
 // Estorno pelo painel do admin.
 //   cancel: tira o pedido da cozinha e devolve tudo o que falta devolver.
 //   parcial: devolve amountCents e o pedido continua.
 // O dinheiro volta antes de qualquer mudança no pedido: se o Stripe ou o
 // Mercado Pago recusar, nada muda.
-export async function refundOrderByAdmin(row, { cancel, amountCents, reason, actor }) {
+export async function refundOrderByAdmin(row, { cancel, amountCents, reason, actor, items }) {
   // A tabela de estornos vem da migração 20261017210000; sem ela não dá pra
   // registrar, então nem chega a devolver.
   const { error: tableError } = await supabaseAdmin.from("order_refunds").select("id").eq("order_id", row.id);
@@ -48,7 +99,12 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
       result = stripe
         ? await refundStripePayment(row.payment_id, {
             amountCents: amount,
-            metadata: { order_id: row.id, sunfood_reason: reason.slice(0, 200), sunfood_actor: actor || "" },
+            metadata: {
+              order_id: row.id,
+              sunfood_reason: reason.slice(0, 200),
+              sunfood_actor: actor || "",
+              ...(cancel || !items?.length ? {} : { sunfood_items: itemsLabel(items) }),
+            },
             // Mesmo pedido, mesmo valor já devolvido e mesmo pedido de estorno = mesma chave.
             idempotencyKey: `sunfood-refund-${row.id}-${cents(row.refunded_amount)}-${amount}`,
           })
@@ -58,16 +114,15 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
       return fail(502, "Não foi possível estornar o pagamento. Tente novamente.");
     }
     refundedNow = amount;
-    const { error } = await supabaseAdmin.from("order_refunds").insert({
-      order_id: row.id,
+    await recordRefund(row.id, {
       amount: amount / 100,
       reason,
       provider: stripe ? "stripe" : "mercadopago",
-      provider_refund_id: result.refundId || null,
-      actor: actor || null,
+      refundId: result.refundId,
+      actor,
+      // Itens só no estorno parcial: no cancelamento volta o pedido inteiro.
+      items: cancel ? undefined : items,
     });
-    // Já registrado pelo webhook (mesmo id do estorno): tudo bem.
-    if (error && error.code !== "23505") console.error("Estorno feito mas não registrado:", row.id, error);
     const total = cents(row.refunded_amount) + amount;
     await supabaseAdmin
       .from("orders")
@@ -111,15 +166,14 @@ export async function syncStripeRefunds(chargeId) {
   const seen = new Set((known || []).map((r) => r.provider_refund_id));
   for (const r of charge.refunds) {
     if (seen.has(r.id)) continue;
-    const { error: insertError } = await supabaseAdmin.from("order_refunds").insert({
-      order_id: order.id,
+    await recordRefund(order.id, {
       amount: r.amount,
       reason: r.metadata.sunfood_reason || "Estorno feito no painel do Stripe",
       provider: "stripe",
-      provider_refund_id: r.id,
-      actor: r.metadata.sunfood_actor || null,
+      refundId: r.id,
+      actor: r.metadata.sunfood_actor,
+      items: parseItemsLabel(r.metadata.sunfood_items),
     });
-    if (insertError && insertError.code !== "23505") console.error("Estorno do Stripe não registrado:", r.id, insertError);
   }
   await supabaseAdmin
     .from("orders")
