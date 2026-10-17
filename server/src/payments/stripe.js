@@ -2,9 +2,12 @@ import Stripe from "stripe";
 
 const SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+// Chave publicável (pk_test_...): pode ir pro app, é ela que desenha os
+// campos do cartão (Payment Element) dentro da tela de pagamento.
+export const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || null;
 
 // Com STRIPE_SECRET_KEY configurada, o cartão passa a ser cobrado pelo Stripe
-// (Checkout hospedado); o PIX continua no Mercado Pago. A chave fica só na
+// (campos no app com STRIPE_PUBLISHABLE_KEY, senão Checkout hospedado); o PIX continua no Mercado Pago. A chave fica só na
 // variável de ambiente do servidor, nunca no repositório nem no front.
 export const stripeConfigured = !!SECRET_KEY;
 // Chave sk_test_/rk_test_: nada é cobrado de verdade (cartão 4242 4242 4242 4242).
@@ -47,6 +50,69 @@ export async function createStripeCheckout({ orderId, amount, payerEmail, succes
     locale: "pt-BR",
   });
   return { sessionId: session.id, checkoutUrl: session.url };
+}
+
+// Cartão de crédito ou débito: o tipo "card" do Stripe aceita os dois (quem
+// decide é o cartão). Parcelamento não é ligado em lugar nenhum — no Stripe
+// ele só existe se for ativado no PaymentIntent — então é sempre à vista.
+
+// Campos do cartão dentro do app (Payment Element): cria — ou reaproveita,
+// se o cliente voltou à tela — o PaymentIntent do pedido e devolve o
+// client_secret que o app usa pra confirmar. O cartão é digitado nos campos
+// do próprio Stripe (iframes), nunca passa pelo app nem por aqui.
+export async function createOrReuseCardIntent({ orderId, amount, payerEmail, description, existingId }) {
+  const cents = Math.round(Number(amount) * 100);
+  if (existingId) {
+    const pi = await stripe().paymentIntents.retrieve(existingId);
+    if (pi.amount === cents && ["requires_payment_method", "requires_confirmation", "requires_action"].includes(pi.status)) {
+      return { paymentIntentId: pi.id, clientSecret: pi.client_secret };
+    }
+  }
+  const pi = await stripe().paymentIntents.create({
+    amount: cents,
+    currency: "brl",
+    payment_method_types: ["card"],
+    description: description || `Pedido Sunfood #${orderId}`,
+    receipt_email: payerEmail || undefined,
+    metadata: { order_id: orderId },
+  });
+  return { paymentIntentId: pi.id, clientSecret: pi.client_secret };
+}
+
+// PIX pelo Stripe: cria e confirma o PaymentIntent no servidor e devolve o
+// QR (imagem e copia-e-cola). O pedido só é liberado pelo webhook
+// payment_intent.succeeded, depois que o banco do cliente confirma.
+export async function createStripePix({ orderId, amount, payerEmail, description, expiresInMinutes }) {
+  const pi = await stripe().paymentIntents.create({
+    amount: Math.round(Number(amount) * 100),
+    currency: "brl",
+    payment_method_types: ["pix"],
+    payment_method_data: { type: "pix" },
+    payment_method_options: { pix: { expires_after_seconds: expiresInMinutes * 60 } },
+    confirm: true,
+    description: description || `Pedido Sunfood #${orderId}`,
+    receipt_email: payerEmail || undefined,
+    metadata: { order_id: orderId },
+  });
+  const qr = pi.next_action?.pix_display_qr_code || {};
+  return {
+    paymentIntentId: pi.id,
+    qrCode: qr.data || null,
+    qrCodeImageUrl: qr.image_url_png || null,
+    // No modo de teste, essa página do Stripe tem o botão de simular o pagamento.
+    instructionsUrl: qr.hosted_instructions_url || null,
+  };
+}
+
+// Rebusca o PaymentIntent na API (o webhook só avisa que algo mudou).
+export async function fetchPaymentIntent(id) {
+  const pi = await stripe().paymentIntents.retrieve(id);
+  return {
+    orderId: pi.metadata?.order_id || null,
+    paid: pi.status === "succeeded",
+    amount: Number(pi.amount_received) / 100,
+    paymentIntentId: pi.id,
+  };
 }
 
 // Confere a assinatura do webhook (cabeçalho Stripe-Signature) sobre o corpo

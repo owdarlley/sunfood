@@ -6,7 +6,7 @@ export const FAKE_CHECKOUT_URL = 'https://www.mercadopago.com.br/checkout/teste'
 // Endereço das fotos enviadas (o teste serve uma imagem pequena nele).
 export const FAKE_PHOTO_BASE = 'https://teste.supabase.co/storage/v1/object/public/produtos/';
 
-export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTest = false } = {}) {
+export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTest = false, stripeInApp = false, stripePix = false } = {}) {
   const now = () => new Date().toISOString();
   const db = {
     products: [
@@ -23,7 +23,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
     kiosk: { paused: false, dayClosed: false, cancelWindowMinutes: 0 },
     orders: [],
     contacts: [],
-    paymentsConfigured, stripeTest,
+    paymentsConfigured, stripeTest, stripeInApp, stripePix,
   };
   const user = { id: 'u1', email: role + '@teste', name: 'Teste', role, avatarUrl: null, avatarPreset: null, notifyReady: true, soundOn: true };
   // Tela Perfil (GET/PATCH /auth/profile, foto e trocar senha). A senha atual certa é "senha-atual".
@@ -142,11 +142,16 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
       if (!db.paymentsConfigured && !db.stripeTest) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { checkoutUrl: FAKE_CHECKOUT_URL }); }
     if ((r = p.match(/^\/payments\/pix\/([^/]+)$/))) {
+      if (db.stripePix) return json(200, { qrCode: '000201STRIPEPIX', qrCodeImageUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E', testPayUrl: 'https://payments.stripe.com/pix/teste' });
       if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '' }); }
     if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured,
-      pix: db.paymentsConfigured ? 'mercadopago' : 'provisorio',
-      card: db.stripeTest ? 'stripe' : db.paymentsConfigured ? 'mercadopago' : 'provisorio', cardTestMode: db.stripeTest });
+      pix: db.paymentsConfigured ? 'mercadopago' : db.stripePix ? 'stripe' : 'provisorio',
+      card: db.stripeTest ? 'stripe' : db.paymentsConfigured ? 'mercadopago' : 'provisorio', cardTestMode: db.stripeTest,
+      stripePublishableKey: db.stripeTest && db.stripeInApp ? 'pk_test_fake' : null });
+    if ((r = p.match(/^\/payments\/card-intent\/([^/]+)$/))) {
+      db.cardIntentCalls = (db.cardIntentCalls || 0) + 1;
+      return json(200, { clientSecret: 'pi_fake_secret_' + r[1], publishableKey: 'pk_test_fake' }); }
     if ((r = p.match(/^\/waiters\/([^/]+)\/report$/)) && m === 'GET') {
       const w = db.waiters.find(w => w.id === r[1]);
       if (!w) return json(404, { error: 'Garçom não encontrado.' });

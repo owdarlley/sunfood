@@ -29,7 +29,7 @@ const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : 
 const results = [];
 const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`${ok ? 'ok   ' : 'FALHA'} ${name}${ok || !detail ? '' : ' -> ' + detail}`); };
 
-async function open(path, { role, seed, session, paymentsConfigured = true, stripeTest = false, viewport = { width: 400, height: 860 }, setup } = {}) {
+async function open(path, { role, seed, session, paymentsConfigured = true, stripeTest = false, stripeInApp = false, stripePix = false, viewport = { width: 400, height: 860 }, setup } = {}) {
   const page = await browser.newPage({ viewport, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
@@ -38,7 +38,17 @@ async function open(path, { role, seed, session, paymentsConfigured = true, stri
     r.fulfill({ path: join(CDN, 'node_modules', mod), contentType: 'application/javascript' });
   });
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
-  const api = fakeApi(role || 'cliente', { paymentsConfigured, stripeTest });
+  const api = fakeApi(role || 'cliente', { paymentsConfigured, stripeTest, stripeInApp, stripePix });
+  // Stripe.js falso: desenha um campo no lugar do quadro do Stripe e responde
+  // ao confirmPayment (recusa se window.__stripeRecusa estiver ligado).
+  await page.route('https://js.stripe.com/**', r => r.fulfill({ contentType: 'application/javascript', body: `
+    window.Stripe = function(pk){ window.__stripePk = pk; return {
+      elements: function(o){ window.__stripeOpts = o; return { create: function(){ var h = {}; return {
+        on: function(ev, cb){ h[ev] = cb; },
+        mount: function(el){ el.innerHTML = '<div class="fake-stripe" style="height:120px;border:1px solid #8F8676;border-radius:8px;padding:12px">Número do cartão</div>'; setTimeout(function(){ h.ready && h.ready(); }, 30); },
+        unmount: function(){} }; } }; },
+      confirmPayment: function(a){ window.__stripeConfirm = a; return Promise.resolve(window.__stripeRecusa ? { error: { type: 'card_error', message: 'Seu cartão foi recusado.' } } : { paymentIntent: { status: 'succeeded' } }); }
+    }; };` }));
   if (seed) api.seed();
   if (setup) setup(api.db);
   await page.route('http://localhost:8787/**', api);
@@ -70,7 +80,7 @@ await step('pagar na entrega', async () => {
   const page = await open('app-cliente.dc.html');
   await ateOPagamento(page);
   let t = await text(page);
-  check('opções: PIX, cartão e na entrega (sem Apple/Google Pay)', t.includes('PIX') && t.includes('Cartão de crédito') && t.includes('Pagar na entrega') && !t.includes('Apple'));
+  check('opções: PIX, cartão e na entrega (sem Apple/Google Pay)', t.includes('PIX') && t.includes('Cartão de crédito ou débito') && t.includes('Pagar na entrega') && !t.includes('Apple'));
   await click(page, 'Pagar na entrega', true);
   await click(page, 'Fazer pedido');
   const o = page.api.db.orders[0];
@@ -88,7 +98,7 @@ await step('pagar na entrega', async () => {
 await step('cartão', async () => {
   const page = await open('app-cliente.dc.html');
   await ateOPagamento(page);
-  await click(page, 'Cartão de crédito', true);
+  await click(page, 'Cartão de crédito ou débito', true);
   await click(page, 'Pagar R$');
   const o = page.api.db.orders[0];
   check('cartão: pedido enviado com paymentMethod=cartao', o && o.paymentMethod === 'cartao');
@@ -133,8 +143,8 @@ await step('sem Mercado Pago', async () => {
   const page = await open('app-cliente.dc.html', { paymentsConfigured: false });
   await ateOPagamento(page);
   let t = await text(page);
-  check('sem MP: mostra PIX, cartão e na entrega', t.includes('Pagar na entrega') && t.includes('Cartão de crédito') && t.includes('Pague agora pelo app do banco'), t.slice(0, 300));
-  await click(page, 'Cartão de crédito', true);
+  check('sem MP: mostra PIX, cartão e na entrega', t.includes('Pagar na entrega') && t.includes('Cartão de crédito ou débito') && t.includes('Pague agora pelo app do banco'), t.slice(0, 300));
+  await click(page, 'Cartão de crédito ou débito', true);
   await click(page, 'Pagar R$');
   await page.waitForTimeout(3500);
   const o = page.api.db.orders[0];
@@ -173,7 +183,7 @@ await step('tela de Pagamentos do admin', async () => {
   await admin.reload(); await admin.waitForTimeout(1500);
   let t = await text(admin);
   check('admin: menu tem "Pagamentos"', t.includes('Pagamentos'));
-  check('admin: avisa que o Mercado Pago não está configurado', t.includes('Mercado Pago ainda não configurado'));
+  check('admin: avisa que PIX e cartão estão sem meio de pagamento (provisório)', t.includes('Sem meio de pagamento configurado para PIX e cartão'));
   check('admin: cartão provisório aparece separado', t.includes('Cartão provisório (sem cobrança) · R$ 22,00') && /Provisório hoje \(PIX\/cartão\)\s*R\$ 22,00/.test(t));
   check('admin: lista todos os pedidos, inclusive cancelado', t.includes('#o20') && t.includes('#o21'));
   check('admin: "A receber na entrega" soma R$ 13,20', /A receber na entrega\s*R\$ 13,20/.test(t), t.slice(0, 400));
@@ -232,9 +242,9 @@ await step('cartão pelo Stripe (modo teste)', async () => {
     const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true });
     await ateOPagamento(page);
     await page.setViewportSize(viewport); await page.waitForTimeout(400);
-    await click(page, 'Cartão de crédito', true);
+    await click(page, 'Cartão de crédito ou débito', true);
     let t = await text(page);
-    check(`stripe ${tela}: opção diz "Pague agora pelo Stripe"`, t.includes('Pague agora pelo Stripe'));
+    check(`stripe ${tela}: opção diz "À vista, pelo Stripe"`, t.includes('À vista, pelo Stripe'));
     check(`stripe ${tela}: mostra o cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
     check(`stripe ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/pagamento-stripe-${tela}.png`, fullPage: true });
@@ -264,8 +274,69 @@ await step('cartão pelo Stripe (modo teste)', async () => {
   await fail.close();
 
   const admin = await open('app-cliente.dc.html?module=admin&screen=payments', { role: 'admin', paymentsConfigured: false, stripeTest: true });
-  check('stripe: admin avisa que o cartão está no Stripe em modo de teste', (await text(admin)).includes('O cartão já passa pelo Stripe, em modo de teste.'));
+  check('stripe: admin avisa que só o PIX segue provisório', (await text(admin)).includes('Sem meio de pagamento configurado para PIX:'));
   await admin.close();
+});
+
+await step('cartão dentro do app (Stripe Payment Element)', async () => {
+  const SHOTS = process.env.SHOTS_DIR;
+  for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
+    ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
+    const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true });
+    await ateOPagamento(page);
+    await page.setViewportSize(viewport); await page.waitForTimeout(400);
+    await click(page, 'Cartão de crédito ou débito', true);
+    await click(page, 'Pagar R$');
+    await page.waitForSelector('#sf-stripe-card .fake-stripe', { timeout: 5000 });
+    let t = await text(page);
+    check(`no app ${tela}: não sai do app (campos do cartão na tela)`, page.url().startsWith(BASE) && t.includes('Dados do cartão'), page.url());
+    check(`no app ${tela}: Stripe com a chave publicável e as cores do Sunfood`, await page.evaluate(() => window.__stripePk === 'pk_test_fake'
+      && window.__stripeOpts.clientSecret.startsWith('pi_fake_secret_') && window.__stripeOpts.appearance.variables.colorPrimary.toUpperCase() === '#1F5A63'
+      && window.__stripeOpts.appearance.variables.fontFamily.startsWith('Manrope')));
+    check(`no app ${tela}: aviso do cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
+    check(`no app ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    const btnH = await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().evaluate(el => el.getBoundingClientRect().height);
+    check(`no app ${tela}: botão Pagar com altura de toque (40 a 56 px)`, btnH >= 40 && btnH <= 56, String(btnH));
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/cartao-no-app-${tela}.png`, fullPage: true });
+    await page.evaluate(() => { window.__stripeRecusa = true; });
+    await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(500);
+    check(`no app ${tela}: cartão recusado mostra o erro e deixa tentar de novo`, (await text(page)).includes('Seu cartão foi recusado.'));
+    await page.evaluate(() => { window.__stripeRecusa = false; });
+    await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(500);
+    check(`no app ${tela}: depois de pagar, espera a confirmação do servidor`, (await text(page)).includes('Aguardando confirmação do pagamento'));
+    check(`no app ${tela}: volta do 3D Secure aponta pro pedido`, await page.evaluate(() => /pedido=/.test(window.__stripeConfirm.confirmParams.return_url)));
+    page.api.db.orders[0].paymentStatus = 'approved';
+    await page.waitForTimeout(3500);
+    check(`no app ${tela}: webhook aprovou → pedido confirmado`, (await text(page)).toLowerCase().includes('pedido confirmado'));
+    check(`no app ${tela}: sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
+    await page.close();
+  }
+});
+
+await step('PIX pelo Stripe (modo teste)', async () => {
+  const SHOTS = process.env.SHOTS_DIR;
+  for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
+    ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
+    const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true, stripePix: true });
+    await ateOPagamento(page);
+    await page.setViewportSize(viewport); await page.waitForTimeout(400);
+    let t = await text(page);
+    check(`pix stripe ${tela}: cartão aparece como crédito ou débito, à vista`, t.includes('Cartão de crédito ou débito') && t.includes('À vista, pelo Stripe'));
+    await click(page, 'PIX', true);
+    await click(page, 'Pagar R$');
+    await page.waitForTimeout(600);
+    const o = page.api.db.orders[0];
+    t = await text(page);
+    check(`pix stripe ${tela}: pedido NÃO é aprovado antes de pagar`, o && o.paymentMethod === 'pix' && o.paymentStatus !== 'approved' && t.includes('Aguardando confirmação do pagamento'), JSON.stringify(o?.paymentStatus));
+    check(`pix stripe ${tela}: mostra o QR do Stripe e o botão de simular (teste)`, await page.locator('img[alt="QR Code PIX"]').count() === 1 && t.includes('Simular pagamento do PIX'));
+    check(`pix stripe ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/pix-stripe-${tela}.png`, fullPage: true });
+    o.paymentStatus = 'approved';
+    await page.waitForTimeout(3500);
+    check(`pix stripe ${tela}: webhook aprovou → pedido confirmado`, (await text(page)).toLowerCase().includes('pedido confirmado'));
+    check(`pix stripe ${tela}: sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+    await page.close();
+  }
 });
 
 await browser.close();
