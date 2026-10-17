@@ -6,7 +6,7 @@ export const FAKE_CHECKOUT_URL = 'https://www.mercadopago.com.br/checkout/teste'
 // Endereço das fotos enviadas (o teste serve uma imagem pequena nele).
 export const FAKE_PHOTO_BASE = 'https://teste.supabase.co/storage/v1/object/public/produtos/';
 
-export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
+export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTest = false } = {}) {
   const now = () => new Date().toISOString();
   const db = {
     products: [
@@ -23,7 +23,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     kiosk: { paused: false, dayClosed: false, cancelWindowMinutes: 0 },
     orders: [],
     contacts: [],
-    paymentsConfigured,
+    paymentsConfigured, stripeTest,
   };
   const user = { id: 'u1', email: role + '@teste', name: 'Teste', role, avatarUrl: null, avatarPreset: null, notifyReady: true, soundOn: true };
   // Tela Perfil (GET/PATCH /auth/profile, foto e trocar senha). A senha atual certa é "senha-atual".
@@ -139,12 +139,14 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     }
     let r;
     if ((r = p.match(/^\/payments\/card\/([^/]+)$/))) { db.cardReturnUrl = body.returnUrl;
-      if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
+      if (!db.paymentsConfigured && !db.stripeTest) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { checkoutUrl: FAKE_CHECKOUT_URL }); }
     if ((r = p.match(/^\/payments\/pix\/([^/]+)$/))) {
       if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '' }); }
-    if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured });
+    if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured,
+      pix: db.paymentsConfigured ? 'mercadopago' : 'provisorio',
+      card: db.stripeTest ? 'stripe' : db.paymentsConfigured ? 'mercadopago' : 'provisorio', cardTestMode: db.stripeTest });
     if ((r = p.match(/^\/waiters\/([^/]+)\/report$/)) && m === 'GET') {
       const w = db.waiters.find(w => w.id === r[1]);
       if (!w) return json(404, { error: 'Garçom não encontrado.' });

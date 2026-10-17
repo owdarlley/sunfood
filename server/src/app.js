@@ -37,6 +37,9 @@ app.use(
     },
   })
 );
+// O webhook do Stripe precisa do corpo cru pra conferir a assinatura; com o
+// corpo já lido aqui, o express.json abaixo não mexe nele.
+app.use("/payments/stripe/webhook", express.raw({ type: "application/json", limit: "1mb" }));
 app.use(express.json({ limit: "100kb" }));
 
 app.get("/health", (req, res) => res.json({ ok: true }));
