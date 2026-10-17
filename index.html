@@ -86,9 +86,16 @@ a{color:#1F5A63}
 .link:hover{color:#174A52}
 .info-body .link,.info-body a{position:relative}
 .info-body .link::after,.info-body p a::after,.info-body li a::after{content:"";position:absolute;inset:-12px -4px}
-.alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif}
-.alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
-.alert-ok{background:#E7F7ED;color:#14532D;border:1px solid #BFE3CB}
+/* Avisos (erro, atenção, sucesso, informação): um estilo só em todo o app.
+   Fundo branco como os cartões, borda e ícone na cor do tipo, texto escuro. */
+.alert{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E");position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 16px 12px 44px;border-radius:12px;background:#fff;border:1px solid var(--al-line);box-shadow:0 1px 2px rgba(20,35,42,.04);color:#14232A;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;text-align:left}
+.alert::before{content:"";position:absolute;left:16px;top:13px;width:18px;height:18px;background:var(--al);-webkit-mask:var(--al-ico) center/contain no-repeat;mask:var(--al-ico) center/contain no-repeat}
+.alert:has(> svg){padding-left:16px}
+.alert:has(> svg)::before{content:none}
+.alert-err{--al:#B42318;--al-line:#F3D3CB;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 7.5v5.5M12 16.5v.01'/%3E%3C/svg%3E")}
+.alert-warn{--al:#B0791A;--al-line:#F1DDB1;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5 2.8 19.5h18.4z'/%3E%3Cpath d='M12 10v4M12 17v.01'/%3E%3C/svg%3E")}
+.alert-ok{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='m8 12.5 2.7 2.7L16 9.8'/%3E%3C/svg%3E")}
+.alert-info{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E")}
 .foot{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;margin-top:var(--sec);font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif}
 .foot a{color:#55626A;text-decoration:none}
 .foot a:hover{color:#1F5A63}
@@ -279,9 +286,7 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .field-label{display:block;font:600 var(--lg-fs-label)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-ink)}
 .field-control{position:relative;margin-top:var(--lg-s6)}
 .login .inp{display:block;height:var(--lg-h);min-height:0;padding:0 var(--lg-s16);border:1px solid var(--lg-field);border-radius:var(--r-ctl);background:var(--lg-surface);font:var(--lg-w-regular) var(--lg-fs-input)/1.5 'Manrope',system-ui,sans-serif;color:var(--lg-ink);transition:border-color var(--lg-ease),box-shadow var(--lg-ease),background-color var(--lg-ease);scroll-margin-bottom:160px}
-.login .inp::placeholder{color:var(--lg-ink-3);opacity:1}
 .login .inp:hover{border-color:var(--lg-field-hover)}
-.login .inp:not(:placeholder-shown){border-color:var(--lg-field-hover)}
 .login .inp:focus{box-shadow:none}
 .login .inp:focus-visible{border-color:var(--lg-pri);box-shadow:var(--lg-ring)}
 .login .inp[aria-invalid="true"]{border-color:var(--lg-err)}
@@ -313,9 +318,7 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .login .link:hover,.login .link:focus-visible{color:var(--lg-pri-hover);text-decoration:underline}
 @media (max-width:359px){.login-row{justify-content:flex-start}}
 
-.login .alert{margin-top:var(--lg-s16);display:flex;gap:var(--lg-s8);align-items:flex-start;padding:var(--lg-s12) var(--lg-s16);border-radius:var(--r-ctl);font:var(--lg-w-medium) var(--lg-fs-label)/20px 'Manrope',system-ui,sans-serif;animation:sffade .15s ease-out both}
-.login .alert svg{flex:none;width:16px;height:16px;margin-top:2px}
-.login .alert-err{background:var(--lg-err-bg);color:var(--lg-err-ink);border:1px solid var(--lg-err-line)}
+.login .alert{margin-top:var(--lg-s16);font-size:var(--lg-fs-label);animation:sffade .15s ease-out both}
 .login .btn{height:var(--lg-h);min-height:0;padding:0 var(--lg-s20);border-radius:var(--r-btn);font:var(--lg-w-strong) var(--lg-fs-btn)/1 'Manrope',system-ui,sans-serif;letter-spacing:.01em;transition:background-color var(--lg-ease),box-shadow var(--lg-ease),transform var(--lg-ease)}
 .login #entrar{margin-top:var(--lg-s24)}
 .login .alert + #entrar,.login .alert + .btn-ghost{margin-top:var(--lg-s16)}
@@ -391,14 +394,14 @@ select{caret-color:auto}
         <div class="field">
           <label class="field-label" for="email">E-mail</label>
           <div class="field-control">
-            <input class="inp" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" aria-describedby="email-msg">
+            <input class="inp" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" aria-describedby="email-msg">
           </div>
           <p class="field-msg" id="email-msg"></p>
         </div>
         <div class="field">
           <label class="field-label" for="pass">Senha</label>
           <div class="field-control">
-            <input class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" placeholder="••••••••" aria-describedby="pass-msg">
+            <input class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" aria-describedby="pass-msg">
             <button type="button" class="pw-toggle" id="pw-toggle" aria-controls="pass" aria-pressed="false" aria-label="Mostrar senha">
               <svg class="ico-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="ico-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.7 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></svg>
@@ -517,12 +520,12 @@ select{caret-color:auto}
         <form id="contact" class="form" novalidate>
           <div>
             <label class="lbl" for="c-nome">Nome</label>
-            <input class="inp" id="c-nome" autocomplete="name" placeholder="Como podemos te chamar">
+            <input class="inp" id="c-nome" autocomplete="name">
             <div class="ferr" id="e-nome" hidden>Informe seu nome para a equipe saber com quem falar.</div>
           </div>
           <div>
             <label class="lbl" for="c-contato">E-mail ou telefone</label>
-            <input class="inp" id="c-contato" autocomplete="email" placeholder="seu@email.com ou (13) 99999-0000">
+            <input class="inp" id="c-contato" autocomplete="email">
             <div class="ferr" id="e-contato" hidden>Informe um e-mail válido ou um telefone com DDD.</div>
           </div>
           <div>
@@ -537,7 +540,7 @@ select{caret-color:auto}
           </div>
           <div>
             <label class="lbl" for="c-msg">Mensagem</label>
-            <textarea class="inp" id="c-msg" placeholder="Ex.: quero reservar dois guarda-sóis para sábado às 11h, somos 4 pessoas."></textarea>
+            <textarea class="inp" id="c-msg"></textarea>
             <div class="ferr" id="e-msg" hidden>Escreva pelo menos algumas palavras sobre o que precisa.</div>
           </div>
           <div id="c-alert" class="alert alert-err" role="alert" hidden></div>
@@ -637,8 +640,6 @@ var busy = false;
 
 function show(text, ok) {
   $('msg').textContent = text;
-  // Ícone discreto no alerta de erro (o texto continua sendo o da API).
-  if (text && !ok) $('msg').insertAdjacentHTML('afterbegin', ICO_ERRO);
   $('msg').className = 'alert ' + (ok ? 'alert-ok' : 'alert-err');
   $('msg').hidden = !text;
 }
@@ -773,7 +774,6 @@ $('login').addEventListener('submit', async function (e) {
       return;
     }
     try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, refreshToken: data.refreshToken, user: data.user })); } catch (err) {}
-    show('Bem-vindo(a), ' + data.user.name + '! Abrindo o Sunfood…', true);
     location.href = window.SUNFOOD_DEST[data.user.role] || window.SUNFOOD_DEST.cliente;
   } catch (err) {
     show('Falha de conexão com o servidor. Confira sua internet e tente de novo.');

@@ -65,17 +65,17 @@ await step('etiquetas: marcar, criar e salvar', async () => {
   // Caipirinha é o 3º item da lista (Editar índice 2 depois da ordem por categoria): procura pelo nome.
   await page.locator('.pgrid > *').filter({ hasText: 'Caipirinha' }).getByText('Editar').first().click(); await page.waitForTimeout(400);
   check('etiquetas: formulário tem Ingredientes e Etiquetas', (await form.innerText()).includes('Ingredientes') && (await form.innerText()).includes('Etiquetas'));
-  check('etiquetas: edição abre com o nome do produto', (await page.getByPlaceholder('Nome do produto').inputValue()) === 'Caipirinha');
-  await page.getByPlaceholder('Ex.: Cachaça, limão taiti, açúcar, gelo.').fill('Cachaça, limão taiti, açúcar, gelo.');
+  check('etiquetas: edição abre com o nome do produto', (await page.getByLabel('Nome', { exact: true }).inputValue()) === 'Caipirinha');
+  await page.getByLabel('Ingredientes', { exact: true }).fill('Cachaça, limão taiti, açúcar, gelo.');
   await form.locator('.pf-tags .fpill', { hasText: /^Alcoólico$/ }).click();
   await form.locator('.pf-tags .fpill', { hasText: /^\+18$/ }).click();
   await form.locator('.pf-tags .fpill', { hasText: /^Gelado$/ }).click();
   await form.locator('.pf-tags .fpill', { hasText: /^Gelado$/ }).click(); // desmarca
-  await page.getByPlaceholder('Outra etiqueta').fill('  Da casa ');
-  await page.getByPlaceholder('Outra etiqueta').press('Enter'); await page.waitForTimeout(200);
+  await page.getByLabel('Nova etiqueta', { exact: true }).fill('  Da casa ');
+  await page.getByLabel('Nova etiqueta', { exact: true }).press('Enter'); await page.waitForTimeout(200);
   const on = await form.locator('.pf-tags .fpill.on').allInnerTexts();
   check('etiquetas: marcadas ficam destacadas (sem a desmarcada)', JSON.stringify(on) === JSON.stringify(['Alcoólico', '+18', 'Da casa']), JSON.stringify(on));
-  check('etiquetas: campo de nova etiqueta limpa ao adicionar', (await page.getByPlaceholder('Outra etiqueta').inputValue()) === '');
+  check('etiquetas: campo de nova etiqueta limpa ao adicionar', (await page.getByLabel('Nova etiqueta', { exact: true }).inputValue()) === '');
   await click(page, 'Salvar produto', true);
   const b = api.db.lastProductBody;
   check('etiquetas: salvar manda os ingredientes', b.ingredients === 'Cachaça, limão taiti, açúcar, gelo.', JSON.stringify(b));
@@ -85,7 +85,7 @@ await step('etiquetas: marcar, criar e salvar', async () => {
   await page.locator('.pgrid > *').filter({ hasText: 'Caipirinha' }).getByText('Editar').first().click(); await page.waitForTimeout(400);
   const on2 = await form.locator('.pf-tags .fpill.on').allInnerTexts();
   check('etiquetas: reabrir a edição mostra as etiquetas salvas', on2.length === 3 && on2.includes('Da casa'), JSON.stringify(on2));
-  check('etiquetas: reabrir a edição mostra os ingredientes', (await page.getByPlaceholder('Ex.: Cachaça, limão taiti, açúcar, gelo.').inputValue()).startsWith('Cachaça'));
+  check('etiquetas: reabrir a edição mostra os ingredientes', (await page.getByLabel('Ingredientes', { exact: true }).inputValue()).startsWith('Cachaça'));
   // Limite de 8.
   for (const t of ['Feito na hora', 'Natural', 'Vegano', 'Vegetariano', 'Sem glúten', 'Picante'])
     await form.locator('.pf-tags .fpill', { hasText: new RegExp('^' + t + '$') }).click();

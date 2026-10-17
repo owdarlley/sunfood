@@ -73,8 +73,8 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 
 const called = (page, p) => page.api.db.calls.filter(c => c.p === p);
 async function login(page) {
-  await page.getByPlaceholder('voce@email.com').first().fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).first().fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
 }
 

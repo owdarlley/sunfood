@@ -90,9 +90,9 @@ await step('perfil', async () => {
 await step('editar', async () => {
   const page = await open('profile');
   await click(page, 'Editar perfil e foto');
-  const nome = page.getByPlaceholder('Seu nome');
+  const nome = page.getByLabel('Nome completo', { exact: true });
   check('editar: nome já preenchido', await nome.inputValue() === 'Ana Souza');
-  check('editar: telefone já preenchido', await page.getByPlaceholder('(11) 91234-5678').inputValue() === '11999999999');
+  check('editar: telefone já preenchido', await page.getByLabel('WhatsApp / telefone', { exact: true }).inputValue() === '11999999999');
   check('editar: e-mail e CPF travados', await page.locator('input[disabled]').count() === 2 && (await text(page)).includes('E-mail e CPF não mudam'));
   check('editar: CPF mascarado', await page.locator('input[disabled]').nth(1).inputValue() === '529.***.***-25');
   await page.locator('input[type=date]').fill('2015-01-01');
@@ -100,7 +100,7 @@ await step('editar', async () => {
   check('editar: recusa menor de 18', (await text(page)).includes('18 anos'));
   await page.locator('input[type=date]').fill('1999-05-10');
   await nome.fill('Ana Maria Souza');
-  await page.getByPlaceholder('(11) 91234-5678').fill('11 98888-7777');
+  await page.getByLabel('WhatsApp / telefone', { exact: true }).fill('11 98888-7777');
   await pressBtn(page, 'Salvar');
   check('editar: envia nome, telefone e nascimento', page.api.user.name === 'Ana Maria Souza' && page.api.db.profile.phone === '11 98888-7777' && page.api.db.profile.birthDate === '1999-05-10');
   const t = await text(page);

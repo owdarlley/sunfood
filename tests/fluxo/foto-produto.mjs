@@ -91,7 +91,7 @@ await step('foto: enviar e salvar', async () => {
   check('foto: lista do admin mostra a miniatura', thumb);
 
   await page.getByText('Editar').first().click(); await page.waitForTimeout(400);
-  await page.locator('[placeholder="Ex.: 24.90"]').fill('26');
+  await page.getByLabel('Preço', { exact: true }).fill('26');
   await click(page, 'Salvar produto', true);
   check('foto: editar outra coisa não mexe na foto', !('imageUrl' in api.db.lastProductBody), JSON.stringify(api.db.lastProductBody));
   check('foto: salvar fecha a janela e avisa', !(await page.locator('.pf-dialog').count()) && (await text(page)).includes('Produto atualizado'));
@@ -126,8 +126,8 @@ await step('foto: remover', async () => {
 await step('foto: produto novo com foto', async () => {
   const page = await open('app-cliente.dc.html?module=admin&screen=productForm', { role: 'admin', api });
   await page.getByText('+ Novo produto').first().click(); await page.waitForTimeout(400);
-  await page.getByPlaceholder('Nome do produto').fill('Pastel de Queijo');
-  await page.locator('[placeholder="Ex.: 24.90"]').fill('15');
+  await page.getByLabel('Nome', { exact: true }).fill('Pastel de Queijo');
+  await page.getByLabel('Preço', { exact: true }).fill('15');
   await page.locator('input[type=file]').setInputFiles({ name: 'p.png', mimeType: 'image/png', buffer: await bigPhoto(page) });
   await page.waitForFunction(() => document.body.innerText.includes('Foto pronta'), null, { timeout: 15000 });
   await click(page, 'Salvar produto', true);
