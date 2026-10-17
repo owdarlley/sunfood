@@ -42,6 +42,7 @@ mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: fake, supabas
 // Stripe falso: guarda as sessões criadas e devolve o que a API devolveria.
 const sessions = {};
 const refunds = [];
+const intents = {};
 class FakeStripe {
   constructor(key) { this.key = key; }
   checkout = {
@@ -56,6 +57,17 @@ class FakeStripe {
       retrieve: async (id) => sessions[id],
     },
   };
+  paymentIntents = {
+    create: async (body) => {
+      const id = "pi_teste_" + (Object.keys(intents).length + 2);
+      const pix = body.payment_method_types[0] === "pix";
+      intents[id] = { id, client_secret: id + "_secret_x", amount: body.amount, amount_received: 0, metadata: body.metadata, body,
+        status: pix ? "requires_action" : "requires_payment_method",
+        next_action: pix ? { pix_display_qr_code: { data: "000201PIXSTRIPE", image_url_png: "https://qr.stripe.com/x.png", hosted_instructions_url: "https://payments.stripe.com/pix/x" } } : null };
+      return intents[id];
+    },
+    retrieve: async (id) => intents[id],
+  };
   refunds = { create: async (b) => (refunds.push(b), { id: "re_1", status: "succeeded" }) };
   webhooks = signer.webhooks;
 }
@@ -67,6 +79,7 @@ before(async () => {
   process.env.CORS_ORIGIN = "http://localhost:8000";
   process.env.STRIPE_SECRET_KEY = "sk_test_123";
   process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
+  process.env.STRIPE_PUBLISHABLE_KEY = "pk_test_123";
   delete process.env.MERCADOPAGO_ACCESS_TOKEN;
   const { app } = await import("../src/app.js");
   server = app.listen(0);
@@ -93,9 +106,9 @@ function webhook(event, secret = WEBHOOK_SECRET) {
 
 const completed = (id) => ({ id: "evt_1", type: "checkout.session.completed", data: { object: { id } } });
 
-test("status diz que o cartão é cobrado pelo Stripe em modo teste (PIX segue provisório)", async () => {
+test("status diz que cartão e PIX são cobrados pelo Stripe em modo teste", async () => {
   const r = await api("GET", "/payments/status");
-  assert.deepEqual(r.body, { configured: false, pix: "provisorio", card: "stripe", cardTestMode: true });
+  assert.deepEqual(r.body, { configured: false, pix: "stripe", card: "stripe", cardTestMode: true, stripePublishableKey: "pk_test_123" });
 });
 
 test("cartão abre o checkout do Stripe pelo valor do pedido, em reais", async () => {
@@ -146,4 +159,71 @@ test("cancelar pedido pago pelo Stripe estorna no Stripe", async () => {
   assert.equal(r.status, 200, JSON.stringify(r.body));
   assert.deepEqual(refunds, [{ payment_intent: "pi_teste_1" }]);
   assert.equal(db.orders[0].payment_status, "refunded");
+});
+
+const ORDER2 = "00000000-0000-4000-8000-0000000000bb";
+
+test("campos no app: cria o PaymentIntent em reais e devolve só o client_secret e a chave publicável", async () => {
+  db.orders.push({ id: ORDER2, customer_id: "ana", total: 41, status: "Na Fila", payment_method: "cartao", payment_status: "pending", table_number: 2, created_at: new Date().toISOString(), order_items: [] });
+  const r = await api("POST", `/payments/card-intent/${ORDER2}`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  const id = Object.keys(intents)[0];
+  assert.deepEqual(r.body, { clientSecret: id + "_secret_x", publishableKey: "pk_test_123" });
+  assert.equal(intents[id].body.currency, "brl");
+  assert.equal(intents[id].body.amount, 4100);
+  assert.equal(intents[id].metadata.order_id, ORDER2);
+  const o = db.orders.find((x) => x.id === ORDER2);
+  assert.equal(o.payment_id, id);
+  assert.equal(o.payment_status, "pending");
+});
+
+test("campos no app: voltar à tela reaproveita o mesmo PaymentIntent", async () => {
+  const r = await api("POST", `/payments/card-intent/${ORDER2}`);
+  assert.equal(r.status, 200);
+  assert.equal(Object.keys(intents).length, 1);
+});
+
+test("campos no app: o navegador não aprova; só o webhook payment_intent.succeeded rebuscado na API", async () => {
+  const id = Object.keys(intents)[0];
+  const ev = { id: "evt_2", type: "payment_intent.succeeded", data: { object: { id, status: "succeeded" } } };
+  let r = await webhook(ev); // corpo diz succeeded, mas a API ainda não
+  assert.equal(r.status, 200);
+  assert.equal(db.orders.find((x) => x.id === ORDER2).payment_status, "pending");
+  Object.assign(intents[id], { status: "succeeded", amount_received: 4100 });
+  r = await webhook(ev);
+  assert.equal(r.status, 200);
+  assert.equal(db.orders.find((x) => x.id === ORDER2).payment_status, "approved");
+});
+
+const ORDER3 = "00000000-0000-4000-8000-0000000000cc";
+
+test("PIX pelo Stripe: gera o QR e NÃO aprova o pedido antes de pagar", async () => {
+  db.orders.push({ id: ORDER3, customer_id: "ana", total: 14, status: "Na Fila", payment_method: "pix", payment_status: "pending", table_number: 1, created_at: new Date().toISOString(), order_items: [] });
+  const r = await api("POST", `/payments/pix/${ORDER3}`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.qrCode, "000201PIXSTRIPE");
+  assert.equal(r.body.qrCodeImageUrl, "https://qr.stripe.com/x.png");
+  assert.equal(r.body.testPayUrl, "https://payments.stripe.com/pix/x");
+  const pi = Object.values(intents).find((x) => x.metadata.order_id === ORDER3);
+  assert.equal(pi.body.currency, "brl");
+  assert.equal(pi.body.amount, 1400);
+  assert.equal(pi.body.confirm, true);
+  assert.equal(pi.body.payment_method_options.pix.expires_after_seconds, 30 * 60);
+  const o = db.orders.find((x) => x.id === ORDER3);
+  assert.equal(o.payment_status, "pending");
+  assert.equal(o.payment_provider, "stripe");
+  assert.equal(o.payment_id, pi.id);
+});
+
+test("PIX pelo Stripe: o webhook aprova quando o banco confirma", async () => {
+  const pi = Object.values(intents).find((x) => x.metadata.order_id === ORDER3);
+  Object.assign(pi, { status: "succeeded", amount_received: 1400 });
+  const r = await webhook({ id: "evt_3", type: "payment_intent.succeeded", data: { object: { id: pi.id } } });
+  assert.equal(r.status, 200);
+  assert.equal(db.orders.find((x) => x.id === ORDER3).payment_status, "approved");
+});
+
+test("cartão no Stripe nunca liga parcelamento (sempre à vista)", () => {
+  for (const pi of Object.values(intents)) assert.equal(pi.body.payment_method_options?.card?.installments, undefined);
+  for (const sess of Object.values(sessions)) assert.equal(sess.body.payment_method_options?.card?.installments, undefined);
 });

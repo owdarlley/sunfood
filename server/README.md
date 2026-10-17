@@ -25,7 +25,8 @@ Preencha o `.env`:
 | `EMAIL_CONFIRM_REDIRECT_URL` | Para onde o link do e-mail de confirmação de cadastro leva (a tela de login do site, ex.: `https://owdarlley.github.io/sunfood/index.html?login=1`) |
 | `PASSWORD_RESET_REDIRECT_URL` | URL pública de `redefinir-senha.html` (ex.: `https://seu-site.github.io/sunfood/redefinir-senha.html`) — precisa também estar na lista de Redirect URLs em Authentication → URL Configuration no Supabase |
 | `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET` | Painel do Mercado Pago → Suas integrações → Credenciais. Sem isso, o PIX (e o cartão, se o Stripe também não estiver configurado) é aprovado na hora como **provisório** (não cobra dinheiro real) |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Dashboard do Stripe → Developers → API keys (use a **chave de teste** `sk_test_...`) e o signing secret (`whsec_...`) do webhook `<API>/payments/stripe/webhook` com o evento `checkout.session.completed`. Com a chave, o cartão é cobrado pelo Stripe Checkout; em modo de teste nada é cobrado (cartão `4242 4242 4242 4242`) |
+| `STRIPE_PUBLISHABLE_KEY` | Mesma página, chave publicável de teste (`pk_test_...`). Com ela, o cartão é digitado na própria tela do app (Payment Element) em vez da página do Stripe |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Dashboard do Stripe → Developers → API keys (use a **chave de teste** `sk_test_...`) e o signing secret (`whsec_...`) do webhook `<API>/payments/stripe/webhook` com os eventos `checkout.session.completed` e `payment_intent.succeeded`. Com a chave, cartão (crédito ou débito, sempre à vista) e PIX (se o Mercado Pago não estiver configurado) são cobrados pelo Stripe; em modo de teste nada é cobrado (cartão `4242 4242 4242 4242`) |
 | `RESEND_API_KEY` (+ opcionais `EMAIL_FROM`, `CONTACT_REPLY_TO`) | resend.com → API Keys (Sending access, domínio sunfood.app.br). Usada para responder o Fale conosco por e-mail. Sem ela, só as respostas por WhatsApp funcionam |
 
 ```bash
@@ -93,8 +94,9 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | PATCH | `/orders/:id/status` | admin, cozinha, garcom | Avançar status (kanban). O garçom só marca "Entregue"; quem entregou fica gravado no pedido |
 | PATCH | `/orders/:id/payment-received` | admin, garcom | Anotar como o garçom recebeu um pedido "pagar na entrega" |
 | GET | `/payments/status` | — | Diz quem cobra o PIX e o cartão (`mercadopago`, `stripe` ou `provisorio`) e se o Stripe está em modo de teste |
-| POST | `/payments/pix/:orderId` | cliente (dono) | Gera a cobrança PIX (ou aprova como provisório sem Mercado Pago) |
+| POST | `/payments/pix/:orderId` | cliente (dono) | Gera a cobrança PIX no Mercado Pago ou no Stripe (só aprova como provisório se nenhum dos dois estiver configurado) |
 | POST | `/payments/card/:orderId` | cliente (dono) | Abre o checkout de cartão do Stripe (ou do Mercado Pago, ou aprova como provisório) |
+| POST | `/payments/card-intent/:orderId` | cliente (dono) | Campos do cartão no app: devolve o `clientSecret` do PaymentIntent do pedido e a chave publicável |
 | GET | `/payments/pix/:orderId/status` | cliente (dono) | Status do pagamento do pedido |
 | POST | `/payments/mercadopago/webhook` | Mercado Pago | Aviso de pagamento: assinatura verificada e status sempre reconferido na API deles |
 | POST | `/payments/stripe/webhook` | Stripe | Fim do checkout de cartão: assinatura `Stripe-Signature` verificada e sessão reconferida na API do Stripe antes de liberar o pedido |

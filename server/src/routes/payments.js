@@ -19,6 +19,10 @@ import {
   constructStripeEvent,
   fetchCheckoutSession,
   refundStripePayment,
+  stripePublishableKey,
+  createOrReuseCardIntent,
+  fetchPaymentIntent,
+  createStripePix,
 } from "../payments/stripe.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
@@ -37,12 +41,17 @@ const pixLimiter = rateLimit({
 // testes" — nunca finge que está cobrando de verdade sem token configurado.
 // configured = Mercado Pago (PIX); card diz quem cobra o cartão.
 const cardProvider = () => (stripeConfigured ? "stripe" : paymentsConfigured ? "mercadopago" : "provisorio");
+// PIX: Mercado Pago se configurado; senão Stripe. Só sem nenhum dos dois é
+// aprovado na hora como "provisório" — com o Stripe, nunca antes de pagar.
+const pixProvider = () => (paymentsConfigured ? "mercadopago" : stripeConfigured ? "stripe" : "provisorio");
 paymentsRouter.get("/status", (req, res) =>
   res.json({
     configured: paymentsConfigured,
-    pix: paymentsConfigured ? "mercadopago" : "provisorio",
+    pix: pixProvider(),
     card: cardProvider(),
     cardTestMode: stripeConfigured && stripeTestMode,
+    // Com a chave publicável, o app mostra os campos do cartão na própria tela.
+    stripePublishableKey: stripeConfigured ? stripePublishableKey : null,
   })
 );
 
@@ -98,7 +107,32 @@ const webhookUrl = (req) =>
 paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLimiter, async (req, res) => {
   const order = await loadOwnUnpaidOrder(req, res, "pix");
   if (!order) return;
-  if (!paymentsConfigured) return approveProvisionally(order, res);
+  if (pixProvider() === "provisorio") return approveProvisionally(order, res);
+
+  if (pixProvider() === "stripe") {
+    try {
+      const pix = await createStripePix({
+        orderId: order.id,
+        amount: Number(order.total),
+        payerEmail: req.user.email,
+        description: `Pedido Sunfood — mesa ${order.table_number}`,
+        expiresInMinutes: PAYMENT_WINDOW_MINUTES,
+      });
+      await supabaseAdmin
+        .from("orders")
+        .update({ payment_provider: "stripe", payment_id: pix.paymentIntentId })
+        .eq("id", order.id);
+      return res.json({
+        qrCode: pix.qrCode,
+        qrCodeImageUrl: pix.qrCodeImageUrl,
+        testPayUrl: stripeTestMode ? pix.instructionsUrl : null,
+        status: "pending",
+      });
+    } catch (e) {
+      console.error("Erro ao criar PIX no Stripe:", e);
+      return res.status(502).json({ error: "O PIX está indisponível no momento. Escolha cartão ou pagar na entrega." });
+    }
+  }
 
   try {
     const payment = await createPixPayment({
@@ -187,6 +221,36 @@ paymentsRouter.post(
   }
 );
 
+// Cliente: campos do cartão dentro do app (Stripe Payment Element). Devolve o
+// client_secret do PaymentIntent do pedido; quem aprova o pedido continua
+// sendo o webhook (payment_intent.succeeded), nunca o navegador.
+paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente"), pixLimiter, async (req, res) => {
+  if (!stripeConfigured || !stripePublishableKey) {
+    return res.status(409).json({ error: "Pagamento com cartão no app indisponível." });
+  }
+  const order = await loadOwnUnpaidOrder(req, res, "cartao");
+  if (!order) return;
+  try {
+    const intent = await createOrReuseCardIntent({
+      orderId: order.id,
+      amount: Number(order.total),
+      payerEmail: req.user.email,
+      description: `Pedido Sunfood — mesa ${order.table_number}`,
+      existingId: String(order.payment_id || "").startsWith("pi_") ? order.payment_id : null,
+    });
+    // payment_id guarda o PaymentIntent desde já: é por ele que o webhook e
+    // o estorno acham o pagamento. needsRefund só estorna se estiver aprovado.
+    await supabaseAdmin
+      .from("orders")
+      .update({ payment_provider: "stripe", payment_id: intent.paymentIntentId })
+      .eq("id", order.id);
+    res.json({ clientSecret: intent.clientSecret, publishableKey: stripePublishableKey });
+  } catch (e) {
+    console.error("Erro ao criar PaymentIntent do Stripe:", e);
+    res.status(502).json({ error: "Falha ao abrir o pagamento com cartão. Tente novamente." });
+  }
+});
+
 // Cliente: consulta o status de pagamento do próprio pedido — usado pro app
 // dar polling além de depender só do webhook (rede de segurança).
 paymentsRouter.get("/pix/:orderId/status", requireAuth, requireRole("cliente"), async (req, res) => {
@@ -272,9 +336,10 @@ paymentsRouter.post("/mercadopago/webhook", async (req, res) => {
   }
 });
 
-// Stripe chama isso quando a página de pagamento do cartão termina. A
-// assinatura (Stripe-Signature) é conferida sobre o corpo cru (ver app.js) e
-// a sessão é rebuscada na API do Stripe antes de liberar o pedido.
+// Stripe chama isso quando o pagamento com cartão termina (página do Stripe
+// ou campos dentro do app). A assinatura (Stripe-Signature) é conferida sobre
+// o corpo cru (ver app.js) e a sessão ou o PaymentIntent é rebuscado na API
+// do Stripe antes de liberar o pedido.
 paymentsRouter.post("/stripe/webhook", async (req, res) => {
   if (!stripeConfigured) return res.status(200).end();
 
@@ -288,11 +353,14 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
     return res.status(400).json({ error: "Assinatura inválida." });
   }
 
-  const handled = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
-  if (!handled.includes(event.type)) return res.status(200).end();
+  const checkoutEvents = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
+  const isIntent = event.type === "payment_intent.succeeded";
+  if (!isIntent && !checkoutEvents.includes(event.type)) return res.status(200).end();
 
   try {
-    const session = await fetchCheckoutSession(event.data.object.id);
+    const session = isIntent
+      ? await fetchPaymentIntent(event.data.object.id)
+      : await fetchCheckoutSession(event.data.object.id);
     if (!session.orderId || !session.paid || !session.paymentIntentId) return res.status(200).end();
 
     const { data: order } = await supabaseAdmin
@@ -300,7 +368,7 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
       .select("*")
       .eq("id", session.orderId)
       .maybeSingle();
-    if (!order || order.payment_method !== "cartao") return res.status(200).end();
+    if (!order || order.payment_method === "entrega") return res.status(200).end();
     if (order.payment_status === "approved" || order.payment_status === "refunded") return res.status(200).end();
 
     if (!paymentCoversOrder(session.amount, order.total)) {

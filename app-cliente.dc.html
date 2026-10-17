@@ -1368,6 +1368,10 @@ select{caret-color:auto}
                     <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><svg style="animation:sfspin .9s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>Aguardando confirmação do pagamento…</div>
                   </div>
                   <div onClick="{{ copyPix }}" class="btn btn-dark">Copiar código PIX</div>
+                  <sc-if value="{{ hasPixTestPay }}" hint-placeholder-val="{{ false }}">
+                    <div class="alert alert-info" style="font-weight:500">Modo de teste: nada é cobrado. Para simular que o banco pagou, use o botão abaixo.</div>
+                    <a href="{{ pixTestPayUrl }}" target="_blank" rel="noopener" class="btn btn-ghost" style="text-decoration:none">Simular pagamento do PIX</a>
+                  </sc-if>
                   <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola. A cozinha recebe o pedido assim que o pagamento for confirmado, automaticamente, sem precisar avisar aqui.</div>
                 </div>
               </sc-if>
@@ -1385,12 +1389,30 @@ select{caret-color:auto}
                   <sc-if value="{{ cardTestMode }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-info" style="font-weight:500">{{ cardTestText }}</div>
                   </sc-if>
-                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do {{ cardProviderName }} para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
-                  <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
-                    <div onClick="{{ openCardCheckout }}" class="btn btn-ghost">Abrir o pagamento de novo</div>
+                  <sc-if value="{{ cardFormVisible }}" hint-placeholder-val="{{ false }}">
+                    <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px">
+                      <div class="tt" style="font-size:var(--fs-h3)">Dados do cartão</div>
+                      <sc-if value="{{ cardFormLoading }}" hint-placeholder-val="{{ false }}">
+                        <div class="muted" style="font-size:var(--fs-sm)">Carregando os campos do cartão…</div>
+                      </sc-if>
+                      <div id="sf-stripe-card" style="min-height:{{ cardFormMinH }}"></div>
+                    </div>
+                    <sc-if value="{{ hasCardErr }}" hint-placeholder-val="{{ false }}">
+                      <div class="alert alert-err" role="alert">{{ cardErr }}</div>
+                    </sc-if>
+                    <div onClick="{{ confirmCardInApp }}" class="btn btn-sun" style="opacity:{{ cardPayOpacity }}">{{ cardPayLabel }}</div>
                   </sc-if>
-                  <sc-if value="{{ cardNotWaiting }}" hint-placeholder-val="{{ true }}">
-                    <div onClick="{{ openCardCheckout }}" class="btn btn-sun">Pagar com cartão</div>
+                  <sc-if value="{{ cardInApp }}" hint-placeholder-val="{{ false }}">
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Os dados do cartão são digitados em campos seguros do Stripe e não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                  </sc-if>
+                  <sc-if value="{{ cardRedirect }}" hint-placeholder-val="{{ true }}">
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do {{ cardProviderName }} para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                    <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
+                      <div onClick="{{ openCardCheckout }}" class="btn btn-ghost">Abrir o pagamento de novo</div>
+                    </sc-if>
+                    <sc-if value="{{ cardNotWaiting }}" hint-placeholder-val="{{ true }}">
+                      <div onClick="{{ openCardCheckout }}" class="btn btn-sun">Pagar com cartão</div>
+                    </sc-if>
                   </sc-if>
                 </div>
               </sc-if>
@@ -3485,8 +3507,11 @@ class Component extends DCLogic {
     paymentsOnline:null,
     // Quem cobra o cartão: 'stripe', 'mercadopago' ou 'provisorio'. Com o
     // Stripe em modo teste, as telas mostram o cartão de teste 4242.
-    cardProvider:null, cardTestMode:false,
-    payingPix:false, pixQrCode:'', pixQrImg:'',
+    cardProvider:null, pixProvider:null, cardTestMode:false,
+    // Com a chave publicável do Stripe, o cartão é digitado na própria tela
+    // (Payment Element) em vez de abrir a página do Stripe.
+    stripePk:null, cardFormLoading:false, cardErr:'',
+    payingPix:false, pixQrCode:'', pixQrImg:'', pixTestPayUrl:'',
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
     // restoreSession()/submitLogin(), não é mais um mock fixo.
@@ -3968,7 +3993,9 @@ class Component extends DCLogic {
       const data = await res.json();
       const online = !!data.configured;
       const cardProvider = data.card || (online ? 'mercadopago' : 'provisorio');
-      this.setState({paymentsOnline:online, cardProvider, cardTestMode:!!data.cardTestMode});
+      const pixProvider = data.pix || (online ? 'mercadopago' : 'provisorio');
+      this.setState({paymentsOnline:online, cardProvider, pixProvider, cardTestMode:!!data.cardTestMode,
+        stripePk:cardProvider === 'stripe' && data.stripePublishableKey ? data.stripePublishableKey : null});
     } catch(e){}
   }
 
@@ -5030,7 +5057,10 @@ class Component extends DCLogic {
       // Provisório (sem Mercado Pago): o servidor já aprovou, segue pra confirmação.
       if(data.provisional){ this.setState({payingPix:false, screen:'pix'}); this.pollOrder(created.id); return; }
       this.setState({
-        payingPix:false, pixQrCode:data.qrCode || '', pixQrImg:data.qrCodeBase64 || '', screen:'pix'
+        payingPix:false, pixQrCode:data.qrCode || '', screen:'pix',
+        // Mercado Pago manda a imagem em base64; o Stripe manda o endereço da imagem.
+        pixQrImg:data.qrCodeImageUrl || (data.qrCodeBase64 ? 'data:image/png;base64,' + data.qrCodeBase64 : ''),
+        pixTestPayUrl:data.testPayUrl || ''
       });
     } catch(e){
       this.setState({payingPix:false});
@@ -5049,11 +5079,105 @@ class Component extends DCLogic {
     try {
       const created = await this.createOrderOnServer('cartao');
       if(!created) return;
-      this.setState({screen:'card', cardWaiting:false});
+      this.setState({screen:'card', cardWaiting:false, cardErr:''});
     } finally {
       this.setState({busy:null});
     }
-    this.openCardCheckout();
+    if(this.state.stripePk) this.openCardInApp();
+    else this.openCardCheckout();
+  }
+
+  // Stripe.js só é baixado quando o cliente chega no pagamento com cartão.
+  loadStripeJs(){
+    if(window.Stripe) return Promise.resolve(window.Stripe);
+    if(!this.stripeJsPromise) this.stripeJsPromise = new Promise((resolve, reject) => {
+      const tag = document.createElement('script');
+      tag.src = 'https://js.stripe.com/v3/';
+      tag.onload = () => window.Stripe ? resolve(window.Stripe) : reject(new Error('stripe'));
+      tag.onerror = () => { this.stripeJsPromise = null; reject(new Error('stripe')); };
+      document.head.appendChild(tag);
+    });
+    return this.stripeJsPromise;
+  }
+
+  // Campos do cartão dentro do app: o servidor cria o pagamento do pedido
+  // (PaymentIntent) e o Stripe desenha os campos em quadros seguros, com as
+  // cores e a fonte do Sunfood. Quem aprova o pedido é o webhook.
+  async openCardInApp(){
+    const o = this.state.order;
+    if(!o || !o._apiId) return;
+    this.setState({cardFormLoading:true, cardErr:''});
+    try {
+      const res = await authFetch(API_BASE + '/payments/card-intent/' + o._apiId, {
+        method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
+      });
+      const data = await res.json();
+      if(!res.ok){ this.setState({cardFormLoading:false, cardErr:data.error || 'Não foi possível abrir o pagamento com cartão.'}); return; }
+      const StripeJs = await this.loadStripeJs();
+      if(!this.stripe || this.stripeKey !== data.publishableKey){ this.stripe = StripeJs(data.publishableKey, {locale:'pt-BR'}); this.stripeKey = data.publishableKey; }
+      const css = getComputedStyle(document.documentElement);
+      const token = (name, fb) => (css.getPropertyValue(name) || '').trim() || fb;
+      this.stripeElements = this.stripe.elements({
+        clientSecret:data.clientSecret, locale:'pt-BR',
+        fonts:[{cssSrc:'https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap'}],
+        appearance:{
+          theme:'stripe',
+          variables:{
+            colorPrimary:token('--brand', '#1F5A63'), colorText:token('--ink', '#14232A'), colorTextSecondary:token('--ink-2', '#55626A'),
+            colorDanger:'#B42318', colorBackground:'#FFFFFF', fontFamily:'Manrope, system-ui, sans-serif',
+            fontSizeBase:'16px', borderRadius:'8px', spacingUnit:'4px'
+          },
+          rules:{
+            '.Input':{border:'1px solid ' + token('--field', '#8F8676'), boxShadow:'none', padding:'13px 16px'},
+            '.Input:focus':{borderColor:token('--brand', '#1F5A63'), boxShadow:'0 0 0 3px rgba(31,90,99,.2)'},
+            '.Label':{fontWeight:'600', fontSize:'14px', marginBottom:'6px'}
+          }
+        }
+      });
+      this.stripeCard = this.stripeElements.create('payment', {layout:'tabs', fields:{billingDetails:{address:'never'}},
+        wallets:{applePay:'never', googlePay:'never'}});
+      this.stripeCard.on('ready', () => this.setState({cardFormLoading:false}));
+      this.stripeCard.on('loaderror', () => this.setState({cardFormLoading:false, cardErr:'Não foi possível carregar os campos do cartão. Tente de novo.'}));
+      this.stripeCardMountedOn = null;
+      this.ensureCardMounted();
+    } catch(e){
+      this.setState({cardFormLoading:false, cardErr:'Falha de conexão com o pagamento. Verifique a internet e tente de novo.'});
+    }
+  }
+
+  // O quadro do cartão vive dentro de um <div> da tela; se a tela for
+  // redesenhada do zero (ex.: girar o celular), monta de novo no lugar.
+  ensureCardMounted(){
+    requestAnimationFrame(() => {
+      const el = document.getElementById('sf-stripe-card');
+      if(!el || !this.stripeCard || this.stripeCardMountedOn === el) return;
+      try { if(this.stripeCardMountedOn) this.stripeCard.unmount(); } catch(e){}
+      this.stripeCard.mount(el);
+      this.stripeCardMountedOn = el;
+    });
+  }
+
+  async confirmCardInApp(){
+    const o = this.state.order;
+    if(this.state.busy || !o || !o._apiId) return;
+    if(!this.stripe || !this.stripeElements) return this.openCardInApp();
+    this.setState({busy:'card', cardErr:''});
+    try {
+      const back = window.location.origin + window.location.pathname + '?module=cliente&screen=card&pedido=' + encodeURIComponent(o._apiId);
+      // Só sai do app se o banco pedir verificação extra (3D Secure).
+      const r = await this.stripe.confirmPayment({elements:this.stripeElements, confirmParams:{return_url:back}, redirect:'if_required'});
+      if(r.error){
+        const validation = r.error.type === 'validation_error';
+        this.setState({cardErr:validation ? '' : (r.error.message || 'O pagamento não foi aprovado. Confira os dados ou use outro cartão.')});
+        return;
+      }
+      this.setState({cardWaiting:true});
+      this.pollOrder(o._apiId);
+    } catch(e){
+      this.setState({cardErr:'Falha de conexão com o pagamento. Verifique a internet e tente de novo.'});
+    } finally {
+      this.setState({busy:null});
+    }
   }
 
   async openCardCheckout(){
@@ -5087,7 +5211,8 @@ class Component extends DCLogic {
     const q = new URLSearchParams(window.location.search);
     const orderId = q.get('pedido');
     if(!orderId) return;
-    const mpStatus = q.get('collection_status') || q.get('status');
+    // Mercado Pago manda collection_status/status; o Stripe (volta do 3D Secure) manda redirect_status.
+    const mpStatus = q.get('collection_status') || q.get('status') || (q.get('redirect_status') === 'failed' ? 'failure' : null);
     history.replaceState(null, '', window.location.pathname);
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){}
@@ -5287,9 +5412,9 @@ class Component extends DCLogic {
     // payment
     v.cardProviderName = s.cardProvider === 'stripe' ? 'Stripe' : 'Mercado Pago';
     v.cardTestMode = !!s.cardTestMode;
-    v.cardTestText = 'Modo de teste: nada é cobrado. Use o cartão 4242 4242 4242 4242, qualquer validade futura e qualquer CVC.';
+    v.cardTestText = 'Modo de teste: nada é cobrado. Crédito: 4242 4242 4242 4242. Débito: 4000 0566 5566 5556. Qualquer validade futura e qualquer CVC.';
     v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
-                 ['cartao','Cartão de crédito','Pague agora pelo ' + v.cardProviderName,'card','#1F3B6B'],
+                 ['cartao','Cartão de crédito ou débito','À vista, pelo ' + v.cardProviderName,'card','#1F3B6B'],
                  ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']]
       .map(([k, nm, sub, ic]) => ({
       nm, sub, icPath:UI[ic],
@@ -5307,6 +5432,14 @@ class Component extends DCLogic {
 
     // card (checkout do Stripe ou do Mercado Pago)
     v.cardWaiting = !!s.cardWaiting;
+    v.cardInApp = !!s.stripePk; v.cardRedirect = !v.cardInApp;
+    v.cardFormVisible = v.cardInApp && !s.cardWaiting;
+    v.cardFormLoading = !!s.cardFormLoading;
+    v.cardFormMinH = s.cardFormLoading ? '0' : '120px';
+    v.cardErr = s.cardErr; v.hasCardErr = !!s.cardErr;
+    v.cardPayOpacity = s.busy === 'card' || s.cardFormLoading ? 0.6 : 1;
+    v.confirmCardInApp = () => this.confirmCardInApp();
+    if(s.screen === 'card' && this.stripeCard) this.ensureCardMounted();
     v.openCardCheckout = () => this.openCardCheckout();
 
     // pix
@@ -5314,6 +5447,7 @@ class Component extends DCLogic {
     v.pixQrCode = s.pixQrCode || '';
     v.pixQrImg = s.pixQrImg || '';
     v.hasPixQrImg = !!s.pixQrImg;
+    v.pixTestPayUrl = s.pixTestPayUrl || ''; v.hasPixTestPay = !!s.pixTestPayUrl;
     v.copyPix = () => this.copyPixCode();
 
     // order / status
@@ -5321,6 +5455,7 @@ class Component extends DCLogic {
     v.hasOrder = !!o;
     v.orderId = o ? o.id : '#—';
     v.orderTotalStr = o ? f(o.total) : v.totalStr;
+    v.cardPayLabel = s.busy === 'card' ? 'Processando…' : 'Pagar ' + v.orderTotalStr;
     v.orderTable = o ? String(o.table) : v.tableStr;
     v.orderStatus = o ? o.status : 'Na Fila';
     v.orderItems = o ? o.items.map(it => ({n:it.n, v:f(it.v)})) : [];
@@ -5552,11 +5687,13 @@ class Component extends DCLogic {
       {lbl:'Online aguardando', val:sum(onlineWaiting), sub:onlineWaiting.length + ' pedido(s)'},
       {lbl:'Estornado', val:sum(refunded), sub:refunded.length + ' pedido(s)'}
     ];
-    if(s.paymentsOnline === false) v.payKpis.splice(1, 0, {lbl:'Provisório hoje (PIX/cartão)', val:sum(provisional), sub:provisional.length + ' pedido(s), sem cobrança'});
-    v.payOnlineOff = s.paymentsOnline === false;
-    v.payOnlineOffText = (s.cardProvider === 'stripe'
-      ? 'Mercado Pago ainda não configurado. Enquanto isso, o PIX é aprovado na hora, sem cobrança de verdade (aparece como "provisório"). O cartão já passa pelo Stripe' + (s.cardTestMode ? ', em modo de teste.' : '.')
-      : 'Mercado Pago ainda não configurado. Enquanto isso, PIX e cartão são aprovados na hora, sem cobrança de verdade (aparecem como "provisório").') + ' Nos pedidos "na entrega", anote aqui como o garçom recebeu.';
+    if(s.pixProvider === 'provisorio' || s.cardProvider === 'provisorio') v.payKpis.splice(1, 0, {lbl:'Provisório hoje (PIX/cartão)', val:sum(provisional), sub:provisional.length + ' pedido(s), sem cobrança'});
+    // Aviso no topo de Pagamentos: provisório (aprovado sem cobrança) ou Stripe em modo de teste.
+    const provisorios = [s.pixProvider === 'provisorio' ? 'PIX' : null, s.cardProvider === 'provisorio' ? 'cartão' : null].filter(Boolean);
+    v.payOnlineOff = provisorios.length > 0 || (s.cardProvider === 'stripe' && s.cardTestMode);
+    v.payOnlineOffText = (provisorios.length
+      ? 'Sem meio de pagamento configurado para ' + provisorios.join(' e ') + ': é aprovado na hora, sem cobrança de verdade (aparece como "provisório").'
+      : 'Pagamentos online pelo Stripe em modo de teste: nada é cobrado de verdade.') + ' Nos pedidos "na entrega", anote aqui como o garçom recebeu.';
     v.payRows = s.adminOrders.map(r => {
       const canReceive = r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus !== 'approved';
       return {
@@ -5617,13 +5754,15 @@ class Component extends DCLogic {
     v.pauseDotStyle = 'width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;background:' + (s.paused ? '#B42318' : '#2E9C6A');
     v.pauseBtnLabel = s.paused ? 'Retomar pedidos' : 'Pausar pedidos';
     v.pausePanelStyle = s.paused ? 'background:#FDECEA;border-color:#F0C2BC' : 'background:#F0FAF3;border-color:#BFE3CB';
-    // PIX pelo Mercado Pago; cartão pelo Stripe quando ele está configurado.
-    const cardStripe = s.cardProvider === 'stripe';
-    v.payProvidersText = cardStripe ? 'PIX pelo Mercado Pago e cartão pelo Stripe.' : 'PIX e cartão pelo Mercado Pago.';
-    v.mpAlertCls = s.paymentsOnline ? 'alert-ok' : 'alert-warn';
-    v.mpTitle = s.paymentsOnline ? 'Mercado Pago configurado.' : s.paymentsOnline === false ? 'Mercado Pago ainda não configurado.' : 'Verificando…';
-    v.mpText = s.paymentsOnline ? 'Cobranças reais, confirmadas automaticamente.' : s.paymentsOnline === false ? (cardStripe ? 'O PIX é aprovado na hora como "provisório", sem cobrança de verdade.' : 'PIX e cartão são aprovados na hora como "provisório", sem cobrança de verdade.') : '';
-    if(cardStripe) v.mpText += (v.mpText ? ' ' : '') + (s.cardTestMode ? 'Cartão pelo Stripe em modo de teste: nada é cobrado (cartão 4242 4242 4242 4242).' : 'Cartão pelo Stripe, com cobrança real.');
+    // Quem cobra cada forma de pagamento (GET /payments/status).
+    const NOME = {stripe:'Stripe', mercadopago:'Mercado Pago', provisorio:'provisório (sem cobrança)'};
+    const pixP = s.pixProvider, cardP = s.cardProvider;
+    v.payProvidersText = !pixP ? '' : pixP === cardP ? 'PIX e cartão: ' + NOME[pixP] + '.' : 'PIX: ' + NOME[pixP] + '. Cartão: ' + NOME[cardP] + '.';
+    const algumProvisorio = pixP === 'provisorio' || cardP === 'provisorio';
+    v.mpAlertCls = pixP && !algumProvisorio ? 'alert-ok' : 'alert-warn';
+    v.mpTitle = !pixP ? 'Verificando…' : algumProvisorio ? 'Pagamento online ainda não configurado.' : 'Pagamentos online configurados.';
+    v.mpText = !pixP ? '' : algumProvisorio ? 'O que estiver como provisório é aprovado na hora, sem cobrança de verdade.'
+      : (s.cardTestMode && (pixP === 'stripe' || cardP === 'stripe')) ? 'Stripe em modo de teste: nada é cobrado (cartão 4242 4242 4242 4242).' : 'Cobranças reais, confirmadas automaticamente.';
 
     const HOURS_WINDOW = [10,11,12,13,14,15,16,17,18,19,20,21];
     const hourRevenue = dash ? new Map(dash.salesByHour.map(h => [h.hour, h.revenue])) : new Map();
@@ -6171,8 +6310,8 @@ class Component extends DCLogic {
     v.retryPay = () => {
       const ord = this.state.order;
       if(ord && ord.paymentMethod === 'cartao' && ord.status === 'Na Fila' && ord.paymentStatus !== 'approved'){
-        this.setState({screen:'card', cardWaiting:false});
-        this.openCardCheckout();
+        this.setState({screen:'card', cardWaiting:false, cardErr:''});
+        if(this.state.stripePk) this.openCardInApp(); else this.openCardCheckout();
       } else this.go('payment');
     };
     v.goKanban = () => this.go(v.kitchenEmpty ? 'queueEmpty' : 'kanban', 'cozinha');
