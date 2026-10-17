@@ -45,13 +45,13 @@ async function open(path, { role, seed, session, paymentsConfigured = true, stri
   // (address:'never') e o confirmPayment não manda o endereço.
   await page.route('https://js.stripe.com/**', r => r.fulfill({ contentType: 'application/javascript', body: `
     window.Stripe = function(pk){ window.__stripePk = pk; var semEndereco = false; return {
-      elements: function(o){ window.__stripeOpts = o; return { create: function(t, eo){ semEndereco = !!(eo && eo.fields && eo.fields.billingDetails && eo.fields.billingDetails.address === 'never'); var h = {}; return {
+      elements: function(o){ window.__stripeOpts = o; return { create: function(t, eo){ semEndereco = !!(eo && eo.fields && eo.fields.billingDetails && eo.fields.billingDetails.address === 'never'); var h = {}; window.__stripeHandlers = h; return {
         on: function(ev, cb){ h[ev] = cb; },
         mount: function(el){ el.innerHTML = '<div class="fake-stripe" style="height:120px;border:1px solid #8F8676;border-radius:8px;padding:12px">Número do cartão</div>'; setTimeout(function(){ h.ready && h.ready(); }, 30); },
         unmount: function(){} }; } }; },
       confirmPayment: function(a){ window.__stripeConfirm = a;
         var bd = a.confirmParams && a.confirmParams.payment_method_data && a.confirmParams.payment_method_data.billing_details;
-        if(semEndereco && !(bd && bd.address)) throw new Error('IntegrationError: You specified "never" for fields.billing_details.address');
+        if(semEndereco && !window.__stripeSaved && !(bd && bd.address)) throw new Error('IntegrationError: You specified "never" for fields.billing_details.address');
         return Promise.resolve(window.__stripeRecusa ? { error: { type: 'card_error', message: 'Seu cartão foi recusado.' } } : { paymentIntent: { status: 'succeeded' } }); }
     }; };` }));
   if (seed) api.seed();
@@ -313,13 +313,16 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
     check(`no app ${tela}: recusa CPF inválido do titular`, t.includes('CPF do titular inválido') && !page.api.db.cardHolder);
     await page.getByLabel('CPF do titular do cartão').fill('52998224725');
     check(`no app ${tela}: CPF do titular é pontuado`, await page.getByLabel('CPF do titular do cartão').inputValue() === '529.982.247-25');
-    await page.evaluate(() => { window.__stripeRecusa = true; });
+    await page.evaluate(() => { window.__stripeRecusa = true; window.__stripeSaved = true; window.__stripeHandlers.change({ value: { type: 'card', payment_method: { id: 'pm_salvo' } } }); });
     await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(500);
+    check(`no app ${tela}: com cartão salvo, confirma sem dados de cartão novo`, await page.evaluate(() => !!window.__stripeConfirm && !window.__stripeConfirm.confirmParams.payment_method_data));
+    await page.evaluate(() => { window.__stripeSaved = false; window.__stripeHandlers.change({ value: { type: 'card' } }); });
     check(`no app ${tela}: cartão recusado mostra o erro e deixa tentar de novo`, (await text(page)).includes('Seu cartão foi recusado.'));
     await page.evaluate(() => { window.__stripeRecusa = false; });
     await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(500);
     check(`no app ${tela}: depois de pagar, espera a confirmação do servidor`, (await text(page)).includes('Aguardando confirmação do pagamento'));
     check(`no app ${tela}: volta do 3D Secure aponta pro pedido`, await page.evaluate(() => /pedido=/.test(window.__stripeConfirm.confirmParams.return_url)));
+    check(`no app ${tela}: Stripe recebe a sessão do cliente (cartões salvos)`, await page.evaluate(() => window.__stripeOpts.customerSessionClientSecret === 'cuss_fake_secret'));
     check(`no app ${tela}: titular vai pro servidor e o nome pro Stripe`, page.api.db.cardHolder?.name === 'Ana Souza' && page.api.db.cardHolder?.cpf === '52998224725'
       && await page.evaluate(() => window.__stripeConfirm.confirmParams.payment_method_data.billing_details.name === 'Ana Souza'));
     page.api.db.orders[0].paymentStatus = 'approved';

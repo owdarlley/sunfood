@@ -238,6 +238,8 @@ paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente")
       orderId: order.id,
       amount: Number(order.total),
       payerEmail: req.user.email,
+      payerName: req.user.name,
+      userId: req.user.sub,
       description: `Pedido Sunfood — mesa ${order.table_number}`,
       existingId: String(order.payment_id || "").startsWith("pi_") ? order.payment_id : null,
     });
@@ -247,7 +249,11 @@ paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente")
       .from("orders")
       .update({ payment_provider: "stripe", payment_id: intent.paymentIntentId })
       .eq("id", order.id);
-    res.json({ clientSecret: intent.clientSecret, publishableKey: stripePublishableKey });
+    res.json({
+      clientSecret: intent.clientSecret,
+      publishableKey: stripePublishableKey,
+      customerSessionClientSecret: intent.customerSessionClientSecret,
+    });
   } catch (e) {
     console.error("Erro ao criar PaymentIntent do Stripe:", e);
     res.status(502).json({ error: "Falha ao abrir o pagamento com cartão. Tente novamente." });
