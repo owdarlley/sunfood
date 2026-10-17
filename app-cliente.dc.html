@@ -162,6 +162,17 @@ select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:ima
 .alert-ok{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='m8 12.5 2.7 2.7L16 9.8'/%3E%3C/svg%3E")}
 .alert-info{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E")}
 .pf-photo-row{display:flex;gap:12px;align-items:center}
+/* Estorno/cancelamento do pedido (admin): mesma janela do formulário de
+   produto, numa coluna só. */
+.sf-dialog.pf-dialog.rf-dialog{max-width:560px}
+.rf-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--cpad);display:flex;flex-direction:column;gap:16px}
+.rf-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px;border-radius:12px;background:var(--surface-off)}
+@media (max-width:420px){.rf-sum{grid-template-columns:1fr 1fr}}
+.rf-item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 16px;border:1px solid #E3DDD0;border-radius:8px;cursor:pointer;background:#fff}
+.rf-item.on{border-color:var(--brand);background:#E6EFF0;box-shadow:inset 3px 0 0 var(--brand)}
+.rf-dialog .pf-btns .btn{white-space:nowrap;padding:0 16px}
+.rf-dialog .pf-btns .btn-danger{flex:2}
+.rf-hist{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border:1px solid var(--line);border-radius:8px}
 /* Formulário de produto (admin) numa janela: cabeçalho e botões fixos, só o
    meio rola. Duas colunas a partir do tablet; no celular ocupa a tela toda. */
 .sf-dialog.pf-dialog{max-width:880px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;overflow:hidden}
@@ -1867,9 +1878,9 @@ select{caret-color:auto}
               <div class="tblwrap">
                 <sc-if value="{{ hasAdminOrders }}" hint-placeholder-val="{{ true }}">
                   <div class="tbl tbl-cards" style="min-width:900px">
-                    <div class="tr th" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px"><div>Pedido</div><div>Mesa</div><div>Hora</div><div>Itens</div><div style="text-align:right">Total</div><div>Pagamento</div><div>Status</div></div>
+                    <div class="tr th" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px 150px"><div>Pedido</div><div>Mesa</div><div>Hora</div><div>Itens</div><div style="text-align:right">Total</div><div>Pagamento</div><div>Status</div><div>Ações</div></div>
                     <sc-for list="{{ adminOrders }}" as="r" hint-placeholder-count="6">
-                      <div class="tr" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px">
+                      <div class="tr" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px 150px">
                         <div data-l="Pedido" style="font-weight:800;color:#1F5A63">{{ r.id }}</div>
                         <div data-l="Mesa" style="font-weight:700">{{ r.table }}</div>
                         <div data-l="Hora" class="muted" style="white-space:nowrap">{{ r.clock }}</div>
@@ -1877,6 +1888,11 @@ select{caret-color:auto}
                         <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
                         <div data-l="Pagamento"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
                         <div data-l="Status"><span style="{{ r.stStyle }}">{{ r.status }}</span></div>
+                        <div class="wide">
+                          <sc-if value="{{ r.canManage }}" hint-placeholder-val="{{ false }}">
+                            <div onClick="{{ r.manage }}" class="btn btn-ghost btn-sm" role="button" style="display:inline-flex">{{ r.manageLabel }}</div>
+                          </sc-if>
+                        </div>
                       </div>
                     </sc-for>
                   </div>
@@ -1901,7 +1917,7 @@ select{caret-color:auto}
               <div class="tblwrap">
                 <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ true }}">
                   <div class="tbl tbl-cards" style="min-width:980px">
-                    <div class="tr th" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px"><div>Pedido</div><div>Mesa</div><div>Quando</div><div>Status</div><div>Pagamento</div><div>Recebimento</div><div style="text-align:right">Total</div></div>
+                    <div class="tr th" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px"><div>Pedido</div><div>Mesa</div><div>Quando</div><div>Status</div><div>Pagamento</div><div>Recebimento e estorno</div><div style="text-align:right">Total</div></div>
                     <sc-for list="{{ payRows }}" as="r" hint-placeholder-count="6">
                       <div class="tr" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px">
                           <div data-l="Pedido" style="font-weight:800;color:#1F5A63">{{ r.id }}</div>
@@ -1921,6 +1937,9 @@ select{caret-color:auto}
                             <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
                               <span onClick="{{ r.undo }}" class="chip" style="background:#fff;border:1px solid #D6CFBF;color:#55626A;padding:8px 12px;cursor:pointer">Desfazer</span>
                             </sc-if>
+                            <sc-if value="{{ r.canManage }}" hint-placeholder-val="{{ false }}">
+                              <div onClick="{{ r.manage }}" class="btn btn-ghost btn-sm" role="button" style="display:inline-flex;margin-top:8px">{{ r.manageLabel }}</div>
+                            </sc-if>
                           </div>
                           <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
                       </div>
@@ -1930,6 +1949,78 @@ select{caret-color:auto}
                 <sc-if value="{{ noPayRows }}" hint-placeholder-val="{{ false }}">
                   <div class="muted" style="padding:40px;text-align:center">Nenhum pedido ainda.</div>
                 </sc-if>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ rfOpen }}" hint-placeholder-val="{{ false }}">
+            <div class="sf-overlay pf-overlay">
+              <div class="rise sf-dialog pf-dialog rf-dialog" role="dialog" aria-modal="true" aria-label="{{ rfTitle }}">
+                <div class="pf-head">
+                  <div style="font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif">{{ rfTitle }}</div>
+                  <div onClick="{{ closeRefund }}" class="iconbtn" role="button" aria-label="Fechar" title="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
+                </div>
+                <div class="rf-body">
+                  <sc-if value="{{ rfPaid }}" hint-placeholder-val="{{ false }}">
+                    <div class="rf-sum">
+                      <sc-for list="{{ rfSummary }}" as="x" hint-placeholder-count="3">
+                        <div><div class="muted" style="font-size:var(--fs-sm)">{{ x.k }}</div><div style="font-weight:800;font-size:var(--fs-h3)">{{ x.v }}</div></div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ rfHasModes }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap" role="radiogroup" aria-label="O que fazer">
+                      <sc-for list="{{ rfModes }}" as="m" hint-placeholder-count="2">
+                        <span onClick="{{ m.pick }}" class="fpill pf-pill {{ m.cls }}" role="radio" aria-checked="{{ m.on }}">{{ m.label }}</span>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ rfPartial }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                      <span class="lbl" style="margin:0">Itens a devolver <span class="muted" style="font-weight:500">(opcional, preenche o valor)</span></span>
+                      <sc-for list="{{ rfItems }}" as="it" hint-placeholder-count="2">
+                        <div onClick="{{ it.toggle }}" class="rf-item {{ it.cls }}" role="checkbox" aria-checked="{{ it.on }}"><span>{{ it.label }}</span><b>{{ it.price }}</b></div>
+                      </sc-for>
+                      <div>
+                        <span class="lbl">Valor do estorno</span>
+                        <div style="display:flex;gap:8px">
+                          <input placeholder="0,00" class="inp" inputmode="decimal" value="{{ rfAmount }}" onChange="{{ setRfAmount }}" aria-label="Valor do estorno em reais" style="flex:1;min-width:0" />
+                          <div onClick="{{ rfFillAll }}" class="btn btn-ghost" style="white-space:nowrap">{{ rfMaxLabel }}</div>
+                        </div>
+                      </div>
+                      <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">O pedido continua na cozinha. Só o valor escolhido volta para o cliente.</div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ rfCancelNote }}" hint-placeholder-val="{{ false }}">
+                    <div class="alert alert-info" style="font-weight:500">{{ rfCancelNote }}</div>
+                  </sc-if>
+                  <div>
+                    <span class="lbl">Motivo</span>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                      <sc-for list="{{ rfReasons }}" as="rs" hint-placeholder-count="4">
+                        <span onClick="{{ rs.pick }}" class="fpill pf-pill {{ rs.cls }}">{{ rs.label }}</span>
+                      </sc-for>
+                    </div>
+                    <input placeholder="Ou escreva o motivo" class="inp" value="{{ rfReason }}" onChange="{{ setRfReason }}" maxlength="200" aria-label="Motivo" />
+                  </div>
+                  <sc-if value="{{ rfHasHistory }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                      <span class="lbl" style="margin:0">Estornos já feitos</span>
+                      <sc-for list="{{ rfHistory }}" as="h" hint-placeholder-count="1">
+                        <div class="rf-hist"><div><div style="font-weight:700">{{ h.reason }}</div><div class="muted" style="font-size:var(--fs-sm)">{{ h.meta }}</div></div><b>{{ h.amount }}</b></div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <div class="pf-actions">
+                  <sc-if value="{{ hasRfErr }}" hint-placeholder-val="{{ false }}">
+                    <div class="alert alert-err" role="alert">{{ rfErr }}</div>
+                  </sc-if>
+                  <div class="pf-btns">
+                    <div onClick="{{ closeRefund }}" class="btn btn-ghost">Voltar</div>
+                    <div onClick="{{ confirmRefund }}" class="btn btn-danger" style="{{ rfConfirmStyle }}">{{ rfConfirmLabel }}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </sc-if>
@@ -3122,7 +3213,8 @@ function adminOrderFromApi(o){
     customer:o.customerName || '', obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt,
     paymentMethod:o.paymentMethod || 'pix', paymentStatus:o.paymentStatus || 'pending',
     receivedWith:o.receivedWith || null, total:o.total, paymentProvider:o.paymentProvider || null,
-    waiterId:o.waiterId || null,
+    waiterId:o.waiterId || null, refunded:o.refundedAmount || 0,
+    items:o.items.map(it => ({name:it.name, qty:it.qty, unitPrice:it.unitPrice})),
     ...paymentBadge(o)
   };
 }
@@ -3133,6 +3225,11 @@ const spDate = iso => new Date(iso).toLocaleDateString('en-CA', {timeZone:'Ameri
 const spTime = iso => new Date(iso).toLocaleTimeString('pt-BR', {timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit'});
 const brDate = ymd => ymd.slice(8, 10) + '/' + ymd.slice(5, 7) + '/' + ymd.slice(0, 4);
 const brMoney = n => 'R$ ' + Number(n || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+// Valor digitado ("12,50", "R$ 1.234,50" ou "12.5") em reais.
+const parseMoney = t => {
+  const c = String(t || '').replace(/[^\d,.]/g, '');
+  return Math.round(Number(c.includes(',') ? c.replace(/\./g, '').replace(',', '.') : c) * 100) / 100;
+};
 const PAY_METHOD = {pix:'PIX', cartao:'Cartão', entrega:'Na entrega'};
 // Mesma regra do relatório (sales_report): pago ou "pagar na entrega", sem cancelado nem estorno.
 const countsAsSale = o => o.status !== 'Cancelado' && o.paymentStatus !== 'refunded' && o.paymentStatus !== 'cancelled' &&
@@ -3304,10 +3401,19 @@ function paymentBadge(o){
   if(method === 'entrega') return badge('Cobrar na entrega · ' + total, 'warn');
   const nome = method === 'cartao' ? 'cartão' : 'PIX';
   if(o.paymentStatus === 'approved' && o.paymentProvider === 'provisorio') return badge((method === 'cartao' ? 'Cartão' : 'PIX') + ' provisório (sem cobrança) · ' + total, 'info');
+  if(o.paymentStatus === 'approved' && o.refundedAmount > 0) return badge('Pago no app (' + nome + ') · estornado R$ ' + o.refundedAmount.toFixed(2).replace('.', ','), 'info');
   if(o.paymentStatus === 'approved') return badge('Pago no app (' + nome + ')', 'ok');
   if(o.paymentStatus === 'refunded') return badge('Estornado (' + nome + ')', 'muted');
   return badge('Aguardando pagamento (' + nome + ')', 'err');
 }
+
+// Estorno pelo painel: quanto ainda dá pra devolver (pago no app menos o já
+// estornado) e em que status o admin ainda tira o pedido da cozinha.
+const ADMIN_CANCELLABLE = ['Na Fila', 'Em Preparo', 'Pronto'];
+const refundableOf = r => r.paymentMethod !== 'entrega' && r.paymentStatus === 'approved' && r.paymentProvider !== 'provisorio'
+  ? Math.max(0, Math.round(r.total * 100) - Math.round((r.refunded || 0) * 100)) / 100 : 0;
+const canManageOrder = r => r.status !== 'Cancelado' && (refundableOf(r) > 0 || ADMIN_CANCELLABLE.indexOf(r.status) >= 0);
+const REFUND_REASONS = ['Item em falta', 'Pedido errado', 'Demora no preparo', 'Cliente desistiu'];
 
 // Cores que o admin escolhe para cada categoria: fundo do cartão quando o
 // item não tem foto e cor do ícone. Os nomes são os mesmos que a API aceita.
@@ -4093,6 +4199,52 @@ class Component extends DCLogic {
       if(res.ok){ this.loadAdminData(); this.flash(receivedWith ? 'Recebimento anotado.' : 'Recebimento desfeito.'); }
       else { const data = await res.json(); this.flash(data.error || 'Não foi possível salvar o recebimento.'); }
     } catch(e){ this.flash('Falha de conexão com o servidor.'); }
+  }
+
+  // ---- Estorno e cancelamento pelo painel do admin ----
+  // Abre a janela do pedido: cancelar (e devolver tudo) ou estornar parte.
+  openRefund(apiId){
+    const r = (this.state.adminOrders || []).find(o => o.apiId === apiId);
+    if(!r) return;
+    const mode = ADMIN_CANCELLABLE.indexOf(r.status) >= 0 ? 'cancel' : 'partial';
+    this.setState({rf:{apiId, mode, picked:[], amount:'', reason:'', err:'', busy:false, history:null}});
+    authFetch(API_BASE + '/orders/' + apiId + '/refunds', {headers:{Authorization:'Bearer ' + this.state.token}})
+      .then(res => res.ok ? res.json() : [])
+      .then(history => this.setState(st => st.rf && st.rf.apiId === apiId ? {rf:Object.assign({}, st.rf, {history})} : {}))
+      .catch(() => {});
+  }
+  setRf(patch){ this.setState(st => st.rf ? {rf:Object.assign({}, st.rf, {err:''}, patch)} : {}); }
+
+  async confirmRefund(){
+    const rf = this.state.rf;
+    if(!rf || rf.busy) return;
+    const r = (this.state.adminOrders || []).find(o => o.apiId === rf.apiId);
+    if(!r) return this.setState({rf:null});
+    const reason = rf.reason.trim();
+    if(reason.length < 3) return this.setRf({err:'Escolha ou escreva o motivo.'});
+    const body = {cancel:rf.mode === 'cancel', reason};
+    if(rf.mode === 'partial'){
+      const amount = parseMoney(rf.amount);
+      const max = refundableOf(r);
+      if(!(amount > 0) || amount > max + 1e-9) return this.setRf({err:'Digite um valor entre R$ 0,01 e ' + brMoney(max) + '.'});
+      body.amount = amount;
+    }
+    this.setRf({busy:true});
+    try {
+      const res = await authFetch(API_BASE + '/orders/' + rf.apiId + '/refund', {
+        method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify(body)
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setRf({busy:false, err:data.error || 'Não foi possível concluir. Tente de novo.'});
+      this.setState({rf:null});
+      this.flash(data.refundedNow > 0
+        ? 'Estorno de ' + brMoney(data.refundedNow) + ' feito.' + (body.cancel ? ' O pedido saiu da cozinha.' : '')
+        : 'Pedido cancelado.');
+      this.loadAdminData();
+    } catch(e){
+      this.setRf({busy:false, err:'Falha de conexão com o servidor.'});
+    }
   }
 
   async loadCatalog(){
@@ -5886,7 +6038,9 @@ class Component extends DCLogic {
     v.adminOrders = searched.filter(r => s.admFilter === 'Todos' || r.status === s.admFilter).map(r => Object.assign({}, r, {
       hora:r.minAgo === 0 ? 'agora' : r.minAgo + ' min atrás',
       clock:new Date(r.createdAt).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-      stStyle:pillStyle(statusTone(r.status))
+      stStyle:pillStyle(statusTone(r.status)),
+      canManage:canManageOrder(r), manageLabel:refundableOf(r) > 0 ? 'Estornar' : 'Cancelar pedido',
+      manage:() => this.openRefund(r.apiId)
     }));
     v.hasAdminOrders = v.adminOrders.length > 0;
     v.ordersEmptyText = s.adminOrders.length ? 'Nenhum pedido com esse filtro.' : 'Nenhum pedido ainda hoje.';
@@ -5900,12 +6054,14 @@ class Component extends DCLogic {
     const received = live.filter(r => r.paymentStatus === 'approved' && r.paymentProvider !== 'provisorio' && isToday(r));
     const toReceive = live.filter(r => r.paymentMethod === 'entrega' && r.paymentStatus !== 'approved');
     const onlineWaiting = live.filter(r => r.paymentMethod !== 'entrega' && r.paymentStatus !== 'approved');
-    const refunded = s.adminOrders.filter(r => r.paymentStatus === 'refunded');
+    // Estornado: a soma dos estornos (totais e parciais); estorno antigo sem valor registrado conta o pedido todo.
+    const refunded = s.adminOrders.filter(r => r.paymentStatus === 'refunded' || r.refunded > 0);
+    const refundedSum = f(refunded.reduce((a, r) => a + (r.refunded > 0 ? r.refunded : r.total), 0));
     v.payKpis = [
       {lbl:'Recebido hoje', val:sum(received), sub:received.length + ' pedido(s)'},
       {lbl:'A receber na entrega', val:sum(toReceive), sub:toReceive.length + ' pedido(s)'},
       {lbl:'Online aguardando', val:sum(onlineWaiting), sub:onlineWaiting.length + ' pedido(s)'},
-      {lbl:'Estornado', val:sum(refunded), sub:refunded.length + ' pedido(s)'}
+      {lbl:'Estornado', val:refundedSum, sub:refunded.length + ' pedido(s)'}
     ];
     if(s.pixProvider === 'provisorio' || s.cardProvider === 'provisorio') v.payKpis.splice(1, 0, {lbl:'Provisório hoje (PIX/cartão)', val:sum(provisional), sub:provisional.length + ' pedido(s), sem cobrança'});
     // Aviso no topo de Pagamentos: provisório (aprovado sem cobrança) ou Stripe em modo de teste.
@@ -5920,6 +6076,8 @@ class Component extends DCLogic {
         id:r.id, table:r.table, status:r.status, totalStr:r.totalStr, payLabel:r.payLabel, payStyle:r.payStyle,
         when:formatWhen(r.createdAt), canReceive,
         canUndo:r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus === 'approved',
+        canManage:canManageOrder(r), manageLabel:refundableOf(r) > 0 ? 'Estornar' : 'Cancelar pedido',
+        manage:() => this.openRefund(r.apiId),
         recvCash:() => this.markPaymentReceived(r.apiId, 'dinheiro'),
         recvCard:() => this.markPaymentReceived(r.apiId, 'cartao'),
         recvPix:() => this.markPaymentReceived(r.apiId, 'pix'),
@@ -5927,6 +6085,56 @@ class Component extends DCLogic {
       };
     });
     v.hasPayRows = v.payRows.length > 0;
+
+    // Janela de estorno/cancelamento do pedido (admin).
+    const rf = s.rf, rfo = rf && (s.adminOrders || []).find(o => o.apiId === rf.apiId);
+    v.rfOpen = !!rfo;
+    if(rfo){
+      const max = refundableOf(rfo), canCancel = ADMIN_CANCELLABLE.indexOf(rfo.status) >= 0;
+      const partial = rf.mode === 'partial';
+      v.rfTitle = (max > 0 ? 'Estornar ' : 'Cancelar ') + rfo.id;
+      v.rfPaid = max > 0 || rfo.refunded > 0;
+      v.rfSummary = [
+        {k:'Pago no app', v:f(rfo.total)},
+        {k:'Já estornado', v:f(rfo.refunded || 0)},
+        {k:'Ainda dá para estornar', v:f(max)}
+      ];
+      v.rfModes = [
+        canCancel ? {key:'cancel', label:max > 0 ? 'Cancelar e estornar tudo' : 'Cancelar pedido'} : null,
+        max > 0 ? {key:'partial', label:'Estornar uma parte'} : null
+      ].filter(Boolean).map(m => ({label:m.label, cls:rf.mode === m.key ? 'on' : '', on:String(rf.mode === m.key), pick:() => this.setRf({mode:m.key})}));
+      v.rfHasModes = v.rfModes.length > 1;
+      v.rfPartial = partial;
+      v.rfCancelNote = !partial ? (max > 0
+        ? 'O pedido sai da cozinha e ' + f(max) + ' volta para o cliente pelo mesmo meio do pagamento.'
+        : rfo.paymentMethod === 'entrega' ? 'O pedido sai da cozinha. Ele era "pagar na entrega", então não há nada a estornar.' : 'O pedido sai da cozinha. Nada foi cobrado, então não há estorno.')
+        + (rfo.status === 'Na Fila' ? ' Os itens voltam para o estoque.' : '') : '';
+      v.rfItems = rfo.items.map((it, i) => {
+        const on = rf.picked.indexOf(i) >= 0;
+        return {label:it.qty + 'x ' + it.name, price:f(it.qty * it.unitPrice), cls:on ? 'on' : '', on:String(on),
+          toggle:() => {
+            const picked = on ? rf.picked.filter(x => x !== i) : rf.picked.concat(i);
+            const sumItems = picked.reduce((a, x) => a + rfo.items[x].qty * rfo.items[x].unitPrice, 0);
+            this.setRf({picked, amount:picked.length ? Math.min(sumItems, max).toFixed(2).replace('.', ',') : ''});
+          }};
+      });
+      v.rfAmount = rf.amount;
+      v.setRfAmount = e => this.setRf({amount:e.target.value, picked:[]});
+      v.rfFillAll = () => this.setRf({amount:max.toFixed(2).replace('.', ','), picked:[]});
+      v.rfMaxLabel = 'Tudo (' + f(max) + ')';
+      v.rfReason = rf.reason;
+      v.setRfReason = e => this.setRf({reason:e.target.value});
+      v.rfReasons = REFUND_REASONS.map(t => ({label:t, cls:rf.reason === t ? 'on' : '', pick:() => this.setRf({reason:t})}));
+      v.rfErr = rf.err; v.hasRfErr = !!rf.err;
+      const amt = parseMoney(rf.amount);
+      v.rfConfirmLabel = rf.busy ? 'Processando…' : partial ? 'Estornar ' + (amt > 0 ? f(amt) : 'valor') : max > 0 ? 'Cancelar e estornar ' + f(max) : 'Cancelar pedido';
+      v.rfConfirmStyle = rf.busy ? 'opacity:.6' : '';
+      v.confirmRefund = () => this.confirmRefund();
+      v.closeRefund = () => this.setState({rf:null});
+      const hist = rf.history || [];
+      v.rfHasHistory = hist.length > 0;
+      v.rfHistory = hist.map(h => ({amount:f(h.amount), reason:h.reason || 'Sem motivo', meta:(h.by || 'Equipe') + ' · ' + formatWhen(h.at)}));
+    }
 
     v.tableTiles = s.tables.map(t => ({
       n:String(t.n), seats:t.seats + ' lugares',

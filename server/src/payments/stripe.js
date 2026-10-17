@@ -197,8 +197,28 @@ export async function fetchCheckoutSession(sessionId) {
   };
 }
 
-// Devolve o valor total de um pagamento aprovado no Stripe.
-export async function refundStripePayment(paymentIntentId) {
-  const r = await stripe().refunds.create({ payment_intent: paymentIntentId });
-  return { simulated: false, refundId: r.id, status: r.status };
+// Devolve um pagamento aprovado no Stripe: o que falta devolver (sem amount)
+// ou só parte dele (amountCents). O motivo e quem estornou vão no metadata,
+// pra o webhook charge.refunded registrar o estorno com os mesmos dados.
+// idempotencyKey: dois cliques no mesmo estorno não devolvem duas vezes.
+export async function refundStripePayment(paymentIntentId, { amountCents, metadata, idempotencyKey } = {}) {
+  const body = { payment_intent: paymentIntentId };
+  if (amountCents) body.amount = amountCents;
+  if (metadata) body.metadata = metadata;
+  const r = await stripe().refunds.create(body, idempotencyKey ? { idempotencyKey } : undefined);
+  return { simulated: false, refundId: r.id, status: r.status, amountCents: r.amount };
+}
+
+// Rebusca a cobrança e os estornos dela na API (o webhook charge.refunded só
+// avisa que algo mudou). Pega estornos feitos direto no painel do Stripe.
+export async function fetchChargeRefunds(chargeId) {
+  const c = await stripe().charges.retrieve(chargeId, { expand: ["refunds"] });
+  return {
+    paymentIntentId: typeof c.payment_intent === "string" ? c.payment_intent : c.payment_intent?.id || null,
+    amountRefunded: Number(c.amount_refunded) / 100,
+    fullyRefunded: !!c.refunded,
+    refunds: (c.refunds?.data || [])
+      .filter((r) => r.status === "succeeded" || r.status === "pending")
+      .map((r) => ({ id: r.id, amount: Number(r.amount) / 100, metadata: r.metadata || {} })),
+  };
 }

@@ -103,9 +103,12 @@ export async function createCardCheckout({ orderId, amount, payerEmail, notifica
 // nunca houve cobrança, então não há o que estornar nem consultar.
 
 // Devolve o valor total de um pagamento aprovado (cancelamento de pedido pago).
-export async function refundPayment(paymentId) {
+// Sem amount devolve tudo; com amount (em reais), só essa parte.
+export async function refundPayment(paymentId, amount) {
   if (String(paymentId).startsWith("sim_")) return { simulated: true };
-  const result = await mpClients().refund.total({ payment_id: paymentId });
+  const result = amount
+    ? await mpClients().refund.create({ payment_id: paymentId, body: { amount } })
+    : await mpClients().refund.total({ payment_id: paymentId });
   return { simulated: false, refundId: String(result.id), status: result.status };
 }
 

@@ -26,7 +26,7 @@ Preencha o `.env`:
 | `PASSWORD_RESET_REDIRECT_URL` | URL pública de `redefinir-senha.html` (ex.: `https://seu-site.github.io/sunfood/redefinir-senha.html`) — precisa também estar na lista de Redirect URLs em Authentication → URL Configuration no Supabase |
 | `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET` | Painel do Mercado Pago → Suas integrações → Credenciais. Sem isso, o PIX (e o cartão, se o Stripe também não estiver configurado) é aprovado na hora como **provisório** (não cobra dinheiro real) |
 | `STRIPE_PUBLISHABLE_KEY` | Mesma página, chave publicável de teste (`pk_test_...`). Com ela, o cartão é digitado na própria tela do app (Payment Element) em vez da página do Stripe |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Dashboard do Stripe → Developers → API keys (use a **chave de teste** `sk_test_...`) e o signing secret (`whsec_...`) do webhook `<API>/payments/stripe/webhook` com os eventos `checkout.session.completed` e `payment_intent.succeeded`. Com a chave, cartão (crédito ou débito, sempre à vista) e PIX (se o Mercado Pago não estiver configurado) são cobrados pelo Stripe; em modo de teste nada é cobrado (cartão `4242 4242 4242 4242`) |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Dashboard do Stripe → Developers → API keys (use a **chave de teste** `sk_test_...`) e o signing secret (`whsec_...`) do webhook `<API>/payments/stripe/webhook` com os eventos `checkout.session.completed`, `payment_intent.succeeded` e `charge.refunded` (estorno feito no painel do Stripe aparece no app). Com a chave, cartão (crédito ou débito, sempre à vista) e PIX (se o Mercado Pago não estiver configurado) são cobrados pelo Stripe; em modo de teste nada é cobrado (cartão `4242 4242 4242 4242`) |
 | `RESEND_API_KEY` (+ opcionais `EMAIL_FROM`, `CONTACT_REPLY_TO`) | resend.com → API Keys (Sending access, domínio sunfood.app.br). Usada para responder o Fale conosco por e-mail. Sem ela, só as respostas por WhatsApp funcionam |
 
 ```bash
@@ -39,7 +39,7 @@ npm test    # roda os testes (ver abaixo)
 | Onde | O que testa | Como rodar |
 | --- | --- | --- |
 | `test/*.test.js` | Regras de negócio, permissões por papel, validação, assinatura do webhook e o fluxo completo da API (cadastro → pedido → entregue → excluir conta) com um Supabase falso em memória | `npm test` (roda sozinho no GitHub a cada push) |
-| `test/banco/*.sql` | As funções do banco de verdade: CPF do cadastro, estoque, status do pedido, formas de pagamento, prazo de cancelamento, pedido mínimo, quantidade de mesas, categorias do cardápio, número curto do pedido (#001 por dia), painel, encerrar o dia, relatórios e perfil garçom (pedido lançado na mesa, quem entregou e métricas) | Colar no SQL Editor do Supabase |
+| `test/banco/*.sql` | As funções do banco de verdade: CPF do cadastro, estoque, status do pedido, formas de pagamento, prazo de cancelamento, pedido mínimo, quantidade de mesas, categorias do cardápio, número curto do pedido (#001 por dia), painel, encerrar o dia, relatórios, perfil garçom (pedido lançado na mesa, quem entregou e métricas) e estorno pelo painel (estorno parcial fora do faturamento, cancelar em preparo sem devolver estoque) | Colar no SQL Editor do Supabase |
 
 Os `.sql` terminam com um erro **de propósito**: o Postgres desfaz tudo o que fizeram, então nada fica gravado. Passou = a mensagem começa com `TESTE_..._PASSOU`; qualquer `FALHA ...` é um bug.
 
@@ -91,6 +91,8 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | GET | `/orders` | admin, cozinha, garcom | Lista de pedidos (`?status=` opcional; o garçom recebe só fila, preparo e prontos) |
 | GET | `/orders/:id` | dono ou admin/cozinha | Detalhe de um pedido |
 | POST | `/orders/:id/cancel` | cliente (dono) | Cancelar (só "Na Fila" e dentro do prazo); estorna se já foi pago |
+| POST | `/orders/:id/refund` | admin | Estorno pelo painel: `{cancel: true, reason}` tira o pedido da cozinha (Na Fila, Em Preparo ou Pronto) e devolve tudo o que falta; `{amount, reason}` devolve só uma parte (em reais) e o pedido continua. Mesmo meio do pagamento (Stripe ou Mercado Pago). Pedido "na entrega" ou não pago só é cancelado. Precisa da migração `20261017210000_add_order_refunds.sql` |
+| GET | `/orders/:id/refunds` | admin | Estornos do pedido: valor, motivo, quem fez e quando (estorno feito no painel do Stripe aparece como "Painel do Stripe") |
 | PATCH | `/orders/:id/status` | admin, cozinha, garcom | Avançar status (kanban). O garçom só marca "Entregue"; quem entregou fica gravado no pedido |
 | PATCH | `/orders/:id/payment-received` | admin, garcom | Anotar como o garçom recebeu um pedido "pagar na entrega" |
 | GET | `/payments/status` | — | Diz quem cobra o PIX e o cartão (`mercadopago`, `stripe` ou `provisorio`) e se o Stripe está em modo de teste |

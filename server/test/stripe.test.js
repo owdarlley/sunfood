@@ -10,22 +10,41 @@ const signer = new RealStripe("sk_test_assinatura");
 
 const ORDER = "00000000-0000-4000-8000-0000000000aa";
 const db = {
-  profiles: [{ id: "ana", role: "cliente", name: "Ana", phone: "1", cpf: "1", birth_date: "2000-01-01", terms_accepted_at: "x" }],
+  profiles: [{ id: "ana", role: "cliente", name: "Ana", phone: "1", cpf: "1", birth_date: "2000-01-01", terms_accepted_at: "x" },
+    { id: "adm", role: "admin", name: "Bia Admin" }],
   orders: [],
+  order_refunds: [],
   kiosk_settings: [{ id: 1, cancel_window_minutes: 0 }],
 };
 
+const rpcCalls = [];
 function query(table) {
   const filters = [];
   let patch = null;
-  const rows = () => db[table].filter((r) => filters.every(([k, v]) => r[k] === v));
+  let inserted = null;
+  // Tabela que ainda não existe no banco (SQL não rodado): erro como o do Supabase.
+  if (!db[table]) {
+    const missing = { select: () => missing, eq: () => missing, insert: () => missing, order: () => missing,
+      then: (ok, fail) => Promise.resolve({ data: null, error: { code: "42P01", message: "relation does not exist" } }).then(ok, fail) };
+    return missing;
+  }
+  const rows = () => db[table].filter((r) => filters.every(([k, v]) => (Array.isArray(v) ? v.includes(r[k]) : r[k] === v)));
   const q = {
     select: () => q,
     eq: (k, v) => (filters.push([k, v]), q),
+    in: (k, v) => (filters.push([k, v]), q),
+    order: () => q,
     update: (p) => ((patch = p), q),
+    insert: (row) => {
+      // Índice único do id do estorno no provedor.
+      if (row.provider_refund_id && db[table].some((r) => r.provider_refund_id === row.provider_refund_id)) inserted = { error: { code: "23505" } };
+      else { db[table].push({ id: "rf_" + (db[table].length + 1), created_at: new Date().toISOString(), ...row }); inserted = { error: null }; }
+      return q;
+    },
     async single() { const r = rows()[0]; return r ? { data: r, error: null } : { data: null, error: { message: "nada" } }; },
     async maybeSingle() { return { data: rows()[0] || null, error: null }; },
     then(ok, fail) {
+      if (inserted) return Promise.resolve({ data: null, ...inserted }).then(ok, fail);
       if (patch) rows().forEach((r) => Object.assign(r, patch));
       return Promise.resolve({ data: rows(), error: null }).then(ok, fail);
     },
@@ -34,14 +53,21 @@ function query(table) {
 }
 const fake = {
   from: query,
-  rpc: async () => ({ error: null }),
-  auth: { getUser: async (t) => (t === "tok-ana" ? { data: { user: { id: "ana", email: "ana@teste.com" } }, error: null } : { data: null, error: {} }) },
+  rpc: async (fn, args) => {
+    rpcCalls.push([fn, args]);
+    if (fn === "set_order_status") { const o = db.orders.find((x) => x.id === args.p_order_id); if (o) o.status = args.p_status; }
+    return { error: null };
+  },
+  auth: { getUser: async (t) => (t === "tok-ana" ? { data: { user: { id: "ana", email: "ana@teste.com" } }, error: null }
+    : t === "tok-adm" ? { data: { user: { id: "adm", email: "bia@teste.com" } }, error: null } : { data: null, error: {} }) },
 };
 mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: fake, supabaseAuth: fake } });
 
 // Stripe falso: guarda as sessões criadas e devolve o que a API devolveria.
 const sessions = {};
 const refunds = [];
+const refundOpts = [];
+const charges = {};
 const intents = {};
 const customers = [];
 const customerSessions = [];
@@ -71,7 +97,8 @@ class FakeStripe {
     retrieve: async (id) => intents[id],
     update: async (id, body) => (Object.assign(intents[id].metadata, body.metadata), intents[id]),
   };
-  refunds = { create: async (b) => (refunds.push(b), { id: "re_1", status: "succeeded" }) };
+  refunds = { create: async (b, opts) => (refunds.push(b), refundOpts.push(opts), { id: "re_" + refunds.length, status: "succeeded", amount: b.amount }) };
+  charges = { retrieve: async (id) => charges[id] };
   customers = {
     list: async ({ email }) => ({ data: customers.filter((c) => c.email === email) }),
     create: async (b) => { const c = { id: "cus_" + (customers.length + 1), ...b }; customers.push(c); return c; },
@@ -286,4 +313,109 @@ test("PIX pelo Stripe: o webhook aprova quando o banco confirma", async () => {
 test("cartão no Stripe nunca liga parcelamento (sempre à vista)", () => {
   for (const pi of Object.values(intents)) assert.equal(pi.body.payment_method_options?.card?.installments, undefined);
   for (const sess of Object.values(sessions)) assert.equal(sess.body.payment_method_options?.card?.installments, undefined);
+});
+
+// ---- Estorno pelo painel do admin ----
+const PAGO = "00000000-0000-4000-8000-0000000000dd";
+const ENTREGA = "00000000-0000-4000-8000-0000000000ee";
+const adm = (method, path, body) => api(method, path, body, { Authorization: "Bearer tok-adm" });
+
+test("estorno parcial pelo admin: devolve só a parte, com motivo e quem fez, e o pedido continua", async () => {
+  db.orders.push({ id: PAGO, customer_id: "ana", total: 50, refunded_amount: 0, status: "Em Preparo", payment_method: "cartao",
+    payment_status: "approved", payment_provider: "stripe", payment_id: "pi_pago", table_number: 1, created_at: new Date().toISOString(), order_items: [] });
+  const n = refunds.length;
+  const r = await adm("POST", `/orders/${PAGO}/refund`, { amount: 12.5, reason: "Faltou o suco" });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.deepEqual(refunds[n], { payment_intent: "pi_pago", amount: 1250, metadata: { order_id: PAGO, sunfood_reason: "Faltou o suco", sunfood_actor: "adm" } });
+  assert.match(refundOpts[n].idempotencyKey, /^sunfood-refund-/);
+  const o = db.orders.find((x) => x.id === PAGO);
+  assert.equal(o.refunded_amount, 12.5);
+  assert.equal(o.payment_status, "approved");
+  assert.equal(o.status, "Em Preparo");
+  assert.equal(r.body.refundedAmount, 12.5);
+  const reg = db.order_refunds.find((x) => x.order_id === PAGO);
+  assert.equal(reg.amount, 12.5);
+  assert.equal(reg.actor, "adm");
+  assert.equal(reg.provider_refund_id, "re_" + (n + 1));
+});
+
+test("estorno maior do que falta devolver é recusado sem chamar o Stripe", async () => {
+  const n = refunds.length;
+  const r = await adm("POST", `/orders/${PAGO}/refund`, { amount: 40, reason: "Teste" });
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /37,50/);
+  assert.equal(refunds.length, n);
+});
+
+test("estorno sem motivo é recusado", async () => {
+  const r = await adm("POST", `/orders/${PAGO}/refund`, { amount: 1 });
+  assert.equal(r.status, 400);
+});
+
+test("cliente não estorna pelo painel", async () => {
+  const r = await api("POST", `/orders/${PAGO}/refund`, { amount: 1, reason: "Quero de volta" });
+  assert.equal(r.status, 403);
+});
+
+test("histórico de estornos mostra valor, motivo e quem fez", async () => {
+  const r = await adm("GET", `/orders/${PAGO}/refunds`);
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body.map(({ amount, reason, by }) => ({ amount, reason, by })), [{ amount: 12.5, reason: "Faltou o suco", by: "Bia Admin" }]);
+});
+
+test("cancelar pelo admin em preparo devolve o que falta e tira o pedido da cozinha", async () => {
+  const n = refunds.length;
+  const r = await adm("POST", `/orders/${PAGO}/refund`, { cancel: true, reason: "Cliente foi embora" });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(refunds[n].amount, 3750);
+  const o = db.orders.find((x) => x.id === PAGO);
+  assert.equal(o.status, "Cancelado");
+  assert.equal(o.payment_status, "refunded");
+  assert.equal(o.refunded_amount, 50);
+  assert.deepEqual(rpcCalls.at(-1), ["set_order_status", { p_order_id: PAGO, p_status: "Cancelado", p_actor: "adm" }]);
+  assert.equal((await adm("POST", `/orders/${PAGO}/refund`, { amount: 1, reason: "De novo" })).status, 409);
+});
+
+test("cancelar \"pagar na entrega\" pelo admin não chama o Stripe", async () => {
+  db.orders.push({ id: ENTREGA, customer_id: "ana", total: 20, refunded_amount: 0, status: "Pronto", payment_method: "entrega",
+    payment_status: "pending", table_number: 2, created_at: new Date().toISOString(), order_items: [] });
+  const n = refunds.length;
+  const r = await adm("POST", `/orders/${ENTREGA}/refund`, { cancel: true, reason: "Pedido errado" });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(refunds.length, n);
+  assert.equal(db.orders.find((x) => x.id === ENTREGA).status, "Cancelado");
+});
+
+test("sem o SQL do estorno rodado, nada é devolvido", async () => {
+  const saved = db.order_refunds;
+  delete db.order_refunds;
+  const id = "00000000-0000-4000-8000-0000000000ff";
+  db.orders.push({ id, customer_id: "ana", total: 10, status: "Na Fila", payment_method: "cartao", payment_status: "approved", payment_id: "pi_semsql",
+    table_number: 1, created_at: new Date().toISOString(), order_items: [] });
+  const n = refunds.length;
+  const r = await adm("POST", `/orders/${id}/refund`, { cancel: true, reason: "Teste sem SQL" });
+  db.order_refunds = saved;
+  assert.equal(r.status, 503);
+  assert.match(r.body.error, /SQL/);
+  assert.equal(refunds.length, n);
+});
+
+test("estorno feito no painel do Stripe chega pelo webhook charge.refunded", async () => {
+  const id = "00000000-0000-4000-8000-000000000011";
+  db.orders.push({ id, customer_id: "ana", total: 30, refunded_amount: 0, status: "Entregue", payment_method: "cartao", payment_status: "approved",
+    payment_id: "pi_painel", table_number: 1, created_at: new Date().toISOString(), order_items: [] });
+  charges.ch_painel = { id: "ch_painel", payment_intent: "pi_painel", amount_refunded: 500, refunded: false,
+    refunds: { data: [{ id: "re_painel", amount: 500, status: "succeeded", metadata: {} }] } };
+  // O corpo do evento é ignorado: os valores vêm da API.
+  const r = await webhook({ id: "evt_ref", type: "charge.refunded", data: { object: { id: "ch_painel", amount_refunded: 99999 } } });
+  assert.equal(r.status, 200);
+  const o = db.orders.find((x) => x.id === id);
+  assert.equal(o.refunded_amount, 5);
+  assert.equal(o.payment_status, "approved");
+  const reg = db.order_refunds.filter((x) => x.order_id === id);
+  assert.equal(reg.length, 1);
+  assert.equal(reg[0].reason, "Estorno feito no painel do Stripe");
+  // O mesmo evento de novo não duplica.
+  await webhook({ id: "evt_ref", type: "charge.refunded", data: { object: { id: "ch_painel" } } });
+  assert.equal(db.order_refunds.filter((x) => x.order_id === id).length, 1);
 });

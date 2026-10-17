@@ -2,7 +2,7 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole, requireCompleteProfile } from "../middleware/auth.js";
-import { createOrderSchema, manualOrderSchema, orderStatusUpdateSchema, paymentReceivedSchema, validate } from "../validation/schemas.js";
+import { createOrderSchema, manualOrderSchema, orderStatusUpdateSchema, paymentReceivedSchema, orderRefundSchema, validate } from "../validation/schemas.js";
 import {
   computeOrderTotals,
   meetsMinimumOrder,
@@ -19,6 +19,7 @@ import {
   VALID_TRANSITIONS,
 } from "../business-rules.js";
 import { cancelOrderWithRefund, expireUnpaidOrders } from "../order-payments.js";
+import { refundOrderByAdmin } from "../order-refunds.js";
 
 export const ordersRouter = Router();
 
@@ -62,6 +63,8 @@ function toApi(row, cancelWindow) {
     paymentProvider: row.payment_provider,
     paymentId: row.payment_id,
     paymentStatus: row.payment_status,
+    // Soma dos estornos (total ou parciais) feitos pelo painel ou pelo Stripe.
+    refundedAmount: Number(row.refunded_amount || 0),
     receivedWith: row.received_with,
     receivedAt: row.received_at,
     cancelDeadline: cancelWindow === undefined ? undefined : cancelDeadline(row.created_at, cancelWindow),
@@ -208,6 +211,47 @@ ordersRouter.get("/", requireAuth, requireRole("admin", "cozinha", "garcom"), as
     for (const p of profiles || []) names.set(p.id, p.name);
   }
   res.json(visible.map((row) => toApi({ ...row, customer_name: names.get(row.customer_id) || null })));
+});
+
+// Admin: estorno total (cancela o pedido) ou parcial (o pedido continua),
+// pelo mesmo meio em que o cliente pagou. Também cancela pedido "pagar na
+// entrega" ou ainda não pago, sem estorno.
+ordersRouter.post("/:id/refund", requireAuth, requireRole("admin"), validate(orderRefundSchema), async (req, res) => {
+  const { data: row, error } = await supabaseAdmin.from("orders").select("*").eq("id", req.params.id).maybeSingle();
+  if (error || !row) return res.status(404).json({ error: "Pedido não encontrado." });
+  const { cancel, amount, reason } = req.body;
+  const result = await refundOrderByAdmin(row, {
+    cancel,
+    amountCents: amount === undefined ? undefined : Math.round(amount * 100),
+    reason,
+    actor: req.user.sub,
+  });
+  if (!result.ok) return res.status(result.httpStatus).json({ error: result.error });
+  const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();
+  res.json({ ...toApi(updated), refundedNow: result.refunded });
+});
+
+// Admin: histórico de estornos do pedido (valor, motivo, quem e quando).
+ordersRouter.get("/:id/refunds", requireAuth, requireRole("admin"), async (req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from("order_refunds")
+    .select("*")
+    .eq("order_id", req.params.id)
+    .order("created_at", { ascending: true });
+  if (error) return res.json([]);
+  const ids = [...new Set(data.map((r) => r.actor).filter(Boolean))];
+  const names = new Map();
+  if (ids.length) {
+    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, name").in("id", ids);
+    for (const p of profiles || []) names.set(p.id, p.name);
+  }
+  res.json(data.map((r) => ({
+    amount: Number(r.amount),
+    reason: r.reason,
+    provider: r.provider,
+    by: names.get(r.actor) || (r.actor ? null : "Painel do Stripe"),
+    at: r.created_at,
+  })));
 });
 
 // Qualquer papel autenticado pode ver o detalhe — cliente só o próprio pedido.
