@@ -12,6 +12,8 @@ window.__resources = window.__resources || {};
 <link rel="preconnect" href="https://unpkg.com" crossorigin="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="preconnect" href="https://js.stripe.com">
+<link rel="preconnect" href="https://api.stripe.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* Cor de fundo já no começo (antes ficava branco até o app montar) e a tela
@@ -100,6 +102,8 @@ a:hover{color:#174A52}
 @keyframes sfspin{to{transform:rotate(360deg)}}
 @keyframes sfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes sffade{from{opacity:0}to{opacity:1}}
+@keyframes sfshine{0%{background-position:100% 0}100%{background-position:0 0}}
+.sk{border-radius:8px;background:linear-gradient(90deg,#EFEBE3 25%,#F8F5EF 50%,#EFEBE3 75%);background-size:300% 100%;animation:sfshine 1.2s linear infinite}
 @keyframes sfwave{0%,100%{transform:translateX(0)}50%{transform:translateX(-24px)}}
 @keyframes sftoast{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes sfpulse{50%{opacity:.4}}
@@ -1397,7 +1401,10 @@ select{caret-color:auto}
                     <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px">
                       <div class="tt" style="font-size:var(--fs-h3)">Dados do cartão</div>
                       <sc-if value="{{ cardFormLoading }}" hint-placeholder-val="{{ false }}">
-                        <div class="muted" style="font-size:var(--fs-sm)">Carregando os campos do cartão…</div>
+                        <div role="status" aria-label="Carregando os campos do cartão" style="display:flex;flex-direction:column;gap:12px">
+                          <div class="sk" style="height:48px"></div>
+                          <div style="display:flex;gap:12px"><div class="sk" style="height:48px;flex:1"></div><div class="sk" style="height:48px;flex:1"></div></div>
+                        </div>
                       </sc-if>
                       <div><span class="lbl">Nome do titular</span><input placeholder="Como está escrito no cartão" class="inp" autocomplete="cc-name" value="{{ cardHolderName }}" onChange="{{ setCardHolderName }}" aria-label="Nome do titular do cartão"></div>
                       <div><span class="lbl">CPF do titular</span><input placeholder="000.000.000-00" class="inp" value="{{ cardHolderCpf }}" onChange="{{ setCardHolderCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF do titular do cartão" style="border-color:{{ cardHolderCpfBorder }}"></div>
@@ -4067,6 +4074,9 @@ class Component extends DCLogic {
       const pixProvider = data.pix || (online ? 'mercadopago' : 'provisorio');
       this.setState({paymentsOnline:online, cardProvider, pixProvider, cardTestMode:!!data.cardTestMode,
         stripePk:cardProvider === 'stripe' && data.stripePublishableKey ? data.stripePublishableKey : null});
+      // Já baixa o Stripe.js em segundo plano: na hora de pagar, os campos do
+      // cartão aparecem sem esperar o download.
+      if(cardProvider === 'stripe' && data.stripePublishableKey) setTimeout(() => this.loadStripeJs().catch(() => {}), 1500);
     } catch(e){}
   }
 
@@ -5197,12 +5207,15 @@ class Component extends DCLogic {
     if(!o || !o._apiId) return;
     this.setState(st => ({cardFormLoading:true, cardErr:'', cardHolderName:st.cardHolderName || (st.authUser && st.authUser.name) || ''}));
     try {
+      // Stripe.js e o pagamento do pedido são buscados ao mesmo tempo.
+      const jsReady = this.loadStripeJs();
+      jsReady.catch(() => {});
       const res = await authFetch(API_BASE + '/payments/card-intent/' + o._apiId, {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
       });
       const data = await res.json();
       if(!res.ok){ this.setState({cardFormLoading:false, cardErr:data.error || 'Não foi possível abrir o pagamento com cartão.'}); return; }
-      const StripeJs = await this.loadStripeJs();
+      const StripeJs = await jsReady;
       if(!this.stripe || this.stripeKey !== data.publishableKey){ this.stripe = StripeJs(data.publishableKey, {locale:'pt-BR'}); this.stripeKey = data.publishableKey; }
       const css = getComputedStyle(document.documentElement);
       const token = (name, fb) => (css.getPropertyValue(name) || '').trim() || fb;
