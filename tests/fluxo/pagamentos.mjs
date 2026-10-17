@@ -303,6 +303,16 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
     const btnH = await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().evaluate(el => el.getBoundingClientRect().height);
     check(`no app ${tela}: botão Pagar com altura de toque (40 a 56 px)`, btnH >= 40 && btnH <= 56, String(btnH));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/cartao-no-app-${tela}.png`, fullPage: true });
+    await page.getByLabel('Nome do titular do cartão').fill('');
+    await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(300);
+    check(`no app ${tela}: pede o nome completo do titular`, (await text(page)).includes('Informe o nome completo do titular'));
+    await page.getByLabel('Nome do titular do cartão').fill('Ana Souza');
+    await page.getByLabel('CPF do titular do cartão').fill('12345678900');
+    await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(300);
+    t = await text(page);
+    check(`no app ${tela}: recusa CPF inválido do titular`, t.includes('CPF do titular inválido') && !page.api.db.cardHolder);
+    await page.getByLabel('CPF do titular do cartão').fill('52998224725');
+    check(`no app ${tela}: CPF do titular é pontuado`, await page.getByLabel('CPF do titular do cartão').inputValue() === '529.982.247-25');
     await page.evaluate(() => { window.__stripeRecusa = true; });
     await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(500);
     check(`no app ${tela}: cartão recusado mostra o erro e deixa tentar de novo`, (await text(page)).includes('Seu cartão foi recusado.'));
@@ -310,12 +320,43 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
     await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(500);
     check(`no app ${tela}: depois de pagar, espera a confirmação do servidor`, (await text(page)).includes('Aguardando confirmação do pagamento'));
     check(`no app ${tela}: volta do 3D Secure aponta pro pedido`, await page.evaluate(() => /pedido=/.test(window.__stripeConfirm.confirmParams.return_url)));
+    check(`no app ${tela}: titular vai pro servidor e o nome pro Stripe`, page.api.db.cardHolder?.name === 'Ana Souza' && page.api.db.cardHolder?.cpf === '52998224725'
+      && await page.evaluate(() => window.__stripeConfirm.confirmParams.payment_method_data.billing_details.name === 'Ana Souza'));
     page.api.db.orders[0].paymentStatus = 'approved';
     await page.waitForTimeout(3500);
     check(`no app ${tela}: webhook aprovou → pedido confirmado`, (await text(page)).toLowerCase().includes('pedido confirmado'));
     check(`no app ${tela}: sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
     await page.close();
   }
+});
+
+await step('carrinho só some depois do pagamento aprovado', async () => {
+  const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true, stripePix: true });
+  await ateOPagamento(page);
+  const total = (await text(page)).match(/R\$\s?[\d.,]+/g).pop();
+  await click(page, 'PIX', true);
+  await click(page, 'Pagar R$'); await page.waitForTimeout(600);
+  check('carrinho: PIX aberto, pedido criado e ainda pendente', page.api.db.orders.length === 1 && page.api.db.orders[0].paymentStatus === 'pending');
+  await page.locator('[aria-label="Voltar"]').first().click(); await page.waitForTimeout(500);
+  let t = await text(page);
+  check('carrinho: voltar do PIX mostra o pedido com os itens e o mesmo total', t.includes('Revisar pedido') && t.includes(total) && !t.includes('R$ 0,00'), total);
+  await click(page, 'PIX', true);
+  await click(page, 'Pagar R$'); await page.waitForTimeout(600);
+  check('carrinho: tentar de novo com o mesmo carrinho reaproveita o pedido', page.api.db.orders.length === 1);
+  await page.locator('[aria-label="Voltar"]').first().click(); await page.waitForTimeout(500);
+  await click(page, 'Cartão de crédito ou débito', true);
+  await click(page, 'Pagar R$'); await page.waitForTimeout(600);
+  check('carrinho: trocar para cartão cancela o PIX não pago e cria outro pedido',
+    page.api.db.orders.length === 2 && page.api.db.orders[1].status === 'Cancelado' && page.api.db.orders[0].paymentMethod === 'cartao');
+  await page.locator('[aria-label="Voltar"]').first().click(); await page.waitForTimeout(500);
+  check('carrinho: antes de aprovar, o carrinho continua cheio', (await text(page)).includes(total));
+  page.api.db.orders[0].paymentStatus = 'approved';
+  await click(page, 'Cartão de crédito ou débito', true);
+  await click(page, 'Pagar R$');
+  await page.waitForTimeout(3500);
+  check('carrinho: mesmo pedido de cartão reaproveitado e confirmado quando aprova', page.api.db.orders.length === 2 && (await text(page)).toLowerCase().includes('pedido confirmado'));
+  check('carrinho: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
+  await page.close();
 });
 
 await step('PIX pelo Stripe (modo teste)', async () => {

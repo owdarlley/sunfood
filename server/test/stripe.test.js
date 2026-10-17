@@ -67,6 +67,7 @@ class FakeStripe {
       return intents[id];
     },
     retrieve: async (id) => intents[id],
+    update: async (id, body) => (Object.assign(intents[id].metadata, body.metadata), intents[id]),
   };
   refunds = { create: async (b) => (refunds.push(b), { id: "re_1", status: "succeeded" }) };
   webhooks = signer.webhooks;
@@ -193,6 +194,26 @@ test("campos no app: o navegador não aprova; só o webhook payment_intent.succe
   r = await webhook(ev);
   assert.equal(r.status, 200);
   assert.equal(db.orders.find((x) => x.id === ORDER2).payment_status, "approved");
+});
+
+test("titular do cartão: recusa nome incompleto e CPF inválido", async () => {
+  let r = await api("POST", `/payments/card-holder/${ORDER2}`, { name: "Ana", cpf: "529.982.247-25" });
+  assert.equal(r.status, 400);
+  r = await api("POST", `/payments/card-holder/${ORDER2}`, { name: "Ana Souza", cpf: "123.456.789-00" });
+  assert.equal(r.status, 400);
+});
+
+test("titular do cartão: guarda nome e CPF no PaymentIntent", async () => {
+  const db2 = db.orders.find((x) => x.id === ORDER2);
+  const saved = db2.payment_status;
+  db2.payment_status = "pending";
+  const r = await api("POST", `/payments/card-holder/${ORDER2}`, { name: "  Ana   Souza ", cpf: "529.982.247-25" });
+  db2.payment_status = saved;
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  const meta = intents[db2.payment_id].metadata;
+  assert.equal(meta.holder_name, "Ana Souza");
+  assert.equal(meta.holder_cpf, "52998224725");
+  assert.equal(meta.order_id, ORDER2);
 });
 
 const ORDER3 = "00000000-0000-4000-8000-0000000000cc";

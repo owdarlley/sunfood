@@ -97,6 +97,7 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | POST | `/payments/pix/:orderId` | cliente (dono) | Gera a cobrança PIX no Mercado Pago ou no Stripe (só aprova como provisório se nenhum dos dois estiver configurado) |
 | POST | `/payments/card/:orderId` | cliente (dono) | Abre o checkout de cartão do Stripe (ou do Mercado Pago, ou aprova como provisório) |
 | POST | `/payments/card-intent/:orderId` | cliente (dono) | Campos do cartão no app: devolve o `clientSecret` do PaymentIntent do pedido e a chave publicável |
+| POST | `/payments/card-holder/:orderId` | cliente (dono) | Titular do cartão (`{name, cpf}`): nome completo e CPF válido, guardados no PaymentIntent antes de confirmar |
 | GET | `/payments/pix/:orderId/status` | cliente (dono) | Status do pagamento do pedido |
 | POST | `/payments/mercadopago/webhook` | Mercado Pago | Aviso de pagamento: assinatura verificada e status sempre reconferido na API deles |
 | POST | `/payments/stripe/webhook` | Stripe | Fim do checkout de cartão: assinatura `Stripe-Signature` verificada e sessão reconferida na API do Stripe antes de liberar o pedido |

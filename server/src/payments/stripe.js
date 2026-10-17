@@ -79,6 +79,15 @@ export async function createOrReuseCardIntent({ orderId, amount, payerEmail, des
   return { paymentIntentId: pi.id, clientSecret: pi.client_secret };
 }
 
+// Titular do cartão: o nome vai também no billing_details (pelo app, no
+// confirmPayment), que o antifraude do Stripe usa; o CPF fica guardado no
+// PaymentIntent pra identificar o titular numa contestação.
+export async function setCardHolder(paymentIntentId, { name, cpf }) {
+  await stripe().paymentIntents.update(paymentIntentId, {
+    metadata: { holder_name: name, holder_cpf: cpf },
+  });
+}
+
 // PIX pelo Stripe: cria e confirma o PaymentIntent no servidor e devolve o
 // QR (imagem e copia-e-cola). O pedido só é liberado pelo webhook
 // payment_intent.succeeded, depois que o banco do cliente confirma.

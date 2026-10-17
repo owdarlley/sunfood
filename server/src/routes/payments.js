@@ -23,7 +23,10 @@ import {
   createOrReuseCardIntent,
   fetchPaymentIntent,
   createStripePix,
+  setCardHolder,
+  isStripePaymentId,
 } from "../payments/stripe.js";
+import { isValidCpf, onlyDigits } from "../validation/cpf.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
 
@@ -248,6 +251,29 @@ paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente")
   } catch (e) {
     console.error("Erro ao criar PaymentIntent do Stripe:", e);
     res.status(502).json({ error: "Falha ao abrir o pagamento com cartão. Tente novamente." });
+  }
+});
+
+// Cliente: nome e CPF do titular do cartão, conferidos antes de confirmar o
+// pagamento no app. O CPF precisa ter os dígitos verificadores certos.
+paymentsRouter.post("/card-holder/:orderId", requireAuth, requireRole("cliente"), pixLimiter, async (req, res) => {
+  const name = String(req.body?.name || "").trim().replace(/\s+/g, " ");
+  const cpf = onlyDigits(req.body?.cpf);
+  if (name.length < 5 || !name.includes(" ") || name.length > 80) {
+    return res.status(400).json({ error: "Informe o nome completo do titular, como está no cartão." });
+  }
+  if (!isValidCpf(cpf)) return res.status(400).json({ error: "CPF do titular inválido. Confira os números." });
+  const order = await loadOwnUnpaidOrder(req, res, "cartao");
+  if (!order) return;
+  if (!isStripePaymentId(order.payment_id)) {
+    return res.status(409).json({ error: "Abra o pagamento com cartão de novo." });
+  }
+  try {
+    await setCardHolder(order.payment_id, { name, cpf });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("Erro ao salvar o titular no Stripe:", e);
+    res.status(502).json({ error: "Falha ao registrar o titular do cartão. Tente novamente." });
   }
 });
 
