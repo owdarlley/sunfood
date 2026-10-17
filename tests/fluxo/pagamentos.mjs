@@ -207,6 +207,20 @@ await step('tela de Pagamentos do admin', async () => {
   await click(admin, 'Desfazer', true);
   await admin.waitForTimeout(500);
   check('admin: desfazer volta para "a receber"', o.paymentStatus === 'pending' && !o.receivedWith && (await text(admin)).includes('Cobrar na entrega'));
+  await admin.locator('.pay-pills .fpill').filter({ hasText: 'A receber' }).click(); await admin.waitForTimeout(300);
+  t = await admin.locator('.pay-wrap').innerText();
+  check('admin: filtro "A receber" mostra só o que falta receber', t.includes('#o20') && !t.includes('#o21') && !t.includes('#o23'), t.slice(0, 300));
+  await admin.locator('.pay-pills .fpill').filter({ hasText: 'Estornos e cancelados' }).click(); await admin.waitForTimeout(300);
+  t = await admin.locator('.pay-wrap').innerText();
+  check('admin: filtro "Estornos e cancelados" mostra o cancelado', t.includes('#o21') && !t.includes('#o20'), t.slice(0, 300));
+  await admin.locator('.pay-pills .fpill').filter({ hasText: 'Todos' }).click(); await admin.waitForTimeout(300);
+  for (const [nome, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }], ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
+    await admin.setViewportSize(viewport); await admin.waitForTimeout(300);
+    const btn = await admin.getByText('Dinheiro', { exact: true }).boundingBox();
+    const scroll = await admin.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    check(`admin ${nome}: Pagamentos sem rolagem lateral e botões com altura de toque`, scroll <= 0 && btn && btn.height >= (viewport.width < 768 ? 48 : 40) && btn.x + btn.width <= viewport.width, JSON.stringify({ btn, scroll }));
+    if (process.env.SHOTS_DIR) await admin.screenshot({ path: `${process.env.SHOTS_DIR}/admin-pagamentos-${nome}.png`, fullPage: true });
+  }
   check('admin: sem erro de JavaScript', admin.jsErrors.length === 0 && !(await renderError(admin)), admin.jsErrors.join(' | ') || await renderError(admin));
   await admin.close();
 
