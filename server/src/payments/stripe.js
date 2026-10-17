@@ -60,23 +60,67 @@ export async function createStripeCheckout({ orderId, amount, payerEmail, succes
 // se o cliente voltou à tela — o PaymentIntent do pedido e devolve o
 // client_secret que o app usa pra confirmar. O cartão é digitado nos campos
 // do próprio Stripe (iframes), nunca passa pelo app nem por aqui.
-export async function createOrReuseCardIntent({ orderId, amount, payerEmail, description, existingId }) {
+//
+// Cartão salvo: cada cliente do Sunfood tem um Customer no Stripe (achado
+// pelo e-mail + metadata sunfood_user_id, sem coluna nova no banco). O
+// CustomerSession deixa o Payment Element mostrar a caixa "salvar cartão" e
+// os cartões já salvos. O número do cartão fica só no Stripe.
+export async function createOrReuseCardIntent({ orderId, amount, payerEmail, payerName, userId, description, existingId }) {
   const cents = Math.round(Number(amount) * 100);
+  const customer = userId ? await findOrCreateCustomer({ userId, email: payerEmail, name: payerName }) : null;
+  let pi = null;
   if (existingId) {
-    const pi = await stripe().paymentIntents.retrieve(existingId);
-    if (pi.amount === cents && ["requires_payment_method", "requires_confirmation", "requires_action"].includes(pi.status)) {
-      return { paymentIntentId: pi.id, clientSecret: pi.client_secret };
-    }
+    const old = await stripe().paymentIntents.retrieve(existingId);
+    const sameCustomer = (old.customer || null) === customer;
+    if (old.amount === cents && sameCustomer && ["requires_payment_method", "requires_confirmation", "requires_action"].includes(old.status)) pi = old;
   }
-  const pi = await stripe().paymentIntents.create({
-    amount: cents,
-    currency: "brl",
-    payment_method_types: ["card"],
-    description: description || `Pedido Sunfood #${orderId}`,
-    receipt_email: payerEmail || undefined,
-    metadata: { order_id: orderId },
+  if (!pi) {
+    pi = await stripe().paymentIntents.create({
+      amount: cents,
+      currency: "brl",
+      payment_method_types: ["card"],
+      customer: customer || undefined,
+      description: description || `Pedido Sunfood #${orderId}`,
+      receipt_email: payerEmail || undefined,
+      metadata: { order_id: orderId },
+    });
+  }
+  const customerSessionClientSecret = customer ? await createCustomerSession(customer) : null;
+  return { paymentIntentId: pi.id, clientSecret: pi.client_secret, customerSessionClientSecret };
+}
+
+async function findOrCreateCustomer({ userId, email, name }) {
+  if (email) {
+    const list = await stripe().customers.list({ email, limit: 20 });
+    const found = list.data.find((c) => c.metadata?.sunfood_user_id === userId);
+    if (found) return found.id;
+  }
+  const c = await stripe().customers.create({
+    email: email || undefined,
+    name: name || undefined,
+    metadata: { sunfood_user_id: userId },
   });
-  return { paymentIntentId: pi.id, clientSecret: pi.client_secret };
+  return c.id;
+}
+
+// Cartão salvo só pra compras com o cliente presente (on_session): o Sunfood
+// nunca cobra sozinho depois.
+async function createCustomerSession(customer) {
+  const cs = await stripe().customerSessions.create({
+    customer,
+    components: {
+      payment_element: {
+        enabled: true,
+        features: {
+          payment_method_save: "enabled",
+          payment_method_save_usage: "on_session",
+          payment_method_redisplay: "enabled",
+          payment_method_remove: "enabled",
+        },
+      },
+    },
+  });
+  return cs.client_secret;
 }
 
 // Titular do cartão: o nome vai também no billing_details (pelo app, no

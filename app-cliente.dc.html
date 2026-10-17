@@ -1405,7 +1405,7 @@ select{caret-color:auto}
                     <div onClick="{{ confirmCardInApp }}" class="btn btn-sun" style="opacity:{{ cardPayOpacity }}">{{ cardPayLabel }}</div>
                   </sc-if>
                   <sc-if value="{{ cardInApp }}" hint-placeholder-val="{{ false }}">
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Os dados do cartão são digitados em campos seguros do Stripe e não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Os dados do cartão são digitados em campos seguros do Stripe e não passam pelo Sunfood. Se você marcar para salvar, o cartão fica guardado no Stripe para as próximas compras. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
                   </sc-if>
                   <sc-if value="{{ cardRedirect }}" hint-placeholder-val="{{ true }}">
                     <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do {{ cardProviderName }} para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
@@ -5135,8 +5135,11 @@ class Component extends DCLogic {
       if(!this.stripe || this.stripeKey !== data.publishableKey){ this.stripe = StripeJs(data.publishableKey, {locale:'pt-BR'}); this.stripeKey = data.publishableKey; }
       const css = getComputedStyle(document.documentElement);
       const token = (name, fb) => (css.getPropertyValue(name) || '').trim() || fb;
+      // customerSessionClientSecret: mostra os cartões salvos do cliente e a
+      // caixa "salvar cartão" (os cartões ficam guardados só no Stripe).
       this.stripeElements = this.stripe.elements({
         clientSecret:data.clientSecret, locale:'pt-BR',
+        customerSessionClientSecret:data.customerSessionClientSecret || undefined,
         fonts:[{cssSrc:'https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap'}],
         appearance:{
           theme:'stripe',
@@ -5155,6 +5158,10 @@ class Component extends DCLogic {
       this.stripeCard = this.stripeElements.create('payment', {layout:'tabs', fields:{billingDetails:{address:'never'}},
         wallets:{applePay:'never', googlePay:'never'}});
       this.stripeCard.on('ready', () => this.setState({cardFormLoading:false}));
+      // Cartão salvo escolhido: o Stripe já tem os dados dele, então o
+      // confirmPayment vai sem payment_method_data (só vale pra cartão novo).
+      this.stripeSavedPm = false;
+      this.stripeCard.on('change', e => { this.stripeSavedPm = !!(e && e.value && e.value.payment_method); });
       this.stripeCard.on('loaderror', () => this.setState({cardFormLoading:false, cardErr:'Não foi possível carregar os campos do cartão. Tente de novo.'}));
       this.stripeCardMountedOn = null;
       this.ensureCardMounted();
@@ -5196,8 +5203,13 @@ class Component extends DCLogic {
       // O endereço não é pedido na tela (fields.billingDetails.address:'never'),
       // então o Stripe exige que ele venha aqui; sem isso confirmPayment lança erro.
       const address = {line1:'', line2:'', city:'', state:'', postal_code:'', country:'BR'};
-      const r = await this.stripe.confirmPayment({elements:this.stripeElements, redirect:'if_required',
-        confirmParams:{return_url:back, payment_method_data:{billing_details:{name, address}}}});
+      const withData = {return_url:back, payment_method_data:{billing_details:{name, address}}};
+      const confirm = confirmParams => this.stripe.confirmPayment({elements:this.stripeElements, redirect:'if_required', confirmParams});
+      let r;
+      if(this.stripeSavedPm){
+        // Se o Stripe.js ainda exigir o endereço com cartão salvo, tenta de novo com ele.
+        try { r = await confirm({return_url:back}); } catch(e){ r = await confirm(withData); }
+      } else r = await confirm(withData);
       if(r.error){
         const validation = r.error.type === 'validation_error';
         this.setState({cardErr:validation ? '' : (r.error.message || 'O pagamento não foi aprovado. Confira os dados ou use outro cartão.')});

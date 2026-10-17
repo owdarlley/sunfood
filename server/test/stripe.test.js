@@ -43,6 +43,8 @@ mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: fake, supabas
 const sessions = {};
 const refunds = [];
 const intents = {};
+const customers = [];
+const customerSessions = [];
 class FakeStripe {
   constructor(key) { this.key = key; }
   checkout = {
@@ -61,7 +63,7 @@ class FakeStripe {
     create: async (body) => {
       const id = "pi_teste_" + (Object.keys(intents).length + 2);
       const pix = body.payment_method_types[0] === "pix";
-      intents[id] = { id, client_secret: id + "_secret_x", amount: body.amount, amount_received: 0, metadata: body.metadata, body,
+      intents[id] = { id, client_secret: id + "_secret_x", amount: body.amount, amount_received: 0, metadata: body.metadata, body, customer: body.customer || null,
         status: pix ? "requires_action" : "requires_payment_method",
         next_action: pix ? { pix_display_qr_code: { data: "000201PIXSTRIPE", image_url_png: "https://qr.stripe.com/x.png", hosted_instructions_url: "https://payments.stripe.com/pix/x" } } : null };
       return intents[id];
@@ -70,6 +72,11 @@ class FakeStripe {
     update: async (id, body) => (Object.assign(intents[id].metadata, body.metadata), intents[id]),
   };
   refunds = { create: async (b) => (refunds.push(b), { id: "re_1", status: "succeeded" }) };
+  customers = {
+    list: async ({ email }) => ({ data: customers.filter((c) => c.email === email) }),
+    create: async (b) => { const c = { id: "cus_" + (customers.length + 1), ...b }; customers.push(c); return c; },
+  };
+  customerSessions = { create: async (b) => (customerSessions.push(b), { client_secret: "cuss_secret_" + customerSessions.length }) };
   webhooks = signer.webhooks;
 }
 mock.module("stripe", { defaultExport: FakeStripe });
@@ -169,7 +176,7 @@ test("campos no app: cria o PaymentIntent em reais e devolve só o client_secret
   const r = await api("POST", `/payments/card-intent/${ORDER2}`);
   assert.equal(r.status, 200, JSON.stringify(r.body));
   const id = Object.keys(intents)[0];
-  assert.deepEqual(r.body, { clientSecret: id + "_secret_x", publishableKey: "pk_test_123" });
+  assert.deepEqual(r.body, { clientSecret: id + "_secret_x", publishableKey: "pk_test_123", customerSessionClientSecret: "cuss_secret_1" });
   assert.equal(intents[id].body.currency, "brl");
   assert.equal(intents[id].body.amount, 4100);
   assert.equal(intents[id].metadata.order_id, ORDER2);
@@ -182,6 +189,19 @@ test("campos no app: voltar à tela reaproveita o mesmo PaymentIntent", async ()
   const r = await api("POST", `/payments/card-intent/${ORDER2}`);
   assert.equal(r.status, 200);
   assert.equal(Object.keys(intents).length, 1);
+});
+
+test("cartão salvo: um Customer por cliente, ligado ao PaymentIntent, salvar só on_session", async () => {
+  assert.equal(customers.length, 1, "não duplica o Customer ao voltar à tela");
+  assert.equal(customers[0].email, "ana@teste.com");
+  assert.equal(customers[0].metadata.sunfood_user_id, "ana");
+  assert.equal(Object.values(intents)[0].customer, "cus_1");
+  const f = customerSessions[1].components.payment_element;
+  assert.equal(customerSessions[1].customer, "cus_1");
+  assert.equal(f.enabled, true);
+  assert.equal(f.features.payment_method_save, "enabled");
+  assert.equal(f.features.payment_method_save_usage, "on_session");
+  assert.equal(f.features.payment_method_redisplay, "enabled");
 });
 
 test("campos no app: o navegador não aprova; só o webhook payment_intent.succeeded rebuscado na API", async () => {
