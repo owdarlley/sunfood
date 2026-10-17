@@ -100,7 +100,9 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
     }
     if (p === '/kiosk-settings/cancel-window') { db.kiosk.cancelWindowMinutes = body.minutes; return json(200, db.kiosk); }
     if (p === '/kiosk-settings') return json(200, db.kiosk);
-    if (p === '/orders/mine') return json(200, db.orders);
+    // Cliente vê os próprios estornos (valor, motivo, itens e quando), sem quem fez.
+    const withRefunds = o => o && ({ ...o, refunds: (db.refunds || []).filter(x => x.orderId === o.id).map(({ amount, reason, items, at }) => ({ amount, reason, items: items || [], at })) });
+    if (p === '/orders/mine') return json(200, db.orders.map(withRefunds));
     if (p === '/orders' && m === 'GET') return json(200, db.orders);
     if (p === '/orders' && m === 'POST') {
       if (db.orderDelayMs) await new Promise(res => setTimeout(res, db.orderDelayMs));
@@ -200,13 +202,13 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
       if (amount > 0) {
         o.refundedAmount = Math.round(((o.refundedAmount || 0) + amount) * 100) / 100;
         if (o.refundedAmount >= o.total) o.paymentStatus = 'refunded';
-        db.refunds = (db.refunds || []).concat({ orderId: o.id, amount, reason: body.reason, by: 'Admin Teste', at: now() });
+        db.refunds = (db.refunds || []).concat({ orderId: o.id, amount, reason: body.reason, items: body.cancel ? [] : body.items || [], by: 'Admin Teste', at: now() });
       }
       if (body.cancel) o.status = 'Cancelado';
       return json(200, { ...o, refundedNow: amount }); }
     if ((r = p.match(/^\/orders\/([^/]+)\/cancel$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = 'Cancelado'; return json(200, o); }
     if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now(); return json(200, o); }
-    if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, db.orders.find(o => o.id === r[1]));
+    if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, withRefunds(db.orders.find(o => o.id === r[1])));
     if ((r = p.match(/^\/products\/([^/]+)$/)) && m === 'PUT') { const pr = db.products.find(x => x.id === r[1]);
       db.lastProductBody = body;
       Object.assign(pr, { name: body.name, price: body.price, category: body.category, description: body.description },

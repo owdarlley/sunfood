@@ -2,10 +2,27 @@ import { supabaseAdmin } from "./supabase.js";
 import { needsRefund } from "./business-rules.js";
 import { refundPayment, PAYMENT_WINDOW_MINUTES } from "./payments/mercadopago.js";
 import { isStripePaymentId, refundStripePayment } from "./payments/stripe.js";
+import { recordRefund } from "./order-refunds.js";
 
+// Motivos que o cliente vê nos detalhes do pedido.
+export const CUSTOMER_CANCEL_REASON = "Você cancelou o pedido";
+export const LATE_PAYMENT_REASON = "O pagamento chegou depois que o pedido já tinha saído da fila";
+
+// Devolve tudo o que foi pago e anota no histórico de estornos do pedido.
 // Cartão pelo Stripe guarda o id do PaymentIntent (pi_...); o resto é Mercado Pago.
-const refundOrderPayment = (paymentId) =>
-  isStripePaymentId(paymentId) ? refundStripePayment(paymentId) : refundPayment(paymentId);
+export async function refundWholeOrder(row, paymentId, reason) {
+  const stripe = isStripePaymentId(paymentId);
+  const result = stripe
+    ? await refundStripePayment(paymentId, { metadata: { order_id: row.id, sunfood_reason: reason } })
+    : await refundPayment(paymentId);
+  await recordRefund(row.id, {
+    amount: Number(row.total),
+    reason,
+    provider: stripe ? "stripe" : "mercadopago",
+    refundId: result?.refundId,
+  });
+  return result;
+}
 
 // Cancela um pedido e, se ele já foi pago no app, devolve o dinheiro antes.
 // O estorno vem primeiro: se o Mercado Pago (ou o Stripe) recusar, nada muda e quem chamou
@@ -14,7 +31,7 @@ export async function cancelOrderWithRefund(row) {
   let refunded = false;
   if (needsRefund(row)) {
     try {
-      await refundOrderPayment(row.payment_id);
+      await refundWholeOrder(row, row.payment_id, CUSTOMER_CANCEL_REASON);
       refunded = true;
     } catch (e) {
       console.error("Erro ao estornar pagamento:", e);
@@ -30,7 +47,7 @@ export async function cancelOrderWithRefund(row) {
   if (rpcError) console.error("Pedido estornado mas não cancelado:", row.id, rpcError);
 
   if (refunded) {
-    await supabaseAdmin.from("orders").update({ payment_status: "refunded" }).eq("id", row.id);
+    await supabaseAdmin.from("orders").update({ payment_status: "refunded", refunded_amount: row.total }).eq("id", row.id);
   } else if (
     row.payment_method !== "entrega" &&
     (row.payment_status === "pending" || row.payment_provider === "provisorio")
