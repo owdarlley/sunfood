@@ -209,7 +209,7 @@ await step('fluxo do cliente', async () => {
   check('cliente: carrinho sem taxa de serviço (total = subtotal)', t.includes('R$ 50,00') && !t.includes('Taxa de serviço') && !t.includes('R$ 55,00'));
   await click(page, 'Ir para pagamento');
   t = await text(page);
-  check('cliente: aviso de mesas ativas vem do cadastro de mesas', t.includes('Mesas ativas: 1, 3 a 5.'), (t.match(/Mesas? ativas?:[^\n]*/) || [])[0]);
+  check('cliente: tela da mesa não lista as mesas ativas do quiosque', t.includes('plaquinha de madeira') && !/Mesas? ativas?:/.test(t));
   await page.getByLabel('Número da mesa', { exact: true }).fill('2');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa inativa é recusada', !(await text(page)).includes('Total do pedido · Mesa 2'));

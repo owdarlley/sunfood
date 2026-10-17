@@ -253,7 +253,7 @@ await step('cartão pelo Stripe (modo teste)', async () => {
     await page.setViewportSize(viewport); await page.waitForTimeout(400);
     await click(page, 'Cartão de crédito ou débito', true);
     let t = await text(page);
-    check(`stripe ${tela}: opção diz "À vista, pelo Stripe"`, t.includes('À vista, pelo Stripe'));
+    check(`stripe ${tela}: opção diz "À vista, no app"`, t.includes('À vista, no app') && !t.includes('pelo Stripe'));
     check(`stripe ${tela}: mostra o cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
     check(`stripe ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/pagamento-stripe-${tela}.png`, fullPage: true });
@@ -268,7 +268,7 @@ await step('cartão pelo Stripe (modo teste)', async () => {
       setup: db => { db.orders[0].paymentStatus = 'pending'; } });
     await back.waitForTimeout(800);
     t = await text(back);
-    check(`stripe ${tela}: na volta, espera a confirmação com o aviso de teste`, t.includes('Aguardando confirmação do pagamento') && t.includes('página segura do Stripe') && t.includes('4242'), t.slice(0, 300));
+    check(`stripe ${tela}: na volta, espera a confirmação com o aviso de teste`, t.includes('Aguardando confirmação do pagamento') && t.includes('página segura para digitar') && t.includes('4242'), t.slice(0, 300));
     if (SHOTS) await back.screenshot({ path: `${SHOTS}/cartao-stripe-${tela}.png`, fullPage: true });
     back.api.db.orders[0].paymentStatus = 'approved';
     await back.waitForTimeout(3500);
@@ -386,7 +386,7 @@ await step('PIX pelo Stripe (modo teste)', async () => {
     await ateOPagamento(page);
     await page.setViewportSize(viewport); await page.waitForTimeout(400);
     let t = await text(page);
-    check(`pix stripe ${tela}: cartão aparece como crédito ou débito, à vista`, t.includes('Cartão de crédito ou débito') && t.includes('À vista, pelo Stripe'));
+    check(`pix stripe ${tela}: cartão aparece como crédito ou débito, à vista`, t.includes('Cartão de crédito ou débito') && t.includes('À vista, no app'));
     await click(page, 'PIX', true);
     await click(page, 'Pagar R$');
     await page.waitForTimeout(600);

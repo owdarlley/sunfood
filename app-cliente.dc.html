@@ -941,8 +941,7 @@ select{caret-color:auto}
                     <div onClick="{{ signInWithGoogle }}" class="gbtn">
                       <svg viewBox="0 0 48 48" width="20" height="20" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
                     </div>
-                    <div class="muted" style="text-align:center;font-size:var(--fs-sm)">Equipe da cozinha e administração usam este mesmo login.</div>
-                  </div>
+                      </div>
                 </sc-if>
 
                 <sc-if value="{{ is_signup }}" hint-placeholder-val="{{ false }}">
@@ -1092,7 +1091,7 @@ select{caret-color:auto}
               <sc-if value="{{ is_menu }}" hint-placeholder-val="{{ false }}">
                 <div>
                   <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
-                    <div class="alert alert-warn" style="margin-bottom:20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B26B00" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"></circle><path d="M10 9v6M14 9v6"></path></svg><span>Quiosque pausado pelo Admin. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
+                    <div class="alert alert-warn" style="margin-bottom:20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B26B00" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"></circle><path d="M10 9v6M14 9v6"></path></svg><span>O quiosque não está recebendo pedidos agora. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
                   </sc-if>
                   <sc-if value="{{ menuDayClosed }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-warn" style="margin-bottom:20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B26B00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg><span>O quiosque já encerrou o dia. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
@@ -1323,7 +1322,7 @@ select{caret-color:auto}
                       <span class="pre"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M4 9c2-4 14-4 16 0z"></path></svg>Mesa</span>
                       <input placeholder="Número da mesa" id="mesaInp" value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" aria-label="Número da mesa">
                     </div>
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">O número está na plaquinha de madeira do guarda-sol. {{ activeTablesHint }}</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">O número está na plaquinha de madeira do guarda-sol.</div>
                   </div>
                   <sc-if value="{{ hasTableErr }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-err rise">{{ tableErr }}</div>
@@ -1331,7 +1330,6 @@ select{caret-color:auto}
                   <div>
                     <span class="lbl">Observação para a cozinha</span>
                     <input placeholder="Instruções para a cozinha" class="inp" value="{{ orderNote }}" onChange="{{ setOrderNote }}" aria-label="Observação para a cozinha">
-                    <div class="muted" style="font-size:13px;line-height:1.5;margin-top:8px">A cozinha vê esta observação junto com o pedido, somada às observações de cada item.</div>
                   </div>
                   <div class="card" style="padding:var(--cpad)">
                     <div class="sumrow"><span>{{ cartCountStr }}</span><span>{{ subtotalStr }}</span></div>
@@ -1391,7 +1389,7 @@ select{caret-color:auto}
                     <div class="alert alert-info" style="font-weight:500">Modo de teste: nada é cobrado. Para simular que o banco pagou, use o botão abaixo.</div>
                     <a href="{{ pixTestPayUrl }}" target="_blank" rel="noopener" class="btn btn-ghost" style="text-decoration:none">Simular pagamento do PIX</a>
                   </sc-if>
-                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola. A cozinha recebe o pedido assim que o pagamento for confirmado, automaticamente, sem precisar avisar aqui.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola.</div>
                 </div>
               </sc-if>
 
@@ -1427,10 +1425,10 @@ select{caret-color:auto}
                     <div onClick="{{ confirmCardInApp }}" class="btn btn-sun" style="opacity:{{ cardPayOpacity }}">{{ cardPayLabel }}</div>
                   </sc-if>
                   <sc-if value="{{ cardInApp }}" hint-placeholder-val="{{ false }}">
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Os dados do cartão são digitados em campos seguros do Stripe e não passam pelo Sunfood. Se você marcar para salvar, o cartão fica guardado no Stripe para as próximas compras. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Seus dados do cartão ficam protegidos e não passam pelo Sunfood.</div>
                   </sc-if>
                   <sc-if value="{{ cardRedirect }}" hint-placeholder-val="{{ true }}">
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do {{ cardProviderName }} para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para uma página segura para digitar os dados do cartão. Eles não passam pelo Sunfood.</div>
                     <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
                       <div onClick="{{ openCardCheckout }}" class="btn btn-ghost">Abrir o pagamento de novo</div>
                     </sc-if>
@@ -1621,7 +1619,7 @@ select{caret-color:auto}
                       </div>
                       <div class="card" style="padding:var(--cpad);border-color:#F0C2BC">
                         <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Excluir conta</div>
-                        <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:8px 0 12px">Seus dados pessoais são apagados (LGPD). Os pedidos continuam no histórico do quiosque, sem o seu nome.</p>
+                        <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:8px 0 12px">Seus dados pessoais são apagados (LGPD).</p>
                         <div onClick="{{ goDelete }}" class="btn btn-danger-ghost btn-sm" style="align-self:flex-start;display:inline-flex">Excluir minha conta</div>
                       </div>
                     </div>
@@ -1708,7 +1706,7 @@ select{caret-color:auto}
                   <div class="rise sf-dialog" role="alertdialog" aria-modal="true" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
                     <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
                     <div class="tt" style="font-size:var(--fs-h2)">Excluir sua conta?</div>
-                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Seu cadastro e seus dados pessoais serão apagados. Os pedidos já feitos ficam no caixa do quiosque, sem o seu nome. Esta ação não pode ser desfeita.</p>
+                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Seu cadastro e seus dados pessoais serão apagados. Esta ação não pode ser desfeita.</p>
                     <div onClick="{{ confirmDelete }}" class="btn btn-danger" style="width:100%">{{ deleteLabel }}</div>
                     <div onClick="{{ goProfile }}" class="btn btn-ghost" style="width:100%">Manter minha conta</div>
                   </div>
@@ -2136,7 +2134,6 @@ select{caret-color:auto}
                     </sc-if>
                   </div>
                 </div>
-                <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">Atendidos são os pedidos que o garçom lançou na mesa ou marcou como entregues, sem os cancelados. Valor total e ticket médio somam esses pedidos.</div>
               </div>
             </sc-if>
             <sc-if value="{{ wDelOpen }}" hint-placeholder-val="{{ false }}">
@@ -2144,7 +2141,7 @@ select{caret-color:auto}
                 <div class="rise sf-dialog" role="alertdialog" aria-modal="true" aria-label="Excluir garçom" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
                   <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
                   <div class="tt" style="font-size:var(--fs-h2)">Excluir {{ wDelName }}?</div>
-                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">A conta é apagada e não entra mais no Sunfood. Os pedidos que lançou ou entregou continuam no caixa e nos relatórios, só sem o nome do garçom. Esta ação não pode ser desfeita.</p>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">A conta é apagada. Os pedidos dele continuam nos relatórios. Esta ação não pode ser desfeita.</p>
                   <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:0">Para tirar o acesso só por um tempo, use Desativar.</p>
                   <div onClick="{{ confirmWaiterDelete }}" class="btn btn-danger" style="width:100%">{{ wDelLabel }}</div>
                   <div onClick="{{ cancelWaiterDelete }}" class="btn btn-ghost" style="width:100%">Manter garçom</div>
@@ -2427,7 +2424,7 @@ select{caret-color:auto}
                 </div>
               </div>
               <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-                <div><h2 style="margin:0">Localização do quiosque</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Aparece para o cliente em "Localização do quiosque". O mapa e o botão "Abrir no mapa" usam o endereço.</div></div>
+                <div><h2 style="margin:0">Localização do quiosque</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Aparece para o cliente na tela de localização.</div></div>
                 <div class="locform">
                   <div><label for="locNameInp" class="lbl">Nome do local</label><input placeholder="Nome exibido ao cliente" id="locNameInp" class="inp" value="{{ locNameInput }}" onChange="{{ setLocNameInput }}" maxlength="80" /></div>
                   <div class="wide"><label for="locAddressInp" class="lbl">Endereço</label><input placeholder="Rua, número, bairro, cidade e UF" id="locAddressInp" class="inp" value="{{ locAddressInput }}" onChange="{{ setLocAddressInput }}" maxlength="200" /></div>
@@ -2499,7 +2496,6 @@ select{caret-color:auto}
                       <div title="{{ b.tip }}" class="bar"><div class="bv" style="font-weight:700">{{ b.top }}</div><div style="{{ b.style }}"></div><div class="bl" style="font-size:12px">{{ b.lbl }}</div></div>
                     </sc-for>
                   </div>
-                  <div class="muted" style="font-size:13px;margin-top:12px">Número de pedidos por hora em que foram feitos.</div>
                 </div>
                 <div class="panel">
                   <h2>Mais vendidos no período</h2>
@@ -2880,7 +2876,6 @@ select{caret-color:auto}
                   </sc-for>
                 </div>
               </sc-if>
-              <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">Entregues e tempo médio contam os pedidos que você marcou como entregues. Lançados são os pedidos que você fez na mesa, sem os cancelados.</div>
             </div>
           </sc-if>
         </div>
@@ -3175,22 +3170,6 @@ function formatWhen(isoDatetime){
 function historyEntryFromApi(o){
   return {id:orderCode(o), when:formatWhen(o.createdAt), table:o.tableNumber, total:o.total, status:o.status,
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty}))};
-}
-
-// Lista as mesas ativas em faixas ("1 a 6, 8, 10 a 12") a partir do que
-// veio da API, em vez de um texto fixo que fica errado quando o Admin
-// ativa/desativa uma mesa.
-function activeTablesText(tables){
-  const nums = tables.filter(t => t.active).map(t => t.n).sort((a, b) => a - b);
-  if(!nums.length) return 'Nenhuma mesa ativa no momento.';
-  const parts = [];
-  for(let i = 0; i < nums.length; i++){
-    let j = i;
-    while(j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
-    parts.push(j > i ? nums[i] + ' a ' + nums[j] : String(nums[i]));
-    i = j;
-  }
-  return (nums.length === 1 ? 'Mesa ativa: ' : 'Mesas ativas: ') + parts.join(', ') + '.';
 }
 
 function minutesAgo(isoDatetime){
@@ -5018,7 +4997,7 @@ class Component extends DCLogic {
       this.setState({loginErr:''});
       this.startSession(data.token, data.user, data.refreshToken);
     } catch(e){
-      this.setState({loginErr:'Falha de conexão com o servidor. Confira se a API está rodando.'});
+      this.setState({loginErr:'Sem conexão. Confira sua internet e tente de novo.'});
     } finally {
       this.setState({busy:null});
     }
@@ -5229,7 +5208,7 @@ class Component extends DCLogic {
   }
 
   addToCart(p, qty, note){
-    if(p.soldOut) return this.flash('Item indisponível — sinalizado pela cozinha.');
+    if(p.soldOut) return this.flash('Esse item acabou no momento.');
     this.setState(s => {
       const i = s.cart.findIndex(c => c.id === p.id && c.note === (note || ''));
       const cart = s.cart.slice();
@@ -5755,19 +5734,18 @@ class Component extends DCLogic {
     v.minOk = this.subtotal() >= s.minOrder;
     v.minWarnText = 'Pedido mínimo de ' + f(s.minOrder) + '.';
     v.minWarn = !v.minOk && v.hasCart;
-    v.goTable = () => { if(s.paused) return this.flash('Quiosque pausado no Admin — não é possível fechar o pedido.'); if(s.dayClosed) return this.flash('O quiosque já encerrou o dia — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
+    v.goTable = () => { if(s.paused) return this.flash('O quiosque não está recebendo pedidos agora.'); if(s.dayClosed) return this.flash('O quiosque já encerrou o dia — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
 
     // table
     v.tableInput = s.tableInput; v.tableErr = s.tableErr; v.hasTableErr = !!s.tableErr;
     v.setTable = e => this.setState({tableInput:e.target.value.replace(/\D/g, '').slice(0, 3), tableErr:''});
     v.tableFilled = s.tableInput.length > 0;
-    v.activeTablesHint = activeTablesText(s.tables);
     v.confirmTable = () => {
       if(!s.tableInput) return this.setState({tableErr:'Digite o número da sua mesa.'});
       const n = parseInt(s.tableInput, 10);
       const t = s.tables.find(x => x.n === n);
       if(!t) return this.setState({tableErr:'Mesa ' + s.tableInput + ' não existe' + (s.tables.length ? ' (o quiosque tem mesas de 1 a ' + s.tables.length + ')' : '') + '. Confira a plaquinha do guarda-sol.'});
-      if(!t.active) return this.setState({tableErr:'Mesa ' + n + ' está inativa no Admin. Procure um atendente.'});
+      if(!t.active) return this.setState({tableErr:'A mesa ' + n + ' não está recebendo pedidos agora. Procure um atendente.'});
       this.setState({table:n, tableErr:'', screen:'payment'});
     };
     v.tableStr = s.table ? String(s.table) : '—';
@@ -5779,7 +5757,7 @@ class Component extends DCLogic {
     v.cardTestMode = !!s.cardTestMode;
     v.cardTestText = 'Modo de teste: nada é cobrado. Crédito: 4242 4242 4242 4242. Débito: 4000 0566 5566 5556. Qualquer validade futura e qualquer CVC.';
     v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
-                 ['cartao','Cartão de crédito ou débito','À vista, pelo ' + v.cardProviderName,'card','#1F3B6B'],
+                 ['cartao','Cartão de crédito ou débito','À vista, no app','card','#1F3B6B'],
                  ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']]
       .map(([k, nm, sub, ic]) => ({
       nm, sub, icPath:UI[ic],
@@ -5842,8 +5820,8 @@ class Component extends DCLogic {
       : '';
     v.hasCancelHint = !!v.cancelHint;
     v.cancelBlockedMsg = o && o.status === 'Na Fila' && deadlinePassed
-      ? 'O prazo para cancelar pelo app já passou. O quiosque permite cancelar só nos primeiros minutos depois do pedido.'
-      : 'O status do pedido é ' + (o ? o.status : '—') + '. Depois que a cozinha começa o preparo, o cancelamento pelo app é bloqueado.';
+      ? 'O prazo para cancelar pelo app já passou. Fale com um atendente.'
+      : 'Seu pedido já está sendo preparado e não pode mais ser cancelado pelo app.';
     const payOnDelivery = !!o && o.paymentMethod === 'entrega';
     // PIX/cartão provisório (sem Mercado Pago) não cobrou nada, então não há estorno.
     const paidInApp = !!o && !payOnDelivery && o.paymentStatus === 'approved' && o.paymentProvider !== 'provisorio';
@@ -5854,11 +5832,11 @@ class Component extends DCLogic {
     v.refundStr = paidInApp ? v.orderTotalStr : 'Nada a estornar';
     v.refundEta = paidInApp ? 'até 2 dias úteis' : '—';
     v.cancelAskMsg = paidInApp
-      ? 'Ao confirmar, o pedido sai da fila da cozinha e o valor é estornado no mesmo meio de pagamento.'
-      : 'Ao confirmar, o pedido sai da fila da cozinha. Nada foi cobrado, então não há estorno.';
+      ? 'Ao confirmar, o pedido é cancelado e o valor é estornado no mesmo meio de pagamento.'
+      : 'Ao confirmar, o pedido é cancelado. Nada foi cobrado, então não há estorno.';
     v.cancelDoneMsg = !o ? '' : o.paymentStatus === 'refunded'
-      ? o.id + ' saiu da fila da cozinha. O estorno de ' + v.orderTotalStr + ' já foi solicitado.'
-      : o.id + ' saiu da fila da cozinha.';
+      ? 'Seu pedido ' + o.id + ' foi cancelado. O estorno de ' + v.orderTotalStr + ' já foi solicitado.'
+      : 'Seu pedido ' + o.id + ' foi cancelado.';
     v.etaStr = o ? (o.status === 'Pronto' ? 'Pronto para retirada' : o.status === 'Em Preparo' ? '~7 min' : '~15 min') : '~15 min';
     const stages = ['Na Fila','Em Preparo','Pronto'];
     const ci = o ? stages.indexOf(o.status) : 0;
@@ -5962,8 +5940,8 @@ class Component extends DCLogic {
       payments:'O que entrou e o que falta receber',
       messages:'Recebidas pelo Fale conosco do site',
       productForm:s.products.length + ' produtos · ' + s.products.filter(p => p.soldOut).length + ' esgotado(s)',
-      tables:'Regras que valem para todos os pedidos, conferidas no servidor',
-      pause:'Regras que valem para todos os pedidos, conferidas no servidor',
+      tables:'Regras que valem para todos os pedidos',
+      pause:'Regras que valem para todos os pedidos',
       reports:'Vendas, mais vendidos e horários de pico',
       perfOps:'Hoje, atualizado sozinho',
       waiters:'Contas da equipe que entrega os pedidos',
