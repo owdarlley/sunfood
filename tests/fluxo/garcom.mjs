@@ -242,7 +242,7 @@ await step('admin página do garçom e excluir', async () => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.locator('.wd-acts .btn', { hasText: 'Excluir' }).click(); await page.waitForTimeout(400);
   t = await text(page);
-  check('excluir: pede confirmação numa janela', t.includes('Excluir Carlos Souza?') && t.includes('continuam no caixa') && !page.api.db.deletedWaiter);
+  check('excluir: pede confirmação numa janela', t.includes('Excluir Carlos Souza?') && t.includes('continuam nos relatórios') && !page.api.db.deletedWaiter);
   await click(page, 'Manter garçom', true);
   check('excluir: "Manter garçom" fecha sem excluir', !(await text(page)).includes('Excluir Carlos Souza?') && !page.api.db.deletedWaiter);
   await page.locator('.wd-acts .btn', { hasText: 'Excluir' }).click(); await page.waitForTimeout(400);
