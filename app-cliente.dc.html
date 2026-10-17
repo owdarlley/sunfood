@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -847,6 +847,7 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
 /* Estados: hover, toque, foco (teclado) e desabilitado iguais aos do login. */
 .btn,.addbtn,.kz-act,.kz-btn,.toplink,.cartpill,.backbtn,.mesachip{transition:background .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease),box-shadow .15s var(--ease),transform .1s var(--ease)}
 .btn:focus-visible,.addbtn:focus-visible,.kz-act:focus-visible,.kz-btn:focus-visible,.toplink:focus-visible,.cartpill:focus-visible,.backbtn:focus-visible,.adm-item:focus-visible,.pcard:focus-visible,.link:focus-visible,.adm-menubtn:focus-visible{outline:none;box-shadow:var(--focus)}
+[data-sf-click]:where(:focus-visible){outline:2px solid var(--brand);outline-offset:2px}
 .kz-act:active,.kz-btn:active,.backbtn:active,.cartpill:active,.toplink:active{transform:scale(.98)}
 .btn[aria-disabled="true"],.btn.is-disabled,.kz-act[aria-disabled="true"]{opacity:.5;cursor:not-allowed;pointer-events:none}
 .card{transition:box-shadow .2s var(--ease),border-color .2s var(--ease)}
@@ -949,13 +950,13 @@ select{caret-color:auto}
                         <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                       </div>
                     </div>
-                    <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}"></div>
+                    <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento"></div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
                       <div><span class="lbl">Senha</span><input placeholder="Mínimo de 6 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha"></div>
                       <div><span class="lbl">Confirmar senha</span><input placeholder="Digite a senha novamente" class="inp" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" aria-label="Confirmar senha"></div>
                     </div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
-                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
+                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" aria-label="Li e aceito os Termos de Uso e a Política de Privacidade" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
                       <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
@@ -1018,9 +1019,9 @@ select{caret-color:auto}
                         <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
                       </div>
                     </div>
-                    <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}"></div>
+                    <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento"></div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
-                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
+                      <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" aria-label="Li e aceito os Termos de Uso e a Política de Privacidade" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
                       <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
                     </div>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
@@ -1119,7 +1120,7 @@ select{caret-color:auto}
                                   <div onClick="{{ p.add }}" class="addbtn" aria-label="Adicionar ao pedido"><span class="plus">+</span><span class="lbltxt">Adicionar</span></div>
                                 </sc-if>
                                 <sc-if value="{{ p.inCart }}" hint-placeholder-val="{{ false }}">
-                                  <div onClick="{{ stopProp }}" class="stepper" style="background:#E6EFF0">
+                                  <div onClick="{{ stopProp }}" class="stepper" role="group" aria-label="Quantidade" data-sf-skip="" style="background:#E6EFF0">
                                     <span onClick="{{ p.remove }}" class="sb" aria-label="Remover um">−</span>
                                     <span class="sq">{{ p.qty }}</span>
                                     <span onClick="{{ p.add }}" class="sb on" aria-label="Adicionar mais um">+</span>
@@ -1139,6 +1140,9 @@ select{caret-color:auto}
                             <div class="pcard sk"><div class="pimg sk-box"></div><div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:12px"><div class="sk-box" style="height:16px;width:70%;border-radius:8px"></div><div class="sk-box" style="height:12px;width:90%;border-radius:8px"></div><div class="sk-box" style="height:20px;width:40%;border-radius:8px;margin-top:8px"></div></div></div>
                           </sc-for>
                         </div>
+                      </sc-if>
+                      <sc-if value="{{ catalogError }}" hint-placeholder-val="{{ false }}">
+                        <div class="card" role="alert" style="padding:40px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px"><div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Não conseguimos carregar o cardápio</div><div class="muted">Confira sua internet e tente de novo.</div><div onClick="{{ retryCatalog }}" class="btn btn-sun" style="margin-top:8px;min-width:200px">Tentar de novo</div></div>
                       </sc-if>
                       <sc-if value="{{ noMenuItems }}" hint-placeholder-val="{{ false }}">
                         <div class="card" style="padding:40px 20px;text-align:center" ><div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Nada encontrado</div><div class="muted" style="margin-top:8px">Tente outra palavra ou outra categoria.</div></div>
@@ -1657,11 +1661,11 @@ select{caret-color:auto}
                     <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" class="inp" autocomplete="name" value="{{ meName }}" onChange="{{ setMeName }}" aria-label="Nome completo"></div>
                     <div class="form-2col">
                       <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" class="inp" type="tel" autocomplete="tel" value="{{ mePhone }}" onChange="{{ setMePhone }}" aria-label="WhatsApp / telefone"></div>
-                      <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ meBirth }}" onChange="{{ setMeBirth }}"></div>
+                      <div><span class="lbl">Data de nascimento</span><input class="inp" type="date" value="{{ meBirth }}" onChange="{{ setMeBirth }}" aria-label="Data de nascimento"></div>
                     </div>
                     <div class="form-2col">
-                      <div><span class="lbl">E-mail</span><input class="inp" value="{{ profileEmail }}" disabled="disabled" style="background:#F7F5F0;color:#55626A"></div>
-                      <div><span class="lbl">CPF</span><input class="inp" value="{{ meCpf }}" disabled="disabled" style="background:#F7F5F0;color:#55626A"></div>
+                      <div><span class="lbl">E-mail</span><input class="inp" value="{{ profileEmail }}" disabled="disabled" aria-label="E-mail" style="background:#F7F5F0;color:#55626A"></div>
+                      <div><span class="lbl">CPF</span><input class="inp" value="{{ meCpf }}" disabled="disabled" aria-label="CPF" style="background:#F7F5F0;color:#55626A"></div>
                     </div>
                     <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:0">E-mail e CPF não mudam por aqui. Se precisar trocar, fale com o quiosque pelo Fale conosco.</p>
                     <sc-if value="{{ hasMeErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ meErr }}</div></sc-if>
@@ -2845,55 +2849,8 @@ const photoSrc = p => (p && p.photo) || '';
 const photoBg = (p, base) => (base || 'width:100%;height:100%;') +
   'background-image:url("' + photoSrc(p) + '");background-size:cover;background-position:center;display:block';
 
-const PRODUCTS = [
-  {id:'p1',cat:'Bebidas',name:'Água de Coco Gelada',desc:'Fresquinha, direto do coco',price:8,mark:'coco',soldOut:false,
-   long:'Coco verde aberto na hora, servido no próprio casco com canudo de bambu. Sem açúcar adicionado.',
-   porcao:'≈ 400 ml', tempo:'2 min', kcal:'80 kcal', nota:'4,9', avaliacoes:'214',
-   ingredientes:'Água de coco natural.',
-   tags:[['Natural','#E5F7EA','#1E6B36'],['Sem açúcar','#E5F7EA','#1E6B36'],['Vegano','#EFEBFF','#7C5CFF']]},
-
-  {id:'p2',cat:'Bebidas',name:'Caipirinha de Limão',desc:'Cachaça, limão e gelo',price:22,mark:'caipirinha',soldOut:false,
-   long:'Limão taiti macerado na hora com açúcar e cachaça artesanal, servido com gelo picado.',
-   porcao:'300 ml', tempo:'4 min', kcal:'210 kcal', nota:'4,8', avaliacoes:'126',
-   ingredientes:'Cachaça, limão taiti, açúcar, gelo.',
-   tags:[['Alcoólico','#FDECEA','#B42318'],['Feito na hora','#EFEBFF','#7C5CFF'],['+18','#FFF3DE','#B0791A']]},
-
-  {id:'p3',cat:'Bebidas',name:'Cerveja Zero Long Neck',desc:'Sem álcool, gelada, 355 ml',price:12,mark:'cerveja',soldOut:false,
-   long:'Cerveja não alcoólica de malte puro, servida direto do freezer com a garrafa suada.',
-   porcao:'355 ml', tempo:'1 min', kcal:'95 kcal', nota:'4,6', avaliacoes:'88',
-   ingredientes:'Água, malte de cevada, lúpulo.',
-   tags:[['Sem álcool','#E5F7EA','#1E6B36'],['Gelada','#EFEBFF','#7C5CFF']]},
-
-  {id:'p4',cat:'Lanches',name:'Wrap de Frango Grelhado',desc:'Frango, alface e molho da casa',price:28,mark:'wrap',soldOut:false,
-   long:'Tortilla grelhada na chapa com frango temperado, alface, tomate, cebola roxa, abacate e molho da casa.',
-   porcao:'2 metades · 280 g', tempo:'12 min', kcal:'520 kcal', nota:'4,7', avaliacoes:'163',
-   ingredientes:'Tortilla de trigo, frango, alface, tomate, cebola roxa, abacate, maionese temperada.',
-   tags:[['Contém glúten','#FFF3DE','#B0791A'],['Feito na hora','#EFEBFF','#7C5CFF']]},
-
-  {id:'p5',cat:'Lanches',name:'Batata Rústica c/ Cheddar',desc:'Porção com bacon crocante',price:24,mark:'batata',soldOut:false,
-   long:'Batata rústica frita, coberta com cheddar derretido e lascas de bacon crocante. Serve duas pessoas.',
-   porcao:'400 g · serve 2', tempo:'15 min', kcal:'780 kcal', nota:'4,9', avaliacoes:'201',
-   ingredientes:'Batata, queijo cheddar, bacon, sal, azeite.',
-   tags:[['Contém lactose','#FFF3DE','#B0791A'],['Serve 2','#EFEBFF','#7C5CFF']]},
-
-  {id:'p6',cat:'Pratos',name:'Porção de Camarão',desc:'Camarão empanado, 300 g',price:58,mark:'camarao',soldOut:false,
-   long:'Camarão rosa empanado em panko, frito na hora e servido com molho rosé da casa.',
-   porcao:'300 g · 8 unidades', tempo:'18 min', kcal:'610 kcal', nota:'4,8', avaliacoes:'147',
-   ingredientes:'Camarão, farinha panko, ovo, molho rosé, salsinha.',
-   tags:[['Frutos do mar','#FFF3DE','#B0791A'],['Contém glúten','#FFF3DE','#B0791A'],['Feito na hora','#EFEBFF','#7C5CFF']]},
-
-  {id:'p7',cat:'Pratos',name:'Peixe Frito com Pirão',desc:'Serve 2 pessoas',price:72,mark:'peixe',soldOut:true,
-   long:'Peixe inteiro frito na hora, com pirão cremoso, limão e farofa. Prato para dividir.',
-   porcao:'≈ 900 g · serve 2', tempo:'28 min', kcal:'890 kcal', nota:'4,9', avaliacoes:'96',
-   ingredientes:'Peixe branco, farinha de mandioca, limão, cebola roxa, coentro, azeite.',
-   tags:[['Frutos do mar','#FFF3DE','#B0791A'],['Sem glúten','#E5F7EA','#1E6B36'],['Serve 2','#EFEBFF','#7C5CFF']]},
-
-  {id:'p8',cat:'Sobremesas',name:'Açaí na Tigela',desc:'Banana, granola e mel',price:19,mark:'acai',soldOut:false,
-   long:'Açaí batido na hora, servido na tigela com banana fatiada, granola, coco em lascas e fio de mel.',
-   porcao:'400 ml', tempo:'6 min', kcal:'430 kcal', nota:'4,8', avaliacoes:'188',
-   ingredientes:'Polpa de açaí, banana, granola, coco ralado, mel.',
-   tags:[['Vegetariano','#E5F7EA','#1E6B36'],['Contém glúten','#FFF3DE','#B0791A'],['Gelado','#EFEBFF','#7C5CFF']]}
-];
+// Produto vazio para a tela de detalhe enquanto o cardápio não chegou.
+const BLANK_PRODUCT = {id:'', cat:'', name:'', desc:'', price:0, soldOut:false, tags:[]};
 
 // API real (Fase 1): o front continua estático, mas agora fala com um backend
 // de verdade (Node/Express + SQLite) rodando localmente durante o desenvolvimento.
@@ -3431,6 +3388,18 @@ const STAFF_HOME = {
 };
 const STAFF_MODULES = ['admin','cozinha','garcom'];
 
+// Voltar do celular/APK: cada troca de tela vira uma entrada no histórico do
+// navegador (?module=…&screen=…). As telas abaixo substituem a anterior, para
+// o voltar não cair de novo num pagamento já feito ou num pedido cancelado.
+const ROUTE_REPLACE = ['confirm','payFail','cancelDone'];
+const AUTH_SCREENS = ['login','signup','forgot','completeProfile'];
+// Telas que só fazem sentido com um pedido aberto ou com itens no carrinho.
+const NEEDS_ORDER = ['status','confirm','pix','card','cancelAsk','cancelBlocked'];
+const NEEDS_CART = ['cart','table','payment'];
+// Carrinho guardado no aparelho (recarregar ou voltar não perde o pedido).
+const CART_KEY = 'sunfood_cart';
+const CART_TTL = 3 * 60 * 60 * 1000;
+
 // Nome que aparece na guia do navegador: "Sunfood · <tela>". Sem isto a guia
 // mostrava o endereço (app-cliente.dc.html?module=...).
 const TAB_TITLES = {
@@ -3500,7 +3469,7 @@ class Component extends DCLogic {
     token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'',
     fpEmail:'', fpCpf:'', fpMode:'email', fpSentTo:'', fpSent:false, fpErr:'',
-    cat:'Todos', menuSearch:'', products:PRODUCTS.map(p => Object.assign({}, p)),
+    cat:'Todos', menuSearch:'', products:[], catalogError:false,
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
     payMethod:'pix', cardWaiting:false,
@@ -3567,7 +3536,106 @@ class Component extends DCLogic {
   };
 
 
+  // Tela que de fato aparece: sem pedido aberto, as telas do pedido mostram o
+  // histórico; sem itens, as do carrinho mostram o carrinho vazio. Assim um
+  // link, o voltar ou a recarga nunca mostram "Pagamento aprovado" ou "R$ 0,00".
+  guardScreen(s){
+    if(s.module !== 'cliente') return s.screen;
+    const semPedido = s.history && s.history.length ? 'history' : 'historyEmpty';
+    if(NEEDS_ORDER.indexOf(s.screen) >= 0 && !s.order) return semPedido;
+    if(NEEDS_CART.indexOf(s.screen) >= 0 && !s.cart.length) return 'cartEmpty';
+    if(s.screen === 'product' && !s.catalogPending && !s.products.some(p => p.id === s.selId)) return 'menu';
+    if(s.screen === 'orderDetail' && !(s.history && s.history[s.histSel])) return semPedido;
+    return s.screen;
+  }
+
+  // Põe a tela atual no endereço e no histórico do navegador.
+  syncRoute(){
+    const s = this.state;
+    if(!s.module || !SCREENS[s.module]) return;
+    const key = s.module + '|' + s.screen;
+    if(key === this._route) return;
+    const prev = this._route;
+    this._route = key;
+    // Login, cadastro e afins ficam no endereço que já estão.
+    if(s.module === 'cliente' && AUTH_SCREENS.indexOf(s.screen) >= 0) return;
+    const q = new URLSearchParams(window.location.search);
+    if(q.get('module') === s.module && q.get('screen') === s.screen) return;
+    const url = window.location.pathname + '?module=' + s.module + '&screen=' + s.screen;
+    const prevScreen = prev ? prev.split('|')[1] : '';
+    const replace = !prev || ROUTE_REPLACE.indexOf(s.screen) >= 0 || AUTH_SCREENS.indexOf(prevScreen) >= 0;
+    try { history[replace ? 'replaceState' : 'pushState'](null, '', url); } catch(e){}
+  }
+
+  // Carrinho, mesa e observação guardados no aparelho, por conta.
+  saveCart(){
+    const s = this.state;
+    if(s.module !== 'cliente' || !s.token || !s.authUser) return;
+    if(s.cart === this._savedCart && s.table === this._savedTable && s.orderNote === this._savedNote) return;
+    this._savedCart = s.cart; this._savedTable = s.table; this._savedNote = s.orderNote;
+    try {
+      if(!s.cart.length) localStorage.removeItem(CART_KEY);
+      else localStorage.setItem(CART_KEY, JSON.stringify({user:s.authUser.id, at:Date.now(), cart:s.cart, table:s.table, orderNote:s.orderNote || '', pending:this.pendingOnline || null}));
+    } catch(e){}
+  }
+
+  restoreCart(user){
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(CART_KEY) || 'null'); } catch(e){}
+    if(!saved || !Array.isArray(saved.cart) || !saved.cart.length) return;
+    if(saved.user !== user.id || Date.now() - saved.at > CART_TTL){ try { localStorage.removeItem(CART_KEY); } catch(e){} return; }
+    // Pedido de PIX/cartão ainda não pago: tentar de novo reaproveita ou cancela esse pedido.
+    if(saved.pending && saved.pending.id) this.pendingOnline = saved.pending;
+    this.setState({cart:saved.cart, table:saved.table || null, orderNote:saved.orderNote || ''}, () => this.dropUnavailableFromCart());
+  }
+
+  componentDidUpdate(){
+    this.syncRoute();
+    this.saveCart();
+  }
+
   componentDidMount(){
+    // Voltar/avançar do navegador (e o voltar do Android no APK) troca de tela.
+    this._onPop = () => {
+      const q = new URLSearchParams(window.location.search);
+      const mod = q.get('module'), scr = q.get('screen');
+      if(!this.state.token || !mod || !SCREENS[mod] || !SCREENS[mod].some(x => x[0] === scr)) return;
+      if(mod !== this.state.module && STAFF_MODULES.indexOf(mod) >= 0) return;
+      this._route = mod + '|' + scr;
+      this.go(scr, mod);
+    };
+    window.addEventListener('popstate', this._onPop);
+    // Teclado e leitor de tela: o que é clicável e não é botão de verdade
+    // (div/span com onClick) vira "botão": entra no Tab, é anunciado como
+    // botão e responde a Enter e Espaço. Quem já tem um link ou campo dentro
+    // (ex.: o texto dos termos) fica de fora para não duplicar o foco.
+    const NATIVO = 'a[href],button,input,select,textarea,summary,label';
+    let propsKey = null;
+    const marcar = () => {
+      const els = document.body.getElementsByTagName('*');
+      for(let i = 0; i < els.length; i++){
+        const el = els[i];
+        if(el.hasAttribute('data-sf-click') || el.hasAttribute('data-sf-skip') || el.matches(NATIVO)) continue;
+        if(!propsKey) propsKey = Object.keys(el).find(k => k.indexOf('__reactProps$') === 0) || null;
+        const props = propsKey && el[propsKey];
+        if(!props || typeof props.onClick !== 'function' || el.querySelector(NATIVO)) continue;
+        el.setAttribute('data-sf-click', '');
+        if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+        if(!el.hasAttribute('role')) el.setAttribute('role', 'button');
+      }
+    };
+    let a11yRaf = 0;
+    this._a11yObs = new MutationObserver(() => { if(!a11yRaf) a11yRaf = requestAnimationFrame(() => { a11yRaf = 0; marcar(); }); });
+    this._a11yObs.observe(document.body, {childList:true, subtree:true});
+    requestAnimationFrame(marcar);
+    this._a11yKey = e => {
+      if(e.key !== 'Enter' && e.key !== ' ') return;
+      const t = e.target;
+      if(!t || !t.hasAttribute || !t.hasAttribute('data-sf-click')) return;
+      e.preventDefault();
+      t.click();
+    };
+    document.addEventListener('keydown', this._a11yKey);
     // O navegador bloqueia som até a pessoa tocar na tela: no primeiro toque
     // (ou tecla) o áudio é liberado, sem precisar ligar o som de novo.
     this._unlockAudio = () => this.unlockAudio();
@@ -3654,6 +3722,7 @@ class Component extends DCLogic {
       this.setState({module:'cliente', screen:'menu'});
     }
     if(saved.user.role === 'cliente'){
+      this.restoreCart(saved.user);
       this.loadHistory(saved.token);
       // Abriu direto na tela Perfil (ex.: recarregou a página nela).
       if(mod === 'cliente' && ['profile','editProfile'].indexOf(rota.get('screen')) >= 0) setTimeout(() => this.loadProfile(rota.get('screen') === 'editProfile'), 0);
@@ -4022,7 +4091,7 @@ class Component extends DCLogic {
         fetch(API_BASE + '/tables'),
         fetch(API_BASE + '/kiosk-settings')
       ]);
-      if(!productsRes.ok || !tablesRes.ok || !kioskRes.ok) return this.setState({catalogPending:false});
+      if(!productsRes.ok || !tablesRes.ok || !kioskRes.ok) return this.setState(st => ({catalogPending:false, catalogError:!st.products.length}));
       const [products, tables, kiosk] = await Promise.all([productsRes.json(), tablesRes.json(), kioskRes.json()]);
       const catalog = {
         products: products.map(apiProductToState),
@@ -4034,10 +4103,10 @@ class Component extends DCLogic {
       const categories = await categoriesReq;
       if(Array.isArray(categories) && categories.length) catalog.categories = categories.map(c => ({name:c.name, color:c.color}));
       saveCatalogCache(catalog);
-      this.setState(Object.assign({catalogPending:false}, catalog), () => this.dropUnavailableFromCart());
+      this.setState(Object.assign({catalogPending:false, catalogError:false}, catalog), () => this.dropUnavailableFromCart());
     } catch(e){
-      // API fora do ar: mostra o que já tinha (guardado ou de exemplo).
-      this.setState({catalogPending:false});
+      // API fora do ar: mostra o cardápio guardado no aparelho; sem ele, o aviso de erro.
+      this.setState(st => ({catalogPending:false, catalogError:!st.products.length}));
     }
   }
 
@@ -4059,6 +4128,8 @@ class Component extends DCLogic {
   // Tira do carrinho o que ficou indisponível (ou saiu do cardápio) e avisa.
   dropUnavailableFromCart(){
     const s = this.state;
+    // Sem cardápio carregado não dá para saber o que acabou: não mexe no carrinho.
+    if(!s.products.length) return;
     const ok = id => s.products.some(p => p.id === id && !p.soldOut);
     const gone = s.cart.filter(c => !ok(c.id));
     const leaveProduct = s.screen === 'product' && !ok(s.selId);
@@ -4811,7 +4882,7 @@ class Component extends DCLogic {
   // Sair (de qualquer perfil) volta para a tela de login do endereço principal
   // (index.html), a mesma que aparece ao abrir o site.
   logout(aviso){
-    try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+    try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(CART_KEY); } catch(e){}
     // Admin/cozinha/garçom não têm uma tela de login própria dentro do app:
     // sair manda de volta para a tela de login do endereço principal (index.html).
     if(STAFF_MODULES.indexOf(this.state.module) >= 0){ window.location.href = 'index.html'; return; }
@@ -4869,7 +4940,7 @@ class Component extends DCLogic {
       });
       const data = await res.json().catch(() => ({}));
       if(!res.ok){ this.flash(data.error || 'Não foi possível excluir a conta.'); return; }
-      try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+      try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(CART_KEY); } catch(e){}
       this.irParaLogin('Conta excluída.', true);
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
@@ -4958,7 +5029,7 @@ class Component extends DCLogic {
     this.setState({module:mod, screen});
   }
 
-  componentWillUnmount(){ clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('popstate', this._onPop); document.removeEventListener('keydown', this._a11yKey); if(this._a11yObs) this._a11yObs.disconnect(); clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
   go(screen, module){
@@ -5032,7 +5103,7 @@ class Component extends DCLogic {
         return null;
       }
       if(paymentMethod === 'entrega') this.setState({order:orderFromApi(data), cart:[], orderNote:''});
-      else { this.pendingOnline = {id:data.id, key, data}; this.setState({order:orderFromApi(data)}); }
+      else { this.pendingOnline = {id:data.id, key, data}; this._savedCart = null; this.setState({order:orderFromApi(data)}); }
       return data;
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
@@ -5276,7 +5347,8 @@ class Component extends DCLogic {
   }
 
   renderVals(){
-    const s = this.state, f = n => this.fmt(n);
+    const s0 = this.state, scr = this.guardScreen(s0);
+    const s = scr === s0.screen ? s0 : Object.assign({}, s0, {screen:scr}), f = n => this.fmt(n);
     const v = {};
     Object.keys(SCREENS).forEach(m => SCREENS[m].forEach(([k]) => { v['is_' + k] = s.screen === k; }));
     v.isCliente = s.module === 'cliente';
@@ -5382,7 +5454,9 @@ class Component extends DCLogic {
       add:e => { e.stopPropagation(); this.addToCart(p, 1, ''); },
       remove:e => { e.stopPropagation(); this.removeOneFromCart(p.id); }
     };});
-    v.noMenuItems = !s.catalogPending && v.menuItems.length === 0;
+    v.catalogError = !s.catalogPending && !!s.catalogError && !s.products.length;
+    v.noMenuItems = !s.catalogPending && !v.catalogError && v.menuItems.length === 0;
+    v.retryCatalog = () => { this.setState({catalogPending:true, catalogError:false}); this.loadCatalog(); };
     v.paused = s.paused;
     v.menuDayClosed = s.dayClosed && !s.paused;
     v.cartCount = s.cart.reduce((a, c) => a + c.qty, 0);
@@ -5398,7 +5472,7 @@ class Component extends DCLogic {
       : 'Faltam ' + f(s.minOrder - this.subtotal()) + ' para o pedido mínimo de ' + f(s.minOrder) + '.';
 
     // product detail
-    const sel = s.products.find(p => p.id === s.selId) || s.products[3];
+    const sel = s.products.find(p => p.id === s.selId) || s.products[0] || BLANK_PRODUCT;
     v.pName = sel.name; v.pDesc = sel.desc; v.pCat = sel.cat;
     v.pMarkPath = ITEM_ICON;
     v.pLong = sel.long || sel.desc; v.pIngredientes = sel.ingredientes;
