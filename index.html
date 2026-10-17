@@ -777,7 +777,8 @@ $('login').addEventListener('submit', async function (e) {
       return;
     }
     try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, refreshToken: data.refreshToken, user: data.user })); } catch (err) {}
-    location.href = window.SUNFOOD_DEST[data.user.role] || window.SUNFOOD_DEST.cliente;
+    // replace: o login não fica no histórico, então o voltar do celular não volta para ele.
+    location.replace(window.SUNFOOD_DEST[data.user.role] || window.SUNFOOD_DEST.cliente);
   } catch (err) {
     show('Falha de conexão com o servidor. Confira sua internet e tente de novo.');
   } finally {
