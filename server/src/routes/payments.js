@@ -6,7 +6,6 @@ import {
   createPixPayment,
   createCardCheckout,
   fetchPaymentStatus,
-  refundPayment,
   toOrderPaymentStatus,
   verifyWebhookSignature,
   paymentsConfigured,
@@ -18,7 +17,6 @@ import {
   createStripeCheckout,
   constructStripeEvent,
   fetchCheckoutSession,
-  refundStripePayment,
   stripePublishableKey,
   createOrReuseCardIntent,
   createCardSession,
@@ -28,6 +26,7 @@ import {
   isStripePaymentId,
 } from "../payments/stripe.js";
 import { syncStripeRefunds } from "../order-refunds.js";
+import { refundWholeOrder, LATE_PAYMENT_REASON } from "../order-payments.js";
 import { isValidCpf, onlyDigits } from "../validation/cpf.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
@@ -371,10 +370,10 @@ paymentsRouter.post("/mercadopago/webhook", async (req, res) => {
       // Pagou depois de o pedido já ter saído da fila (desistência ou prazo
       // vencido): devolve o dinheiro em vez de cobrar por comida que não sai.
       if (order.status === "Cancelado") {
-        await refundPayment(dataId);
+        await refundWholeOrder(order, String(dataId), LATE_PAYMENT_REASON);
         await supabaseAdmin
           .from("orders")
-          .update({ payment_status: "refunded", payment_id: String(dataId) })
+          .update({ payment_status: "refunded", payment_id: String(dataId), refunded_amount: order.total })
           .eq("id", order.id);
         return res.status(200).end();
       }
@@ -449,10 +448,10 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
     }
     // Pagou depois de o pedido já ter saído da fila: devolve o dinheiro.
     if (order.status === "Cancelado") {
-      await refundStripePayment(session.paymentIntentId);
+      await refundWholeOrder(order, session.paymentIntentId, LATE_PAYMENT_REASON);
       await supabaseAdmin
         .from("orders")
-        .update({ payment_status: "refunded", payment_provider: "stripe", payment_id: session.paymentIntentId })
+        .update({ payment_status: "refunded", payment_provider: "stripe", payment_id: session.paymentIntentId, refunded_amount: order.total })
         .eq("id", order.id);
       return res.status(200).end();
     }

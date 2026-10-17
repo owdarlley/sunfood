@@ -32,7 +32,7 @@ const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : 
 const results = [];
 const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`${ok ? 'ok   ' : 'FALHA'} ${name}${ok || !detail ? '' : ' -> ' + detail}`); };
 
-async function open(path, { role, seed, kiosk, viewport } = {}) {
+async function open(path, { role, seed, kiosk, viewport, session } = {}) {
   const page = await browser.newPage({ viewport: viewport || { width: 400, height: 860 }, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
@@ -55,7 +55,7 @@ async function open(path, { role, seed, kiosk, viewport } = {}) {
     return api(route);
   });
   page.api = api;
-  if (role && role !== 'cliente') await page.addInitScript(r => localStorage.setItem('sunfood_session',
+  if (role && (role !== 'cliente' || session)) await page.addInitScript(r => localStorage.setItem('sunfood_session',
     JSON.stringify({ token: 'tok', user: { id: 'u1', email: r + '@teste', name: 'Teste', role: r } })), role);
   await page.goto(BASE + path);
   await page.waitForTimeout(1200);
@@ -122,13 +122,15 @@ await step('estorno parcial e cancelamento pelo painel', async () => {
   await dialog(page).locator('.btn-danger').click(); await page.waitForTimeout(800);
   const c1 = page.api.db.refundCalls?.[0];
   check('parcial: chama o servidor com valor e motivo, sem cancelar', c1 && c1.id === 'o1' && c1.amount === 12 && c1.reason === 'Item em falta' && !c1.cancel, JSON.stringify(c1));
+  check('parcial: manda os itens marcados', JSON.stringify(c1?.items) === JSON.stringify([{ name: 'Suco de Laranja', qty: 1 }]), JSON.stringify(c1?.items));
   t = await text(page);
   check('parcial: avisa o estorno e o pedido continua em preparo', t.includes('Estorno de R$ 12,00 feito.') && (await row(page, '#001').innerText()).includes('Em Preparo')
     && (await row(page, '#001').innerText()).includes('estornado R$ 12,00'));
 
   // Valor maior do que falta: recusado na tela.
   await row(page, '#001').getByText('Estornar', { exact: true }).click(); await page.waitForTimeout(400);
-  check('janela mostra o estorno já feito', (await dialog(page).innerText()).includes('Estornos já feitos') && (await dialog(page).innerText()).includes('Item em falta'));
+  check('janela mostra o estorno já feito, com o item', (await dialog(page).innerText()).includes('Estornos já feitos') && (await dialog(page).innerText()).includes('Item em falta')
+    && (await dialog(page).innerText()).includes('1x Suco de Laranja ·'));
   await dialog(page).getByText('Estornar uma parte', { exact: true }).click(); await page.waitForTimeout(200);
   await page.getByLabel('Valor do estorno em reais').fill('45'); await page.waitForTimeout(100);
   await dialog(page).getByText('Pedido errado', { exact: true }).click(); await page.waitForTimeout(100);
@@ -171,6 +173,49 @@ await step('pedido entregue e tela de Pagamentos', async () => {
   check('pagamentos: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
 });
+
+// O cliente vê no app o que foi estornado de cada pedido.
+const doCliente = db => {
+  db.orders.push(
+    { id: 'o4', number: 4, tableNumber: 3, status: 'Em Preparo', subtotal: 30, total: 30, note: '', paymentMethod: 'cartao',
+      paymentStatus: 'approved', paymentProvider: 'stripe', refundedAmount: 5, createdAt: at(), updatedAt: at(),
+      items: [item('Batata Frita', 1, 5), item('Peixe Frito', 1, 25)] },
+    { id: 'o5', number: 5, tableNumber: 3, status: 'Entregue', subtotal: 50, total: 50, note: '', paymentMethod: 'pix',
+      paymentStatus: 'approved', paymentProvider: 'stripe', refundedAmount: 12, createdAt: at(), updatedAt: at(),
+      items: [item('Peixe Frito', 1, 38), item('Suco de Laranja', 1, 12)] },
+    // Estornado antes do histórico de estornos existir: aparece com o total.
+    { id: 'o6', number: 6, tableNumber: 3, status: 'Cancelado', subtotal: 20, total: 20, note: '', paymentMethod: 'cartao',
+      paymentStatus: 'refunded', paymentProvider: 'stripe', refundedAmount: 0, createdAt: at(), updatedAt: at(), items: [item('Açaí', 1, 20)] });
+  db.refunds = [
+    { orderId: 'o4', amount: 5, reason: 'Item em falta', items: [{ name: 'Batata Frita', qty: 1 }], by: 'Admin Teste', at: at() },
+    { orderId: 'o5', amount: 12, reason: 'Pedido errado', items: [{ name: 'Suco de Laranja', qty: 1 }], by: 'Admin Teste', at: at() }];
+};
+for (const [nome, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }], ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
+  await step(`cliente vê os estornos (${nome})`, async () => {
+    const page = await open('app-cliente.dc.html?module=cliente&screen=status', { role: 'cliente', session: true, seed: doCliente, viewport });
+    const noScroll = () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth <= 0);
+    let t = await text(page);
+    check(`${nome}: acompanhamento mostra o estorno com motivo, item e valor final`, t.includes('Estornos') && t.includes('Item em falta') && t.includes('1x Batata Frita ·')
+      && t.includes('− R$ 5,00') && t.includes('Valor final') && t.includes('R$ 25,00') && await noScroll(), t.slice(0, 600));
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/cliente-estorno-status-${nome}.png`, fullPage: true });
+    await page.goto(BASE + 'app-cliente.dc.html?module=cliente&screen=history'); await page.waitForTimeout(1200);
+    t = await text(page);
+    check(`${nome}: Meus pedidos marca os pedidos estornados`, t.includes('Estornado R$ 12,00') && t.includes('Estornado R$ 20,00') && t.includes('Estornado R$ 5,00') && await noScroll(), t.slice(0, 600));
+    check(`${nome}: cliente não vê quem da equipe estornou`, !t.includes('Admin Teste'));
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/cliente-estorno-historico-${nome}.png`, fullPage: true });
+    await page.locator('.orow').filter({ hasText: '#005' }).first().click(); await page.waitForTimeout(600);
+    t = await text(page);
+    check(`${nome}: detalhe do pedido mostra o que foi estornado`, t.includes('Pedido errado') && t.includes('1x Suco de Laranja ·') && t.includes('Total estornado')
+      && t.includes('R$ 12,00') && t.includes('R$ 38,00') && !t.includes('Admin Teste') && await noScroll(), t.slice(0, 600));
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/cliente-estorno-detalhe-${nome}.png`, fullPage: true });
+    await page.goBack(); await page.waitForTimeout(600);
+    await page.locator('.orow').filter({ hasText: '#006' }).first().click(); await page.waitForTimeout(600);
+    t = await text(page);
+    check(`${nome}: pedido estornado sem histórico mostra o total como cancelado`, t.includes('Pedido cancelado') && t.includes('− R$ 20,00') && t.includes('R$ 0,00'), t.slice(0, 600));
+    check(`${nome}: cliente sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+    await page.close();
+  });
+}
 
 await browser.close();
 server.close();
