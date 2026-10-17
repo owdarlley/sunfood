@@ -10,6 +10,7 @@ import {
   toOrderPaymentStatus,
   verifyWebhookSignature,
   paymentsConfigured,
+  PAYMENT_WINDOW_MINUTES,
 } from "../payments/mercadopago.js";
 import {
   stripeConfigured,
@@ -21,7 +22,6 @@ import {
 } from "../payments/stripe.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
-import { PAYMENT_WINDOW_MINUTES } from "../payments/mercadopago.js";
 
 export const paymentsRouter = Router();
 
