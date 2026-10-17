@@ -10,7 +10,16 @@ import {
   toOrderPaymentStatus,
   verifyWebhookSignature,
   paymentsConfigured,
+  PAYMENT_WINDOW_MINUTES,
 } from "../payments/mercadopago.js";
+import {
+  stripeConfigured,
+  stripeTestMode,
+  createStripeCheckout,
+  constructStripeEvent,
+  fetchCheckoutSession,
+  refundStripePayment,
+} from "../payments/stripe.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
 
@@ -26,7 +35,16 @@ const pixLimiter = rateLimit({
 
 // O front usa isso pra saber se mostra o QR real ou o aviso de "ambiente de
 // testes" — nunca finge que está cobrando de verdade sem token configurado.
-paymentsRouter.get("/status", (req, res) => res.json({ configured: paymentsConfigured }));
+// configured = Mercado Pago (PIX); card diz quem cobra o cartão.
+const cardProvider = () => (stripeConfigured ? "stripe" : paymentsConfigured ? "mercadopago" : "provisorio");
+paymentsRouter.get("/status", (req, res) =>
+  res.json({
+    configured: paymentsConfigured,
+    pix: paymentsConfigured ? "mercadopago" : "provisorio",
+    card: cardProvider(),
+    cardTestMode: stripeConfigured && stripeTestMode,
+  })
+);
 
 // Mesma lista de origens do CORS (app.js): o Mercado Pago só pode mandar o
 // cliente de volta pro próprio app, nunca pra um site qualquer.
@@ -118,13 +136,36 @@ paymentsRouter.post(
     const order = await loadOwnUnpaidOrder(req, res, "cartao");
     if (!order) return;
 
-    if (!paymentsConfigured) return approveProvisionally(order, res);
+    if (cardProvider() === "provisorio") return approveProvisionally(order, res);
 
     const returnUrl = new URL(req.body.returnUrl);
     if (!APP_ORIGINS.includes(returnUrl.origin)) {
       return res.status(400).json({ error: "Endereço de retorno não permitido." });
     }
     returnUrl.searchParams.set("pedido", order.id);
+
+    if (stripeConfigured) {
+      // Desistiu na página do Stripe: volta com status=failure e o app mostra
+      // a tela de "não foi possível pagar", com a opção de tentar de novo.
+      const cancelUrl = new URL(returnUrl);
+      cancelUrl.searchParams.set("status", "failure");
+      try {
+        const checkout = await createStripeCheckout({
+          orderId: order.id,
+          amount: Number(order.total),
+          payerEmail: req.user.email,
+          successUrl: returnUrl.toString(),
+          cancelUrl: cancelUrl.toString(),
+          description: `Pedido Sunfood — mesa ${order.table_number}`,
+          expiresInMinutes: PAYMENT_WINDOW_MINUTES,
+        });
+        await supabaseAdmin.from("orders").update({ payment_provider: "stripe" }).eq("id", order.id);
+        return res.json({ checkoutUrl: checkout.checkoutUrl });
+      } catch (e) {
+        console.error("Erro ao criar checkout do Stripe:", e);
+        return res.status(502).json({ error: "Falha ao abrir o pagamento com cartão. Tente novamente." });
+      }
+    }
 
     try {
       const checkout = await createCardCheckout({
@@ -227,6 +268,61 @@ paymentsRouter.post("/mercadopago/webhook", async (req, res) => {
     res.status(200).end();
   } catch (e) {
     console.error("Erro ao processar webhook Mercado Pago:", e);
+    res.status(500).end();
+  }
+});
+
+// Stripe chama isso quando a página de pagamento do cartão termina. A
+// assinatura (Stripe-Signature) é conferida sobre o corpo cru (ver app.js) e
+// a sessão é rebuscada na API do Stripe antes de liberar o pedido.
+paymentsRouter.post("/stripe/webhook", async (req, res) => {
+  if (!stripeConfigured) return res.status(200).end();
+
+  let event;
+  try {
+    const raw = Buffer.isBuffer(req.body) ? req.body : typeof req.body === "string" ? req.body : null;
+    if (!raw) throw new Error("Corpo cru indisponível.");
+    event = constructStripeEvent(raw, req.headers["stripe-signature"]);
+  } catch (e) {
+    console.error("Webhook do Stripe recusado:", e.message);
+    return res.status(400).json({ error: "Assinatura inválida." });
+  }
+
+  const handled = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
+  if (!handled.includes(event.type)) return res.status(200).end();
+
+  try {
+    const session = await fetchCheckoutSession(event.data.object.id);
+    if (!session.orderId || !session.paid || !session.paymentIntentId) return res.status(200).end();
+
+    const { data: order } = await supabaseAdmin
+      .from("orders")
+      .select("*")
+      .eq("id", session.orderId)
+      .maybeSingle();
+    if (!order || order.payment_method !== "cartao") return res.status(200).end();
+    if (order.payment_status === "approved" || order.payment_status === "refunded") return res.status(200).end();
+
+    if (!paymentCoversOrder(session.amount, order.total)) {
+      console.error("Pagamento Stripe com valor menor que o pedido:", session.paymentIntentId, session.amount, order.total);
+      return res.status(200).end();
+    }
+    // Pagou depois de o pedido já ter saído da fila: devolve o dinheiro.
+    if (order.status === "Cancelado") {
+      await refundStripePayment(session.paymentIntentId);
+      await supabaseAdmin
+        .from("orders")
+        .update({ payment_status: "refunded", payment_provider: "stripe", payment_id: session.paymentIntentId })
+        .eq("id", order.id);
+      return res.status(200).end();
+    }
+    await supabaseAdmin
+      .from("orders")
+      .update({ payment_status: "approved", payment_provider: "stripe", payment_id: session.paymentIntentId })
+      .eq("id", order.id);
+    res.status(200).end();
+  } catch (e) {
+    console.error("Erro ao processar webhook do Stripe:", e);
     res.status(500).end();
   }
 });

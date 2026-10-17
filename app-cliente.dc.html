@@ -1382,7 +1382,10 @@ select{caret-color:auto}
                       <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-top:12px">Aguardando confirmação do pagamento…</div>
                     </sc-if>
                   </div>
-                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do Mercado Pago para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                  <sc-if value="{{ cardTestMode }}" hint-placeholder-val="{{ false }}">
+                    <div class="alert alert-info" style="font-weight:500">{{ cardTestText }}</div>
+                  </sc-if>
+                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do {{ cardProviderName }} para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
                   <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
                     <div onClick="{{ openCardCheckout }}" class="btn btn-ghost">Abrir o pagamento de novo</div>
                   </sc-if>
@@ -1419,7 +1422,7 @@ select{caret-color:auto}
                     <div onClick="{{ retryPay }}" class="btn btn-sun">Tentar de novo</div>
                     <div onClick="{{ goCart }}" class="btn btn-ghost">Voltar ao carrinho</div>
                   </div>
-                  <div class="muted" style="font-size:13px">Pagamentos processados com segurança pelo Mercado Pago.</div>
+                  <div class="muted" style="font-size:13px">Pagamentos processados com segurança pelo {{ cardProviderName }}.</div>
                 </div>
               </sc-if>
 
@@ -1858,7 +1861,7 @@ select{caret-color:auto}
                 </sc-for>
               </div>
               <sc-if value="{{ payOnlineOff }}" hint-placeholder-val="{{ false }}">
-                <div class="alert alert-warn">Mercado Pago ainda não configurado. Enquanto isso, PIX e cartão são aprovados na hora, sem cobrança de verdade (aparecem como "provisório"). Nos pedidos "na entrega", anote aqui como o garçom recebeu.</div>
+                <div class="alert alert-warn">{{ payOnlineOffText }}</div>
               </sc-if>
               <div class="tblwrap">
                 <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ true }}">
@@ -2292,7 +2295,7 @@ select{caret-color:auto}
                 </div>
                 <div class="panel">
                   <h2 style="margin:0 0 4px">Pagamentos online</h2>
-                  <div class="muted" style="font-size:var(--fs-sm);margin-bottom:12px">PIX e cartão pelo Mercado Pago.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);margin-bottom:12px">{{ payProvidersText }}</div>
                   <div class="alert {{ mpAlertCls }}" style="flex-direction:column;gap:2px"><b>{{ mpTitle }}</b><span style="font-weight:500">{{ mpText }}</span></div>
                   <div class="muted" style="font-size:var(--fs-sm);margin-top:12px;line-height:1.5">Pagar na entrega: o garçom marca o recebimento em <span onClick="{{ goPayments }}" class="link" style="font-size:var(--fs-sm)">Pagamentos</span>.</div>
                 </div>
@@ -3478,8 +3481,11 @@ class Component extends DCLogic {
     tableInput:'', table:null, tableErr:'', orderNote:'',
     payMethod:'pix', cardWaiting:false,
     // Mercado Pago configurado no servidor (GET /payments/status)? Sem ele,
-    // PIX e cartão são aprovados na hora como "provisório". null = ainda não sabemos.
+    // o PIX é aprovado na hora como "provisório". null = ainda não sabemos.
     paymentsOnline:null,
+    // Quem cobra o cartão: 'stripe', 'mercadopago' ou 'provisorio'. Com o
+    // Stripe em modo teste, as telas mostram o cartão de teste 4242.
+    cardProvider:null, cardTestMode:false,
     payingPix:false, pixQrCode:'', pixQrImg:'',
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
@@ -3961,7 +3967,8 @@ class Component extends DCLogic {
       if(!res.ok) return;
       const data = await res.json();
       const online = !!data.configured;
-      this.setState({paymentsOnline:online});
+      const cardProvider = data.card || (online ? 'mercadopago' : 'provisorio');
+      this.setState({paymentsOnline:online, cardProvider, cardTestMode:!!data.cardTestMode});
     } catch(e){}
   }
 
@@ -5033,7 +5040,7 @@ class Component extends DCLogic {
     }
   }
 
-  // Cartão: cria o pedido e manda o cliente pro checkout do Mercado Pago. Os
+  // Cartão: cria o pedido e manda o cliente pro checkout (Stripe ou Mercado Pago). Os
   // dados do cartão são digitados lá, nunca aqui. Na volta, handleCardReturn()
   // retoma o pedido e o polling confirma quando o webhook aprovar.
   async payWithCard(){
@@ -5072,9 +5079,10 @@ class Component extends DCLogic {
     }
   }
 
-  // Volta do Mercado Pago: a URL traz ?pedido=<id> (posto pelo servidor) e o
-  // status que o Mercado Pago mandou. Quem confirma o pagamento é sempre o
-  // servidor (webhook) — aqui só mostramos a espera ou a falha.
+  // Volta do checkout: a URL traz ?pedido=<id> (posto pelo servidor) e o
+  // status (o do Mercado Pago, ou status=failure quando desiste no Stripe).
+  // Quem confirma o pagamento é sempre o servidor (webhook) — aqui só
+  // mostramos a espera ou a falha.
   handleCardReturn(){
     const q = new URLSearchParams(window.location.search);
     const orderId = q.get('pedido');
@@ -5277,15 +5285,18 @@ class Component extends DCLogic {
     v.setOrderNote = e => this.setState({orderNote:e.target.value});
 
     // payment
+    v.cardProviderName = s.cardProvider === 'stripe' ? 'Stripe' : 'Mercado Pago';
+    v.cardTestMode = !!s.cardTestMode;
+    v.cardTestText = 'Modo de teste: nada é cobrado. Use o cartão 4242 4242 4242 4242, qualquer validade futura e qualquer CVC.';
     v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
-                 ['cartao','Cartão de crédito','Pague agora pelo Mercado Pago','card','#1F3B6B'],
+                 ['cartao','Cartão de crédito','Pague agora pelo ' + v.cardProviderName,'card','#1F3B6B'],
                  ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']]
       .map(([k, nm, sub, ic]) => ({
       nm, sub, icPath:UI[ic],
       pick:() => this.setState({payMethod:k}),
       cls:s.payMethod === k ? 'on' : ''
     }));
-    v.payInfoOff = false; v.payInfo = '';
+    v.payInfoOff = s.payMethod === 'cartao' && v.cardTestMode; v.payInfo = v.cardTestText;
 
     v.payLabel = s.payMethod === 'entrega' ? 'Fazer pedido · ' + v.totalStr : 'Pagar ' + v.totalStr;
     v.goPay = () => {
@@ -5294,7 +5305,7 @@ class Component extends DCLogic {
       else this.payWithPix();
     };
 
-    // card (checkout do Mercado Pago)
+    // card (checkout do Stripe ou do Mercado Pago)
     v.cardWaiting = !!s.cardWaiting;
     v.openCardCheckout = () => this.openCardCheckout();
 
@@ -5543,6 +5554,9 @@ class Component extends DCLogic {
     ];
     if(s.paymentsOnline === false) v.payKpis.splice(1, 0, {lbl:'Provisório hoje (PIX/cartão)', val:sum(provisional), sub:provisional.length + ' pedido(s), sem cobrança'});
     v.payOnlineOff = s.paymentsOnline === false;
+    v.payOnlineOffText = (s.cardProvider === 'stripe'
+      ? 'Mercado Pago ainda não configurado. Enquanto isso, o PIX é aprovado na hora, sem cobrança de verdade (aparece como "provisório"). O cartão já passa pelo Stripe' + (s.cardTestMode ? ', em modo de teste.' : '.')
+      : 'Mercado Pago ainda não configurado. Enquanto isso, PIX e cartão são aprovados na hora, sem cobrança de verdade (aparecem como "provisório").') + ' Nos pedidos "na entrega", anote aqui como o garçom recebeu.';
     v.payRows = s.adminOrders.map(r => {
       const canReceive = r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus !== 'approved';
       return {
@@ -5603,9 +5617,13 @@ class Component extends DCLogic {
     v.pauseDotStyle = 'width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;background:' + (s.paused ? '#B42318' : '#2E9C6A');
     v.pauseBtnLabel = s.paused ? 'Retomar pedidos' : 'Pausar pedidos';
     v.pausePanelStyle = s.paused ? 'background:#FDECEA;border-color:#F0C2BC' : 'background:#F0FAF3;border-color:#BFE3CB';
+    // PIX pelo Mercado Pago; cartão pelo Stripe quando ele está configurado.
+    const cardStripe = s.cardProvider === 'stripe';
+    v.payProvidersText = cardStripe ? 'PIX pelo Mercado Pago e cartão pelo Stripe.' : 'PIX e cartão pelo Mercado Pago.';
     v.mpAlertCls = s.paymentsOnline ? 'alert-ok' : 'alert-warn';
     v.mpTitle = s.paymentsOnline ? 'Mercado Pago configurado.' : s.paymentsOnline === false ? 'Mercado Pago ainda não configurado.' : 'Verificando…';
-    v.mpText = s.paymentsOnline ? 'Cobranças reais, confirmadas automaticamente.' : s.paymentsOnline === false ? 'PIX e cartão são aprovados na hora como "provisório", sem cobrança de verdade.' : '';
+    v.mpText = s.paymentsOnline ? 'Cobranças reais, confirmadas automaticamente.' : s.paymentsOnline === false ? (cardStripe ? 'O PIX é aprovado na hora como "provisório", sem cobrança de verdade.' : 'PIX e cartão são aprovados na hora como "provisório", sem cobrança de verdade.') : '';
+    if(cardStripe) v.mpText += (v.mpText ? ' ' : '') + (s.cardTestMode ? 'Cartão pelo Stripe em modo de teste: nada é cobrado (cartão 4242 4242 4242 4242).' : 'Cartão pelo Stripe, com cobrança real.');
 
     const HOURS_WINDOW = [10,11,12,13,14,15,16,17,18,19,20,21];
     const hourRevenue = dash ? new Map(dash.salesByHour.map(h => [h.hour, h.revenue])) : new Map();

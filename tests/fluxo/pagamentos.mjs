@@ -29,8 +29,8 @@ const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : 
 const results = [];
 const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`${ok ? 'ok   ' : 'FALHA'} ${name}${ok || !detail ? '' : ' -> ' + detail}`); };
 
-async function open(path, { role, seed, session, paymentsConfigured = true } = {}) {
-  const page = await browser.newPage({ viewport: { width: 400, height: 860 }, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
+async function open(path, { role, seed, session, paymentsConfigured = true, stripeTest = false, viewport = { width: 400, height: 860 }, setup } = {}) {
+  const page = await browser.newPage({ viewport, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
   if (CDN) await page.route('https://unpkg.com/**', r => {
@@ -38,8 +38,9 @@ async function open(path, { role, seed, session, paymentsConfigured = true } = {
     r.fulfill({ path: join(CDN, 'node_modules', mod), contentType: 'application/javascript' });
   });
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
-  const api = fakeApi(role || 'cliente', { paymentsConfigured });
+  const api = fakeApi(role || 'cliente', { paymentsConfigured, stripeTest });
   if (seed) api.seed();
+  if (setup) setup(api.db);
   await page.route('http://localhost:8787/**', api);
   await page.route(FAKE_CHECKOUT_URL, r => r.fulfill({ contentType: 'text/html', body: '<h1>Checkout Mercado Pago (teste)</h1>' }));
   page.api = api;
@@ -221,6 +222,50 @@ await step('prazo de cancelamento', async () => {
     check(`cliente ${nome}: aviso "até HH:MM" ${deveCancelar ? 'aparece' : 'some'}`, /Você pode cancelar até \d\d:\d\d/.test(t) === deveCancelar);
     await page.close();
   }
+});
+
+await step('cartão pelo Stripe (modo teste)', async () => {
+  const SHOTS = process.env.SHOTS_DIR; // opcional: pasta para salvar prints das telas
+  for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
+    ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
+    // O caminho até o pagamento é feito no tamanho de celular; depois a tela muda de tamanho.
+    const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true });
+    await ateOPagamento(page);
+    await page.setViewportSize(viewport); await page.waitForTimeout(400);
+    await click(page, 'Cartão de crédito', true);
+    let t = await text(page);
+    check(`stripe ${tela}: opção diz "Pague agora pelo Stripe"`, t.includes('Pague agora pelo Stripe'));
+    check(`stripe ${tela}: mostra o cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
+    check(`stripe ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/pagamento-stripe-${tela}.png`, fullPage: true });
+    await page.route(FAKE_CHECKOUT_URL, r => r.fulfill({ contentType: 'text/html', body: '<h1>Checkout Stripe (teste)</h1>' }));
+    await click(page, 'Pagar R$');
+    await page.waitForURL(FAKE_CHECKOUT_URL, { timeout: 5000 }).catch(() => {});
+    check(`stripe ${tela}: leva pro checkout (não aprova como provisório)`, page.url() === FAKE_CHECKOUT_URL && page.api.db.orders[0].paymentStatus !== 'approved', page.url());
+    check(`stripe ${tela}: sem erro de JavaScript`, page.jsErrors.length === 0, page.jsErrors.join(' | '));
+    await page.close();
+
+    const back = await open('app-cliente.dc.html?module=cliente&screen=card&pedido=o9', { role: 'cliente', seed: true, session: true, stripeTest: true, viewport,
+      setup: db => { db.orders[0].paymentStatus = 'pending'; } });
+    await back.waitForTimeout(800);
+    t = await text(back);
+    check(`stripe ${tela}: na volta, espera a confirmação com o aviso de teste`, t.includes('Aguardando confirmação do pagamento') && t.includes('página segura do Stripe') && t.includes('4242'), t.slice(0, 300));
+    if (SHOTS) await back.screenshot({ path: `${SHOTS}/cartao-stripe-${tela}.png`, fullPage: true });
+    back.api.db.orders[0].paymentStatus = 'approved';
+    await back.waitForTimeout(3500);
+    check(`stripe ${tela}: webhook aprovou → pedido confirmado`, (await text(back)).toLowerCase().includes('pedido confirmado'));
+    await back.close();
+  }
+  const fail = await open('app-cliente.dc.html?module=cliente&screen=card&pedido=o9&status=failure', { role: 'cliente', seed: true, session: true, stripeTest: true });
+  fail.api.db.orders[0].paymentStatus = 'pending';
+  await fail.waitForTimeout(800);
+  const t = await text(fail);
+  check('stripe: desistiu no Stripe → pagamento não concluído', t.includes('não foi concluído') && t.includes('processados com segurança pelo Stripe'));
+  await fail.close();
+
+  const admin = await open('app-cliente.dc.html?module=admin&screen=payments', { role: 'admin', paymentsConfigured: false, stripeTest: true });
+  check('stripe: admin avisa que o cartão está no Stripe em modo de teste', (await text(admin)).includes('O cartão já passa pelo Stripe, em modo de teste.'));
+  await admin.close();
 });
 
 await browser.close();

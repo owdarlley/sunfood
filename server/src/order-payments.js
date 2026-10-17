@@ -1,15 +1,20 @@
 import { supabaseAdmin } from "./supabase.js";
 import { needsRefund } from "./business-rules.js";
 import { refundPayment, PAYMENT_WINDOW_MINUTES } from "./payments/mercadopago.js";
+import { isStripePaymentId, refundStripePayment } from "./payments/stripe.js";
+
+// Cartão pelo Stripe guarda o id do PaymentIntent (pi_...); o resto é Mercado Pago.
+const refundOrderPayment = (paymentId) =>
+  isStripePaymentId(paymentId) ? refundStripePayment(paymentId) : refundPayment(paymentId);
 
 // Cancela um pedido e, se ele já foi pago no app, devolve o dinheiro antes.
-// O estorno vem primeiro: se o Mercado Pago recusar, nada muda e quem chamou
+// O estorno vem primeiro: se o Mercado Pago (ou o Stripe) recusar, nada muda e quem chamou
 // recebe o erro (o pedido não fica cancelado com o dinheiro preso).
 export async function cancelOrderWithRefund(row) {
   let refunded = false;
   if (needsRefund(row)) {
     try {
-      await refundPayment(row.payment_id);
+      await refundOrderPayment(row.payment_id);
       refunded = true;
     } catch (e) {
       console.error("Erro ao estornar pagamento:", e);
