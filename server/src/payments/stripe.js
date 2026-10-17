@@ -67,15 +67,16 @@ export async function createStripeCheckout({ orderId, amount, payerEmail, succes
 // os cartões já salvos. O número do cartão fica só no Stripe.
 export async function createOrReuseCardIntent({ orderId, amount, payerEmail, payerName, userId, description, existingId }) {
   const cents = Math.round(Number(amount) * 100);
-  const customer = userId ? await findOrCreateCustomer({ userId, email: payerEmail, name: payerName }) : null;
-  let pi = null;
-  if (existingId) {
-    const old = await stripe().paymentIntents.retrieve(existingId);
-    const sameCustomer = (old.customer || null) === customer;
-    if (old.amount === cents && sameCustomer && ["requires_payment_method", "requires_confirmation", "requires_action"].includes(old.status)) pi = old;
-  }
-  if (!pi) {
-    pi = await stripe().paymentIntents.create({
+  // As chamadas ao Stripe que não dependem uma da outra vão juntas, pra os
+  // campos do cartão aparecerem mais rápido.
+  const [customer, old] = await Promise.all([
+    userId ? findOrCreateCustomer({ userId, email: payerEmail, name: payerName }) : null,
+    existingId ? stripe().paymentIntents.retrieve(existingId) : null,
+  ]);
+  const reusable = old && old.amount === cents && (old.customer || null) === customer
+    && ["requires_payment_method", "requires_confirmation", "requires_action"].includes(old.status);
+  const [pi, customerSessionClientSecret] = await Promise.all([
+    reusable ? old : stripe().paymentIntents.create({
       amount: cents,
       currency: "brl",
       payment_method_types: ["card"],
@@ -83,9 +84,9 @@ export async function createOrReuseCardIntent({ orderId, amount, payerEmail, pay
       description: description || `Pedido Sunfood #${orderId}`,
       receipt_email: payerEmail || undefined,
       metadata: { order_id: orderId },
-    });
-  }
-  const customerSessionClientSecret = customer ? await createCustomerSession(customer) : null;
+    }),
+    customer ? createCustomerSession(customer) : null,
+  ]);
   return { paymentIntentId: pi.id, clientSecret: pi.client_secret, customerSessionClientSecret };
 }
 

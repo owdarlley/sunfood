@@ -289,7 +289,8 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
     ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
     const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true });
     await ateOPagamento(page);
-    await page.setViewportSize(viewport); await page.waitForTimeout(400);
+    await page.setViewportSize(viewport); await page.waitForTimeout(1600);
+    check(`no app ${tela}: Stripe.js já baixado antes de pagar`, await page.evaluate(() => typeof window.Stripe === 'function'));
     await click(page, 'Cartão de crédito ou débito', true);
     await click(page, 'Pagar R$');
     await page.waitForSelector('#sf-stripe-card .fake-stripe', { timeout: 5000 });
