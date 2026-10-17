@@ -70,7 +70,8 @@ const fakeAudio = () => {
     createBuffer(){ return {}; }
     createBufferSource(){ return { connect(){}, start(){} }; }
     createOscillator(){ window.__beeps++; return { frequency: {}, connect(){}, start(){}, stop(){} }; }
-    createGain(){ return { gain: { setValueAtTime(){}, exponentialRampToValueAtTime(){} }, connect(){} }; } };
+    createGain(){ return { gain: { setValueAtTime(){}, exponentialRampToValueAtTime(){} }, connect(){}, disconnect(){} }; }
+    createDelay(){ return { delayTime: {}, connect(){}, disconnect(){} }; } };
 };
 const KZ = 'app-cliente.dc.html?module=cozinha&screen=kanban';
 const DESK = { width: 1280, height: 860 };

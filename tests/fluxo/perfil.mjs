@@ -52,7 +52,8 @@ async function open(screen, { width = 400, height = 860, setup, prefs = {} } = {
     window.__beeps = 0; window.__vibrations = 0;
     window.AudioContext = class { constructor(){ this.currentTime = 0; this.destination = {}; }
       createOscillator(){ window.__beeps++; return { frequency: {}, connect(){}, start(){}, stop(){} }; }
-      createGain(){ return { gain: { setValueAtTime(){}, exponentialRampToValueAtTime(){} }, connect(){} }; } };
+      createGain(){ return { gain: { setValueAtTime(){}, exponentialRampToValueAtTime(){} }, connect(){}, disconnect(){} }; }
+    createDelay(){ return { delayTime: {}, connect(){}, disconnect(){} }; } };
     navigator.vibrate = () => { window.__vibrations++; return true; };
   });
   await page.addInitScript(u => localStorage.setItem('sunfood_session', JSON.stringify({ token: 'tok', user: u })),

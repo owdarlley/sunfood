@@ -37,7 +37,9 @@ function metricsToApi(period, data) {
 async function waiterOrders(waiterId, fromDate) {
   // Meia-noite de São Paulo (UTC-3, sem horário de verão) do primeiro dia.
   const start = new Date(`${fromDate}T00:00:00-03:00`).toISOString();
-  const select = "id, daily_number, table_number, customer_id, waiter_id, delivered_by, delivered_at, status, total, payment_method, received_with, created_at, order_items(name, qty)";
+  // "*" em vez da lista de colunas: assim a consulta não quebra se o banco
+  // ainda não tiver alguma coluna nova (como daily_number).
+  const select = "*, order_items(name, qty)";
   const [launched, delivered] = await Promise.all([
     supabaseAdmin.from("orders").select(select).eq("waiter_id", waiterId).gte("created_at", start),
     supabaseAdmin.from("orders").select(select).eq("delivered_by", waiterId).gte("delivered_at", start),
