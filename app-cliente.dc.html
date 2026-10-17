@@ -5141,6 +5141,7 @@ class Component extends DCLogic {
       this.stripeCardMountedOn = null;
       this.ensureCardMounted();
     } catch(e){
+      console.error('[Sunfood] Stripe', e);
       this.setState({cardFormLoading:false, cardErr:'Falha de conexão com o pagamento. Verifique a internet e tente de novo.'});
     }
   }
@@ -5165,7 +5166,11 @@ class Component extends DCLogic {
     try {
       const back = window.location.origin + window.location.pathname + '?module=cliente&screen=card&pedido=' + encodeURIComponent(o._apiId);
       // Só sai do app se o banco pedir verificação extra (3D Secure).
-      const r = await this.stripe.confirmPayment({elements:this.stripeElements, confirmParams:{return_url:back}, redirect:'if_required'});
+      // O endereço não é pedido na tela (fields.billingDetails.address:'never'),
+      // então o Stripe exige que ele venha aqui; sem isso confirmPayment lança erro.
+      const address = {line1:'', line2:'', city:'', state:'', postal_code:'', country:'BR'};
+      const r = await this.stripe.confirmPayment({elements:this.stripeElements, redirect:'if_required',
+        confirmParams:{return_url:back, payment_method_data:{billing_details:{address}}}});
       if(r.error){
         const validation = r.error.type === 'validation_error';
         this.setState({cardErr:validation ? '' : (r.error.message || 'O pagamento não foi aprovado. Confira os dados ou use outro cartão.')});
@@ -5174,7 +5179,8 @@ class Component extends DCLogic {
       this.setState({cardWaiting:true});
       this.pollOrder(o._apiId);
     } catch(e){
-      this.setState({cardErr:'Falha de conexão com o pagamento. Verifique a internet e tente de novo.'});
+      console.error('[Sunfood] Stripe confirmPayment', e);
+      this.setState({cardErr:'Não foi possível concluir o pagamento. Tente de novo.'});
     } finally {
       this.setState({busy:null});
     }
