@@ -496,6 +496,49 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 /* Celular estreito: 2 colunas, para as etiquetas de pagamento e status não
    quebrarem em 3 linhas ("Cobrar na / entrega · / R$ 70,00"). */
 @media (max-width:480px){.tbl-cards .tr{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
+/* Pagamentos do admin (2026-10-17): no computador, tabela com 5 colunas
+   (pedido e mesa juntos, quando e status juntos, total antes do pagamento) e as ações numa coluna só;
+   no celular e no tablet, um cartão por pedido (1 coluna no celular, 2 no
+   tablet) com pedido e total no topo, os botões de recebimento lado a lado e
+   o Estornar/Cancelar embaixo. Filtros em pílulas, como em Pedidos. */
+.pay-tr{grid-template-columns:100px 170px 100px minmax(0,1fr) 300px}
+.pay-id,.pay-when{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.pay-id b{font-weight:800;color:#1F5A63;font-size:var(--fs-body)}
+.pay-id .muted,.pay-when .muted{font-size:13px;white-space:nowrap}
+.pay-pay{min-width:0;padding-left:16px}
+.pay-pay span{white-space:normal !important;line-height:1.35}
+.pay-total{text-align:right;font-weight:800;white-space:nowrap;font-size:var(--fs-body)}
+.pay-acts{display:flex;flex-direction:column;gap:8px;min-width:0;padding-left:12px}
+.pay-recv{display:flex;flex-direction:column;gap:4px}
+.pay-cap{font:600 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#55626A}
+.pay-recv-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pay-acts .btn{min-height:44px;padding:0 12px;border-radius:8px}
+.pay-rb{border:1px solid}
+.pay-rb-cash{background:#E5F7EA;color:#1E6B36;border-color:#BFE3CB}
+.pay-rb-cash:hover{background:#D3F0DC}
+.pay-rb-card{background:#E6EFF0;color:#174A52;border-color:#D2E3E5}
+.pay-rb-card:hover{background:#D6E6E8}
+.pay-rb-pix{background:#FFF4DB;color:#7A4B00;border-color:#F0D9A8}
+.pay-rb-pix:hover{background:#FDEBC2}
+.pay-btns{display:flex;gap:8px;flex-wrap:wrap}
+.pay-off .pay-id,.pay-off .pay-pay,.pay-off .pay-total{opacity:.65}
+@media (max-width:1024px){
+  .pay-wrap{background:transparent;border:0;box-shadow:none;overflow:visible}
+  .pay-tbl{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gap)}
+  .pay-tbl .tr.th{display:none}
+  .pay-tbl .pay-tr{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"id total" "when when" "pay pay" "acts acts";align-items:start;gap:8px 12px;
+    background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad)}
+  .pay-id{grid-area:id;flex-direction:row;align-items:baseline;gap:8px}
+  .pay-id b{font-size:var(--fs-h3)}
+  .pay-total{grid-area:total;font-size:var(--fs-h3)}
+  .pay-when{grid-area:when;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px}
+  .pay-pay{grid-area:pay;padding-left:0}
+  .pay-acts{grid-area:acts;padding-left:0}
+  .pay-acts:has(> *){border-top:1px solid #EFEADF;padding-top:12px;margin-top:4px}
+  .pay-btns .btn{flex:1 1 0;min-width:0}
+}
+@media (min-width:768px) and (max-width:1024px){.pay-tbl{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+@media (max-width:767px){.pay-acts .btn{min-height:48px}.pay-pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--px));padding:0 var(--px)}.pay-pills::-webkit-scrollbar{display:none}.pay-pills .fpill{flex:none}}
 /* Mapa da Localização (Google Maps sem chave de API, a partir do endereço). */
 .locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:var(--r-card);overflow:hidden;background:#D2E3E5;border:1px solid #E3DDD0}
 .locmap iframe{display:block;width:100%;height:100%;border:0}
@@ -1914,40 +1957,49 @@ select{caret-color:auto}
               <sc-if value="{{ payOnlineOff }}" hint-placeholder-val="{{ false }}">
                 <div class="alert alert-warn">{{ payOnlineOffText }}</div>
               </sc-if>
-              <div class="tblwrap">
+              <div class="pills pay-pills" role="group" aria-label="Filtrar pagamentos">
+                <sc-for list="{{ payFilters }}" as="pf" hint-placeholder-count="5">
+                  <div onClick="{{ pf.pick }}" class="fpill {{ pf.cls }}" role="button" aria-pressed="{{ pf.on }}">{{ pf.label }}<span class="n">{{ pf.n }}</span></div>
+                </sc-for>
+              </div>
+              <div class="tblwrap pay-wrap">
                 <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ true }}">
-                  <div class="tbl tbl-cards" style="min-width:980px">
-                    <div class="tr th" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px"><div>Pedido</div><div>Mesa</div><div>Quando</div><div>Status</div><div>Pagamento</div><div>Recebimento e estorno</div><div style="text-align:right">Total</div></div>
+                  <div class="tbl pay-tbl">
+                    <div class="tr th pay-tr"><div>Pedido</div><div>Quando</div><div style="text-align:right">Total</div><div style="padding-left:16px">Pagamento</div><div style="padding-left:12px">Ações</div></div>
                     <sc-for list="{{ payRows }}" as="r" hint-placeholder-count="6">
-                      <div class="tr" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px">
-                          <div data-l="Pedido" style="font-weight:800;color:#1F5A63">{{ r.id }}</div>
-                          <div data-l="Mesa" style="font-weight:700">{{ r.table }}</div>
-                          <div data-l="Quando" class="muted" style="white-space:nowrap">{{ r.when }}</div>
-                          <div data-l="Status">{{ r.status }}</div>
-                          <div data-l="Pagamento"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
-                          <div class="wide">
-                            <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
-                              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                                <span class="muted" style="font-size:13px">Recebido em:</span>
-                                <span onClick="{{ r.recvCash }}" class="chip" style="background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">Dinheiro</span>
-                                <span onClick="{{ r.recvCard }}" class="chip" style="background:#E6EFF0;color:#174A52;border:1px solid #D2E3E5;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">Cartão</span>
-                                <span onClick="{{ r.recvPix }}" class="chip" style="background:#FFF4DB;color:#7A4B00;border:1px solid #F0D9A8;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">PIX</span>
+                      <div class="tr pay-tr {{ r.cls }}">
+                        <div class="pay-id"><b>{{ r.id }}</b><span class="muted">Mesa {{ r.table }}</span></div>
+                        <div class="pay-when"><span class="muted">{{ r.when }}</span><span style="{{ r.stStyle }}">{{ r.status }}</span></div>
+                        <div class="pay-total">{{ r.totalStr }}</div>
+                        <div class="pay-pay"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
+                        <div class="pay-acts">
+                          <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
+                            <div class="pay-recv">
+                              <span class="pay-cap">Recebido em:</span>
+                              <div class="pay-recv-btns">
+                                <div onClick="{{ r.recvCash }}" class="btn btn-sm pay-rb pay-rb-cash" role="button">Dinheiro</div>
+                                <div onClick="{{ r.recvCard }}" class="btn btn-sm pay-rb pay-rb-card" role="button">Cartão</div>
+                                <div onClick="{{ r.recvPix }}" class="btn btn-sm pay-rb pay-rb-pix" role="button">PIX</div>
                               </div>
-                            </sc-if>
-                            <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
-                              <span onClick="{{ r.undo }}" class="chip" style="background:#fff;border:1px solid #D6CFBF;color:#55626A;padding:8px 12px;cursor:pointer">Desfazer</span>
-                            </sc-if>
-                            <sc-if value="{{ r.canManage }}" hint-placeholder-val="{{ false }}">
-                              <div onClick="{{ r.manage }}" class="btn btn-ghost btn-sm" role="button" style="display:inline-flex;margin-top:8px">{{ r.manageLabel }}</div>
-                            </sc-if>
-                          </div>
-                          <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
+                            </div>
+                          </sc-if>
+                          <sc-if value="{{ r.hasBtns }}" hint-placeholder-val="{{ false }}">
+                            <div class="pay-btns">
+                              <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
+                                <div onClick="{{ r.undo }}" class="btn btn-ghost btn-sm" role="button" title="Volta o pedido para a receber">Desfazer</div>
+                              </sc-if>
+                              <sc-if value="{{ r.canManage }}" hint-placeholder-val="{{ false }}">
+                                <div onClick="{{ r.manage }}" class="btn btn-ghost btn-sm" role="button">{{ r.manageLabel }}</div>
+                              </sc-if>
+                            </div>
+                          </sc-if>
+                        </div>
                       </div>
                     </sc-for>
                   </div>
                 </sc-if>
                 <sc-if value="{{ noPayRows }}" hint-placeholder-val="{{ false }}">
-                  <div class="muted" style="padding:40px;text-align:center">Nenhum pedido ainda.</div>
+                  <div class="muted" style="padding:40px;text-align:center">{{ payEmptyText }}</div>
                 </sc-if>
               </div>
             </div>
@@ -3628,7 +3680,7 @@ class Component extends DCLogic {
     categories:DEFAULT_CATEGORIES, catOpen:false, catEdit:null, catEditName:'', catEditColor:'areia',
     catNewName:'', catNewColor:'areia', catMsg:'', catBusy:false, catDeleting:null,
     // Admin: filtro/busca da lista de pedidos e filtro do cardápio.
-    admFilter:'Todos', admSearch:'', admCat:'Todos',
+    admFilter:'Todos', payFilter:'Todos', admSearch:'', admCat:'Todos',
     // Cozinha/Garçom: som de pedido novo, salvo no aparelho (ligado por padrão).
     // O navegador só libera o áudio depois do primeiro toque na tela; o
     // unlockAudio() do componentDidMount cuida disso sozinho.
@@ -6070,12 +6122,27 @@ class Component extends DCLogic {
     v.payOnlineOffText = (provisorios.length
       ? 'Sem meio de pagamento configurado para ' + provisorios.join(' e ') + ': é aprovado na hora, sem cobrança de verdade (aparece como "provisório").'
       : 'Pagamentos online pelo Stripe em modo de teste: nada é cobrado de verdade.') + ' Nos pedidos "na entrega", anote aqui como o garçom recebeu.';
-    v.payRows = s.adminOrders.map(r => {
+    // Filtros de Pagamentos: o que falta receber, online sem pagar, pagos e estornos/cancelados.
+    const payGroups = [
+      ['Todos', () => true],
+      ['A receber', r => toReceive.indexOf(r) >= 0],
+      ['Online aguardando', r => onlineWaiting.indexOf(r) >= 0],
+      ['Pagos', r => r.status !== 'Cancelado' && r.paymentStatus === 'approved'],
+      ['Estornos e cancelados', r => r.status === 'Cancelado' || refunded.indexOf(r) >= 0]
+    ];
+    const payPick = payGroups.find(g => g[0] === s.payFilter) || payGroups[0];
+    v.payFilters = payGroups.map(([label, fn]) => {
+      const on = label === payPick[0];
+      return {label, cls:on ? 'on' : '', on:String(on), n:s.adminOrders.filter(fn).length, pick:() => this.setState({payFilter:label})};
+    });
+    v.payEmptyText = s.adminOrders.length ? 'Nenhum pedido nesse filtro.' : 'Nenhum pedido ainda.';
+    v.payRows = s.adminOrders.filter(payPick[1]).map(r => {
       const canReceive = r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus !== 'approved';
+      const canUndo = r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus === 'approved';
       return {
         id:r.id, table:r.table, status:r.status, totalStr:r.totalStr, payLabel:r.payLabel, payStyle:r.payStyle,
-        when:formatWhen(r.createdAt), canReceive,
-        canUndo:r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus === 'approved',
+        stStyle:pillStyle(statusTone(r.status)), cls:r.status === 'Cancelado' ? 'pay-off' : '',
+        when:formatWhen(r.createdAt), canReceive, canUndo, hasBtns:canUndo || canManageOrder(r),
         canManage:canManageOrder(r), manageLabel:refundableOf(r) > 0 ? 'Estornar' : 'Cancelar pedido',
         manage:() => this.openRefund(r.apiId),
         recvCash:() => this.markPaymentReceived(r.apiId, 'dinheiro'),
