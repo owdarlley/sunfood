@@ -810,7 +810,15 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
   .adm-brand{flex:1 1 auto;min-width:max-content}
   .adm-menubtn{flex:none}
   .adm-item.on::before{display:none}
+  /* Itens do menu aberto sempre de 2 em 2, todos da mesma altura. Antes um
+     nome comprido (Quiosque e mesas) não cabia na metade e ia sozinho para a
+     linha de baixo, deixando os vizinhos em linha inteira. Nome comprido
+     quebra em duas linhas dentro do botão; com número ímpar, o último ocupa
+     a linha inteira. */
+  .adm-side.open > .adm-item{flex:1 1 calc(50% - 4px);min-width:0;min-height:56px;align-self:stretch;white-space:normal;line-height:1.2;overflow-wrap:anywhere}
 }
+@media (max-width:400px){.adm-side.open > .adm-item{gap:8px;padding:8px 10px;font-size:14px}}
+
 
 /* Mais vendidos (Relatórios): no celular as unidades vão para baixo do nome,
    para o nome do produto não ficar espremido numa coluna estreita. */
