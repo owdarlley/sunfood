@@ -1395,6 +1395,8 @@ select{caret-color:auto}
                       <sc-if value="{{ cardFormLoading }}" hint-placeholder-val="{{ false }}">
                         <div class="muted" style="font-size:var(--fs-sm)">Carregando os campos do cartão…</div>
                       </sc-if>
+                      <div><span class="lbl">Nome do titular</span><input placeholder="Como está escrito no cartão" class="inp" autocomplete="cc-name" value="{{ cardHolderName }}" onChange="{{ setCardHolderName }}" aria-label="Nome do titular do cartão"></div>
+                      <div><span class="lbl">CPF do titular</span><input placeholder="000.000.000-00" class="inp" value="{{ cardHolderCpf }}" onChange="{{ setCardHolderCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF do titular do cartão" style="border-color:{{ cardHolderCpfBorder }}"></div>
                       <div id="sf-stripe-card" style="min-height:{{ cardFormMinH }}"></div>
                     </div>
                     <sc-if value="{{ hasCardErr }}" hint-placeholder-val="{{ false }}">
@@ -3510,7 +3512,7 @@ class Component extends DCLogic {
     cardProvider:null, pixProvider:null, cardTestMode:false,
     // Com a chave publicável do Stripe, o cartão é digitado na própria tela
     // (Payment Element) em vez de abrir a página do Stripe.
-    stripePk:null, cardFormLoading:false, cardErr:'',
+    stripePk:null, cardFormLoading:false, cardErr:'', cardHolderName:'', cardHolderCpf:'',
     payingPix:false, pixQrCode:'', pixQrImg:'', pixTestPayUrl:'',
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
@@ -4749,6 +4751,11 @@ class Component extends DCLogic {
       const data = await res.json();
       const before = this.state.order && this.state.order.status;
       this.setChanged({order: orderFromApi(data)});
+      // Pagamento aprovado: agora sim o carrinho daquele pedido pode ser esvaziado.
+      if(data.paymentStatus === 'approved' && this.pendingOnline && this.pendingOnline.id === data.id){
+        this.pendingOnline = null;
+        this.setState({cart:[], orderNote:''});
+      }
       if(before && before !== 'Pronto' && data.status === 'Pronto') this.alertOrderReady(data);
       // Pagamento aprovado enquanto o cliente está vendo o QR: some com o QR
       // e confirma automaticamente — ninguém precisa "avisar" que pagou.
@@ -4997,11 +5004,21 @@ class Component extends DCLogic {
 
   // Cria o pedido no servidor. Retorna o pedido criado (formato da API) ou
   // null se falhou — quem chama decide pra onde navegar a partir disso.
+  // PIX e cartão: o carrinho só é esvaziado quando o pagamento é aprovado
+  // (pollOrder). Se o cliente voltar e tentar de novo com o mesmo carrinho e
+  // a mesma forma, reaproveita o pedido; se mudou algo, cancela o anterior
+  // (que ainda não foi pago) e cria outro.
   async createOrderOnServer(paymentMethod){
     const itemNotes = this.state.cart.filter(c => c.note).map(c => c.name + ': ' + c.note);
     if(this.state.orderNote) itemNotes.push('Pedido: ' + this.state.orderNote);
     const note = itemNotes.join(' · ');
     const items = this.state.cart.map(c => ({productId:c.id, qty:c.qty, note:c.note || ''}));
+    const key = JSON.stringify([this.state.table, items, note, paymentMethod]);
+    const prev = this.pendingOnline, cur = this.state.order;
+    const prevOpen = prev && cur && cur._apiId === prev.id && cur.status === 'Na Fila' && cur.paymentStatus !== 'approved';
+    if(prevOpen && prev.key === key) return prev.data;
+    if(prevOpen) authFetch(API_BASE + '/orders/' + prev.id + '/cancel', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}}).catch(() => {});
+    this.pendingOnline = null;
     try {
       const res = await authFetch(API_BASE + '/orders', {
         method:'POST',
@@ -5014,7 +5031,8 @@ class Component extends DCLogic {
         this.flash(data.error || 'Não foi possível fechar o pedido.');
         return null;
       }
-      this.setState({order:orderFromApi(data), cart:[], orderNote:''});
+      if(paymentMethod === 'entrega') this.setState({order:orderFromApi(data), cart:[], orderNote:''});
+      else { this.pendingOnline = {id:data.id, key, data}; this.setState({order:orderFromApi(data)}); }
       return data;
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
@@ -5106,7 +5124,7 @@ class Component extends DCLogic {
   async openCardInApp(){
     const o = this.state.order;
     if(!o || !o._apiId) return;
-    this.setState({cardFormLoading:true, cardErr:''});
+    this.setState(st => ({cardFormLoading:true, cardErr:'', cardHolderName:st.cardHolderName || (st.authUser && st.authUser.name) || ''}));
     try {
       const res = await authFetch(API_BASE + '/payments/card-intent/' + o._apiId, {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
@@ -5162,15 +5180,24 @@ class Component extends DCLogic {
     const o = this.state.order;
     if(this.state.busy || !o || !o._apiId) return;
     if(!this.stripe || !this.stripeElements) return this.openCardInApp();
+    // Titular do cartão: nome completo e CPF válido, conferidos aqui e no servidor.
+    const name = this.state.cardHolderName.trim().replace(/\s+/g, ' ');
+    if(name.length < 5 || !name.includes(' ')) return this.setState({cardErr:'Informe o nome completo do titular, como está no cartão.'});
+    if(!isValidCpf(this.state.cardHolderCpf)) return this.setState({cardErr:'CPF do titular inválido. Confira os números.'});
     this.setState({busy:'card', cardErr:''});
     try {
+      const hr = await authFetch(API_BASE + '/payments/card-holder/' + o._apiId, {
+        method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({name, cpf:cpfDigits(this.state.cardHolderCpf)})
+      });
+      if(!hr.ok){ const d = await hr.json().catch(() => ({})); this.setState({cardErr:d.error || 'Não foi possível registrar o titular do cartão.'}); return; }
       const back = window.location.origin + window.location.pathname + '?module=cliente&screen=card&pedido=' + encodeURIComponent(o._apiId);
       // Só sai do app se o banco pedir verificação extra (3D Secure).
       // O endereço não é pedido na tela (fields.billingDetails.address:'never'),
       // então o Stripe exige que ele venha aqui; sem isso confirmPayment lança erro.
       const address = {line1:'', line2:'', city:'', state:'', postal_code:'', country:'BR'};
       const r = await this.stripe.confirmPayment({elements:this.stripeElements, redirect:'if_required',
-        confirmParams:{return_url:back, payment_method_data:{billing_details:{address}}}});
+        confirmParams:{return_url:back, payment_method_data:{billing_details:{name, address}}}});
       if(r.error){
         const validation = r.error.type === 'validation_error';
         this.setState({cardErr:validation ? '' : (r.error.message || 'O pagamento não foi aprovado. Confira os dados ou use outro cartão.')});
@@ -5443,6 +5470,10 @@ class Component extends DCLogic {
     v.cardFormLoading = !!s.cardFormLoading;
     v.cardFormMinH = s.cardFormLoading ? '0' : '120px';
     v.cardErr = s.cardErr; v.hasCardErr = !!s.cardErr;
+    v.cardHolderName = s.cardHolderName; v.cardHolderCpf = s.cardHolderCpf;
+    v.cardHolderCpfBorder = cpfDigits(s.cardHolderCpf).length === 11 && !isValidCpf(s.cardHolderCpf) ? '#B42318' : '';
+    v.setCardHolderName = e => this.setState({cardHolderName:e.target.value, cardErr:''});
+    v.setCardHolderCpf = e => this.setState({cardHolderCpf:formatCpf(e.target.value), cardErr:''});
     v.cardPayOpacity = s.busy === 'card' || s.cardFormLoading ? 0.6 : 1;
     v.confirmCardInApp = () => this.confirmCardInApp();
     if(s.screen === 'card' && this.stripeCard) this.ensureCardMounted();

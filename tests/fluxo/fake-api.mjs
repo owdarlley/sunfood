@@ -149,6 +149,9 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
       pix: db.paymentsConfigured ? 'mercadopago' : db.stripePix ? 'stripe' : 'provisorio',
       card: db.stripeTest ? 'stripe' : db.paymentsConfigured ? 'mercadopago' : 'provisorio', cardTestMode: db.stripeTest,
       stripePublishableKey: db.stripeTest && db.stripeInApp ? 'pk_test_fake' : null });
+    if ((r = p.match(/^\/payments\/card-holder\/([^/]+)$/))) {
+      db.cardHolder = body;
+      return json(200, { ok: true }); }
     if ((r = p.match(/^\/payments\/card-intent\/([^/]+)$/))) {
       db.cardIntentCalls = (db.cardIntentCalls || 0) + 1;
       return json(200, { clientSecret: 'pi_fake_secret_' + r[1], publishableKey: 'pk_test_fake' }); }
