@@ -37,8 +37,8 @@ function metricsToApi(period, data) {
 async function waiterOrders(waiterId, fromDate) {
   // Meia-noite de São Paulo (UTC-3, sem horário de verão) do primeiro dia.
   const start = new Date(`${fromDate}T00:00:00-03:00`).toISOString();
-  // "*" em vez da lista de colunas: assim a consulta não quebra se o banco
-  // ainda não tiver alguma coluna nova (como daily_number).
+  // "*" como nas outras rotas de pedido: uma coluna listada aqui que o banco
+  // ainda não tem (ex.: daily_number antes da migração) derrubava a consulta.
   const select = "*, order_items(name, qty)";
   const [launched, delivered] = await Promise.all([
     supabaseAdmin.from("orders").select(select).eq("waiter_id", waiterId).gte("created_at", start),
