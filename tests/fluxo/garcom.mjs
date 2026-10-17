@@ -137,7 +137,7 @@ await step('garçom lançar pedido', async () => {
   await page.waitForTimeout(300);
   t = await text(page);
   check('lançar: resumo com a mesa, itens e total', t.includes('Pedido da mesa 3') && t.includes('2× Caipirinha') && t.includes('R$ 44,00') && !t.includes('× Água de Coco'), (t.match(/Total[^\n]*\n?[^\n]*/) || [])[0]);
-  await page.getByPlaceholder('Ex.: sem gelo, guarda-sol azul').fill('guarda-sol azul');
+  await page.getByLabel('Observação', { exact: true }).fill('guarda-sol azul');
   for (const [nome, viewport] of SIZES) {
     await page.setViewportSize(viewport); await page.waitForTimeout(300);
     const tile = await page.getByRole('button', { name: 'Mesa 3', exact: true }).boundingBox();
@@ -200,9 +200,9 @@ await step('admin garçons', async () => {
   check('admin: menu tem "Garçons" e lista o garçom', t.includes('Carlos Souza') && t.includes('carlos@sunfood.com') && t.includes('Hoje: 4 entregue(s) · 2 lançado(s)'));
   await enviar();
   check('admin: pede o nome antes de enviar', (await text(page)).includes('Informe o nome do garçom.'));
-  await page.getByPlaceholder('Ex.: Carlos Souza').fill('Bruna Lima');
-  await page.getByPlaceholder('garcom@sunfood.com').fill('garcom@sunfood.com');
-  await page.getByPlaceholder('Mínimo de 6 caracteres').fill('Sunfood@123');
+  await page.getByLabel('Nome', { exact: true }).fill('Bruna Lima');
+  await page.getByLabel('E-mail', { exact: true }).fill('garcom@sunfood.com');
+  await page.getByLabel('Senha inicial', { exact: true }).fill('Sunfood@123');
   await enviar();
   const post = called(page, '/waiters').find(c => c.body.name);
   check('admin: envia nome, e-mail e senha', post && post.body.email === 'garcom@sunfood.com' && post.body.password === 'Sunfood@123', JSON.stringify(post));

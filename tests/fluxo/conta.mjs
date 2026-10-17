@@ -70,8 +70,8 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 
 const called = (page, p) => page.api.db.calls.filter(c => c.p === p);
 async function login(page) {
-  await page.getByPlaceholder('voce@email.com').first().fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).first().fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
 }
 
@@ -79,18 +79,18 @@ async function login(page) {
 await step('cadastro', async () => {
   // O cadastro abre pelo "Criar conta" do login principal, que leva direto a esta tela.
   const page = await open('app-cliente.dc.html?module=cliente&screen=signup');
-  await page.getByPlaceholder('Ana Souza').fill('Ana Teste');
-  await page.getByPlaceholder('voce@email.com').fill('ana@teste.com');
-  await page.getByPlaceholder('(11) 91234-5678').fill('11 91234-5678');
+  await page.getByLabel('Nome completo', { exact: true }).fill('Ana Teste');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@teste.com');
+  await page.getByLabel('WhatsApp / telefone', { exact: true }).fill('11 91234-5678');
   await page.locator('input[type=date]').fill('2000-01-01');
-  await page.getByPlaceholder('Mínimo 6 caracteres').fill('senha123');
-  await page.getByPlaceholder('Repita a senha').fill('senha123');
+  await page.getByLabel('Senha', { exact: true }).fill('senha123');
+  await page.getByLabel('Confirmar senha', { exact: true }).fill('senha123');
   await page.locator('input[type=checkbox]').check();
-  await page.getByPlaceholder('voce@email.com').fill('ana@teste');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@teste');
   await click(page, 'Criar minha conta');
   check('cadastro: e-mail sem domínio completo não envia', called(page, '/auth/signup').length === 0 && (await text(page)).includes('Informe um e-mail válido'));
-  await page.getByPlaceholder('voce@email.com').fill('ana@teste.com');
-  const cpf = page.getByPlaceholder('000.000.000-00');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@teste.com');
+  const cpf = page.getByLabel('CPF', { exact: true });
   await cpf.pressSequentially('12345678900');
   check('cadastro: pontua o CPF enquanto digita', await cpf.inputValue() === '123.456.789-00', await cpf.inputValue());
   check('cadastro: avisa na hora que o CPF é inválido', (await text(page)).includes('CPF inválido'));

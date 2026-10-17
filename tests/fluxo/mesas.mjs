@@ -75,8 +75,8 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 
 const called = (page, p) => page.api.db.calls.filter(c => c.p === p);
 async function login(page) {
-  await page.getByPlaceholder('voce@email.com').first().fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).first().fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
 }
 
@@ -87,7 +87,7 @@ await step('admin quantidade de mesas', async () => {
   let t = await text(page);
   check('admin: campo "Quantidade de mesas" aparece', t.includes('Quantidade de mesas'));
   const inp = page.locator('#tableCountInp');
-  check('admin: mostra a quantidade de hoje', await inp.getAttribute('placeholder') === 'Hoje: 5', await inp.getAttribute('placeholder'));
+  check('admin: mostra a quantidade de hoje', t.includes('Hoje: 5') && !(await inp.getAttribute('placeholder')), await inp.getAttribute('placeholder'));
   const salvar = async () => { await page.locator('#tableCountInp ~ div').click(); await page.waitForTimeout(600); };
   await inp.fill('0');
   await salvar();
@@ -121,7 +121,7 @@ await step('cliente mesa fora da faixa', async () => {
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
   await click(page, 'Ir para pagamento');
-  const mesa = page.getByPlaceholder('Ex.: 12');
+  const mesa = page.getByLabel('Número da mesa', { exact: true });
   await mesa.fill('123');
   check('cliente: aceita número de 3 dígitos', await mesa.inputValue() === '123', await mesa.inputValue());
   for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tablet', { width: 768, height: 1000 }], ['computador', { width: 1366, height: 900 }], ['tela larga', { width: 1920, height: 1080 }]]) {

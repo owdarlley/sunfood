@@ -77,9 +77,11 @@ await step('login no endereço principal', async () => {
   await click(page, 'Entrar', true);
   check('raiz: pede e-mail e senha embaixo de cada campo', (await text(page)).includes('Informe seu e-mail.') && (await text(page)).includes('Informe sua senha.')
     && await page.locator('#email').getAttribute('aria-invalid') === 'true' && await page.evaluate(() => document.activeElement.id) === 'email');
-  await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  check('raiz: campos sem texto de exemplo dentro', await page.locator('[placeholder]').count() === 0);
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
+  check('raiz: sem aviso verde de boas-vindas ao entrar', !(await text(page)).includes('Bem-vindo(a)'));
   await page.waitForTimeout(1200);
   check('raiz: cliente cai no cardápio', page.url().includes('module=cliente&screen=menu') && (await text(page)).includes('Batata Frita'), page.url());
   check('guia do navegador: cardápio mostra "Sunfood · Cardápio"', await page.title() === 'Sunfood · Cardápio', await page.title());
@@ -89,8 +91,8 @@ await step('login no endereço principal', async () => {
   for (const [role, dest] of [['admin', 'module=admin&screen=dashboard'], ['cozinha', 'module=cozinha&screen=kanban']]) {
     const p = await open('', { role, session: false });
     await click(p, 'Entrar com e-mail', true);
-    await p.getByPlaceholder('voce@email.com').fill(role + '@teste');
-    await p.getByPlaceholder('••••••••').fill('senha');
+    await p.getByLabel('E-mail', { exact: true }).fill(role + '@teste');
+    await p.getByLabel('Senha', { exact: true }).fill('senha');
     await click(p, 'Entrar', true);
     await p.waitForTimeout(800);
     check(`raiz: ${role} cai no módulo certo`, p.url().includes(dest), p.url());
@@ -108,8 +110,8 @@ await step('login no endereço principal', async () => {
   await inicio.close();
 
   const app = await open('app-cliente.dc.html', { role: 'admin', session: false });
-  await app.getByPlaceholder('voce@email.com').fill('admin@teste');
-  await app.getByPlaceholder('••••••••').fill('senha');
+  await app.getByLabel('E-mail', { exact: true }).fill('admin@teste');
+  await app.getByLabel('Senha', { exact: true }).fill('senha');
   await click(app, 'Entrar', true);
   await app.waitForTimeout(800);
   check('login do app: admin vai para o painel', app.url().includes('module=admin&screen=dashboard'), app.url());
@@ -171,8 +173,8 @@ await step('logo do Sunfood', async () => {
   await anon.close();
 
   const cli = await open('app-cliente.dc.html');
-  await cli.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await cli.getByPlaceholder('••••••••').fill('senha');
+  await cli.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
+  await cli.getByLabel('Senha', { exact: true }).fill('senha');
   await click(cli, 'Entrar', true);
   await click(cli, 'Perfil', true);
   await logo(cli).click(); await cli.waitForTimeout(500);
@@ -195,8 +197,8 @@ await step('logo do Sunfood', async () => {
 // 2. Cliente: login -> cardápio -> carrinho -> mesa -> PIX -> confirmação
 await step('fluxo do cliente', async () => {
   const page = await open('app-cliente.dc.html');
-  await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
   let t = await text(page);
   check('cliente: login abre o cardápio', t.includes('Batata Frita') && t.includes('Água de Coco'));
@@ -208,10 +210,10 @@ await step('fluxo do cliente', async () => {
   await click(page, 'Ir para pagamento');
   t = await text(page);
   check('cliente: aviso de mesas ativas vem do cadastro de mesas', t.includes('Mesas ativas: 1, 3 a 5.'), (t.match(/Mesas? ativas?:[^\n]*/) || [])[0]);
-  await page.getByPlaceholder('Ex.: 12').fill('2');
+  await page.getByLabel('Número da mesa', { exact: true }).fill('2');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa inativa é recusada', !(await text(page)).includes('Total do pedido · Mesa 2'));
-  await page.getByPlaceholder('Ex.: 12').fill('1');
+  await page.getByLabel('Número da mesa', { exact: true }).fill('1');
   await click(page, 'Confirmar mesa');
   check('cliente: mesa ativa leva ao pagamento', (await text(page)).includes('Mesa 1'));
   await click(page, 'PIX', true);

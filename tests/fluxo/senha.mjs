@@ -67,7 +67,7 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 await step('pedir link', async () => {
   const page = await open('app-cliente.dc.html?module=cliente&screen=login');
   await click(page, 'Esqueci minha senha');
-  await page.getByPlaceholder('voce@email.com').last().fill('ana@email.com');
+  await page.getByLabel('E-mail', { exact: true }).last().fill('ana@email.com');
   await click(page, 'Enviar link');
   const call = page.calls.find(c => c.p === '/auth/forgot-password');
   check('pedir link: chama /auth/forgot-password com o e-mail', call?.body.email === 'ana@email.com', JSON.stringify(page.calls));
@@ -80,7 +80,7 @@ await step('pedir link', async () => {
 await step('pedir link com e-mail errado', async () => {
   const page = await open('app-cliente.dc.html?module=cliente&screen=login');
   await click(page, 'Esqueci minha senha');
-  const input = page.getByPlaceholder('voce@email.com').last();
+  const input = page.getByLabel('E-mail', { exact: true }).last();
   await input.fill('ana@emial.com');
   await click(page, 'Enviar link');
   let t = await text(page);
@@ -105,7 +105,7 @@ await step('pedir link pelo CPF', async () => {
   const page = await open('app-cliente.dc.html?module=cliente&screen=login');
   await click(page, 'Esqueci minha senha');
   await page.getByText('CPF', { exact: true }).first().click(); await page.waitForTimeout(300);
-  const input = page.getByPlaceholder('000.000.000-00').last();
+  const input = page.getByLabel('CPF', { exact: true }).last();
   await input.fill('12345678900');
   let t = await text(page);
   check('CPF: avisa CPF inválido na hora', t.includes('CPF inválido'));
@@ -145,11 +145,11 @@ const LINK = '#access_token=tok-recuperacao&expires_in=3600&refresh_token=r&toke
 await step('trocar senha', async () => {
   const page = await open('redefinir-senha.html' + LINK);
   check('nova senha: token sai da barra de endereço', !page.url().includes('access_token'), page.url());
-  await page.getByPlaceholder('Mínimo 6 caracteres').fill('nova123');
-  await page.getByPlaceholder('Repita a senha').fill('outra99');
+  await page.getByLabel('Nova senha', { exact: true }).fill('nova123');
+  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('outra99');
   await page.getByText('Redefinir senha', { exact: true }).last().click(); await page.waitForTimeout(500);
   check('nova senha: senhas diferentes são recusadas', (await text(page)).includes('não conferem'));
-  await page.getByPlaceholder('Repita a senha').fill('nova123');
+  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('nova123');
   await page.getByText('Redefinir senha', { exact: true }).last().click(); await page.waitForTimeout(500);
   const call = page.calls.find(c => c.p === '/auth/update-password');
   check('nova senha: envia token + nova senha pra API', call?.body.accessToken === 'tok-recuperacao' && call?.body.newPassword === 'nova123', JSON.stringify(call?.body));

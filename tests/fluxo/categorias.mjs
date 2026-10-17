@@ -65,8 +65,8 @@ const SIZES = [['celular', 390, 844], ['tablet', 820, 1180], ['computador', 1280
 // 1. Cardápio do cliente: nenhum item mostra foto (só a cor da categoria + ícone).
 await step('cardápio sem fotos', async () => {
   const page = await open('app-cliente.dc.html', { role: 'cliente' });
-  await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
   const imgs = await page.evaluate(() => [...document.querySelectorAll('.pcard .pimg span')].filter(s => /background-image:\s*url\("?[^")]/.test(s.getAttribute('style') || '')).length);
   const icons = await page.locator('.pcard .pimg svg').count();
@@ -153,8 +153,8 @@ await step('cliente vê categorias novas', async () => {
     .map(([name, color], i) => ({ name, color, position: i + 1 }));
   api.db.products.find(p => p.id === 'p4').category = 'Porções';
   const page = await open('app-cliente.dc.html', { role: 'cliente', api });
-  await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
   check('cliente: abas seguem a ordem e escondem categoria vazia', JSON.stringify(await tabs(page)) === JSON.stringify(['Todos', 'Bebidas', 'Porções', 'Petiscos', 'Sobremesas']), JSON.stringify(await tabs(page)));
   await click(page, 'Porções', true);
