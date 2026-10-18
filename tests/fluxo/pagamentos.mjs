@@ -268,7 +268,7 @@ await step('cartão pelo Stripe (modo teste)', async () => {
     await click(page, 'Cartão de crédito ou débito', true);
     let t = await text(page);
     check(`stripe ${tela}: opção diz "À vista, no app"`, t.includes('À vista, no app') && !t.includes('pelo Stripe'));
-    check(`stripe ${tela}: mostra o cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
+    check(`stripe ${tela}: sem aviso do cartão de teste para o cliente`, !t.includes('4242') && !t.includes('Modo de teste'));
     check(`stripe ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/pagamento-stripe-${tela}.png`, fullPage: true });
     await page.route(FAKE_CHECKOUT_URL, r => r.fulfill({ contentType: 'text/html', body: '<h1>Checkout Stripe (teste)</h1>' }));
@@ -282,7 +282,7 @@ await step('cartão pelo Stripe (modo teste)', async () => {
       setup: db => { db.orders[0].paymentStatus = 'pending'; } });
     await back.waitForTimeout(800);
     t = await text(back);
-    check(`stripe ${tela}: na volta, espera a confirmação com o aviso de teste`, t.includes('Aguardando confirmação do pagamento') && t.includes('página segura para digitar') && t.includes('4242'), t.slice(0, 300));
+    check(`stripe ${tela}: na volta, espera a confirmação sem aviso de teste`, t.includes('Aguardando confirmação do pagamento') && t.includes('página segura para digitar') && !t.includes('4242'), t.slice(0, 300));
     if (SHOTS) await back.screenshot({ path: `${SHOTS}/cartao-stripe-${tela}.png`, fullPage: true });
     back.api.db.orders[0].paymentStatus = 'approved';
     await back.waitForTimeout(3500);
@@ -325,7 +325,7 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
       && window.__stripeOpts.mode === 'payment' && window.__stripeOpts.currency === 'brl' && window.__stripeOpts.paymentMethodTypes.join() === 'card'
       && !window.__stripeOpts.clientSecret && window.__stripeOpts.appearance.variables.colorPrimary.toUpperCase() === '#1F5A63'
       && window.__stripeOpts.appearance.variables.fontFamily.startsWith('Manrope')));
-    check(`no app ${tela}: aviso do cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
+    check(`no app ${tela}: sem aviso do cartão de teste`, !t.includes('4242') && !t.includes('Modo de teste'));
     check(`no app ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     const btnH = await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().evaluate(el => el.getBoundingClientRect().height);
     check(`no app ${tela}: botão Pagar com altura de toque (40 a 56 px)`, btnH >= 40 && btnH <= 56, String(btnH));
