@@ -77,14 +77,21 @@ O `sw.js` guarda as páginas e arquivos do site para abrirem mais rápido e most
 server/                                      → a API (Node/Express) e o banco (Supabase), publicada pela Vercel
 index.html                                   → login + painéis Conheça, Fale conosco, Termos e Privacidade
 inicio.html, sobre.html, termos.html, ...    → endereços antigos, redirecionam para o painel certo
+prototipo.html                               → endereço antigo do protótipo, redireciona para /#conheca
 redefinir-senha.html                         → segunda etapa da recuperação de senha
 app-cliente.dc.html                          → o app (cliente, cozinha, garçom e administração), fala com a API
-prototipo-completo.html                      → protótipo navegável das telas (material da faculdade)
+abertura.js                                  → animação de abertura do app
 support.js                                   → script de apoio às páginas (gerado, não editar)
 manifest.json, sw.js, pwa.js, offline.html   → app instalável (PWA): manifesto, service worker, registro e aviso sem internet
 icons/                                       → ícones do app instalado (192, 512, maskable, iPhone, favicon)
+android/                                     → app Android (TWA) que abre o site; o APK sai pelo GitHub Actions
+.well-known/assetlinks.json                  → liga o app Android ao domínio sunfood.app.br
 tests/                                       → testes de tela (Playwright)
 ```
+
+O GitHub Pages publica só as páginas: `server/`, `tests/`, `android/` e este README ficam fora do site (veja `_config.yml`).
+
+O repositório `owdarlley/sunfood-backend` é uma cópia antiga da API, parada desde 07/10/2026. A API publicada é a pasta `server/` deste repositório.
 
 ## Grupo
 
