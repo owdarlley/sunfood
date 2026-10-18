@@ -15,6 +15,7 @@ import {
   completeProfileSchema,
   profileUpdateSchema,
   changePasswordSchema,
+  deleteAccountSchema,
   validate,
 } from "../validation/schemas.js";
 
@@ -73,6 +74,18 @@ function userApi(id, email, profile) {
     notifyReady: profile?.notify_ready !== false,
     soundOn: profile?.sound_on !== false,
   };
+}
+
+// O access_token do Supabase lista em "amr" como a sessão começou; o link de
+// "esqueci minha senha" gera uma com o método "recovery". A assinatura já foi
+// conferida pelo getUser antes de olhar isto.
+export function isRecoveryToken(token) {
+  try {
+    const payload = JSON.parse(Buffer.from(String(token).split(".")[1], "base64url").toString("utf8"));
+    return Array.isArray(payload.amr) && payload.amr.some((a) => (a?.method || a) === "recovery");
+  } catch {
+    return false;
+  }
 }
 
 // Só os 3 primeiros e os 2 últimos dígitos: o bastante pro dono reconhecer.
@@ -237,7 +250,10 @@ authRouter.post("/forgot-password", forgotLimiter, validate(forgotPasswordSchema
 authRouter.post("/update-password", forgotLimiter, validate(updatePasswordSchema), async (req, res) => {
   const { accessToken, newPassword } = req.body;
   const { data: userData, error: userError } = await supabaseAuth.auth.getUser(accessToken);
-  if (userError || !userData?.user) {
+  // Só o token que veio do link do e-mail (amr "recovery") troca a senha por
+  // aqui. Um token de login comum (de uma sessão roubada, por exemplo) não
+  // serve: logado, a troca é por /change-password, que confere a senha atual.
+  if (userError || !userData?.user || !isRecoveryToken(accessToken)) {
     return res.status(401).json({ error: "Link de redefinição inválido ou expirado." });
   }
   const { error } = await supabaseAdmin.auth.admin.updateUserById(userData.user.id, { password: newPassword });
@@ -334,8 +350,18 @@ authRouter.post("/change-password", changePasswordLimiter, requireAuth, validate
 });
 
 // Foto do perfil enviada pelo celular/computador (o app já reduz o tamanho).
+// Foto do perfil: cada envio grava um arquivo no Storage, então tem limite.
+const avatarLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Muitas fotos enviadas em pouco tempo. Tente de novo daqui a pouco." },
+});
+
 authRouter.post(
   "/avatar",
+  avatarLimiter,
   requireAuth,
   express.raw({ type: () => true, limit: MAX_IMAGE_BYTES }),
   async (req, res) => {
@@ -375,7 +401,29 @@ authRouter.delete("/avatar", requireAuth, async (req, res) => {
 
 // Exclusão da própria conta (LGPD, direito de eliminação) — a tela já
 // existia no protótipo, mas não apagava nada de verdade.
-authRouter.post("/delete-account", requireAuth, async (req, res) => {
+// Quem tem senha confirma com ela (um celular esquecido desbloqueado não basta
+// pra apagar a conta); quem só entra pelo Google não tem senha pra digitar.
+const deleteAccountLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Muitas tentativas. Tente novamente mais tarde." },
+});
+
+authRouter.post("/delete-account", deleteAccountLimiter, requireAuth, validate(deleteAccountSchema), async (req, res) => {
+  if (await hasPassword(req.user.sub)) {
+    if (!req.body.password) {
+      return res.status(400).json({ error: "Digite sua senha para excluir a conta.", code: "password_required" });
+    }
+    const { data, error: signInError } = await supabaseAuth.auth.signInWithPassword({
+      email: req.user.email,
+      password: req.body.password,
+    });
+    if (signInError || data?.user?.id !== req.user.sub) {
+      return res.status(400).json({ error: "Senha incorreta.", code: "wrong_password" });
+    }
+  }
   const { error } = await supabaseAdmin.auth.admin.deleteUser(req.user.sub);
   if (error) return res.status(500).json({ error: "Não foi possível excluir a conta." });
   await removeAvatarFile(req.user.profile.avatar_path);

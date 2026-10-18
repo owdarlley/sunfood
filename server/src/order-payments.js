@@ -78,3 +78,18 @@ export async function expireUnpaidOrders() {
     if (!rpcError) await supabaseAdmin.from("orders").update({ payment_status: "cancelled" }).eq("id", id);
   }
 }
+
+// Mesma limpeza, chamada de rotas que muitos clientes usam (cardápio, novo
+// pedido): roda no máximo uma vez por minuto em cada instância da API. Sem
+// isso, um PIX abandonado só saía da fila (e só devolvia o estoque) quando
+// alguém da equipe abria a lista de pedidos.
+let lastExpireRun = 0;
+export async function expireUnpaidOrdersSoon(now = Date.now()) {
+  if (now - lastExpireRun < 60 * 1000) return;
+  lastExpireRun = now;
+  try {
+    await expireUnpaidOrders();
+  } catch (e) {
+    console.error("Erro ao expirar pedidos não pagos:", e);
+  }
+}

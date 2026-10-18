@@ -54,7 +54,7 @@ Os testes das telas ficam no repositório do site (`owdarlley/sunfood`, pasta `t
 
 | Perfil | E-mail | Senha |
 | --- | --- | --- |
-| Cliente | `ana@email.com` | `praia2026` |
+| Cliente | `ana@email.com` | (não publicada) |
 | Administração | `admin@sunfood.com` | (não publicada) |
 | Cozinha | `cozinha@sunfood.com` | (não publicada) |
 

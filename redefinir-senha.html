@@ -2,6 +2,10 @@
 <html>
 <head>
 <meta charset="utf-8">
+<!-- Segurança: só roda script do próprio site, do unpkg (React) e do Stripe;
+     nada de plugin (object) nem troca do endereço base. inline/eval ficam
+     liberados porque o runtime das telas (support.js) precisa deles. -->
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="./support.js"></script>
 <link rel="manifest" href="manifest.json">
@@ -142,7 +146,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         <div style="display:flex;flex-direction:column;gap:16px">
           <div class="icon" style="background:#FFF4DB"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B0791A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg></div>
           <div>
-            <div class="tt" style="font-size:var(--fs-h1)">{{ invalidTitle }}</div>
+            <h1 class="tt" style="font-size:var(--fs-h1);margin:0">{{ invalidTitle }}</h1>
             <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">{{ invalidMsg }}</div>
           </div>
           <a href="app-cliente.dc.html?module=cliente&amp;screen=forgot" class="btn btn-sun">Pedir um novo link</a>
@@ -155,7 +159,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
           <div style="display:flex;flex-direction:column;gap:16px">
             <div class="icon" style="background:#E5F7EA"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2E9C6A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></div>
             <div>
-              <div class="tt" style="font-size:var(--fs-h1)">Tudo certo!</div>
+              <h1 class="tt" style="font-size:var(--fs-h1);margin:0">Tudo certo!</h1>
               <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">Senha redefinida com sucesso. Já dá pra entrar com a nova senha.</div>
             </div>
             <a href="app-cliente.dc.html" class="btn btn-sun">Ir para o login</a>
@@ -165,7 +169,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
           <div style="display:flex;flex-direction:column;gap:16px">
             <div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></div>
             <div>
-              <div class="tt" style="font-size:var(--fs-h1)">Crie sua nova senha</div>
+              <h1 class="tt" style="font-size:var(--fs-h1);margin:0">Crie sua nova senha</h1>
               <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">Escolha uma senha com pelo menos 6 caracteres. Depois é só entrar com ela no app.</div>
             </div>
             <div>

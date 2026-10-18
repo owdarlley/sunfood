@@ -276,7 +276,7 @@ test("titular do cartão: recusa nome incompleto e CPF inválido", async () => {
   assert.equal(r.status, 400);
 });
 
-test("titular do cartão: guarda nome e CPF no PaymentIntent", async () => {
+test("titular do cartão: guarda o nome e só parte do CPF no PaymentIntent", async () => {
   const db2 = db.orders.find((x) => x.id === ORDER2);
   const saved = db2.payment_status;
   db2.payment_status = "pending";
@@ -285,7 +285,7 @@ test("titular do cartão: guarda nome e CPF no PaymentIntent", async () => {
   assert.equal(r.status, 200, JSON.stringify(r.body));
   const meta = intents[db2.payment_id].metadata;
   assert.equal(meta.holder_name, "Ana Souza");
-  assert.equal(meta.holder_cpf, "52998224725");
+  assert.equal(meta.holder_cpf, "529.***.***-25", "CPF inteiro não vai pro Stripe");
   assert.equal(meta.order_id, ORDER2);
 });
 

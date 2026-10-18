@@ -2,6 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<!-- Segurança: só roda script do próprio site, do unpkg (React) e do Stripe;
+     nada de plugin (object) nem troca do endereço base. inline/eval ficam
+     liberados porque o runtime das telas (support.js) precisa deles. -->
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sunfood · Entrar</title>
 <meta name="description" content="Entre no Sunfood para pedir do seu guarda-sol. Cliente, cozinha e administração usam o mesmo login.">
@@ -221,6 +225,15 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 :root{--lg-pad:var(--lg-s20);--lg-h:46px;--lg-fs-title:22px;--lg-fs-sub:13px;--lg-fs-label:13px;--lg-fs-btn:14px;--lg-fs-link:13px;--lp-px:16px;--lp-logo:22px;--lp-fs-brand:18px;--lp-fs-hero:24px;--lp-cat-w:136px;--lp-cat-h:160px;--lp-ico:48px;--lp-fs-cat:16px;--lp-fs-cat-sub:12px}
 @media (min-width:768px){:root{--lg-pad:var(--lg-s24);--lg-fs-title:24px;--lp-px:20px;--lp-fs-hero:30px;--lp-cat-h:170px}}
 @media (min-width:1024px){:root{--lg-pad:var(--lg-s32);--lg-h:48px;--lg-fs-title:26px;--lp-px:28px;--lp-logo:24px;--lp-fs-brand:20px;--lp-fs-hero:34px;--lp-cat-h:200px;--lp-ico:56px;--lp-fs-cat:18px}}
+/* Design system (Dárlley, 2026-10-07), igual ao app: campos e botões com
+   48 px no celular e no tablet e 44 px no computador (> 1024 px), cantos de
+   8 px em botões e campos, links e textos de apoio com 14 px. */
+:root{--ctl:48px;--r-btn:8px;--r-ctl:8px;--fs-sm:14px;--lg-h:48px;--lg-h2:48px;--lg-fs-link:14px}
+@media (min-width:1025px){:root{--ctl:44px;--lg-h:44px}}
+/* Áreas de toque de 48x48 em volta de alvos menores que o desenho:
+   o olho da senha e os links de texto do cartão de login. */
+.pw-toggle::after{content:'';position:absolute;inset:-4px}
+.login .link::after{content:'';position:absolute;left:-4px;right:-4px;top:-14px;bottom:-14px}
 
 /* ---- Página de entrada (design "Cardápio em destaque", 2026-10-10) ----
    Celular: marca + "Ver cardápio", chamada, cartões do cardápio que rolam
@@ -566,15 +579,15 @@ select{caret-color:auto}
       <section data-sec="termos">
         <p class="eyebrow">Documento legal</p>
         <h2>Termos de uso</h2>
-        <p>Última atualização: 6 de outubro de 2026. Ao acessar o cardápio digital, criar uma conta ou fazer um pedido pelo Sunfood, você concorda com as regras descritas abaixo.</p>
+        <p>Última atualização: 18 de outubro de 2026. Ao acessar o cardápio digital, criar uma conta ou fazer um pedido pelo Sunfood, você concorda com as regras descritas abaixo.</p>
         <h3>1. Natureza do serviço</h3>
         <p>O Sunfood é um sistema de pedidos online desenvolvido para operar em um quiosque de praia específico. O acesso é feito pelo navegador do próprio celular do cliente, a partir do QR Code fixado no quiosque ou do endereço sunfood.app.br, e abre o cardápio, o carrinho e o pagamento. O Sunfood não é uma plataforma multi-tenant nem um marketplace que conecta vários estabelecimentos independentes: cada instância do sistema pertence e é operada por um único quiosque.</p>
         <h3>2. Cadastro e conta de usuário</h3>
         <p>Para fazer um pedido, o cliente cria uma conta informando nome, e-mail, senha, telefone, CPF e data de nascimento, ou entra com a conta Google e completa esses dados no primeiro acesso. A senha é armazenada apenas em formato criptografado (hash), nunca em texto puro, e é de responsabilidade do usuário mantê-la em sigilo. O usuário é responsável pela veracidade dos dados informados no cadastro e por qualquer atividade realizada com sua conta, devendo comunicar imediatamente o quiosque em caso de suspeita de uso indevido. Contas de administração e de cozinha são criadas e geridas exclusivamente pelo quiosque, para uso interno da operação.</p>
         <h3>3. Pedidos e pagamento</h3>
-        <p>Cada pedido é vinculado ao número da mesa ou guarda-sol informado pelo cliente ao fazer o pedido. O quiosque pode estabelecer um valor mínimo de pedido, exibido no carrinho antes da confirmação. O pagamento é processado por meio da plataforma Mercado Pago, aceitando PIX e cartão de crédito. O Sunfood não armazena, processa ou tem acesso a números de cartão, CVV ou dados sensíveis de pagamento: essas informações são inseridas diretamente na interface do Mercado Pago e ficam sob a responsabilidade exclusiva dessa instituição, sujeitas aos próprios termos e políticas dela. O Sunfood recebe apenas a confirmação do status do pagamento (aprovado, recusado ou pendente).</p>
+        <p>Cada pedido é vinculado ao número da mesa ou guarda-sol informado pelo cliente ao fazer o pedido. O quiosque pode estabelecer um valor mínimo de pedido, exibido no carrinho antes da confirmação. O pagamento pelo app é processado pela plataforma Stripe, aceitando PIX e cartão de crédito; também é possível pagar na entrega, direto ao garçom. O Sunfood não armazena, processa ou tem acesso a números de cartão, CVV ou dados sensíveis de pagamento: essas informações são inseridas diretamente nos campos do Stripe e ficam sob a responsabilidade exclusiva dessa instituição, sujeitas aos próprios termos e políticas dela. Se o cliente marcar a opção de salvar o cartão, ele fica guardado no Stripe, e não no Sunfood. O Sunfood recebe apenas a confirmação do status do pagamento (aprovado, recusado ou pendente).</p>
         <h3>4. Cancelamento de pedidos</h3>
-        <p>O cancelamento de um pedido pelo cliente só é permitido enquanto o status do pedido estiver como <strong>"Na fila"</strong>, ou seja, antes de a cozinha iniciar o preparo. Uma vez que o pedido avança para "Em preparo" ou "Pronto", o cancelamento pelo próprio cliente não é mais possível pelo aplicativo, sendo necessário buscar diretamente o atendimento do quiosque, que avaliará o caso conforme sua política interna de estorno. Em caso de cancelamento aprovado após o pagamento, o eventual estorno segue as regras e prazos da forma de pagamento utilizada (PIX ou cartão) e da plataforma Mercado Pago.</p>
+        <p>O cancelamento de um pedido pelo cliente só é permitido enquanto o status do pedido estiver como <strong>"Na fila"</strong>, ou seja, antes de a cozinha iniciar o preparo. Uma vez que o pedido avança para "Em preparo" ou "Pronto", o cancelamento pelo próprio cliente não é mais possível pelo aplicativo, sendo necessário buscar diretamente o atendimento do quiosque, que avaliará o caso conforme sua política interna de estorno. Em caso de cancelamento aprovado após o pagamento, o eventual estorno segue as regras e prazos da forma de pagamento utilizada (PIX ou cartão) e da plataforma Stripe.</p>
         <h3>5. Responsabilidades do quiosque</h3>
         <p>O quiosque é responsável por manter o cardápio atualizado, incluindo preços, disponibilidade e descrição dos itens; por preparar e entregar os pedidos recebidos; pela qualidade e segurança dos alimentos e bebidas comercializados; e por informações claras sobre alérgenos, quando aplicável. O quiosque também é responsável pela precisão dos dados de contato e de funcionamento exibidos no sistema.</p>
         <h3>6. Responsabilidades do cliente</h3>
@@ -589,7 +602,7 @@ select{caret-color:auto}
       <section data-sec="privacidade">
         <p class="eyebrow">Documento legal · LGPD</p>
         <h2>Política de privacidade</h2>
-        <p>Última atualização: 6 de outubro de 2026. Este documento explica quais dados pessoais o Sunfood coleta, para que servem e quais direitos você tem sobre eles, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
+        <p>Última atualização: 18 de outubro de 2026. Este documento explica quais dados pessoais o Sunfood coleta, para que servem e quais direitos você tem sobre eles, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
         <h3>1. Quais dados coletamos</h3>
         <p>Para o funcionamento do sistema, coletamos e armazenamos:</p>
         <ul>
@@ -602,7 +615,7 @@ select{caret-color:auto}
           <li><strong>Histórico de pedidos</strong>: itens, valores, status e horários de pedidos já realizados.</li>
           <li><strong>Mensagens do Fale conosco</strong>: nome, contato, motivo e texto enviados, para a administração responder.</li>
         </ul>
-        <p><strong>O que não coletamos:</strong> o Sunfood não coleta nem armazena número de cartão de crédito, código de segurança (CVV), data de validade ou qualquer outro dado sensível de pagamento. Essas informações são digitadas diretamente na interface do Mercado Pago e permanecem sob a guarda exclusiva dessa instituição.</p>
+        <p><strong>O que não coletamos:</strong> o Sunfood não coleta nem armazena número de cartão de crédito, código de segurança (CVV), data de validade ou qualquer outro dado sensível de pagamento. Essas informações são digitadas diretamente nos campos do Stripe e permanecem sob a guarda exclusiva dessa instituição. No pagamento com cartão, o Sunfood pede o nome e o CPF do titular para conferir a compra: o nome é enviado ao Stripe, e do CPF só vão os três primeiros e os dois últimos dígitos.</p>
         <h3>2. Finalidade e base legal de cada dado</h3>
         <p>Os dados de cadastro são tratados com base na <strong>execução de contrato</strong> (art. 7º, V, da LGPD): sem eles não é possível criar a conta necessária para fazer um pedido. O número da mesa ou guarda-sol e o histórico de pedidos também têm base na execução do contrato, viabilizando a entrega correta e o suporte a pedidos anteriores. Quando o cadastro envolve o uso de cookies não essenciais ou comunicações de marketing (por exemplo, ofertas por e-mail), a base legal passa a ser o <strong>consentimento</strong> (art. 7º, I), sempre solicitado de forma destacada e revogável a qualquer momento.</p>
         <h3>3. Por quanto tempo os dados são guardados</h3>
@@ -610,10 +623,13 @@ select{caret-color:auto}
         <h3>4. Com quem os dados são compartilhados</h3>
         <p>Os dados pessoais podem ser compartilhados com:</p>
         <ul>
-          <li><strong>Mercado Pago</strong>: para processar o pagamento dos pedidos (PIX e cartão). Dados de pagamento são inseridos diretamente nessa plataforma e regidos pela política de privacidade dela.</li>
+          <li><strong>Stripe</strong>: para processar o pagamento dos pedidos pelo app (PIX e cartão). Recebe o e-mail e o nome do cliente, o valor do pedido e, no cartão, o nome e parte do CPF do titular. Os dados do cartão são inseridos diretamente nos campos do Stripe e regidos pela política de privacidade dele.</li>
           <li><strong>Supabase</strong>: atua como operador de dados, hospedando o banco de dados e a infraestrutura do sistema (cadastro de usuários, pedidos e cardápio) em nome do quiosque, sem uso próprio dessas informações para outras finalidades.</li>
+          <li><strong>Vercel</strong>: hospeda o servidor (API) do Sunfood, por onde passam o login, os pedidos e os pagamentos, sem uso próprio dessas informações.</li>
+          <li><strong>Resend</strong>: envia por e-mail a resposta da administração a quem escreveu pelo Fale conosco, e recebe só o e-mail, o nome e o texto da resposta.</li>
           <li><strong>Google</strong>: somente para quem escolhe entrar com a conta Google, que confirma a identidade e informa nome e e-mail.</li>
         </ul>
+        <p><strong>Transferência internacional:</strong> o banco de dados (Supabase) e o servidor (Vercel) ficam nos Estados Unidos, e o Stripe também processa dados fora do Brasil. Essa transferência é feita para executar o contrato com o cliente (art. 33, IX, da LGPD), com empresas que adotam cláusulas contratuais de proteção de dados.</p>
         <p>Não vendemos nem alugamos dados pessoais a terceiros para fins de publicidade.</p>
         <h3>5. Cookies e armazenamento local</h3>
         <p>Após o login, o token de sessão é guardado no armazenamento local (localStorage) do navegador do próprio dispositivo, permitindo manter o usuário conectado sem exigir login a cada tela. Esse token fica salvo apenas no aparelho do cliente e pode ser removido a qualquer momento limpando os dados do site no navegador ou saindo da conta. Não usamos cookies de rastreamento de terceiros para publicidade.</p>

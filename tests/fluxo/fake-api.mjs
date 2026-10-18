@@ -209,7 +209,9 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
       if (body.cancel) o.status = 'Cancelado';
       return json(200, { ...o, refundedNow: amount }); }
     if ((r = p.match(/^\/orders\/([^/]+)\/cancel$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = 'Cancelado'; return json(200, o); }
-    if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now(); return json(200, o); }
+    if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now();
+      if (body.receivedWith && o.paymentMethod === 'entrega') Object.assign(o, { paymentStatus: 'approved', receivedWith: body.receivedWith });
+      return json(200, o); }
     if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, withRefunds(db.orders.find(o => o.id === r[1])));
     if ((r = p.match(/^\/products\/([^/]+)$/)) && m === 'PUT') { const pr = db.products.find(x => x.id === r[1]);
       db.lastProductBody = body;

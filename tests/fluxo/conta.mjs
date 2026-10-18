@@ -166,8 +166,12 @@ await step('excluir conta', async () => {
   await click(page, 'Excluir minha conta');
   check('excluir: pede confirmação', (await text(page)).includes('Excluir sua conta?'));
   await click(page, 'Sim, excluir conta');
+  check('excluir: sem senha não chama a API', called(page, '/auth/delete-account').length === 0 && (await text(page)).includes('Digite sua senha'));
+  await page.getByLabel('Sua senha').fill('praia2026');
+  await click(page, 'Sim, excluir conta');
   const call = called(page, '/auth/delete-account')[0];
   check('excluir: chama a API com o token do cliente', call && call.auth === 'Bearer tok', JSON.stringify(call));
+  check('excluir: manda a senha digitada', call && call.body && call.body.password === 'praia2026', JSON.stringify(call));
   const t = await text(page);
   check('excluir: volta para o login', t.includes('Esqueci minha senha'));
   check('excluir: apaga a sessão salva', await page.evaluate(() => localStorage.getItem('sunfood_session')) === null);
