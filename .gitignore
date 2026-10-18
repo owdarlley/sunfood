@@ -1,3 +1,6 @@
 node_modules/
 .env
 .vercel
+.DS_Store
+*.log
+tests/test-results/
