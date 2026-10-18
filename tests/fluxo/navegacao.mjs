@@ -61,7 +61,7 @@ await step('voltar', async () => {
   await addFirst(page);
   await page.getByText('item no carrinho').first().click(); await page.waitForTimeout(400);
   check('voltar: carrinho entra no endereço', screen(page) === 'cart', page.url());
-  await page.getByText('Ir para pagamento').click(); await page.waitForTimeout(400);
+  await page.getByText('Escolher a mesa').click(); await page.waitForTimeout(400);
   check('voltar: tela da mesa entra no endereço', screen(page) === 'table', page.url());
   await page.goBack(); await page.waitForTimeout(600);
   let t = await text(page);
@@ -79,12 +79,12 @@ await step('recarregar', async () => {
   const page = await open('app-cliente.dc.html?module=cliente&screen=menu');
   await addFirst(page);
   await page.getByText('item no carrinho').first().click(); await page.waitForTimeout(400);
-  await page.getByText('Ir para pagamento').click(); await page.waitForTimeout(400);
+  await page.getByText('Escolher a mesa').click(); await page.waitForTimeout(400);
   await page.getByLabel('Número da mesa', { exact: true }).fill('3');
-  await page.getByText('Confirmar mesa').click(); await page.waitForTimeout(500);
+  await page.getByText('Escolher pagamento').click(); await page.waitForTimeout(500);
   await page.reload(); await page.waitForTimeout(1500);
   const t = await text(page);
-  check('recarregar: continua em Revisar pedido com o item e a mesa', screen(page) === 'payment' && t.includes('Batata Frita') && t.includes('Mesa 3') && t.includes('Pagar R$ 25,00'), t.slice(0, 200));
+  check('recarregar: continua no Pagamento com o item e a mesa', screen(page) === 'payment' && t.includes('Batata Frita') && t.includes('Mesa 3') && t.includes('Pagar R$ 25,00'), t.slice(0, 200));
   await page.evaluate(() => localStorage.setItem('sunfood_session', JSON.stringify({ token: 'tok', user: { id: 'u2', email: 'outra@teste', name: 'Outra', role: 'cliente' } })));
   await page.goto(BASE + 'app-cliente.dc.html?module=cliente&screen=menu'); await page.waitForTimeout(1500);
   check('recarregar: outra conta no aparelho não herda o carrinho', !(await text(page)).includes('no carrinho'));
@@ -102,7 +102,7 @@ await step('telas sem pedido', async () => {
   for (const sc of ['cart', 'table', 'payment']) {
     const page = await open('app-cliente.dc.html?module=cliente&screen=' + sc);
     const t = await text(page);
-    check(`sem itens: ${sc} mostra o carrinho vazio`, !t.includes('R$ 0,00') && !t.includes('Ir para pagamento') && !t.includes('Confirmar mesa'), t.slice(0, 160));
+    check(`sem itens: ${sc} mostra o carrinho vazio`, !t.includes('R$ 0,00') && !t.includes('Escolher a mesa') && !t.includes('Escolher pagamento'), t.slice(0, 160));
     await page.context().close();
   }
 });

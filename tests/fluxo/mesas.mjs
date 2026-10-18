@@ -120,7 +120,7 @@ await step('cliente mesa fora da faixa', async () => {
   await login(page);
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
-  await click(page, 'Ir para pagamento');
+  await click(page, 'Escolher a mesa');
   const mesa = page.getByLabel('Número da mesa', { exact: true });
   await mesa.fill('123');
   check('cliente: aceita número de 3 dígitos', await mesa.inputValue() === '123', await mesa.inputValue());
@@ -134,7 +134,7 @@ await step('cliente mesa fora da faixa', async () => {
   }
   await page.setViewportSize({ width: 400, height: 860 }); await page.waitForTimeout(300);
   await mesa.fill('9');
-  await click(page, 'Confirmar mesa');
+  await click(page, 'Escolher pagamento');
   const t = await text(page);
   check('cliente: avisa "Mesa 9 não existe (o quiosque tem mesas de 1 a 5)"', t.includes('Mesa 9 não existe (o quiosque tem mesas de 1 a 5)'), (t.match(/Mesa 9[^\n]*/) || [])[0]);
   check('cliente: não vai para o pagamento', !t.includes('Total do pedido · Mesa 9'));
