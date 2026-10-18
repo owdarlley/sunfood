@@ -418,6 +418,64 @@ await step('PIX pelo Stripe (modo teste)', async () => {
   }
 });
 
+// Recarregar a página no meio do pagamento (F5, puxar pra baixo no celular):
+// o QR do PIX e os campos do cartão voltam, sem criar outro pedido.
+await step('recarregar a tela de pagamento', async () => {
+  for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
+    ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
+    // PIX
+    let page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true, stripePix: true });
+    let pixCalls = 0;
+    page.on('request', r => { if (/\/payments\/pix\//.test(r.url())) pixCalls++; });
+    await ateOPagamento(page);
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    await click(page, 'PIX', true);
+    await click(page, 'Pagar R$');
+    await page.waitForTimeout(600);
+    check(`recarregar ${tela}: PIX mostra o QR antes`, await page.locator('img[alt="QR Code PIX"]').count() === 1);
+    await page.reload(); await page.waitForTimeout(2000);
+    let t = await text(page);
+    check(`recarregar ${tela}: PIX volta com o QR e o código copia-e-cola`, page.url().includes('screen=pix') && await page.locator('img[alt="QR Code PIX"]').count() === 1
+      && t.includes('Aguardando confirmação do pagamento') && t.includes('Copiar código PIX')
+      && await page.evaluate(() => JSON.parse(localStorage.getItem('sunfood_pix')).qrCode === '000201STRIPEPIX'), t.slice(0, 400));
+    check(`recarregar ${tela}: PIX não cria outro pedido nem outra cobrança`, page.api.db.orders.length === 1 && pixCalls === 1, `${page.api.db.orders.length} pedidos, ${pixCalls} chamadas de PIX`);
+    if (tela === 'celular') {
+      // QR não guardado no aparelho: pede o mesmo PIX de novo ao servidor.
+      await page.evaluate(() => localStorage.removeItem('sunfood_pix'));
+      await page.reload(); await page.waitForTimeout(2000);
+      check('recarregar: sem o QR guardado, pede de novo e mostra', await page.locator('img[alt="QR Code PIX"]').count() === 1 && pixCalls === 2
+        && page.api.db.orders.length === 1, String(pixCalls));
+    }
+    page.api.db.orders[0].paymentStatus = 'approved';
+    await page.waitForTimeout(3500);
+    check(`recarregar ${tela}: PIX pago depois de recarregar confirma o pedido`, (await text(page)).toLowerCase().includes('pedido confirmado'));
+    check(`recarregar ${tela}: PIX sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+    await page.close();
+
+    // Cartão no app
+    page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true });
+    await ateOPagamento(page);
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    await click(page, 'Cartão de crédito ou débito', true);
+    await click(page, 'Pagar R$');
+    await page.waitForTimeout(1500);
+    check(`recarregar ${tela}: cartão mostra os campos antes`, await page.locator('#sf-stripe-card .fake-stripe').count() === 1);
+    await page.reload(); await page.waitForTimeout(2500);
+    t = await text(page);
+    check(`recarregar ${tela}: cartão volta com os campos do cartão`, page.url().includes('screen=card') && await page.locator('#sf-stripe-card .fake-stripe').count() === 1
+      && t.includes('Dados do cartão'), t.slice(0, 400));
+    check(`recarregar ${tela}: cartão não cria outro pedido`, page.api.db.orders.length === 1, String(page.api.db.orders.length));
+    check(`recarregar ${tela}: cartão sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.getByLabel('Nome do titular do cartão').fill('Ana Souza');
+    await page.getByLabel('CPF do titular do cartão').fill('529.982.247-25');
+    await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(800);
+    check(`recarregar ${tela}: dá para pagar com cartão depois de recarregar`, await page.evaluate(() => !!window.__stripeConfirm && !!window.__stripeConfirm.clientSecret),
+      (await text(page)).slice(0, 300));
+    check(`recarregar ${tela}: cartão sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+    await page.close();
+  }
+});
+
 await browser.close();
 server.close();
 const failed = results.filter(r => !r.ok);

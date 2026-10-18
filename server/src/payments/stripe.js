@@ -144,9 +144,18 @@ export async function setCardHolder(paymentIntentId, { name, cpf }) {
 // PIX pelo Stripe: cria e confirma o PaymentIntent no servidor e devolve o
 // QR (imagem e copia-e-cola). O pedido só é liberado pelo webhook
 // payment_intent.succeeded, depois que o banco do cliente confirma.
-export async function createStripePix({ orderId, amount, payerEmail, description, expiresInMinutes }) {
+export async function createStripePix({ orderId, amount, payerEmail, description, expiresInMinutes, existingId }) {
+  const cents = Math.round(Number(amount) * 100);
+  // PIX do pedido ainda em aberto (ex.: o cliente recarregou a página): mostra
+  // o mesmo QR em vez de gerar outra cobrança.
+  if (existingId) {
+    const old = await stripe().paymentIntents.retrieve(existingId).catch(() => null);
+    const qr = old?.next_action?.pix_display_qr_code;
+    const valid = !qr?.expires_at || qr.expires_at * 1000 > Date.now() + 60 * 1000;
+    if (old && old.status === "requires_action" && old.amount === cents && qr?.data && valid) return pixResult(old);
+  }
   const pi = await stripe().paymentIntents.create({
-    amount: Math.round(Number(amount) * 100),
+    amount: cents,
     currency: "brl",
     payment_method_types: ["pix"],
     payment_method_data: { type: "pix" },
@@ -156,6 +165,10 @@ export async function createStripePix({ orderId, amount, payerEmail, description
     receipt_email: payerEmail || undefined,
     metadata: { order_id: orderId },
   });
+  return pixResult(pi);
+}
+
+function pixResult(pi) {
   const qr = pi.next_action?.pix_display_qr_code || {};
   return {
     paymentIntentId: pi.id,

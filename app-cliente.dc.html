@@ -3601,6 +3601,9 @@ const NEEDS_CART = ['cart','table','payment'];
 // Carrinho guardado no aparelho (recarregar ou voltar não perde o pedido).
 const CART_KEY = 'sunfood_cart';
 const CART_TTL = 3 * 60 * 60 * 1000;
+// QR do PIX em aberto, para voltar igual se a página for recarregada.
+const PIX_KEY = 'sunfood_pix';
+const PIX_TTL = 60 * 60 * 1000;
 
 // Nome que aparece na guia do navegador: "Sunfood · <tela>". Sem isto a guia
 // mostrava o endereço (app-cliente.dc.html?module=...).
@@ -3684,7 +3687,7 @@ class Component extends DCLogic {
     // Com a chave publicável do Stripe, o cartão é digitado na própria tela
     // (Payment Element) em vez de abrir a página do Stripe.
     stripePk:null, cardFormLoading:false, cardOrderPending:false, cardErr:'', cardHolderName:'', cardHolderCpf:'',
-    payingPix:false, pixQrCode:'', pixQrImg:'', pixTestPayUrl:'',
+    payingPix:false, pixQrCode:'', pixQrImg:'', pixTestPayUrl:'', historyReady:false,
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
     // restoreSession()/submitLogin(), não é mais um mock fixo.
@@ -3746,7 +3749,10 @@ class Component extends DCLogic {
     const semPedido = s.history && s.history.length ? 'history' : 'historyEmpty';
     // Cartão no app: os campos aparecem enquanto o pedido ainda está sendo criado.
     const cardPending = s.screen === 'card' && s.cardOrderPending;
-    if(NEEDS_ORDER.indexOf(s.screen) >= 0 && !s.order && !cardPending) return semPedido;
+    // Recarregou no PIX ou no cartão: espera o pedido voltar do servidor em
+    // vez de pular pro histórico.
+    const resuming = (s.screen === 'pix' || s.screen === 'card') && !!s.token && !s.historyReady;
+    if(NEEDS_ORDER.indexOf(s.screen) >= 0 && !s.order && !cardPending && !resuming) return semPedido;
     if(NEEDS_CART.indexOf(s.screen) >= 0 && !s.cart.length) return 'cartEmpty';
     if(s.screen === 'product' && !s.catalogPending && !s.products.some(p => p.id === s.selId)) return 'menu';
     if(s.screen === 'orderDetail' && !(s.history && s.history[s.histSel])) return semPedido;
@@ -3796,6 +3802,58 @@ class Component extends DCLogic {
   componentDidUpdate(){
     this.syncRoute();
     this.saveCart();
+    this.resumePayment();
+  }
+
+  // Recarregou a página no meio do pagamento: o QR do PIX e os campos do
+  // cartão voltam para o mesmo pedido, sem criar outro.
+  resumePayment(){
+    const s = this.state, o = s.order;
+    if(s.module !== 'cliente' || !s.token || !o || !o._apiId) return;
+    if(o.paymentStatus === 'approved' || o.status !== 'Na Fila') return;
+    if(s.screen === 'pix' && o.paymentMethod === 'pix' && !s.pixQrCode && !s.payingPix && this._pixResume !== o._apiId){
+      this._pixResume = o._apiId;
+      this.resumePix(o._apiId);
+    }
+    if(s.screen === 'card' && o.paymentMethod === 'cartao' && s.stripePk && !s.cardOrderPending && !s.cardWaiting && !this.cardIntent && this._cardResume !== o._apiId){
+      this._cardResume = o._apiId;
+      this.openCardInApp();
+    }
+  }
+
+  async resumePix(apiId){
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(PIX_KEY) || 'null'); } catch(e){}
+    const user = this.state.authUser && this.state.authUser.id;
+    if(saved && saved.orderId === apiId && saved.user === user && Date.now() - saved.at < PIX_TTL && saved.qrCode){
+      this.setState({pixQrCode:saved.qrCode, pixQrImg:saved.qrImg || '', pixTestPayUrl:saved.testPayUrl || ''});
+      return;
+    }
+    // QR não guardado neste aparelho: pede de novo (o servidor reaproveita o PIX em aberto).
+    this.setState({payingPix:true});
+    try {
+      const res = await authFetch(API_BASE + '/payments/pix/' + apiId, {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      if(res.ok && !data.provisional) this.showPix(apiId, data);
+      else if(!res.ok) this.flash(data.error || 'Não foi possível mostrar o PIX de novo.');
+    } catch(e){
+      this.flash('Falha de conexão com o servidor.');
+    } finally {
+      this.setState({payingPix:false});
+    }
+  }
+
+  // Mostra o QR do PIX e guarda no aparelho (por conta e pedido).
+  showPix(apiId, data){
+    const pix = {pixQrCode:data.qrCode || '',
+      // Mercado Pago manda a imagem em base64; o Stripe manda o endereço da imagem.
+      pixQrImg:data.qrCodeImageUrl || (data.qrCodeBase64 ? 'data:image/png;base64,' + data.qrCodeBase64 : ''),
+      pixTestPayUrl:data.testPayUrl || ''};
+    this.setState(pix);
+    try {
+      localStorage.setItem(PIX_KEY, JSON.stringify({user:this.state.authUser && this.state.authUser.id, orderId:apiId, at:Date.now(),
+        qrCode:pix.pixQrCode, qrImg:pix.pixQrImg, testPayUrl:pix.pixTestPayUrl}));
+    } catch(e){}
   }
 
   componentDidMount(){
@@ -5068,6 +5126,7 @@ class Component extends DCLogic {
       const live = !this.state.order && data.find(o => o.status !== 'Entregue' && o.status !== 'Cancelado');
       this.setState(live ? {history: data.map(historyEntryFromApi), order: orderFromApi(live)} : {history: data.map(historyEntryFromApi)});
     } catch(e){}
+    finally { this.setState({historyReady:true}); }
   }
 
   async pollOrder(apiId, token){
@@ -5400,12 +5459,8 @@ class Component extends DCLogic {
       }
       // Provisório (sem Mercado Pago): o servidor já aprovou, segue pra confirmação.
       if(data.provisional){ this.setState({payingPix:false, screen:'pix'}); this.pollOrder(created.id); return; }
-      this.setState({
-        payingPix:false, pixQrCode:data.qrCode || '', screen:'pix',
-        // Mercado Pago manda a imagem em base64; o Stripe manda o endereço da imagem.
-        pixQrImg:data.qrCodeImageUrl || (data.qrCodeBase64 ? 'data:image/png;base64,' + data.qrCodeBase64 : ''),
-        pixTestPayUrl:data.testPayUrl || ''
-      });
+      this.showPix(created.id, data);
+      this.setState({payingPix:false, screen:'pix'});
     } catch(e){
       this.setState({payingPix:false});
       this.flash('Falha de conexão com o servidor.');

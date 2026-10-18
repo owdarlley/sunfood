@@ -309,6 +309,25 @@ test("PIX pelo Stripe: gera o QR e NÃO aprova o pedido antes de pagar", async (
   assert.equal(o.payment_id, pi.id);
 });
 
+test("PIX pelo Stripe: pedir de novo (página recarregada) mostra o mesmo QR, sem outra cobrança", async () => {
+  const before = Object.keys(intents).length;
+  const r = await api("POST", `/payments/pix/${ORDER3}`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.qrCode, "000201PIXSTRIPE");
+  assert.equal(Object.keys(intents).length, before);
+});
+
+test("PIX pelo Stripe: QR vencido gera outro", async () => {
+  const pi = Object.values(intents).find((x) => x.metadata.order_id === ORDER3);
+  const before = Object.keys(intents).length;
+  pi.next_action.pix_display_qr_code.expires_at = Math.floor(Date.now() / 1000) - 10;
+  const r = await api("POST", `/payments/pix/${ORDER3}`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(Object.keys(intents).length, before + 1);
+  assert.notEqual(db.orders.find((x) => x.id === ORDER3).payment_id, pi.id);
+  delete pi.next_action.pix_display_qr_code.expires_at;
+});
+
 test("PIX pelo Stripe: o webhook aprova quando o banco confirma", async () => {
   const pi = Object.values(intents).find((x) => x.metadata.order_id === ORDER3);
   Object.assign(pi, { status: "succeeded", amount_received: 1400 });
