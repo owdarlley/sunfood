@@ -83,7 +83,7 @@ await step('token vencido ao abrir', async () => {
   const s = await salvo(p);
   check('token vencido: renova sozinho com o refreshToken', p.api.st.refreshes[0] === 'r0' && s && s.refreshToken === 'r1', JSON.stringify(p.api.st.refreshes));
   check('token vencido: continua no cardápio, sem voltar ao login', !(await text(p)).includes('Esqueci minha senha') && (await text(p)).includes('Batata Frita'));
-  await p.getByText('Pedido', { exact: true }).first().click(); await p.waitForTimeout(600);
+  await p.getByText('Meu pedido', { exact: true }).filter({ visible: true }).first().click(); await p.waitForTimeout(600);
   check('token vencido: pedido em andamento carregado com o token novo', (await text(p)).includes('#o9'));
   check('token vencido: nenhum erro de JavaScript', p.jsErrors.length === 0, p.jsErrors.join(' | '));
   await p.context().close();
@@ -93,7 +93,7 @@ await step('401 no meio do uso', async () => {
   // Token que o servidor já não aceita (sem "exp" legível): 401 → renova → repete.
   const p = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente', { token: 'tok-recusado', refreshToken: 'r0' });
   check('401: renova e repete a chamada', p.api.st.negados >= 1 && p.api.st.refreshes.length === 1, `negados=${p.api.st.negados} refreshes=${p.api.st.refreshes.length}`);
-  await p.getByText('Pedido', { exact: true }).first().click(); await p.waitForTimeout(600);
+  await p.getByText('Meu pedido', { exact: true }).filter({ visible: true }).first().click(); await p.waitForTimeout(600);
   check('401: cliente continua logado e vê o pedido', (await text(p)).includes('#o9'));
   await p.context().close();
 });

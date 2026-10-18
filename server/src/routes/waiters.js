@@ -90,6 +90,14 @@ waitersRouter.get(
   }
 );
 
+// Cozinha e admin: se há garçom cadastrado. Com garçom, quem marca "Entregue"
+// é ele; a cozinha para em "Pronto".
+waitersRouter.get("/waiters/any", requireAuth, requireRole("admin", "cozinha"), async (req, res) => {
+  const { data, error } = await supabaseAdmin.from("profiles").select("id").eq("role", "garcom").limit(1);
+  if (error) return res.status(500).json({ error: "Erro ao carregar os garçons." });
+  res.json({ hasWaiters: (data || []).length > 0 });
+});
+
 // Admin: lista dos garçons, com o que cada um fez hoje.
 waitersRouter.get("/waiters", requireAuth, requireRole("admin"), async (req, res) => {
   const { data: rows, error } = await supabaseAdmin

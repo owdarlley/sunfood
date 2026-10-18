@@ -176,7 +176,7 @@ await step('logo do Sunfood', async () => {
   await cli.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
   await cli.getByLabel('Senha', { exact: true }).fill('senha');
   await click(cli, 'Entrar', true);
-  await click(cli, 'Perfil', true);
+  await cli.getByText('Perfil', { exact: true }).filter({ visible: true }).first().click(); await cli.waitForTimeout(500);
   await logo(cli).click(); await cli.waitForTimeout(500);
   check('logo do cliente logado: volta ao cardápio', (await text(cli)).includes('Batata Frita'), (await text(cli)).slice(0, 160));
   await cli.close();
@@ -239,7 +239,7 @@ await step('fluxo da cozinha', async () => {
   check('cozinha: pedido aparece na fila com observação', (await text(page)).includes('Obs: sem sal'));
   check('guia do navegador: cozinha mostra "Sunfood · Cozinha"', await page.title() === 'Sunfood · Cozinha', await page.title());
   check('cozinha: cartão mostra o nome de quem pediu', (await text(page)).includes('Ana Teste'));
-  // No celular a cozinha mostra uma coluna por vez, em abas (Novos / Preparo / Prontos).
+  // No celular a cozinha mostra uma coluna por vez, em abas (Na fila / Em preparo / Prontos).
   const aba = async t => { if (await page.locator('.kz-tabs').isVisible()) { await page.locator('.kz-tab', { hasText: t }).click(); await page.waitForTimeout(300); } };
   await click(page, 'Iniciar preparo');
   await aba('Preparo'); await click(page, 'Marcar como pronto');

@@ -133,6 +133,8 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
       return json(200, { period, from: byDay[0].date, to: byDay[days - 1].date, delivered: byDay.reduce((a, d) => a + d.delivered, 0),
         avgDeliverMin: 3.5, launched: days, launchedTotal: 33 * days, received: 27.5, byDay });
     }
+    // A cozinha pergunta se há garçom (com garçom, quem marca Entregue é ele).
+    if (p === '/waiters/any') return json(200, { hasWaiters: !!db.hasWaiters });
     db.waiters = db.waiters || [{ id: 'w1', name: 'Carlos Souza', email: 'carlos@sunfood.com', active: true, deliveredToday: 4, launchedToday: 2 }];
     if (p === '/waiters' && m === 'GET') return json(200, db.waiters);
     if (p === '/waiters' && m === 'POST') {

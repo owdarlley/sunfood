@@ -124,7 +124,7 @@ await step('estorno parcial e cancelamento pelo painel', async () => {
   check('parcial: chama o servidor com valor e motivo, sem cancelar', c1 && c1.id === 'o1' && c1.amount === 12 && c1.reason === 'Item em falta' && !c1.cancel, JSON.stringify(c1));
   check('parcial: manda os itens marcados', JSON.stringify(c1?.items) === JSON.stringify([{ name: 'Suco de Laranja', qty: 1 }]), JSON.stringify(c1?.items));
   t = await text(page);
-  check('parcial: avisa o estorno e o pedido continua em preparo', t.includes('Estorno de R$ 12,00 feito.') && (await row(page, '#001').innerText()).includes('Em Preparo')
+  check('parcial: avisa o estorno e o pedido continua em preparo', t.includes('Estorno de R$ 12,00 feito.') && (await row(page, '#001').innerText()).includes('Em preparo')
     && (await row(page, '#001').innerText()).includes('estornado R$ 12,00'));
 
   // Valor maior do que falta: recusado na tela.
