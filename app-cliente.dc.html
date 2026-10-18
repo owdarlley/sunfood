@@ -1395,9 +1395,6 @@ select{caret-color:auto}
                         </div>
                       </sc-for>
                     </div>
-                    <sc-if value="{{ payInfoOff }}" hint-placeholder-val="{{ false }}">
-                      <div class="alert alert-info" style="font-weight:500">{{ payInfo }}</div>
-                    </sc-if>
                     <div onClick="{{ goPay }}" class="btn btn-sun" style="justify-content:space-between;padding:0 24px;min-height:56px;font-size:var(--fs-body)"><span>{{ payLabel }}</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
                   </div>
                   <div class="col-side">
@@ -1447,9 +1444,6 @@ select{caret-color:auto}
                       <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-top:12px">Aguardando confirmação do pagamento…</div>
                     </sc-if>
                   </div>
-                  <sc-if value="{{ cardTestMode }}" hint-placeholder-val="{{ false }}">
-                    <div class="alert alert-info" style="font-weight:500">{{ cardTestText }}</div>
-                  </sc-if>
                   <sc-if value="{{ cardFormVisible }}" hint-placeholder-val="{{ false }}">
                     <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px">
                       <div class="tt" style="font-size:var(--fs-h3)">Dados do cartão</div>
@@ -3682,7 +3676,7 @@ class Component extends DCLogic {
     // o PIX é aprovado na hora como "provisório". null = ainda não sabemos.
     paymentsOnline:null,
     // Quem cobra o cartão: 'stripe', 'mercadopago' ou 'provisorio'. Com o
-    // Stripe em modo teste, as telas mostram o cartão de teste 4242.
+    // Stripe em modo teste, o admin vê o aviso de teste (o cliente não).
     cardProvider:null, pixProvider:null, cardTestMode:false,
     // Com a chave publicável do Stripe, o cartão é digitado na própria tela
     // (Payment Element) em vez de abrir a página do Stripe.
@@ -5920,7 +5914,6 @@ class Component extends DCLogic {
     // payment
     v.cardProviderName = s.cardProvider === 'stripe' ? 'Stripe' : 'Mercado Pago';
     v.cardTestMode = !!s.cardTestMode;
-    v.cardTestText = 'Modo de teste: nada é cobrado. Crédito: 4242 4242 4242 4242. Débito: 4000 0566 5566 5556. Qualquer validade futura e qualquer CVC.';
     v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
                  ['cartao','Cartão de crédito ou débito','À vista, no app','card','#1F3B6B'],
                  ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']]
@@ -5929,7 +5922,6 @@ class Component extends DCLogic {
       pick:() => this.setState({payMethod:k}),
       cls:s.payMethod === k ? 'on' : ''
     }));
-    v.payInfoOff = s.payMethod === 'cartao' && v.cardTestMode; v.payInfo = v.cardTestText;
 
     v.payLabel = s.payMethod === 'entrega' ? 'Fazer pedido · ' + v.totalStr : 'Pagar ' + v.totalStr;
     v.goPay = () => {
