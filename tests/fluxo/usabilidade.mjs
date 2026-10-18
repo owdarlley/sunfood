@@ -61,7 +61,7 @@ await step('encerrar o dia', async () => {
   base.seed();
   let fechou = 0;
   const api = r => {
-    if (new URL(r.request().url()).pathname === '/close-day') { fechou++; return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ totalRevenue: 0, totalOrders: 0, avgTicket: 0, topProducts: [] }) }); }
+    if (new URL(r.request().url()).pathname === '/close-day') { fechou++; base.db.kiosk.dayClosed = true; return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ totalRevenue: 0, totalOrders: 0, avgTicket: 0, topProducts: [] }) }); }
     return base(r);
   };
   const page = await open('app-cliente.dc.html?module=admin&screen=dashboard', { role: 'admin', api, width: 1280, height: 800 });
