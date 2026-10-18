@@ -1426,10 +1426,6 @@ select{caret-color:auto}
                     <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><svg style="animation:sfspin .9s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>Aguardando confirmação do pagamento…</div>
                   </div>
                   <div onClick="{{ copyPix }}" class="btn btn-dark">Copiar código PIX</div>
-                  <sc-if value="{{ hasPixTestPay }}" hint-placeholder-val="{{ false }}">
-                    <div class="alert alert-info" style="font-weight:500">Modo de teste: nada é cobrado. Para simular que o banco pagou, use o botão abaixo.</div>
-                    <a href="{{ pixTestPayUrl }}" target="_blank" rel="noopener" class="btn btn-ghost" style="text-decoration:none">Simular pagamento do PIX</a>
-                  </sc-if>
                   <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola.</div>
                 </div>
               </sc-if>
@@ -5953,7 +5949,6 @@ class Component extends DCLogic {
     v.pixQrCode = s.pixQrCode || '';
     v.pixQrImg = s.pixQrImg || '';
     v.hasPixQrImg = !!s.pixQrImg;
-    v.pixTestPayUrl = s.pixTestPayUrl || ''; v.hasPixTestPay = !!s.pixTestPayUrl;
     v.copyPix = () => this.copyPixCode();
 
     // order / status

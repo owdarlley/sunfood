@@ -407,7 +407,7 @@ await step('PIX pelo Stripe (modo teste)', async () => {
     const o = page.api.db.orders[0];
     t = await text(page);
     check(`pix stripe ${tela}: pedido NÃO é aprovado antes de pagar`, o && o.paymentMethod === 'pix' && o.paymentStatus !== 'approved' && t.includes('Aguardando confirmação do pagamento'), JSON.stringify(o?.paymentStatus));
-    check(`pix stripe ${tela}: mostra o QR do Stripe e o botão de simular (teste)`, await page.locator('img[alt="QR Code PIX"]').count() === 1 && t.includes('Simular pagamento do PIX'));
+    check(`pix stripe ${tela}: mostra o QR do Stripe, sem aviso nem botão de teste`, await page.locator('img[alt="QR Code PIX"]').count() === 1 && !t.includes('Simular pagamento do PIX') && !t.includes('Modo de teste'));
     check(`pix stripe ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/pix-stripe-${tela}.png`, fullPage: true });
     o.paymentStatus = 'approved';
