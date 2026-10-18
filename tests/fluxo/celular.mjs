@@ -50,12 +50,11 @@ const semRolagemLateral = p => p.evaluate(() => document.documentElement.scrollW
 await step('aba Pedido', async () => {
   // Pedido em andamento + página recarregada (o celular faz isso sozinho): a aba volta a mostrar o pedido.
   const p = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
-  await tap(p, 'Pedido');
+  await p.getByText('Meu pedido', { exact: true }).filter({ visible: true }).first().tap(); await p.waitForTimeout(500);
   check('aba Pedido: mostra o pedido em andamento depois de recarregar', p.url().includes('screen=status') || (await text(p)).includes('#o9'), p.url());
   await p.context().close();
   const sem = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente', { seed: false });
-  await tap(sem, 'Pedido');
-  check('aba Pedido: sem pedido, avisa em vez de não fazer nada', (await text(sem)).includes('Você não tem pedido em andamento.'));
+  check('aba Pedido: sem pedido, a aba Meu pedido não aparece', !(await sem.locator('.bottomnav').innerText()).includes('Meu pedido'));
   await sem.context().close();
 });
 
@@ -142,7 +141,7 @@ await step('fonte grande (300 px)', async () => {
 await step('cozinha em abas', async () => {
   const p = await open('app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha');
   const visiveis = () => p.locator('.kz-board > .kz-col').evaluateAll(els => els.filter(e => e.offsetParent).length);
-  check('cozinha celular: abas Novos / Preparo / Prontos aparecem', await p.locator('.kz-tabs').isVisible() && (await p.locator('.kz-tab').count()) === 3);
+  check('cozinha celular: abas Na fila / Em preparo / Prontos aparecem', await p.locator('.kz-tabs').isVisible() && (await p.locator('.kz-tab').count()) === 3);
   check('cozinha celular: uma coluna por vez', await visiveis() === 1, String(await visiveis()));
   await p.locator('.kz-tab', { hasText: 'Prontos' }).tap(); await p.waitForTimeout(400);
   check('cozinha celular: tocar na aba troca a coluna', (await p.locator('.kz-tab.on').innerText()).includes('Prontos'));

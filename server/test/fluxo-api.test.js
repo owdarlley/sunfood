@@ -872,6 +872,9 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   assert.equal(db.profiles.find((p) => p.id === criado.body.id).role, "garcom");
   assert.equal(criado.body.email, "garcom@sunfood.com", "e-mail em minúsculas");
   assert.equal((await api("POST", "/waiters", novo, admin)).status, 409, "e-mail repetido");
+  const temGarcom = await api("GET", "/waiters/any", null, cozinha);
+  assert.equal(temGarcom.status, 200);
+  assert.equal(temGarcom.body.hasWaiters, true, "cozinha sabe que há garçom");
 
   const login = await api("POST", "/auth/login", { email: "garcom@sunfood.com", password: "Sunfood@123" });
   assert.equal(login.status, 200);

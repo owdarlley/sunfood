@@ -1,4 +1,4 @@
-// Itens altos da avaliação de usabilidade: encerrar o dia com confirmação,
+// Itens altos e médios da avaliação de usabilidade: encerrar o dia com confirmação,
 // etapas da compra, medidas do design system, fonte do garçom e voltar no
 // detalhe do produto.
 // Uso: node tests/fluxo/usabilidade.mjs   (a partir da raiz do repositório)
@@ -139,6 +139,118 @@ await step('detalhe do produto', async () => {
   check('detalhe: botão de voltar visível no celular', await back.isVisible());
   await back.click(); await page.waitForTimeout(400);
   check('detalhe: voltar leva ao cardápio', screen(page) === 'menu', page.url());
+  await page.context().close();
+});
+
+// ===== Itens médios =====
+
+// 14. Mesmos nomes no menu do celular e do computador; "Meu pedido" só com pedido
+await step('navegação', async () => {
+  const cel = await open('app-cliente.dc.html?module=cliente&screen=menu');
+  const tc = await cel.locator('.bottomnav').innerText().catch(() => '');
+  check('navegação celular: Cardápio, Meus pedidos e Perfil, sem Meu pedido sem pedido', tc.includes('Cardápio') && tc.includes('Meus pedidos') && tc.includes('Perfil') && !tc.includes('Meu pedido\n') && !/Meu pedido$/m.test(tc), tc);
+  await cel.context().close();
+  const pc = await open('app-cliente.dc.html?module=cliente&screen=menu', { width: 1280, height: 800 });
+  const tp = await pc.locator('.toplinks').innerText();
+  check('navegação computador: mesma lista (Cardápio, Meus pedidos, Perfil)', tp.includes('Cardápio') && tp.includes('Meus pedidos') && tp.includes('Perfil') && !tp.includes('Minha conta'), tp);
+  await pc.context().close();
+  const adm = await open('app-cliente.dc.html?module=admin&screen=reports', { role: 'admin', seed: true, width: 1280, height: 800 });
+  const side = await adm.locator('.adm-side').first().innerText();
+  check('navegação admin: menu com os mesmos nomes dos títulos', side.includes('Relatórios') && side.includes('Desempenho') && side.includes('Cardápio e estoque') && !side.includes('Vendas') && !side.includes('Operação'), side);
+  await adm.context().close();
+});
+
+// 15 e 17. Cozinha: abas com o glossário e, com garçom, para em Pronto
+await step('cozinha', async () => {
+  const api = fakeApi('cozinha');
+  api.seed();
+  const page = await open('app-cliente.dc.html?module=cozinha&screen=kanban', { role: 'cozinha', api, width: 1280, height: 800 });
+  let t = await text(page);
+  check('cozinha: coluna "Na fila" (não "Novos")', t.includes('Na fila') && !t.includes('Novos'));
+  check('cozinha: Atrasados 0 não fica vermelho', await page.locator('.kz-chip', { hasText: 'Atrasados' }).locator('b').evaluate(el => getComputedStyle(el).color) !== 'rgb(179, 38, 30)');
+  check('cozinha: som é um interruptor no topo', await page.locator('.adm-head [role=switch]').count() === 1 && await page.locator('.adm-side').getByText('Som ligado').count() === 0);
+  await page.context().close();
+  const api2 = fakeApi('cozinha');
+  api2.seed(); api2.db.orders[0].status = 'Pronto'; api2.db.hasWaiters = true;
+  const p2 = await open('app-cliente.dc.html?module=cozinha&screen=kanban', { role: 'cozinha', api: api2, width: 1280, height: 800 });
+  t = await text(p2);
+  check('cozinha com garçom: não marca Entregue, avisa que o garçom leva', !t.includes('Marcar como entregue') && t.includes('O garçom leva até a mesa'), t.slice(0, 400));
+  await p2.context().close();
+});
+
+// 16. Estimativa pelo tempo de preparo cadastrado
+await step('estimativa', async () => {
+  const api = fakeApi('cliente');
+  api.seed(); api.db.products[0].prepTime = '20 min';
+  const page = await open('app-cliente.dc.html?module=cliente&screen=status', { api });
+  const t = await text(page);
+  check('estimativa: usa o maior tempo de preparo + fila (~25 min)', t.includes('~25 min') && !t.includes('~15 min'), t.slice(0, 300));
+  await page.context().close();
+});
+
+// 18. +/− do cartão com 40 px e cartão sem mudar de altura
+await step('+/- do cartão', async () => {
+  for (const [w, h] of [[390, 844], [820, 1180]]) {
+    const page = await open('app-cliente.dc.html?module=cliente&screen=menu', { width: w, height: h });
+    const card = page.locator('.pcard').first();
+    const h0 = (await card.boundingBox()).height;
+    await card.locator('.addbtn').click(); await page.waitForTimeout(300);
+    const h1 = (await card.boundingBox()).height;
+    const sb = await card.locator('.stepper .sb').first().boundingBox();
+    check(`cartão ${w}px: altura igual depois de adicionar`, Math.abs(h1 - h0) < 1, `${h0} -> ${h1}`);
+    check(`cartão ${w}px: +/− com 40 px`, Math.round(sb.width) === 40 && Math.round(sb.height) === 40, JSON.stringify(sb));
+    await page.context().close();
+  }
+});
+
+// 19. Erro da mesa colado no campo
+await step('erro da mesa', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=menu');
+  await page.locator('.addbtn:visible').first().click(); await page.waitForTimeout(300);
+  await page.getByText('item no carrinho').first().click(); await page.waitForTimeout(300);
+  await page.getByText('Escolher a mesa', { exact: true }).click(); await page.waitForTimeout(300);
+  await page.getByText('Escolher pagamento', { exact: true }).click(); await page.waitForTimeout(300);
+  const inp = page.getByLabel('Número da mesa', { exact: true });
+  check('mesa: campo marcado como inválido', await inp.getAttribute('aria-invalid') === 'true');
+  const pos = await page.evaluate(() => { const f = document.querySelector('.mesafield').getBoundingClientRect(); const e = document.getElementById('mesaErr'); return e ? e.getBoundingClientRect().top - f.bottom : null; });
+  check('mesa: mensagem logo abaixo do campo', pos !== null && pos >= 0 && pos < 16, String(pos));
+  await page.context().close();
+});
+
+// 20. Painel: texto neutro e gráfico vazio explicado
+await step('painel', async () => {
+  const page = await open('app-cliente.dc.html?module=admin&screen=dashboard', { role: 'admin', width: 1280, height: 800 });
+  const t = await text(page);
+  check('painel: gráfico vazio diz que não há venda', t.includes('Nenhuma venda hoje ainda. O gráfico aparece'));
+  check('painel: "0 pedidos hoje" sem (s)', t.includes('0 pedidos hoje') && !t.includes('pedido(s)'));
+  check('painel: legenda dos números não fica verde', await page.locator('.kpi .s').first().evaluate(el => getComputedStyle(el).color) !== 'rgb(30, 107, 54)');
+  check('painel: tempo médio de preparo aparece uma vez só', (t.match(/Tempo médio de preparo/g) || []).length === 1);
+  await page.context().close();
+});
+
+// 21. Perfil: sem lista de pedidos repetida e "Excluir conta" por último
+await step('perfil', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=profile');
+  const t = await text(page);
+  check('perfil: sem a seção de pedidos repetida', !t.includes('Quando você fizer o primeiro pedido'));
+  check('perfil: Excluir conta é o último bloco', t.trim().lastIndexOf('Excluir minha conta') > t.lastIndexOf('Avisos do pedido'));
+  await page.context().close();
+});
+
+// 22. Cardápio do admin: Editar antes de Excluir (ícone)
+await step('cardápio do admin', async () => {
+  const page = await open('app-cliente.dc.html?module=admin&screen=productForm', { role: 'admin', width: 1280, height: 800 });
+  const ordem = await page.locator('.pgrid .card').first().evaluate(c => { const e = [...c.querySelectorAll('.btn')].find(b => b.innerText.trim() === 'Editar'); const d = c.querySelector('.prod-del'); return e && d ? !!(e.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING) : null; });
+  check('cardápio admin: Editar vem antes da lixeira', ordem === true, String(ordem));
+  await page.context().close();
+});
+
+// 24. Garçons no computador: sem vão entre a lista e o formulário
+await step('garçons', async () => {
+  const page = await open('app-cliente.dc.html?module=admin&screen=waiters', { role: 'admin', width: 1280, height: 800 });
+  await page.waitForTimeout(600);
+  const gap = await page.evaluate(() => { const c = document.querySelector('.wd-grid .card'); const f = document.querySelector('.wd-cols .col-side'); return c && f ? f.getBoundingClientRect().left - c.getBoundingClientRect().right : null; });
+  check('garçons: cartão vai até perto do formulário', gap !== null && gap <= 40, String(gap));
   await page.context().close();
 });
 
