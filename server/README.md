@@ -87,11 +87,11 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | PATCH | `/tables/:number/active` | admin | Ativar/desativar mesa |
 | POST | `/orders` | cliente | Criar pedido (pedido mínimo, mesa ativa, estoque, quiosque aberto) |
 | POST | `/orders/manual` | garcom, admin | Garçom lança pedido feito na mesa (mesmas regras do app; pago na entrega; fica no nome do garçom) |
-| GET | `/orders/mine` | cliente | Pedidos do próprio usuário |
+| GET | `/orders/mine` | cliente | Pedidos do próprio usuário. Cada um traz `refunds`: valor, motivo, itens e data de cada estorno (sem quem da equipe estornou); cancelamento pelo cliente e pagamento atrasado devolvido também entram |
 | GET | `/orders` | admin, cozinha, garcom | Lista de pedidos (`?status=` opcional; o garçom recebe só fila, preparo e prontos) |
-| GET | `/orders/:id` | dono ou admin/cozinha | Detalhe de um pedido |
+| GET | `/orders/:id` | dono ou admin/cozinha | Detalhe de um pedido (para o cliente, com `refunds` como em `/orders/mine`) |
 | POST | `/orders/:id/cancel` | cliente (dono) | Cancelar (só "Na Fila" e dentro do prazo); estorna se já foi pago |
-| POST | `/orders/:id/refund` | admin | Estorno pelo painel: `{cancel: true, reason}` tira o pedido da cozinha (Na Fila, Em Preparo ou Pronto) e devolve tudo o que falta; `{amount, reason}` devolve só uma parte (em reais) e o pedido continua. Mesmo meio do pagamento (Stripe ou Mercado Pago). Pedido "na entrega" ou não pago só é cancelado. Precisa da migração `20261017210000_add_order_refunds.sql` |
+| POST | `/orders/:id/refund` | admin | Estorno pelo painel: `{cancel: true, reason}` tira o pedido da cozinha (Na Fila, Em Preparo ou Pronto) e devolve tudo o que falta; `{amount, reason, items?}` devolve só uma parte (em reais) e o pedido continua; `items` (`[{name, qty}]`) são os itens devolvidos, que o cliente vê no pedido (precisa da migração `20261017220000_add_refund_items.sql`; sem ela o estorno é registrado sem os itens). Mesmo meio do pagamento (Stripe ou Mercado Pago). Pedido "na entrega" ou não pago só é cancelado. Precisa da migração `20261017210000_add_order_refunds.sql` |
 | GET | `/orders/:id/refunds` | admin | Estornos do pedido: valor, motivo, quem fez e quando (estorno feito no painel do Stripe aparece como "Painel do Stripe") |
 | PATCH | `/orders/:id/status` | admin, cozinha, garcom | Avançar status (kanban). O garçom só marca "Entregue"; quem entregou fica gravado no pedido |
 | PATCH | `/orders/:id/payment-received` | admin, garcom | Anotar como o garçom recebeu um pedido "pagar na entrega" |

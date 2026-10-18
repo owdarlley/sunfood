@@ -207,6 +207,20 @@ await step('tela de Pagamentos do admin', async () => {
   await click(admin, 'Desfazer', true);
   await admin.waitForTimeout(500);
   check('admin: desfazer volta para "a receber"', o.paymentStatus === 'pending' && !o.receivedWith && (await text(admin)).includes('Cobrar na entrega'));
+  await admin.locator('.pay-pills .fpill').filter({ hasText: 'A receber' }).click(); await admin.waitForTimeout(300);
+  t = await admin.locator('.pay-wrap').innerText();
+  check('admin: filtro "A receber" mostra só o que falta receber', t.includes('#o20') && !t.includes('#o21') && !t.includes('#o23'), t.slice(0, 300));
+  await admin.locator('.pay-pills .fpill').filter({ hasText: 'Estornos e cancelados' }).click(); await admin.waitForTimeout(300);
+  t = await admin.locator('.pay-wrap').innerText();
+  check('admin: filtro "Estornos e cancelados" mostra o cancelado', t.includes('#o21') && !t.includes('#o20'), t.slice(0, 300));
+  await admin.locator('.pay-pills .fpill').filter({ hasText: 'Todos' }).click(); await admin.waitForTimeout(300);
+  for (const [nome, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }], ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
+    await admin.setViewportSize(viewport); await admin.waitForTimeout(300);
+    const btn = await admin.getByText('Dinheiro', { exact: true }).boundingBox();
+    const scroll = await admin.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    check(`admin ${nome}: Pagamentos sem rolagem lateral e botões com altura de toque`, scroll <= 0 && btn && btn.height >= (viewport.width < 768 ? 48 : 40) && btn.x + btn.width <= viewport.width, JSON.stringify({ btn, scroll }));
+    if (process.env.SHOTS_DIR) await admin.screenshot({ path: `${process.env.SHOTS_DIR}/admin-pagamentos-${nome}.png`, fullPage: true });
+  }
   check('admin: sem erro de JavaScript', admin.jsErrors.length === 0 && !(await renderError(admin)), admin.jsErrors.join(' | ') || await renderError(admin));
   await admin.close();
 
@@ -253,8 +267,8 @@ await step('cartão pelo Stripe (modo teste)', async () => {
     await page.setViewportSize(viewport); await page.waitForTimeout(400);
     await click(page, 'Cartão de crédito ou débito', true);
     let t = await text(page);
-    check(`stripe ${tela}: opção diz "À vista, pelo Stripe"`, t.includes('À vista, pelo Stripe'));
-    check(`stripe ${tela}: mostra o cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
+    check(`stripe ${tela}: opção diz "À vista, no app"`, t.includes('À vista, no app') && !t.includes('pelo Stripe'));
+    check(`stripe ${tela}: sem aviso do cartão de teste para o cliente`, !t.includes('4242') && !t.includes('Modo de teste'));
     check(`stripe ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/pagamento-stripe-${tela}.png`, fullPage: true });
     await page.route(FAKE_CHECKOUT_URL, r => r.fulfill({ contentType: 'text/html', body: '<h1>Checkout Stripe (teste)</h1>' }));
@@ -268,7 +282,7 @@ await step('cartão pelo Stripe (modo teste)', async () => {
       setup: db => { db.orders[0].paymentStatus = 'pending'; } });
     await back.waitForTimeout(800);
     t = await text(back);
-    check(`stripe ${tela}: na volta, espera a confirmação com o aviso de teste`, t.includes('Aguardando confirmação do pagamento') && t.includes('página segura do Stripe') && t.includes('4242'), t.slice(0, 300));
+    check(`stripe ${tela}: na volta, espera a confirmação sem aviso de teste`, t.includes('Aguardando confirmação do pagamento') && t.includes('página segura para digitar') && !t.includes('4242'), t.slice(0, 300));
     if (SHOTS) await back.screenshot({ path: `${SHOTS}/cartao-stripe-${tela}.png`, fullPage: true });
     back.api.db.orders[0].paymentStatus = 'approved';
     await back.waitForTimeout(3500);
@@ -311,7 +325,7 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
       && window.__stripeOpts.mode === 'payment' && window.__stripeOpts.currency === 'brl' && window.__stripeOpts.paymentMethodTypes.join() === 'card'
       && !window.__stripeOpts.clientSecret && window.__stripeOpts.appearance.variables.colorPrimary.toUpperCase() === '#1F5A63'
       && window.__stripeOpts.appearance.variables.fontFamily.startsWith('Manrope')));
-    check(`no app ${tela}: aviso do cartão de teste 4242`, t.includes('4242 4242 4242 4242'));
+    check(`no app ${tela}: sem aviso do cartão de teste`, !t.includes('4242') && !t.includes('Modo de teste'));
     check(`no app ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     const btnH = await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().evaluate(el => el.getBoundingClientRect().height);
     check(`no app ${tela}: botão Pagar com altura de toque (40 a 56 px)`, btnH >= 40 && btnH <= 56, String(btnH));
@@ -386,20 +400,78 @@ await step('PIX pelo Stripe (modo teste)', async () => {
     await ateOPagamento(page);
     await page.setViewportSize(viewport); await page.waitForTimeout(400);
     let t = await text(page);
-    check(`pix stripe ${tela}: cartão aparece como crédito ou débito, à vista`, t.includes('Cartão de crédito ou débito') && t.includes('À vista, pelo Stripe'));
+    check(`pix stripe ${tela}: cartão aparece como crédito ou débito, à vista`, t.includes('Cartão de crédito ou débito') && t.includes('À vista, no app'));
     await click(page, 'PIX', true);
     await click(page, 'Pagar R$');
     await page.waitForTimeout(600);
     const o = page.api.db.orders[0];
     t = await text(page);
     check(`pix stripe ${tela}: pedido NÃO é aprovado antes de pagar`, o && o.paymentMethod === 'pix' && o.paymentStatus !== 'approved' && t.includes('Aguardando confirmação do pagamento'), JSON.stringify(o?.paymentStatus));
-    check(`pix stripe ${tela}: mostra o QR do Stripe e o botão de simular (teste)`, await page.locator('img[alt="QR Code PIX"]').count() === 1 && t.includes('Simular pagamento do PIX'));
+    check(`pix stripe ${tela}: mostra o QR do Stripe, sem aviso nem botão de teste`, await page.locator('img[alt="QR Code PIX"]').count() === 1 && !t.includes('Simular pagamento do PIX') && !t.includes('Modo de teste'));
     check(`pix stripe ${tela}: sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/pix-stripe-${tela}.png`, fullPage: true });
     o.paymentStatus = 'approved';
     await page.waitForTimeout(3500);
     check(`pix stripe ${tela}: webhook aprovou → pedido confirmado`, (await text(page)).toLowerCase().includes('pedido confirmado'));
     check(`pix stripe ${tela}: sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+    await page.close();
+  }
+});
+
+// Recarregar a página no meio do pagamento (F5, puxar pra baixo no celular):
+// o QR do PIX e os campos do cartão voltam, sem criar outro pedido.
+await step('recarregar a tela de pagamento', async () => {
+  for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
+    ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
+    // PIX
+    let page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true, stripePix: true });
+    let pixCalls = 0;
+    page.on('request', r => { if (/\/payments\/pix\//.test(r.url())) pixCalls++; });
+    await ateOPagamento(page);
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    await click(page, 'PIX', true);
+    await click(page, 'Pagar R$');
+    await page.waitForTimeout(600);
+    check(`recarregar ${tela}: PIX mostra o QR antes`, await page.locator('img[alt="QR Code PIX"]').count() === 1);
+    await page.reload(); await page.waitForTimeout(2000);
+    let t = await text(page);
+    check(`recarregar ${tela}: PIX volta com o QR e o código copia-e-cola`, page.url().includes('screen=pix') && await page.locator('img[alt="QR Code PIX"]').count() === 1
+      && t.includes('Aguardando confirmação do pagamento') && t.includes('Copiar código PIX')
+      && await page.evaluate(() => JSON.parse(localStorage.getItem('sunfood_pix')).qrCode === '000201STRIPEPIX'), t.slice(0, 400));
+    check(`recarregar ${tela}: PIX não cria outro pedido nem outra cobrança`, page.api.db.orders.length === 1 && pixCalls === 1, `${page.api.db.orders.length} pedidos, ${pixCalls} chamadas de PIX`);
+    if (tela === 'celular') {
+      // QR não guardado no aparelho: pede o mesmo PIX de novo ao servidor.
+      await page.evaluate(() => localStorage.removeItem('sunfood_pix'));
+      await page.reload(); await page.waitForTimeout(2000);
+      check('recarregar: sem o QR guardado, pede de novo e mostra', await page.locator('img[alt="QR Code PIX"]').count() === 1 && pixCalls === 2
+        && page.api.db.orders.length === 1, String(pixCalls));
+    }
+    page.api.db.orders[0].paymentStatus = 'approved';
+    await page.waitForTimeout(3500);
+    check(`recarregar ${tela}: PIX pago depois de recarregar confirma o pedido`, (await text(page)).toLowerCase().includes('pedido confirmado'));
+    check(`recarregar ${tela}: PIX sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+    await page.close();
+
+    // Cartão no app
+    page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true });
+    await ateOPagamento(page);
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    await click(page, 'Cartão de crédito ou débito', true);
+    await click(page, 'Pagar R$');
+    await page.waitForTimeout(1500);
+    check(`recarregar ${tela}: cartão mostra os campos antes`, await page.locator('#sf-stripe-card .fake-stripe').count() === 1);
+    await page.reload(); await page.waitForTimeout(2500);
+    t = await text(page);
+    check(`recarregar ${tela}: cartão volta com os campos do cartão`, page.url().includes('screen=card') && await page.locator('#sf-stripe-card .fake-stripe').count() === 1
+      && t.includes('Dados do cartão'), t.slice(0, 400));
+    check(`recarregar ${tela}: cartão não cria outro pedido`, page.api.db.orders.length === 1, String(page.api.db.orders.length));
+    check(`recarregar ${tela}: cartão sem rolagem lateral`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.getByLabel('Nome do titular do cartão').fill('Ana Souza');
+    await page.getByLabel('CPF do titular do cartão').fill('529.982.247-25');
+    await page.locator('.btn', { hasText: /^Pagar R\$/ }).last().click(); await page.waitForTimeout(800);
+    check(`recarregar ${tela}: dá para pagar com cartão depois de recarregar`, await page.evaluate(() => !!window.__stripeConfirm && !!window.__stripeConfirm.clientSecret),
+      (await text(page)).slice(0, 300));
+    check(`recarregar ${tela}: cartão sem erro de JavaScript`, page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
     await page.close();
   }
 });

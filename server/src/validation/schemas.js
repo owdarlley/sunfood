@@ -217,6 +217,11 @@ export const orderRefundSchema = z
     cancel: z.boolean().default(false),
     amount: z.number().positive().max(100000).optional(),
     reason: z.string().trim().min(3, "Informe o motivo do estorno.").max(200),
+    // Itens marcados no estorno parcial, para o cliente ver o que voltou.
+    items: z
+      .array(z.object({ name: z.string().trim().min(1).max(120), qty: z.number().int().min(1).max(999) }))
+      .max(50)
+      .optional(),
   })
   .refine((b) => b.cancel || b.amount !== undefined, { message: "Informe o valor do estorno.", path: ["amount"] });
 

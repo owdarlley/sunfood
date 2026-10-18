@@ -178,6 +178,7 @@ select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:ima
 .rf-item.on{border-color:var(--brand);background:#E6EFF0;box-shadow:inset 3px 0 0 var(--brand)}
 .rf-dialog .pf-btns .btn{white-space:nowrap;padding:0 16px}
 .rf-dialog .pf-btns .btn-danger{flex:2}
+.rfc-line{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:var(--fs-body)}
 .rf-hist{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border:1px solid var(--line);border-radius:8px}
 /* Formulário de produto (admin) numa janela: cabeçalho e botões fixos, só o
    meio rola. Duas colunas a partir do tablet; no celular ocupa a tela toda. */
@@ -503,6 +504,49 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 /* Celular estreito: 2 colunas, para as etiquetas de pagamento e status não
    quebrarem em 3 linhas ("Cobrar na / entrega · / R$ 70,00"). */
 @media (max-width:480px){.tbl-cards .tr{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
+/* Pagamentos do admin (2026-10-17): no computador, tabela com 5 colunas
+   (pedido e mesa juntos, quando e status juntos, total antes do pagamento) e as ações numa coluna só;
+   no celular e no tablet, um cartão por pedido (1 coluna no celular, 2 no
+   tablet) com pedido e total no topo, os botões de recebimento lado a lado e
+   o Estornar/Cancelar embaixo. Filtros em pílulas, como em Pedidos. */
+.pay-tr{grid-template-columns:100px 170px 100px minmax(0,1fr) 300px}
+.pay-id,.pay-when{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.pay-id b{font-weight:800;color:#1F5A63;font-size:var(--fs-body)}
+.pay-id .muted,.pay-when .muted{font-size:var(--fs-sm);white-space:nowrap}
+.pay-pay{min-width:0;padding-left:16px}
+.pay-pay span{white-space:normal !important;line-height:1.35}
+.pay-total{text-align:right;font-weight:800;white-space:nowrap;font-size:var(--fs-body)}
+.pay-acts{display:flex;flex-direction:column;gap:8px;min-width:0;padding-left:12px}
+.pay-recv{display:flex;flex-direction:column;gap:4px}
+.pay-cap{font:600 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:#55626A}
+.pay-recv-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pay-acts .btn{min-height:44px;padding:0 12px;border-radius:8px}
+.pay-rb{border:1px solid}
+.pay-rb-cash{background:#E5F7EA;color:#1E6B36;border-color:#BFE3CB}
+.pay-rb-cash:hover{background:#D3F0DC}
+.pay-rb-card{background:#E6EFF0;color:#174A52;border-color:#D2E3E5}
+.pay-rb-card:hover{background:#D6E6E8}
+.pay-rb-pix{background:#FFF4DB;color:#7A4B00;border-color:#F0D9A8}
+.pay-rb-pix:hover{background:#FDEBC2}
+.pay-btns{display:flex;gap:8px;flex-wrap:wrap}
+.pay-off .pay-id,.pay-off .pay-pay,.pay-off .pay-total{opacity:.65}
+@media (max-width:1024px){
+  .pay-wrap{background:transparent;border:0;box-shadow:none;overflow:visible}
+  .pay-tbl{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gap)}
+  .pay-tbl .tr.th{display:none}
+  .pay-tbl .pay-tr{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"id total" "when when" "pay pay" "acts acts";align-items:start;gap:8px 12px;
+    background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad)}
+  .pay-id{grid-area:id;flex-direction:row;align-items:baseline;gap:8px}
+  .pay-id b{font-size:var(--fs-h3)}
+  .pay-total{grid-area:total;font-size:var(--fs-h3)}
+  .pay-when{grid-area:when;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px}
+  .pay-pay{grid-area:pay;padding-left:0}
+  .pay-acts{grid-area:acts;padding-left:0}
+  .pay-acts:has(> *){border-top:1px solid #EFEADF;padding-top:12px;margin-top:4px}
+  .pay-btns .btn{flex:1 1 0;min-width:0}
+}
+@media (min-width:768px) and (max-width:1024px){.pay-tbl{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+@media (max-width:767px){.pay-acts .btn{min-height:48px}.pay-pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--px));padding:0 var(--px)}.pay-pills::-webkit-scrollbar{display:none}.pay-pills .fpill{flex:none}}
 /* Mapa da Localização (Google Maps sem chave de API, a partir do endereço). */
 .locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:var(--r-card);overflow:hidden;background:#D2E3E5;border:1px solid #E3DDD0}
 .locmap iframe{display:block;width:100%;height:100%;border:0}
@@ -948,8 +992,7 @@ select{caret-color:auto}
                     <div onClick="{{ signInWithGoogle }}" class="gbtn">
                       <svg viewBox="0 0 48 48" width="20" height="20" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Entrar com Google
                     </div>
-                    <div class="muted" style="text-align:center;font-size:var(--fs-sm)">Equipe da cozinha e administração usam este mesmo login.</div>
-                  </div>
+                      </div>
                 </sc-if>
 
                 <sc-if value="{{ is_signup }}" hint-placeholder-val="{{ false }}">
@@ -1103,7 +1146,7 @@ select{caret-color:auto}
               <sc-if value="{{ is_menu }}" hint-placeholder-val="{{ false }}">
                 <div>
                   <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
-                    <div class="alert alert-warn" style="margin-bottom:20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B26B00" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"></circle><path d="M10 9v6M14 9v6"></path></svg><span>Quiosque pausado pelo Admin. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
+                    <div class="alert alert-warn" style="margin-bottom:20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B26B00" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"></circle><path d="M10 9v6M14 9v6"></path></svg><span>O quiosque não está recebendo pedidos agora. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
                   </sc-if>
                   <sc-if value="{{ menuDayClosed }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-warn" style="margin-bottom:20px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B26B00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg><span>O quiosque já encerrou o dia. Você pode navegar no cardápio, mas não fechar o pedido.</span></div>
@@ -1335,7 +1378,7 @@ select{caret-color:auto}
                       <span class="pre"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M4 9c2-4 14-4 16 0z"></path></svg>Mesa</span>
                       <input placeholder="Número da mesa" id="mesaInp" value="{{ tableInput }}" onChange="{{ setTable }}" inputmode="numeric" aria-label="Número da mesa">
                     </div>
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">O número está na plaquinha de madeira do guarda-sol. {{ activeTablesHint }}</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">O número está na plaquinha de madeira do guarda-sol.</div>
                   </div>
                   <sc-if value="{{ hasTableErr }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-err rise">{{ tableErr }}</div>
@@ -1343,7 +1386,6 @@ select{caret-color:auto}
                   <div>
                     <span class="lbl">Observação para a cozinha</span>
                     <input placeholder="Instruções para a cozinha" class="inp" value="{{ orderNote }}" onChange="{{ setOrderNote }}" aria-label="Observação para a cozinha">
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:8px">A cozinha vê esta observação junto com o pedido, somada às observações de cada item.</div>
                   </div>
                   <div class="card" style="padding:var(--cpad)">
                     <div class="sumrow"><span>{{ cartCountStr }}</span><span>{{ subtotalStr }}</span></div>
@@ -1365,9 +1407,6 @@ select{caret-color:auto}
                         </div>
                       </sc-for>
                     </div>
-                    <sc-if value="{{ payInfoOff }}" hint-placeholder-val="{{ false }}">
-                      <div class="alert alert-info" style="font-weight:500">{{ payInfo }}</div>
-                    </sc-if>
                   </div>
                   <div class="col-side">
                     <div class="card" style="padding:var(--cpad)">
@@ -1399,11 +1438,7 @@ select{caret-color:auto}
                     <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><svg style="animation:sfspin .9s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>Aguardando confirmação do pagamento…</div>
                   </div>
                   <div onClick="{{ copyPix }}" class="btn btn-dark">Copiar código PIX</div>
-                  <sc-if value="{{ hasPixTestPay }}" hint-placeholder-val="{{ false }}">
-                    <div class="alert alert-info" style="font-weight:500">Modo de teste: nada é cobrado. Para simular que o banco pagou, use o botão abaixo.</div>
-                    <a href="{{ pixTestPayUrl }}" target="_blank" rel="noopener" class="btn btn-ghost" style="text-decoration:none">Simular pagamento do PIX</a>
-                  </sc-if>
-                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola. A cozinha recebe o pedido assim que o pagamento for confirmado, automaticamente, sem precisar avisar aqui.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola.</div>
                 </div>
               </sc-if>
 
@@ -1417,9 +1452,6 @@ select{caret-color:auto}
                       <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#1F5A63;margin-top:12px">Aguardando confirmação do pagamento…</div>
                     </sc-if>
                   </div>
-                  <sc-if value="{{ cardTestMode }}" hint-placeholder-val="{{ false }}">
-                    <div class="alert alert-info" style="font-weight:500">{{ cardTestText }}</div>
-                  </sc-if>
                   <sc-if value="{{ cardFormVisible }}" hint-placeholder-val="{{ false }}">
                     <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px">
                       <div class="tt" style="font-size:var(--fs-h3)">Dados do cartão</div>
@@ -1439,10 +1471,10 @@ select{caret-color:auto}
                     <div onClick="{{ confirmCardInApp }}" class="btn btn-sun" style="opacity:{{ cardPayOpacity }}">{{ cardPayLabel }}</div>
                   </sc-if>
                   <sc-if value="{{ cardInApp }}" hint-placeholder-val="{{ false }}">
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Os dados do cartão são digitados em campos seguros do Stripe e não passam pelo Sunfood. Se você marcar para salvar, o cartão fica guardado no Stripe para as próximas compras. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Seus dados do cartão ficam protegidos e não passam pelo Sunfood.</div>
                   </sc-if>
                   <sc-if value="{{ cardRedirect }}" hint-placeholder-val="{{ true }}">
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para a página segura do {{ cardProviderName }} para digitar os dados do cartão. Eles não passam pelo Sunfood. A cozinha recebe o pedido assim que o pagamento for aprovado.</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para uma página segura para digitar os dados do cartão. Eles não passam pelo Sunfood.</div>
                     <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
                       <div onClick="{{ openCardCheckout }}" class="btn btn-ghost">Abrir o pagamento de novo</div>
                     </sc-if>
@@ -1511,6 +1543,20 @@ select{caret-color:auto}
                       </sc-for>
                       <div class="sumtotal" style="font-size:var(--fs-h3)"><span>{{ totalPaidLabel }}</span><span>{{ orderTotalStr }}</span></div>
                     </div>
+                    <sc-if value="{{ orHasRefunds }}" hint-placeholder-val="{{ false }}">
+                      <div class="card rfc" style="padding:var(--cpad)">
+                        <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Estornos</div>
+                        <div class="muted" style="font-size:var(--fs-sm);margin:4px 0 8px">O valor volta pelo mesmo meio do pagamento.</div>
+                        <sc-for list="{{ orRefunds }}" as="r" hint-placeholder-count="1">
+                          <div class="rfc-line">
+                            <div style="min-width:0"><div style="font-weight:700">{{ r.reason }}</div><div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ r.detail }}</div></div>
+                            <b style="white-space:nowrap;color:#1F5A63">{{ r.amount }}</b>
+                          </div>
+                        </sc-for>
+                        <div class="sumrow" style="margin-top:8px"><span>Total estornado</span><b>{{ orRefundTotal }}</b></div>
+                        <div class="sumtotal"><span>Valor final</span><span>{{ orNetTotal }}</span></div>
+                      </div>
+                    </sc-if>
                     <sc-if value="{{ hasOrderObs }}" hint-placeholder-val="{{ false }}">
                       <div class="alert alert-warn" style="flex-direction:column;gap:4px"><b style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">Observações enviadas</b><span style="font-weight:500">{{ orderObs }}</span></div>
                     </sc-if>
@@ -1567,6 +1613,7 @@ select{caret-color:auto}
                       <div style="flex:1;min-width:0">
                         <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
                         <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ h.when }}</div>
+                        <div style="{{ h.refStyle }}">{{ h.refundStr }}</div>
                       </div>
                       <span style="{{ h.stStyle }}">{{ h.status }}</span>
                       <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
@@ -1598,6 +1645,20 @@ select{caret-color:auto}
                     </sc-for>
                     <div class="sumtotal"><span>Total</span><span>{{ hdTotal }}</span></div>
                   </div>
+                  <sc-if value="{{ hdHasRefunds }}" hint-placeholder-val="{{ false }}">
+                    <div class="card rfc" style="padding:var(--cpad)">
+                      <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Estornos</div>
+                      <div class="muted" style="font-size:var(--fs-sm);margin:4px 0 8px">O valor volta pelo mesmo meio do pagamento.</div>
+                      <sc-for list="{{ hdRefunds }}" as="r" hint-placeholder-count="1">
+                        <div class="rfc-line">
+                          <div style="min-width:0"><div style="font-weight:700">{{ r.reason }}</div><div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ r.detail }}</div></div>
+                          <b style="white-space:nowrap;color:#1F5A63">{{ r.amount }}</b>
+                        </div>
+                      </sc-for>
+                      <div class="sumrow" style="margin-top:8px"><span>Total estornado</span><b>{{ hdRefundTotal }}</b></div>
+                      <div class="sumtotal"><span>Valor final</span><span>{{ hdNetTotal }}</span></div>
+                    </div>
+                  </sc-if>
                   <div onClick="{{ goMenu }}" class="btn btn-sun">Pedir novamente</div>
                 </div>
               </sc-if>
@@ -1633,7 +1694,7 @@ select{caret-color:auto}
                       </div>
                       <div class="card" style="padding:var(--cpad);border-color:#F0C2BC">
                         <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Excluir conta</div>
-                        <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:8px 0 12px">Seus dados pessoais são apagados (LGPD). Os pedidos continuam no histórico do quiosque, sem o seu nome.</p>
+                        <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:8px 0 12px">Seus dados pessoais são apagados (LGPD).</p>
                         <div onClick="{{ goDelete }}" class="btn btn-danger-ghost btn-sm" style="align-self:flex-start;display:inline-flex">Excluir minha conta</div>
                       </div>
                     </div>
@@ -1650,6 +1711,7 @@ select{caret-color:auto}
                               <div style="flex:1;min-width:0">
                                 <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
                                 <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ h.when }}</div>
+                                <div style="{{ h.refStyle }}">{{ h.refundStr }}</div>
                               </div>
                               <span style="{{ h.stStyle }}">{{ h.status }}</span>
                               <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
@@ -1720,7 +1782,7 @@ select{caret-color:auto}
                   <div class="rise sf-dialog" role="alertdialog" aria-modal="true" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
                     <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
                     <div class="tt" style="font-size:var(--fs-h2)">Excluir sua conta?</div>
-                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Seu cadastro e seus dados pessoais serão apagados. Os pedidos já feitos ficam no caixa do quiosque, sem o seu nome. Esta ação não pode ser desfeita.</p>
+                    <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Seu cadastro e seus dados pessoais serão apagados. Esta ação não pode ser desfeita.</p>
                     <div onClick="{{ confirmDelete }}" class="btn btn-danger" style="width:100%">{{ deleteLabel }}</div>
                     <div onClick="{{ goProfile }}" class="btn btn-ghost" style="width:100%">Manter minha conta</div>
                   </div>
@@ -1926,40 +1988,49 @@ select{caret-color:auto}
               <sc-if value="{{ payOnlineOff }}" hint-placeholder-val="{{ false }}">
                 <div class="alert alert-warn">{{ payOnlineOffText }}</div>
               </sc-if>
-              <div class="tblwrap">
+              <div class="pills pay-pills" role="group" aria-label="Filtrar pagamentos">
+                <sc-for list="{{ payFilters }}" as="pf" hint-placeholder-count="5">
+                  <div onClick="{{ pf.pick }}" class="fpill {{ pf.cls }}" role="button" aria-pressed="{{ pf.on }}">{{ pf.label }}<span class="n">{{ pf.n }}</span></div>
+                </sc-for>
+              </div>
+              <div class="tblwrap pay-wrap">
                 <sc-if value="{{ hasPayRows }}" hint-placeholder-val="{{ true }}">
-                  <div class="tbl tbl-cards" style="min-width:980px">
-                    <div class="tr th" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px"><div>Pedido</div><div>Mesa</div><div>Quando</div><div>Status</div><div>Pagamento</div><div>Recebimento e estorno</div><div style="text-align:right">Total</div></div>
+                  <div class="tbl pay-tbl">
+                    <div class="tr th pay-tr"><div>Pedido</div><div>Quando</div><div style="text-align:right">Total</div><div style="padding-left:16px">Pagamento</div><div style="padding-left:12px">Ações</div></div>
                     <sc-for list="{{ payRows }}" as="r" hint-placeholder-count="6">
-                      <div class="tr" style="grid-template-columns:90px 60px 150px 100px 250px minmax(0,1fr) 100px">
-                          <div data-l="Pedido" style="font-weight:800;color:#1F5A63">{{ r.id }}</div>
-                          <div data-l="Mesa" style="font-weight:700">{{ r.table }}</div>
-                          <div data-l="Quando" class="muted" style="white-space:nowrap">{{ r.when }}</div>
-                          <div data-l="Status">{{ r.status }}</div>
-                          <div data-l="Pagamento"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
-                          <div class="wide">
-                            <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
-                              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                                <span class="muted" style="font-size:var(--fs-sm)">Recebido em:</span>
-                                <span onClick="{{ r.recvCash }}" class="chip" style="background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">Dinheiro</span>
-                                <span onClick="{{ r.recvCard }}" class="chip" style="background:#E6EFF0;color:#174A52;border:1px solid #D2E3E5;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">Cartão</span>
-                                <span onClick="{{ r.recvPix }}" class="chip" style="background:#FFF4DB;color:#7A4B00;border:1px solid #F0D9A8;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;cursor:pointer">PIX</span>
+                      <div class="tr pay-tr {{ r.cls }}">
+                        <div class="pay-id"><b>{{ r.id }}</b><span class="muted">Mesa {{ r.table }}</span></div>
+                        <div class="pay-when"><span class="muted">{{ r.when }}</span><span style="{{ r.stStyle }}">{{ r.status }}</span></div>
+                        <div class="pay-total">{{ r.totalStr }}</div>
+                        <div class="pay-pay"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
+                        <div class="pay-acts">
+                          <sc-if value="{{ r.canReceive }}" hint-placeholder-val="{{ false }}">
+                            <div class="pay-recv">
+                              <span class="pay-cap">Recebido em:</span>
+                              <div class="pay-recv-btns">
+                                <div onClick="{{ r.recvCash }}" class="btn btn-sm pay-rb pay-rb-cash" role="button">Dinheiro</div>
+                                <div onClick="{{ r.recvCard }}" class="btn btn-sm pay-rb pay-rb-card" role="button">Cartão</div>
+                                <div onClick="{{ r.recvPix }}" class="btn btn-sm pay-rb pay-rb-pix" role="button">PIX</div>
                               </div>
-                            </sc-if>
-                            <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
-                              <span onClick="{{ r.undo }}" class="chip" style="background:#fff;border:1px solid #D6CFBF;color:#55626A;padding:8px 12px;cursor:pointer">Desfazer</span>
-                            </sc-if>
-                            <sc-if value="{{ r.canManage }}" hint-placeholder-val="{{ false }}">
-                              <div onClick="{{ r.manage }}" class="btn btn-ghost btn-sm" role="button" style="display:inline-flex;margin-top:8px">{{ r.manageLabel }}</div>
-                            </sc-if>
-                          </div>
-                          <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
+                            </div>
+                          </sc-if>
+                          <sc-if value="{{ r.hasBtns }}" hint-placeholder-val="{{ false }}">
+                            <div class="pay-btns">
+                              <sc-if value="{{ r.canUndo }}" hint-placeholder-val="{{ false }}">
+                                <div onClick="{{ r.undo }}" class="btn btn-ghost btn-sm" role="button" title="Volta o pedido para a receber">Desfazer</div>
+                              </sc-if>
+                              <sc-if value="{{ r.canManage }}" hint-placeholder-val="{{ false }}">
+                                <div onClick="{{ r.manage }}" class="btn btn-ghost btn-sm" role="button">{{ r.manageLabel }}</div>
+                              </sc-if>
+                            </div>
+                          </sc-if>
+                        </div>
                       </div>
                     </sc-for>
                   </div>
                 </sc-if>
                 <sc-if value="{{ noPayRows }}" hint-placeholder-val="{{ false }}">
-                  <div class="muted" style="padding:40px;text-align:center">Nenhum pedido ainda.</div>
+                  <div class="muted" style="padding:40px;text-align:center">{{ payEmptyText }}</div>
                 </sc-if>
               </div>
             </div>
@@ -2148,7 +2219,6 @@ select{caret-color:auto}
                     </sc-if>
                   </div>
                 </div>
-                <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">Atendidos são os pedidos que o garçom lançou na mesa ou marcou como entregues, sem os cancelados. Valor total e ticket médio somam esses pedidos.</div>
               </div>
             </sc-if>
             <sc-if value="{{ wDelOpen }}" hint-placeholder-val="{{ false }}">
@@ -2156,7 +2226,7 @@ select{caret-color:auto}
                 <div class="rise sf-dialog" role="alertdialog" aria-modal="true" aria-label="Excluir garçom" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
                   <span style="width:72px;height:72px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></span>
                   <div class="tt" style="font-size:var(--fs-h2)">Excluir {{ wDelName }}?</div>
-                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">A conta é apagada e não entra mais no Sunfood. Os pedidos que lançou ou entregou continuam no caixa e nos relatórios, só sem o nome do garçom. Esta ação não pode ser desfeita.</p>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">A conta é apagada. Os pedidos dele continuam nos relatórios. Esta ação não pode ser desfeita.</p>
                   <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:0">Para tirar o acesso só por um tempo, use Desativar.</p>
                   <div onClick="{{ confirmWaiterDelete }}" class="btn btn-danger" style="width:100%">{{ wDelLabel }}</div>
                   <div onClick="{{ cancelWaiterDelete }}" class="btn btn-ghost" style="width:100%">Manter garçom</div>
@@ -2439,7 +2509,7 @@ select{caret-color:auto}
                 </div>
               </div>
               <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-                <div><h2 style="margin:0">Localização do quiosque</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Aparece para o cliente em "Localização do quiosque". O mapa e o botão "Abrir no mapa" usam o endereço.</div></div>
+                <div><h2 style="margin:0">Localização do quiosque</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Aparece para o cliente na tela de localização.</div></div>
                 <div class="locform">
                   <div><label for="locNameInp" class="lbl">Nome do local</label><input placeholder="Nome exibido ao cliente" id="locNameInp" class="inp" value="{{ locNameInput }}" onChange="{{ setLocNameInput }}" maxlength="80" /></div>
                   <div class="wide"><label for="locAddressInp" class="lbl">Endereço</label><input placeholder="Rua, número, bairro, cidade e UF" id="locAddressInp" class="inp" value="{{ locAddressInput }}" onChange="{{ setLocAddressInput }}" maxlength="200" /></div>
@@ -2511,7 +2581,6 @@ select{caret-color:auto}
                       <div title="{{ b.tip }}" class="bar"><div class="bv" style="font-weight:700">{{ b.top }}</div><div style="{{ b.style }}"></div><div class="bl" style="font-size:12px">{{ b.lbl }}</div></div>
                     </sc-for>
                   </div>
-                  <div class="muted" style="font-size:var(--fs-sm);margin-top:12px">Número de pedidos por hora em que foram feitos.</div>
                 </div>
                 <div class="panel">
                   <h2>Mais vendidos no período</h2>
@@ -2906,7 +2975,6 @@ select{caret-color:auto}
                   </sc-for>
                 </div>
               </sc-if>
-              <div class="muted" style="font-size:var(--fs-sm);line-height:1.5">Entregues e tempo médio contam os pedidos que você marcou como entregues. Lançados são os pedidos que você fez na mesa, sem os cancelados.</div>
             </div>
           </sc-if>
         </div>
@@ -3155,6 +3223,7 @@ function orderCode(o){
 function orderFromApi(o){
   return {id:orderCode(o), _apiId:o.id, table:o.tableNumber, total:o.total, status:o.status, obs:o.note || '',
     paymentStatus:o.paymentStatus || 'pending', paymentMethod:o.paymentMethod || 'pix', paymentProvider:o.paymentProvider || null, cancelDeadline:o.cancelDeadline || null,
+    refunds:refundsFromApi(o),
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, note:it.note || ''}))};
 }
 
@@ -3232,24 +3301,32 @@ function formatWhen(isoDatetime){
 
 function historyEntryFromApi(o){
   return {id:orderCode(o), when:formatWhen(o.createdAt), table:o.tableNumber, total:o.total, status:o.status,
+    refunds:refundsFromApi(o),
     items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty}))};
 }
 
-// Lista as mesas ativas em faixas ("1 a 6, 8, 10 a 12") a partir do que
-// veio da API, em vez de um texto fixo que fica errado quando o Admin
-// ativa/desativa uma mesa.
-function activeTablesText(tables){
-  const nums = tables.filter(t => t.active).map(t => t.n).sort((a, b) => a - b);
-  if(!nums.length) return 'Nenhuma mesa ativa no momento.';
-  const parts = [];
-  for(let i = 0; i < nums.length; i++){
-    let j = i;
-    while(j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
-    parts.push(j > i ? nums[i] + ' a ' + nums[j] : String(nums[i]));
-    i = j;
+// Estornos que o cliente vê no pedido: valor, motivo, itens e quando. Pedido
+// estornado antes de o histórico de estornos existir aparece com o total.
+function refundsFromApi(o){
+  const list = (o.refunds || []).map(r => ({amount:Number(r.amount) || 0, reason:r.reason || 'Estorno',
+    items:(r.items || []).map(it => it.qty + 'x ' + it.name).join(', '), when:formatWhen(r.at)}));
+  if(!list.length && o.paymentStatus === 'refunded'){
+    list.push({amount:o.total, reason:o.status === 'Cancelado' ? 'Pedido cancelado' : 'Estorno', items:'', when:formatWhen(o.updatedAt)});
   }
-  return (nums.length === 1 ? 'Mesa ativa: ' : 'Mesas ativas: ') + parts.join(', ') + '.';
+  return list;
 }
+// Monta o quadro "Estornos" (detalhe do pedido e acompanhamento).
+function refundCard(refunds, total){
+  const f = n => 'R$ ' + Number(n || 0).toFixed(2).replace('.', ',');
+  const sum = Math.round((refunds || []).reduce((a, r) => a + r.amount, 0) * 100) / 100;
+  return {
+    has:sum > 0,
+    rows:(refunds || []).map(r => ({amount:'− ' + f(r.amount), reason:r.reason, detail:(r.items ? r.items + ' · ' : '') + r.when})),
+    total:f(sum),
+    net:f(Math.max(0, total - sum))
+  };
+}
+
 
 function minutesAgo(isoDatetime){
   const ms = Date.now() - new Date(isoDatetime).getTime();
@@ -3572,6 +3649,9 @@ const NEEDS_CART = ['cart','table','payment'];
 // Carrinho guardado no aparelho (recarregar ou voltar não perde o pedido).
 const CART_KEY = 'sunfood_cart';
 const CART_TTL = 3 * 60 * 60 * 1000;
+// QR do PIX em aberto, para voltar igual se a página for recarregada.
+const PIX_KEY = 'sunfood_pix';
+const PIX_TTL = 60 * 60 * 1000;
 
 // Nome que aparece na guia do navegador: "Sunfood · <tela>". Sem isto a guia
 // mostrava o endereço (app-cliente.dc.html?module=...).
@@ -3650,12 +3730,12 @@ class Component extends DCLogic {
     // o PIX é aprovado na hora como "provisório". null = ainda não sabemos.
     paymentsOnline:null,
     // Quem cobra o cartão: 'stripe', 'mercadopago' ou 'provisorio'. Com o
-    // Stripe em modo teste, as telas mostram o cartão de teste 4242.
+    // Stripe em modo teste, o admin vê o aviso de teste (o cliente não).
     cardProvider:null, pixProvider:null, cardTestMode:false,
     // Com a chave publicável do Stripe, o cartão é digitado na própria tela
     // (Payment Element) em vez de abrir a página do Stripe.
     stripePk:null, cardFormLoading:false, cardOrderPending:false, cardErr:'', cardHolderName:'', cardHolderCpf:'',
-    payingPix:false, pixQrCode:'', pixQrImg:'', pixTestPayUrl:'',
+    payingPix:false, pixQrCode:'', pixQrImg:'', pixTestPayUrl:'', historyReady:false,
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
     // restoreSession()/submitLogin(), não é mais um mock fixo.
@@ -3686,7 +3766,7 @@ class Component extends DCLogic {
     categories:DEFAULT_CATEGORIES, catOpen:false, catEdit:null, catEditName:'', catEditColor:'areia',
     catNewName:'', catNewColor:'areia', catMsg:'', catBusy:false, catDeleting:null,
     // Admin: filtro/busca da lista de pedidos e filtro do cardápio.
-    admFilter:'Todos', admSearch:'', admCat:'Todos',
+    admFilter:'Todos', payFilter:'Todos', admSearch:'', admCat:'Todos',
     // Cozinha/Garçom: som de pedido novo, salvo no aparelho (ligado por padrão).
     // O navegador só libera o áudio depois do primeiro toque na tela; o
     // unlockAudio() do componentDidMount cuida disso sozinho.
@@ -3717,7 +3797,10 @@ class Component extends DCLogic {
     const semPedido = s.history && s.history.length ? 'history' : 'historyEmpty';
     // Cartão no app: os campos aparecem enquanto o pedido ainda está sendo criado.
     const cardPending = s.screen === 'card' && s.cardOrderPending;
-    if(NEEDS_ORDER.indexOf(s.screen) >= 0 && !s.order && !cardPending) return semPedido;
+    // Recarregou no PIX ou no cartão: espera o pedido voltar do servidor em
+    // vez de pular pro histórico.
+    const resuming = (s.screen === 'pix' || s.screen === 'card') && !!s.token && !s.historyReady;
+    if(NEEDS_ORDER.indexOf(s.screen) >= 0 && !s.order && !cardPending && !resuming) return semPedido;
     if(NEEDS_CART.indexOf(s.screen) >= 0 && !s.cart.length) return 'cartEmpty';
     if(s.screen === 'product' && !s.catalogPending && !s.products.some(p => p.id === s.selId)) return 'menu';
     if(s.screen === 'orderDetail' && !(s.history && s.history[s.histSel])) return semPedido;
@@ -3767,6 +3850,58 @@ class Component extends DCLogic {
   componentDidUpdate(){
     this.syncRoute();
     this.saveCart();
+    this.resumePayment();
+  }
+
+  // Recarregou a página no meio do pagamento: o QR do PIX e os campos do
+  // cartão voltam para o mesmo pedido, sem criar outro.
+  resumePayment(){
+    const s = this.state, o = s.order;
+    if(s.module !== 'cliente' || !s.token || !o || !o._apiId) return;
+    if(o.paymentStatus === 'approved' || o.status !== 'Na Fila') return;
+    if(s.screen === 'pix' && o.paymentMethod === 'pix' && !s.pixQrCode && !s.payingPix && this._pixResume !== o._apiId){
+      this._pixResume = o._apiId;
+      this.resumePix(o._apiId);
+    }
+    if(s.screen === 'card' && o.paymentMethod === 'cartao' && s.stripePk && !s.cardOrderPending && !s.cardWaiting && !this.cardIntent && this._cardResume !== o._apiId){
+      this._cardResume = o._apiId;
+      this.openCardInApp();
+    }
+  }
+
+  async resumePix(apiId){
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(PIX_KEY) || 'null'); } catch(e){}
+    const user = this.state.authUser && this.state.authUser.id;
+    if(saved && saved.orderId === apiId && saved.user === user && Date.now() - saved.at < PIX_TTL && saved.qrCode){
+      this.setState({pixQrCode:saved.qrCode, pixQrImg:saved.qrImg || '', pixTestPayUrl:saved.testPayUrl || ''});
+      return;
+    }
+    // QR não guardado neste aparelho: pede de novo (o servidor reaproveita o PIX em aberto).
+    this.setState({payingPix:true});
+    try {
+      const res = await authFetch(API_BASE + '/payments/pix/' + apiId, {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      if(res.ok && !data.provisional) this.showPix(apiId, data);
+      else if(!res.ok) this.flash(data.error || 'Não foi possível mostrar o PIX de novo.');
+    } catch(e){
+      this.flash('Falha de conexão com o servidor.');
+    } finally {
+      this.setState({payingPix:false});
+    }
+  }
+
+  // Mostra o QR do PIX e guarda no aparelho (por conta e pedido).
+  showPix(apiId, data){
+    const pix = {pixQrCode:data.qrCode || '',
+      // Mercado Pago manda a imagem em base64; o Stripe manda o endereço da imagem.
+      pixQrImg:data.qrCodeImageUrl || (data.qrCodeBase64 ? 'data:image/png;base64,' + data.qrCodeBase64 : ''),
+      pixTestPayUrl:data.testPayUrl || ''};
+    this.setState(pix);
+    try {
+      localStorage.setItem(PIX_KEY, JSON.stringify({user:this.state.authUser && this.state.authUser.id, orderId:apiId, at:Date.now(),
+        qrCode:pix.pixQrCode, qrImg:pix.pixQrImg, testPayUrl:pix.pixTestPayUrl}));
+    } catch(e){}
   }
 
   componentDidMount(){
@@ -4285,6 +4420,8 @@ class Component extends DCLogic {
       const max = refundableOf(r);
       if(!(amount > 0) || amount > max + 1e-9) return this.setRf({err:'Digite um valor entre R$ 0,01 e ' + brMoney(max) + '.'});
       body.amount = amount;
+      // Itens marcados: o cliente vê no pedido o que foi devolvido.
+      if(rf.picked.length) body.items = rf.picked.map(i => ({name:r.items[i].name, qty:r.items[i].qty}));
     }
     this.setRf({busy:true});
     try {
@@ -5036,6 +5173,7 @@ class Component extends DCLogic {
       const live = !this.state.order && data.find(o => o.status !== 'Entregue' && o.status !== 'Cancelado');
       this.setState(live ? {history: data.map(historyEntryFromApi), order: orderFromApi(live)} : {history: data.map(historyEntryFromApi)});
     } catch(e){}
+    finally { this.setState({historyReady:true}); }
   }
 
   async pollOrder(apiId, token){
@@ -5075,7 +5213,7 @@ class Component extends DCLogic {
       this.setState({loginErr:''});
       this.startSession(data.token, data.user, data.refreshToken);
     } catch(e){
-      this.setState({loginErr:'Falha de conexão com o servidor. Confira se a API está rodando.'});
+      this.setState({loginErr:'Sem conexão. Confira sua internet e tente de novo.'});
     } finally {
       this.setState({busy:null});
     }
@@ -5280,7 +5418,7 @@ class Component extends DCLogic {
   }
 
   addToCart(p, qty, note){
-    if(p.soldOut) return this.flash('Item indisponível — sinalizado pela cozinha.');
+    if(p.soldOut) return this.flash('Esse item acabou no momento.');
     this.setState(s => {
       const i = s.cart.findIndex(c => c.id === p.id && c.note === (note || ''));
       const cart = s.cart.slice();
@@ -5362,12 +5500,8 @@ class Component extends DCLogic {
       }
       // Provisório (sem Mercado Pago): o servidor já aprovou, segue pra confirmação.
       if(data.provisional){ this.setState({payingPix:false, screen:'pix'}); this.pollOrder(created.id); return; }
-      this.setState({
-        payingPix:false, pixQrCode:data.qrCode || '', screen:'pix',
-        // Mercado Pago manda a imagem em base64; o Stripe manda o endereço da imagem.
-        pixQrImg:data.qrCodeImageUrl || (data.qrCodeBase64 ? 'data:image/png;base64,' + data.qrCodeBase64 : ''),
-        pixTestPayUrl:data.testPayUrl || ''
-      });
+      this.showPix(created.id, data);
+      this.setState({payingPix:false, screen:'pix'});
     } catch(e){
       this.setState({payingPix:false});
       this.flash('Falha de conexão com o servidor.');
@@ -5806,19 +5940,18 @@ class Component extends DCLogic {
     v.minOk = this.subtotal() >= s.minOrder;
     v.minWarnText = 'Pedido mínimo de ' + f(s.minOrder) + '.';
     v.minWarn = !v.minOk && v.hasCart;
-    v.goTable = () => { if(s.paused) return this.flash('Quiosque pausado no Admin — não é possível fechar o pedido.'); if(s.dayClosed) return this.flash('O quiosque já encerrou o dia — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
+    v.goTable = () => { if(s.paused) return this.flash('O quiosque não está recebendo pedidos agora.'); if(s.dayClosed) return this.flash('O quiosque já encerrou o dia — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
 
     // table
     v.tableInput = s.tableInput; v.tableErr = s.tableErr; v.hasTableErr = !!s.tableErr;
     v.setTable = e => this.setState({tableInput:e.target.value.replace(/\D/g, '').slice(0, 3), tableErr:''});
     v.tableFilled = s.tableInput.length > 0;
-    v.activeTablesHint = activeTablesText(s.tables);
     v.confirmTable = () => {
       if(!s.tableInput) return this.setState({tableErr:'Digite o número da sua mesa.'});
       const n = parseInt(s.tableInput, 10);
       const t = s.tables.find(x => x.n === n);
       if(!t) return this.setState({tableErr:'Mesa ' + s.tableInput + ' não existe' + (s.tables.length ? ' (o quiosque tem mesas de 1 a ' + s.tables.length + ')' : '') + '. Confira a plaquinha do guarda-sol.'});
-      if(!t.active) return this.setState({tableErr:'Mesa ' + n + ' está inativa no Admin. Procure um atendente.'});
+      if(!t.active) return this.setState({tableErr:'A mesa ' + n + ' não está recebendo pedidos agora. Procure um atendente.'});
       this.setState({table:n, tableErr:'', screen:'payment'});
     };
     v.tableStr = s.table ? String(s.table) : '—';
@@ -5828,16 +5961,14 @@ class Component extends DCLogic {
     // payment
     v.cardProviderName = s.cardProvider === 'stripe' ? 'Stripe' : 'Mercado Pago';
     v.cardTestMode = !!s.cardTestMode;
-    v.cardTestText = 'Modo de teste: nada é cobrado. Crédito: 4242 4242 4242 4242. Débito: 4000 0566 5566 5556. Qualquer validade futura e qualquer CVC.';
     v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
-                 ['cartao','Cartão de crédito ou débito','À vista, pelo ' + v.cardProviderName,'card','#1F3B6B'],
+                 ['cartao','Cartão de crédito ou débito','À vista, no app','card','#1F3B6B'],
                  ['entrega','Pagar na entrega','Cartão ou dinheiro com o garçom','wallet','#1B2430']]
       .map(([k, nm, sub, ic]) => ({
       nm, sub, icPath:UI[ic],
       pick:() => this.setState({payMethod:k}),
       cls:s.payMethod === k ? 'on' : ''
     }));
-    v.payInfoOff = s.payMethod === 'cartao' && v.cardTestMode; v.payInfo = v.cardTestText;
 
     v.payLabel = s.payMethod === 'entrega' ? 'Fazer pedido · ' + v.totalStr : 'Pagar ' + v.totalStr;
     v.goPay = () => {
@@ -5869,7 +6000,6 @@ class Component extends DCLogic {
     v.pixQrCode = s.pixQrCode || '';
     v.pixQrImg = s.pixQrImg || '';
     v.hasPixQrImg = !!s.pixQrImg;
-    v.pixTestPayUrl = s.pixTestPayUrl || ''; v.hasPixTestPay = !!s.pixTestPayUrl;
     v.copyPix = () => this.copyPixCode();
 
     // order / status
@@ -5893,8 +6023,8 @@ class Component extends DCLogic {
       : '';
     v.hasCancelHint = !!v.cancelHint;
     v.cancelBlockedMsg = o && o.status === 'Na Fila' && deadlinePassed
-      ? 'O prazo para cancelar pelo app já passou. O quiosque permite cancelar só nos primeiros minutos depois do pedido.'
-      : 'O status do pedido é ' + (o ? o.status : '—') + '. Depois que a cozinha começa o preparo, o cancelamento pelo app é bloqueado.';
+      ? 'O prazo para cancelar pelo app já passou. Fale com um atendente.'
+      : 'Seu pedido já está sendo preparado e não pode mais ser cancelado pelo app.';
     const payOnDelivery = !!o && o.paymentMethod === 'entrega';
     // PIX/cartão provisório (sem Mercado Pago) não cobrou nada, então não há estorno.
     const paidInApp = !!o && !payOnDelivery && o.paymentStatus === 'approved' && o.paymentProvider !== 'provisorio';
@@ -5905,11 +6035,11 @@ class Component extends DCLogic {
     v.refundStr = paidInApp ? v.orderTotalStr : 'Nada a estornar';
     v.refundEta = paidInApp ? 'até 2 dias úteis' : '—';
     v.cancelAskMsg = paidInApp
-      ? 'Ao confirmar, o pedido sai da fila da cozinha e o valor é estornado no mesmo meio de pagamento.'
-      : 'Ao confirmar, o pedido sai da fila da cozinha. Nada foi cobrado, então não há estorno.';
+      ? 'Ao confirmar, o pedido é cancelado e o valor é estornado no mesmo meio de pagamento.'
+      : 'Ao confirmar, o pedido é cancelado. Nada foi cobrado, então não há estorno.';
     v.cancelDoneMsg = !o ? '' : o.paymentStatus === 'refunded'
-      ? o.id + ' saiu da fila da cozinha. O estorno de ' + v.orderTotalStr + ' já foi solicitado.'
-      : o.id + ' saiu da fila da cozinha.';
+      ? 'Seu pedido ' + o.id + ' foi cancelado. O estorno de ' + v.orderTotalStr + ' já foi solicitado.'
+      : 'Seu pedido ' + o.id + ' foi cancelado.';
     v.etaStr = o ? (o.status === 'Pronto' ? 'Pronto para retirada' : o.status === 'Em Preparo' ? '~7 min' : '~15 min') : '~15 min';
     const stages = ['Na Fila','Em Preparo','Pronto'];
     const ci = o ? stages.indexOf(o.status) : 0;
@@ -5927,23 +6057,29 @@ class Component extends DCLogic {
         txtStyle:"font:700 16px/1.3 'Manrope',system-ui,sans-serif;color:" + (done || active ? '#14232A' : '#5F686E')};
     });
     v.statusPillStyle = pillStyle(statusTone(v.orderStatus)) + ';font-size:14px;padding:7px 14px';
+    const orf = refundCard(o ? o.refunds : [], o ? o.total : 0);
+    v.orHasRefunds = orf.has; v.orRefunds = orf.rows; v.orRefundTotal = orf.total; v.orNetTotal = orf.net;
     v.askCancel = () => this.go(v.canCancel ? 'cancelAsk' : 'cancelBlocked');
     v.doCancel = () => this.cancelOrder();
 
     // history
     const histLive = st => st !== 'Entregue' && st !== 'Cancelado';
-    v.historyRows = s.history.map((h, i) => ({
+    v.historyRows = s.history.map((h, i) => { const hr = refundCard(h.refunds, h.total); return {
       id:h.id, table:h.table, when:h.when + ' · ' + h.items.length + (h.items.length === 1 ? ' item' : ' itens'), totalStr:f(h.total), status:h.status,
+      refundStr:hr.has ? 'Estornado ' + hr.total : '',
+      refStyle:hr.has ? 'font:700 var(--fs-sm)/1.4 \'Manrope\',system-ui,sans-serif;color:#1F5A63;margin-top:2px' : 'display:none',
       stStyle:pillStyle(statusTone(h.status)),
       dotStyle:'width:10px;height:10px;border-radius:50%;flex-shrink:0;background:' + (histLive(h.status) ? '#F5B83D' : '#D6CFBF'),
       open:() => { this.setState({histSel:i}); this.go('orderDetail'); }
-    }));
+    }; });
     v.hasHistory = s.history.length > 0;
     v.historyCountStr = s.history.length + (s.history.length === 1 ? ' pedido' : ' pedidos');
     const hd = s.history[s.histSel] || s.history[0] || null;
     v.hdItems = hd ? hd.items.map(it => ({n:it.n, v:f(it.v)})) : [];
     v.hdTotal = hd ? f(hd.total) : f(0); v.hdWhen = hd ? hd.when : ''; v.hdTable = hd ? String(hd.table) : '';
     v.hdStatus = hd ? hd.status : '';
+    const hrf = refundCard(hd ? hd.refunds : [], hd ? hd.total : 0);
+    v.hdHasRefunds = hrf.has; v.hdRefunds = hrf.rows; v.hdRefundTotal = hrf.total; v.hdNetTotal = hrf.net;
 
     // auth
     v.email = s.email; v.pass = s.pass; v.loginErr = s.loginErr; v.hasLoginErr = !!s.loginErr;
@@ -6022,8 +6158,8 @@ class Component extends DCLogic {
       payments:'O que entrou e o que falta receber',
       messages:'Recebidas pelo Fale conosco do site',
       productForm:s.products.length + ' produtos · ' + s.products.filter(p => p.soldOut).length + ' esgotado(s)',
-      tables:'Regras que valem para todos os pedidos, conferidas no servidor',
-      pause:'Regras que valem para todos os pedidos, conferidas no servidor',
+      tables:'Regras que valem para todos os pedidos',
+      pause:'Regras que valem para todos os pedidos',
       reports:'Vendas, mais vendidos e horários de pico',
       perfOps:'Hoje, atualizado sozinho',
       waiters:'Contas da equipe que entrega os pedidos',
@@ -6130,12 +6266,27 @@ class Component extends DCLogic {
     v.payOnlineOffText = (provisorios.length
       ? 'Sem meio de pagamento configurado para ' + provisorios.join(' e ') + ': é aprovado na hora, sem cobrança de verdade (aparece como "provisório").'
       : 'Pagamentos online pelo Stripe em modo de teste: nada é cobrado de verdade.') + ' Nos pedidos "na entrega", anote aqui como o garçom recebeu.';
-    v.payRows = s.adminOrders.map(r => {
+    // Filtros de Pagamentos: o que falta receber, online sem pagar, pagos e estornos/cancelados.
+    const payGroups = [
+      ['Todos', () => true],
+      ['A receber', r => toReceive.indexOf(r) >= 0],
+      ['Online aguardando', r => onlineWaiting.indexOf(r) >= 0],
+      ['Pagos', r => r.status !== 'Cancelado' && r.paymentStatus === 'approved'],
+      ['Estornos e cancelados', r => r.status === 'Cancelado' || refunded.indexOf(r) >= 0]
+    ];
+    const payPick = payGroups.find(g => g[0] === s.payFilter) || payGroups[0];
+    v.payFilters = payGroups.map(([label, fn]) => {
+      const on = label === payPick[0];
+      return {label, cls:on ? 'on' : '', on:String(on), n:s.adminOrders.filter(fn).length, pick:() => this.setState({payFilter:label})};
+    });
+    v.payEmptyText = s.adminOrders.length ? 'Nenhum pedido nesse filtro.' : 'Nenhum pedido ainda.';
+    v.payRows = s.adminOrders.filter(payPick[1]).map(r => {
       const canReceive = r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus !== 'approved';
+      const canUndo = r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus === 'approved';
       return {
         id:r.id, table:r.table, status:r.status, totalStr:r.totalStr, payLabel:r.payLabel, payStyle:r.payStyle,
-        when:formatWhen(r.createdAt), canReceive,
-        canUndo:r.paymentMethod === 'entrega' && r.status !== 'Cancelado' && r.paymentStatus === 'approved',
+        stStyle:pillStyle(statusTone(r.status)), cls:r.status === 'Cancelado' ? 'pay-off' : '',
+        when:formatWhen(r.createdAt), canReceive, canUndo, hasBtns:canUndo || canManageOrder(r),
         canManage:canManageOrder(r), manageLabel:refundableOf(r) > 0 ? 'Estornar' : 'Cancelar pedido',
         manage:() => this.openRefund(r.apiId),
         recvCash:() => this.markPaymentReceived(r.apiId, 'dinheiro'),
@@ -6193,7 +6344,8 @@ class Component extends DCLogic {
       v.closeRefund = () => this.setState({rf:null});
       const hist = rf.history || [];
       v.rfHasHistory = hist.length > 0;
-      v.rfHistory = hist.map(h => ({amount:f(h.amount), reason:h.reason || 'Sem motivo', meta:(h.by || 'Equipe') + ' · ' + formatWhen(h.at)}));
+      v.rfHistory = hist.map(h => ({amount:f(h.amount), reason:h.reason || 'Sem motivo',
+        meta:((h.items || []).length ? h.items.map(it => it.qty + 'x ' + it.name).join(', ') + ' · ' : '') + (h.by || 'Equipe') + ' · ' + formatWhen(h.at)}));
     }
 
     v.tableTiles = s.tables.map(t => ({
