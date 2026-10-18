@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import express, { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
+import { expireUnpaidOrdersSoon } from "../order-payments.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { MAX_IMAGE_BYTES, imageType, publicBucketPrefix } from "../images.js";
 import { productSchema, soldOutToggleSchema, validate } from "../validation/schemas.js";
@@ -76,6 +77,7 @@ const MISSING_CATEGORY = "Essa categoria não existe mais. Escolha outra.";
 
 // Público: cardápio do cliente.
 productsRouter.get("/", async (req, res) => {
+  await expireUnpaidOrdersSoon();
   const { data, error } = await supabaseAdmin
     .from("products")
     .select("*")

@@ -14,13 +14,7 @@ O site é publicado direto da branch `main` deste repositório — qualquer alte
 
 O front-end detecta sozinho onde está rodando: em `localhost`, fala com a API local (`http://localhost:8787`); publicado (GitHub Pages ou qualquer outro domínio), fala com a API de produção. Se a API de produção estiver fora do ar, o botão **Entrar** mostra "Falha de conexão com o servidor" — as páginas de conteúdo (Sobre, Funcionalidades, etc.) continuam funcionando normalmente.
 
-**Conta de demonstração** (o endereço principal, `index.html`, já abre a tela de login):
-
-| Perfil | E-mail | Senha | Abre |
-| --- | --- | --- | --- |
-| Cliente | `ana@email.com` | `praia2026` | cardápio da mesa |
-
-As contas de **Administração** (`admin@sunfood.com`, abre o dashboard de vendas) e **Cozinha** (`cozinha@sunfood.com`, abre o kanban de pedidos) não têm a senha publicada: quem tem essas senhas consegue mudar preços, pausar o quiosque e encerrar o dia de verdade, já que o site fala com o banco de produção. Peça a senha ao responsável pelo projeto.
+**Contas**: o site fala com o banco de produção, então nenhuma senha fica publicada aqui. Para testar como cliente, crie uma conta pelo próprio site (Criar conta) ou peça a conta de demonstração ao responsável pelo projeto. As contas de **Administração** (abre o dashboard de vendas) e **Cozinha** (abre o kanban de pedidos) também são pedidas ao responsável: quem tem essas senhas consegue mudar preços, pausar o quiosque e encerrar o dia de verdade.
 
 O **Garçom** (abre "Para entregar": pedidos prontos para levar, lançar pedido feito na mesa e as próprias métricas) também não tem senha publicada: cada garçom recebe a conta do admin, na tela **Garçons** do painel.
 

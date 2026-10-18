@@ -133,11 +133,15 @@ async function createCustomerSession(customer) {
 }
 
 // Titular do cartão: o nome vai também no billing_details (pelo app, no
-// confirmPayment), que o antifraude do Stripe usa; o CPF fica guardado no
-// PaymentIntent pra identificar o titular numa contestação.
+// confirmPayment), que o antifraude do Stripe usa. Do CPF, só os 3 primeiros
+// e os 2 últimos dígitos: o bastante pra conferir o titular numa contestação,
+// sem deixar o CPF inteiro no painel e nos webhooks do Stripe (o Stripe pede
+// para não guardar dado pessoal sensível em metadata).
+export const maskHolderCpf = (cpf) => `${cpf.slice(0, 3)}.***.***-${cpf.slice(9)}`;
+
 export async function setCardHolder(paymentIntentId, { name, cpf }) {
   await stripe().paymentIntents.update(paymentIntentId, {
-    metadata: { holder_name: name, holder_cpf: cpf },
+    metadata: { holder_name: name, holder_cpf: maskHolderCpf(cpf) },
   });
 }
 

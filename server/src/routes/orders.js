@@ -18,7 +18,7 @@ import {
   canRecordReceipt,
   VALID_TRANSITIONS,
 } from "../business-rules.js";
-import { cancelOrderWithRefund, expireUnpaidOrders } from "../order-payments.js";
+import { cancelOrderWithRefund, expireUnpaidOrders, expireUnpaidOrdersSoon } from "../order-payments.js";
 import { refundOrderByAdmin, customerRefunds } from "../order-refunds.js";
 
 export const ordersRouter = Router();
@@ -90,6 +90,8 @@ const hasRefund = (row) => Number(row.refunded_amount || 0) > 0 || row.payment_s
 // no servidor — o front pode ser enganado, o backend não. Usado pelo cliente
 // (pedido pelo app) e pelo garçom (pedido feito na mesa, sem cliente no app).
 async function placeOrder(res, { tableNumber, items, note, paymentMethod, customerId = null, waiterId = null }) {
+  // Libera o estoque de PIX/cartão abandonados antes de conferir o deste pedido.
+  await expireUnpaidOrdersSoon();
   const { data: settings } = await supabaseAdmin.from("kiosk_settings").select("*").eq("id", 1).single();
   if (settings?.paused) {
     return res.status(409).json({ error: "Quiosque pausado no momento — não é possível fechar o pedido." });
@@ -380,6 +382,14 @@ ordersRouter.patch(
         p_actor: req.user.sub,
       });
       if (rpcError) return res.status(500).json({ error: "Não foi possível atualizar o pedido." });
+      // Entregou e já recebeu na mesa: o recebimento fica anotado junto, sem
+      // depender de alguém lembrar de abrir a tela de Pagamentos depois.
+      if (next === "Entregue" && req.body.receivedWith && canRecordReceipt(row) && row.payment_status !== "approved") {
+        await supabaseAdmin
+          .from("orders")
+          .update({ payment_status: "approved", received_with: req.body.receivedWith, received_at: new Date().toISOString() })
+          .eq("id", row.id);
+      }
     }
 
     const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();

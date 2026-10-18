@@ -97,16 +97,19 @@ await step('garçom para entregar', async () => {
   check('entregar: mostra o que ainda está na cozinha', t.includes('Ainda na cozinha') && t.includes('Mesa 1') && t.includes('Em preparo'));
   check('entregar: PIX ainda não pago não aparece', !t.includes('Mesa 3'));
   check('entregar: botões de recebimento só no pedido "na entrega"', await page.getByText('Dinheiro', { exact: true }).count() === 1);
+  check('entregar: pedido "na entrega" pede como recebeu, não só "Marcar como entregue"',
+    t.includes('Entregue e recebido em') && t.includes('Entregue, ainda não pagou') && await page.getByText('Marcar como entregue').count() === 1);
   await click(page, 'Dinheiro', true);
-  const recv = called(page, '/orders/o21/payment-received')[0];
-  check('entregar: anota o recebimento em dinheiro', recv && recv.body.receivedWith === 'dinheiro' && recv.auth === 'Bearer tok', JSON.stringify(recv));
-  t = await text(page);
-  check('entregar: cartão passa a mostrar "Recebido na entrega (dinheiro)"', t.includes('Recebido na entrega (dinheiro)'));
-  await page.getByText('Marcar como entregue').first().click(); await page.waitForTimeout(800);
   const st = called(page, '/orders/o21/status')[0];
-  check('entregar: "Marcar como entregue" manda status Entregue', st && st.body.status === 'Entregue', JSON.stringify(st));
+  check('entregar: "Dinheiro" entrega e anota o recebimento num toque', st && st.body.status === 'Entregue' && st.body.receivedWith === 'dinheiro' && st.auth === 'Bearer tok', JSON.stringify(st));
   t = await text(page);
   check('entregar: o pedido entregue sai da lista', !t.includes('Mesa 4') && /Prontos\s*1/.test(t), (t.match(/Prontos\s*\d+/) || [])[0]);
+  await page.getByText('Marcar como entregue').first().click(); await page.waitForTimeout(800);
+  const st2 = called(page, '/orders/o22/status')[0];
+  check('entregar: pedido já pago no app usa "Marcar como entregue"', st2 && st2.body.status === 'Entregue' && !st2.body.receivedWith, JSON.stringify(st2));
+  // Volta um pronto pra conferir o botão nos tamanhos de tela.
+  page.api.db.orders.push(order('o25', 6, 'Pronto', { paymentMethod: 'pix', paymentStatus: 'approved' }));
+  await page.reload(); await page.waitForTimeout(1200);
   for (const [nome, viewport] of SIZES) {
     await page.setViewportSize(viewport); await page.waitForTimeout(300);
     const btn = await page.getByText('Marcar como entregue').first().boundingBox();
