@@ -197,7 +197,7 @@ await step('admin garçons', async () => {
   const cadastrar = page.locator('.btn', { hasText: 'Cadastrar garçom' });
   const enviar = async () => { await cadastrar.click(); await page.waitForTimeout(600); };
   let t = await text(page);
-  check('admin: menu tem "Garçons" e lista o garçom', t.includes('Carlos Souza') && t.includes('carlos@sunfood.com') && t.includes('Hoje: 4 entregue(s) · 2 lançado(s)'));
+  check('admin: menu tem "Garçons" e lista o garçom', t.includes('Carlos Souza') && t.includes('carlos@sunfood.com') && t.includes('Hoje: 4 entregues · 2 lançados'));
   await enviar();
   check('admin: pede o nome antes de enviar', (await text(page)).includes('Informe o nome do garçom.'));
   await page.getByLabel('Nome', { exact: true }).fill('Bruna Lima');

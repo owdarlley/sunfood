@@ -279,10 +279,13 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
    (index.html): marca e "Ver cardápio" no topo, chamada e cards do cardápio à
    esquerda, cartão à direita (408 px de conteúdo), links do rodapé, até 1280 px. */
 .auth{min-height:100vh;display:flex;flex-direction:column;background:var(--bg);padding-top:var(--sat)}
-.auth-top,.auth-hero,.auth-foot,.auth-lgpd{display:none !important}
-.auth-mobile{display:flex;background:transparent !important;color:var(--ink) !important;padding:16px var(--px) 0 !important}
-.auth-mobile > div{color:var(--ink-2) !important}
-.auth-mobile .brand{color:var(--brand) !important}
+.auth-hero,.auth-foot,.auth-lgpd,.auth-mobile{display:none !important}
+.auth-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px var(--px) 0}
+.auth-logo{display:inline-flex;align-items:center;gap:8px;min-height:48px;color:var(--brand);text-decoration:none;border-radius:var(--r-ctl)}
+.auth-logo svg{display:block;width:22px;height:22px}
+.auth-logo b{font:800 18px/1 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
+.auth-menu{display:inline-flex;align-items:center;min-height:48px;padding:0 4px;font:700 var(--fs-sm)/20px 'Manrope',system-ui,sans-serif;color:var(--brand);text-decoration:none;border-radius:var(--r-ctl)}
+.auth-menu:hover{text-decoration:underline;text-underline-offset:3px}
 .auth-main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:var(--sec) var(--px)}
 .auth-box{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
 @media (min-width:768px){
@@ -293,16 +296,12 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
     --au-px:28px;--au-box-pad:32px;
     min-height:100dvh;width:100%;max-width:1280px;margin:0 auto;padding:calc(16px + var(--sat)) var(--au-px) calc(16px + var(--sab))
   }
-  .auth-mobile{display:none !important}
-  .auth-top{display:flex !important;align-items:center;justify-content:space-between;gap:16px}
+  .auth-top{padding:0}
   .auth-hero{display:block !important}
   .auth-foot{display:flex !important;flex-wrap:wrap;justify-content:center;gap:0 16px;margin-top:24px;font:400 12px/18px 'Manrope',system-ui,sans-serif}
   .auth-lgpd{display:block !important}
-  .auth-logo{display:inline-flex;align-items:center;gap:8px;min-height:48px;color:var(--brand);text-decoration:none;border-radius:var(--r-ctl)}
-  .auth-logo svg{display:block;width:24px;height:24px}
-  .auth-logo b{font:800 20px/1 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
-  .auth-menu{display:inline-flex;align-items:center;min-height:48px;padding:0 4px;font:700 var(--fs-sm)/20px 'Manrope',system-ui,sans-serif;color:var(--brand);text-decoration:none;border-radius:var(--r-ctl)}
-  .auth-menu:hover{text-decoration:underline;text-underline-offset:3px}
+  .auth-logo svg{width:24px;height:24px}
+  .auth-logo b{font-size:20px}
   .auth-main{display:grid;grid-template-columns:minmax(0,1fr) calc(408px + 2 * var(--au-box-pad) + 2px);gap:48px;align-items:center;padding:40px 0}
   .auth-title{margin:0;font:800 34px/1.15 'Manrope',system-ui,sans-serif;letter-spacing:-.03em;color:var(--ink);text-wrap:balance}
   .auth-sub{margin:8px 0 0;font:500 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;color:var(--ink-2);max-width:520px}
@@ -342,13 +341,15 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .orow{display:flex;align-items:center;gap:16px;padding:var(--cpad);border-top:1px solid #EFEADF;cursor:pointer}
 .orow:first-child{border-top:0}
 .orow:hover{background:#FBFAF6}
+.orow-go{flex-shrink:0;color:var(--ink-2);margin-left:-8px}
 /* Celular: a etiqueta de status desce para baixo do número do pedido, e o
    pedido, a mesa e a data deixam de ficar espremidos em 3 ou 4 linhas. */
 @media (max-width:560px){
-  .orow:not(.cartrow){display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:8px;align-items:center}
-  .orow:not(.cartrow) > :nth-child(1){grid-row:1}
-  .orow:not(.cartrow) > :nth-child(3){grid-column:2;grid-row:2;justify-self:start}
-  .orow:not(.cartrow) > :nth-child(4){grid-column:3;grid-row:1}
+  .orow:not(.cartrow){display:grid;grid-template-columns:minmax(0,1fr) auto auto;column-gap:12px;row-gap:8px;align-items:center}
+  .orow:not(.cartrow) > :nth-child(1){grid-column:1;grid-row:1}
+  .orow:not(.cartrow) > :nth-child(2){grid-column:1;grid-row:2;justify-self:start}
+  .orow:not(.cartrow) > :nth-child(3){grid-column:2;grid-row:1}
+  .orow:not(.cartrow) > :nth-child(4){grid-column:3;grid-row:1 / span 2;margin-left:0}
 }
 .pref-row{display:flex;justify-content:space-between;align-items:center;gap:16px}
 .avatar-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
@@ -987,7 +988,7 @@ select{caret-color:auto}
                 <sc-if value="{{ is_login }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;flex-direction:column;gap:16px">
                     <div>
-                      <div class="tt" style="font-size:var(--fs-h1)">Bem-vindo de volta</div>
+                      <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Bem-vindo de volta</h1>
                       <div class="muted" style="font-size:var(--fs-body);margin-top:8px">Novo por aqui? <span onClick="{{ goSignup }}" class="link" style="font-size:var(--fs-body)">Cadastre-se</span></div>
                     </div>
                     <div>
@@ -1015,8 +1016,8 @@ select{caret-color:auto}
                 <sc-if value="{{ is_signup }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;flex-direction:column;gap:16px">
                     <div>
-                      <div class="tt" style="font-size:var(--fs-h1)">Criar conta</div>
-                      <div class="muted" style="font-size:var(--fs-body);margin-top:8px">Já tem conta? <span onClick="{{ goLogin }}" class="link" style="font-size:var(--fs-body)">Entrar</span></div>
+                      <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Criar conta</h1>
+                      <div class="muted" style="font-size:var(--fs-body);margin-top:8px">Leva menos de um minuto. Já tem conta? <span onClick="{{ goLogin }}" class="link" style="font-size:var(--fs-body)">Entrar</span></div>
                     </div>
                     <div onClick="{{ signInWithGoogle }}" class="gbtn">
                       <svg viewBox="0 0 48 48" width="20" height="20" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
@@ -1054,7 +1055,7 @@ select{caret-color:auto}
                     <sc-if value="{{ fpNotSent }}" hint-placeholder-val="{{ true }}">
                       <div style="display:flex;flex-direction:column;gap:16px">
                         <div>
-                          <div class="tt" style="font-size:var(--fs-h1)">Recuperar senha</div>
+                          <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Recuperar senha</h1>
                           <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:8px 0 0">Informe o e-mail ou o CPF da sua conta. Enviaremos um link para criar uma senha nova, válido por 1 hora.</p>
                         </div>
                         <div class="seg" style="display:flex">
@@ -1080,7 +1081,7 @@ select{caret-color:auto}
                     <sc-if value="{{ fpSent }}" hint-placeholder-val="{{ false }}">
                       <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px" class="rise">
                         <span style="width:76px;height:76px;border-radius:50%;background:#E6EFF0;display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg></span>
-                        <div class="tt" style="font-size:var(--fs-h1)">Link enviado</div>
+                        <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Link enviado</h1>
                         <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:#14232A;word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
                         <div onClick="{{ goLogin }}" class="btn btn-dark" style="width:100%;margin-top:8px">Voltar ao login</div>
                       </div>
@@ -1091,7 +1092,7 @@ select{caret-color:auto}
                 <sc-if value="{{ is_completeProfile }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;flex-direction:column;gap:16px">
                     <div>
-                      <div class="tt" style="font-size:var(--fs-h1)">Falta pouco</div>
+                      <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Falta pouco</h1>
                       <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:8px 0 0">Complete seu cadastro para fazer pedidos.</p>
                     </div>
                     <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo" class="inp {{ suClsName }}" aria-invalid="{{ suInvName }}"><sc-if value="{{ suHasFeName }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeName }}</span></sc-if></div>
@@ -1152,7 +1153,7 @@ select{caret-color:auto}
                   <span onClick="{{ onBack }}" class="backbtn" aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14232A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></span>
                 </sc-if>
                 <div style="min-width:0">
-                  <div class="tt" style="font-size:var(--fs-h1)">{{ hdrTitle }}</div>
+                  <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">{{ hdrTitle }}</h1>
                   <sc-if value="{{ hasHdrSub }}" hint-placeholder-val="{{ false }}"><div class="muted" style="font-size:var(--fs-sm);margin-top:4px">{{ hdrSub }}</div></sc-if>
                 </div>
               </div>
@@ -1194,7 +1195,7 @@ select{caret-color:auto}
                           <div onClick="{{ p.open }}" class="pcard" style="{{ p.cardStyle }}">
                             <div class="pimg" style="{{ p.tileStyle }}">
                               <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ p.photoStyle }}"></span></sc-if>
-                              <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="64" height="64" fill="none" stroke="{{ p.iconColor }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ p.markPath }}"></path></svg></sc-if>
+                              <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="64" height="64" fill="none" stroke="{{ p.iconColor }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path sc-camel-d="{{ p.markPath }}"></path></svg></sc-if>
                               <sc-if value="{{ p.hasPrep }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:12px;top:12px;padding:4px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.92);font:600 12px 'Manrope',system-ui,sans-serif;color:#14232A">{{ p.prep }}</span></sc-if>
                             </div>
                             <div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:8px;flex-grow:1">
@@ -1289,7 +1290,7 @@ select{caret-color:auto}
                     <div class="pd-back"><span onClick="{{ onBack }}" class="backbtn" aria-label="Voltar ao cardápio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></span><span onClick="{{ onBack }}" class="link" data-sf-skip="">Cardápio</span></div>
                     <div class="pd-photo" style="{{ pTileStyle }}">
                       <sc-if value="{{ pHasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ pPhotoStyle }}"></span></sc-if>
-                      <sc-if value="{{ pNoPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="130" height="130" fill="none" stroke="{{ pIconColor }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ pMarkPath }}"></path></svg></sc-if>
+                      <sc-if value="{{ pNoPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="130" height="130" fill="none" stroke="{{ pIconColor }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path sc-camel-d="{{ pMarkPath }}"></path></svg></sc-if>
                     </div>
                   </div>
                   <div class="pd-col pd-info">
@@ -1347,7 +1348,7 @@ select{caret-color:auto}
                         <div class="orow cartrow" style="cursor:default">
                           <span style="width:64px;height:64px;border-radius:var(--r-ctl);{{ c.tileStyle }};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
                             <sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ c.photoStyle }}"></span></sc-if>
-                            <sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="{{ c.iconColor }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ c.markPath }}"></path></svg></sc-if>
+                            <sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="{{ c.iconColor }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path sc-camel-d="{{ c.markPath }}"></path></svg></sc-if>
                           </span>
                           <div class="cr-info" style="flex:1;min-width:0">
                             <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ c.name }}</div>
@@ -1506,7 +1507,7 @@ select{caret-color:auto}
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
                   <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
                     <span style="width:88px;height:88px;border-radius:50%;background:#E5F7EA;display:flex;align-items:center;justify-content:center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#2E9C6A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></span>
-                    <div class="tt" style="font-size:var(--fs-h1)">Pedido confirmado</div>
+                    <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Pedido confirmado</h1>
                     <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:440px">{{ confirmMsg }}</p>
                   </div>
                   <div class="card" style="padding:var(--cpad)">
@@ -1523,7 +1524,7 @@ select{caret-color:auto}
               <sc-if value="{{ is_payFail }}" hint-placeholder-val="{{ false }}">
                 <div class="card rise" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;border-radius:var(--r-card)">
                   <span style="width:88px;height:88px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
-                  <div class="tt" style="font-size:var(--fs-h1)">Pagamento não aprovado</div>
+                  <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Pagamento não aprovado</h1>
                   <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:420px">O pagamento com cartão não foi concluído e nada foi cobrado. Você pode tentar de novo ou pagar de outro jeito.</p>
                   <div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:8px">
                     <div onClick="{{ retryPay }}" class="btn btn-sun">Tentar de novo</div>
@@ -1575,7 +1576,7 @@ select{caret-color:auto}
                       </div>
                     </sc-if>
                     <sc-if value="{{ hasOrderObs }}" hint-placeholder-val="{{ false }}">
-                      <div class="alert alert-warn" style="flex-direction:column;gap:4px"><b style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">Observações enviadas</b><span style="font-weight:500">{{ orderObs }}</span></div>
+                      <div class="alert alert-info" style="flex-direction:column;gap:4px"><b style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">Observações enviadas</b><span style="font-weight:500">{{ orderObs }}</span></div>
                     </sc-if>
                     <sc-if value="{{ hasCancelHint }}" hint-placeholder-val="{{ false }}">
                       <div class="muted" style="font-size:var(--fs-sm);text-align:center">{{ cancelHint }}</div>
@@ -1604,7 +1605,7 @@ select{caret-color:auto}
               <sc-if value="{{ is_cancelDone }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:40px 12px">
                   <span style="width:88px;height:88px;border-radius:50%;background:#FDECEA;display:flex;align-items:center;justify-content:center"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"></path><path d="M4 4v4h4"></path></svg></span>
-                  <div class="tt" style="font-size:var(--fs-h1)">Pedido cancelado</div>
+                  <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Pedido cancelado</h1>
                   <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ cancelDoneMsg }}</p>
                   <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:12px">Voltar ao cardápio</div>
                 </div>
@@ -1614,7 +1615,7 @@ select{caret-color:auto}
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
                   <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
                     <span style="width:88px;height:88px;border-radius:50%;background:#FFF4DB;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="38" height="38" fill="none" stroke="#B26B00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M16 21h16a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4v-9a4 4 0 0 1 4-4Z M18 21v-5a6 6 0 0 1 12 0v5 M24 27v4"></path></svg></span>
-                    <div class="tt" style="font-size:var(--fs-h1)">Não é mais possível cancelar</div>
+                    <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Não é mais possível cancelar</h1>
                     <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ cancelBlockedMsg }}</p>
                   </div>
                   <div class="card muted" style="padding:var(--cpad);font-size:var(--fs-body);line-height:1.5">Precisa de ajuda? Chame um atendente na mesa <b style="color:#14232A">{{ orderTable }}</b> ou fale com o balcão do quiosque.</div>
@@ -1626,7 +1627,6 @@ select{caret-color:auto}
                 <div class="card rise" style="overflow:hidden">
                   <sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="3">
                     <div onClick="{{ h.open }}" class="orow">
-                      <span style="{{ h.dotStyle }}"></span>
                       <div style="flex:1;min-width:0">
                         <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ h.id }} · Mesa {{ h.table }}</div>
                         <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">{{ h.when }}</div>
@@ -1634,6 +1634,7 @@ select{caret-color:auto}
                       </div>
                       <span style="{{ h.stStyle }}">{{ h.stLbl }}</span>
                       <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ h.totalStr }}</span>
+                      <svg class="orow-go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
                     </div>
                   </sc-for>
                 </div>
@@ -1804,7 +1805,7 @@ select{caret-color:auto}
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
                   <div style="padding:12px 16px;border-radius:var(--r-ctl);background:#14232A;color:#fff;display:flex;align-items:center;gap:12px;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif"><svg style="animation:sfpulse 1.2s ease-in-out infinite;flex-shrink:0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5B83D" stroke-width="2.2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg><span><b>Sem conexão.</b> Tentando reconectar…</span></div>
                   <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:32px 12px">
-                    <div class="tt" style="font-size:var(--fs-h1)">Você está offline</div>
+                    <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Você está offline</h1>
                     <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:420px">O sinal na praia oscila. Seu carrinho ficou salvo no aparelho e será enviado quando a conexão voltar.</p>
                     <div onClick="{{ goMenu }}" class="btn btn-sun" style="margin-top:12px">Tentar novamente</div>
                   </div>
@@ -1823,7 +1824,7 @@ select{caret-color:auto}
             <sc-if value="{{ showNav }}" hint-placeholder-val="{{ false }}">
               <div class="bottomnav">
                 <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="4">
-                  <div onClick="{{ n.go }}" style="{{ n.style }}"><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="{{ n.icPath }}"></path></svg>{{ n.label }}</div>
+                  <div onClick="{{ n.go }}" style="{{ n.style }}"><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path sc-camel-d="{{ n.icPath }}"></path></svg>{{ n.label }}</div>
                 </sc-for>
               </div>
             </sc-if>
@@ -1836,9 +1837,9 @@ select{caret-color:auto}
       <div class="adm">
         <div class="adm-side {{ admMenuCls }}">
           <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>admin</small></div>
-          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
+          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ adminSide }}" as="it" hint-placeholder-count="7">
-            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
           </sc-for>
           <div class="adm-sep"></div>
           <div onClick="{{ goKanban }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M10 7h4"></path></svg>Tela da cozinha</div>
@@ -2293,7 +2294,7 @@ select{caret-color:auto}
                   <sc-for list="{{ catRows }}" as="c" hint-placeholder-count="4">
                     <div class="catrow">
                       <div class="catrow-top">
-                        <span class="catdot" style="{{ c.dotStyle }}" aria-hidden="true"><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="{{ c.iconColor }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.icon }}"></path></svg></span>
+                        <span class="catdot" style="{{ c.dotStyle }}" aria-hidden="true"><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="{{ c.iconColor }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path sc-camel-d="{{ c.icon }}"></path></svg></span>
                         <div class="catname"><b>{{ c.name }}</b><span class="muted">{{ c.count }}</span></div>
                         <div class="catact">
                           <div onClick="{{ c.up }}" class="{{ c.upCls }}" role="button" aria-label="{{ c.upLabel }}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5 M6 11l6-6 6 6"></path></svg></div>
@@ -2368,7 +2369,7 @@ select{caret-color:auto}
                       <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
                         <span class="pthumb" style="{{ p.thumbStyle }}" aria-hidden="true">
                           <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ false }}"><span style="{{ p.photoStyle }}"></span></sc-if>
-                          <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 48 48" width="28" height="28" fill="none" stroke="{{ p.iconColor }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ p.markPath }}"></path></svg></sc-if>
+                          <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 48 48" width="28" height="28" fill="none" stroke="{{ p.iconColor }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path sc-camel-d="{{ p.markPath }}"></path></svg></sc-if>
                         </span>
                         <div style="min-width:0;flex:1"><div class="eyebrow" style="font-size:12px">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif;margin-top:2px">{{ p.name }}</div></div>
                         <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
@@ -2670,9 +2671,9 @@ select{caret-color:auto}
       <div class="adm kz">
         <div class="adm-side {{ admMenuCls }}">
           <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>cozinha</small></div>
-          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
+          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ cozinhaSide }}" as="it" hint-placeholder-count="2">
-            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
           </sc-for>
           <sc-if value="{{ isAdminUser }}" hint-placeholder-val="{{ false }}">
             <div class="adm-sep"></div>
@@ -2771,11 +2772,11 @@ select{caret-color:auto}
       <div class="adm kz gc">
         <div class="adm-side {{ admMenuCls }}">
           <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>garçom</small></div>
-          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
+          <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ garcomSide }}" as="it" hint-placeholder-count="3">
-            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
           </sc-for>
-          <div onClick="{{ toggleSound }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ soundIc }}"></path></svg>{{ soundLabel }}</div>
+          <div onClick="{{ toggleSound }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ soundIc }}"></path></svg>{{ soundLabel }}</div>
           <div class="adm-foot">
             <div class="em" style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#9FB2BA;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
@@ -2986,6 +2987,10 @@ select{caret-color:auto}
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:412,&quot;height&quot;:800}}">
+// Nos <path> com desenho vindo de dados, o HTML usa sc-camel-d="{{ … }}" em vez de
+// d="{{ … }}": o runtime trata como "d", e o navegador não reclama do texto
+// "{{ … }}" no console ao ler a página antes de montar o app.
+
 // Sem foto enviada pelo admin, o item aparece com a cor da categoria e este
 // ícone (cloche). As fotos e ilustrações padrão de cada item saíram.
 const ITEM_ICON = 'M8 34h32 M14 34c0-8 5-14 10-14s10 6 10 14 M24 20v-6 M21 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0';
@@ -3524,6 +3529,7 @@ const pillStyle = (tone, dark) => {
     (dark ? t[2] : t[0]) + ';color:' + (dark ? t[3] : t[1]);
 };
 // Glossário único dos status na tela (a API guarda "Na Fila" e "Em Preparo").
+const plural = (k, um, varios) => k + ' ' + (k === 1 ? um : varios);
 const statusLabel = st => ({'Na Fila':'Na fila', 'Em Preparo':'Em preparo'})[st] || st;
 const statusTone = st => st === 'Pronto' || st === 'Entregue' ? 'ok' : st === 'Cancelado' ? 'err' : st === 'Em Preparo' ? 'info' : 'warn';
 
@@ -6082,13 +6088,11 @@ class Component extends DCLogic {
     v.doCancel = () => this.cancelOrder();
 
     // history
-    const histLive = st => st !== 'Entregue' && st !== 'Cancelado';
     v.historyRows = s.history.map((h, i) => { const hr = refundCard(h.refunds, h.total); return {
       id:h.id, table:h.table, when:h.when + ' · ' + h.items.length + (h.items.length === 1 ? ' item' : ' itens'), totalStr:f(h.total), status:h.status, stLbl:statusLabel(h.status),
       refundStr:hr.has ? 'Estornado ' + hr.total : '',
       refStyle:hr.has ? 'font:700 var(--fs-sm)/1.4 \'Manrope\',system-ui,sans-serif;color:#1F5A63;margin-top:2px' : 'display:none',
       stStyle:pillStyle(statusTone(h.status)),
-      dotStyle:'width:10px;height:10px;border-radius:50%;flex-shrink:0;background:' + (histLive(h.status) ? '#F5B83D' : '#D6CFBF'),
       open:() => { this.setState({histSel:i}); this.go('orderDetail'); }
     }; });
     v.hasHistory = s.history.length > 0;
@@ -6273,12 +6277,12 @@ class Component extends DCLogic {
     const refunded = s.adminOrders.filter(r => r.paymentStatus === 'refunded' || r.refunded > 0);
     const refundedSum = f(refunded.reduce((a, r) => a + (r.refunded > 0 ? r.refunded : r.total), 0));
     v.payKpis = [
-      {lbl:'Recebido hoje', val:sum(received), sub:received.length + ' pedido(s)'},
-      {lbl:'A receber na entrega', val:sum(toReceive), sub:toReceive.length + ' pedido(s)'},
-      {lbl:'Online aguardando', val:sum(onlineWaiting), sub:onlineWaiting.length + ' pedido(s)'},
-      {lbl:'Estornado', val:refundedSum, sub:refunded.length + ' pedido(s)'}
+      {lbl:'Recebido hoje', val:sum(received), sub:plural(received.length, 'pedido', 'pedidos')},
+      {lbl:'A receber na entrega', val:sum(toReceive), sub:plural(toReceive.length, 'pedido', 'pedidos')},
+      {lbl:'Online aguardando', val:sum(onlineWaiting), sub:plural(onlineWaiting.length, 'pedido', 'pedidos')},
+      {lbl:'Estornado', val:refundedSum, sub:plural(refunded.length, 'pedido', 'pedidos')}
     ];
-    if(s.pixProvider === 'provisorio' || s.cardProvider === 'provisorio') v.payKpis.splice(1, 0, {lbl:'Provisório hoje (PIX/cartão)', val:sum(provisional), sub:provisional.length + ' pedido(s), sem cobrança'});
+    if(s.pixProvider === 'provisorio' || s.cardProvider === 'provisorio') v.payKpis.splice(1, 0, {lbl:'Provisório hoje (PIX/cartão)', val:sum(provisional), sub:plural(provisional.length, 'pedido', 'pedidos') + ', sem cobrança'});
     // Aviso no topo de Pagamentos: provisório (aprovado sem cobrança) ou Stripe em modo de teste.
     const provisorios = [s.pixProvider === 'provisorio' ? 'PIX' : null, s.cardProvider === 'provisorio' ? 'cartão' : null].filter(Boolean);
     v.payOnlineOff = provisorios.length > 0 || (s.cardProvider === 'stripe' && s.cardTestMode);
@@ -6460,7 +6464,7 @@ class Component extends DCLogic {
     v.reportExportStyle = 'min-height:46px' + (rep ? '' : ';opacity:.5');
     v.reportExportMsg = s.reportExportMsg; v.hasReportExportMsg = !!s.reportExportMsg;
     v.reportKpis = [
-      {lbl:'Faturamento', val:rep ? f(rep.revenue) : '—', sub:rep ? rep.orders + ' pedido(s)' : 'carregando…'},
+      {lbl:'Faturamento', val:rep ? f(rep.revenue) : '—', sub:rep ? plural(rep.orders, 'pedido', 'pedidos') : 'carregando…'},
       {lbl:'Pedidos', val:rep ? String(rep.orders) : '—', sub:'pagos ou na entrega'},
       {lbl:'Ticket médio', val:rep ? f(rep.avgTicket) : '—', sub:'por pedido'},
       {lbl:'Itens vendidos', val:rep ? String(rep.itemsSold) : '—', sub:'unidades'}
@@ -6469,7 +6473,7 @@ class Component extends DCLogic {
     const maxDay = rep ? Math.max(1, ...rep.byDay.map(d => d.revenue)) : 1;
     const labelEvery = rep && rep.byDay.length > 10 ? 5 : 1;
     v.reportDayBars = rep ? rep.byDay.map((d, i) => ({
-      tip:ddmm(d.date) + ': ' + f(d.revenue) + ' em ' + d.orders + ' pedido(s)',
+      tip:ddmm(d.date) + ': ' + f(d.revenue) + ' em ' + plural(d.orders, 'pedido', 'pedidos'),
       lbl:(i % labelEvery === 0 || i === rep.byDay.length - 1) ? ddmm(d.date) : '',
       style:'width:100%;border-radius:6px 6px 0 0;background:#1F5A63;height:' +
         (d.revenue > 0 ? Math.max(4, Math.round(d.revenue / maxDay * 100)) : 2) + '%' + (d.revenue > 0 ? '' : ';opacity:.25')
@@ -6484,7 +6488,7 @@ class Component extends DCLogic {
     v.reportHourBars = shownHours.map(h => {
       const isPeak = peak && h.orders === peak.orders;
       return {
-        tip:h.hour + 'h às ' + (h.hour + 1) + 'h: ' + h.orders + ' pedido(s), ' + f(h.revenue),
+        tip:h.hour + 'h às ' + (h.hour + 1) + 'h: ' + plural(h.orders, 'pedido', 'pedidos') + ', ' + f(h.revenue),
         top:h.orders > 0 ? String(h.orders) : '',
         lbl:h.hour + 'h',
         style:'width:100%;border-radius:6px 6px 0 0;background:' + (isPeak ? '#F5B83D' : '#1F5A63') +
@@ -6811,7 +6815,7 @@ class Component extends DCLogic {
     v.waiterRows = (s.waiters || []).map(w => ({
       name:w.name, email:w.email, initials:(w.name || '?').split(' ').filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join(''),
       pill:w.active ? 'Ativo' : 'Desativado', pillStyle:pillStyle(w.active ? 'ok' : 'muted'),
-      today:'Hoje: ' + w.deliveredToday + ' entregue(s) · ' + w.launchedToday + ' lançado(s)',
+      today:'Hoje: ' + plural(w.deliveredToday, 'entregue', 'entregues') + ' · ' + plural(w.launchedToday, 'lançado', 'lançados'),
       btn:s.wToggling === w.id ? 'Salvando...' : w.active ? 'Desativar' : 'Reativar',
       // Vermelho fica só no Excluir; Desativar é reversível.
       btnCls:'btn btn-ghost btn-sm',
@@ -6875,7 +6879,7 @@ class Component extends DCLogic {
     }));
     const nSold = s.products.filter(p => p.soldOut).length;
     v.soldOutN = nSold ? nSold + (nSold === 1 ? ' esgotado' : ' esgotados') : 'tudo ok';
-    v.soldOutCount = s.products.filter(p => p.soldOut).length + ' item(ns) sinalizado(s)';
+    v.soldOutCount = plural(s.products.filter(p => p.soldOut).length, 'item sinalizado', 'itens sinalizados');
     const nObs = s.adminOrders.filter(k => k.obs).length;
     v.obsCount = nObs === 1 ? '1 pedido com observação' : nObs + ' pedidos com observação';
     v.hasObsCount = nObs > 0;
