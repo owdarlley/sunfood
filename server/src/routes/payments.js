@@ -129,6 +129,7 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
         payerEmail: req.user.email,
         description: `Pedido Sunfood — mesa ${order.table_number}`,
         expiresInMinutes: PAYMENT_WINDOW_MINUTES,
+        existingId: order.payment_provider === "stripe" && isStripePaymentId(order.payment_id) ? order.payment_id : null,
       });
       await supabaseAdmin
         .from("orders")
