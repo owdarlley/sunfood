@@ -254,6 +254,73 @@ await step('garçons', async () => {
   await page.context().close();
 });
 
+// Itens baixos: contexto sem sessão (telas de entrada)
+const semSessao = async (width = 390, height = 844) => { const ctx = await browser.newContext({ viewport: { width, height }, serviceWorkers: 'block' }); await ctx.addInitScript(() => { try { sessionStorage.setItem('sunfood_abertura', '1'); } catch {} }); return ctx; };
+
+// 25. Plurais sem "(s)"
+await step('plurais', async () => {
+  const page = await open('app-cliente.dc.html?module=admin&screen=waiters', { role: 'admin', width: 1280, height: 800 });
+  await page.waitForTimeout(600);
+  const t = await text(page);
+  check('garçons: "entregues · lançados" sem (s)', t.includes('entregues · ') && !/\(s\)/.test(t), t.match(/Hoje:[^\n]*/)?.[0]);
+  await page.context().close();
+});
+
+// 26. Nenhum erro de SVG no console
+await step('console', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  const erros = [];
+  ctx.on('console', m => { if (m.type() === 'error' && /attribute d/.test(m.text())) erros.push(m.text()); });
+  const page = await open('app-cliente.dc.html?module=cliente&screen=menu', { context: ctx });
+  const d = await page.locator('svg[viewBox="0 0 48 48"] path:visible').first().getAttribute('d').catch(() => null);
+  check('console: sem erro de <path d> ao abrir o app', erros.length === 0, erros[0]);
+  check('console: ícone do produto continua desenhado', !!d && d.startsWith('M'), String(d));
+  await ctx.close();
+});
+
+// 27. Histórico: seta à direita e sem bolinha
+await step('histórico', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=history', { seed: true });
+  const row = page.locator('.orow').first();
+  check('histórico: linha tem a seta de abrir', await row.locator('.orow-go').count() === 1);
+  const bolinha = await row.evaluate(r => [...r.querySelectorAll(':scope > span')].some(s => s.offsetWidth === 10 && s.offsetHeight === 10));
+  check('histórico: sem a bolinha amarela', !bolinha);
+  await page.context().close();
+});
+
+// 28. Entrada no celular: botões logo abaixo dos cartões
+await step('entrada no celular', async () => {
+  const page = await open('index.html', { context: await semSessao() });
+  const gap = await page.evaluate(() => { const c = document.querySelector('.lp-cats'); const b = document.querySelector('.lp-email'); return c && b ? b.getBoundingClientRect().top - c.getBoundingClientRect().bottom : null; });
+  check('entrada: até 48 px entre os cartões e "Entrar com e-mail"', gap !== null && gap <= 48, String(gap));
+  await page.context().close();
+});
+
+// 29. Cadastro: mesma marca da entrada e frase de apoio abaixo do título
+await step('cadastro', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=signup', { context: await semSessao() });
+  const r = await page.evaluate(() => { const l = [...document.querySelectorAll('.auth-logo')].find(e => e.offsetParent); const h = document.querySelector('.auth-box h1'); return { logo: l ? Math.round(l.querySelector('svg').getBoundingClientRect().width) : 0, h1: h ? h.innerText : '', antes: !!h && [...document.querySelectorAll('body *')].some(e => e.offsetParent && e.children.length === 0 && /menos de um minuto/.test(e.innerText) && (e.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING)) }; });
+  check('cadastro: logo de 22 px, igual à entrada', r.logo === 22, String(r.logo));
+  check('cadastro: título "Criar conta" é <h1> e nada vem antes dele', r.h1 === 'Criar conta' && !r.antes, JSON.stringify(r));
+  await page.context().close();
+});
+
+// 30. Observações do pedido sem cara de alerta
+await step('observações', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=status', { seed: true });
+  const cls = await page.getByText('Observações enviadas', { exact: true }).first().evaluate(b => b.parentElement.className);
+  check('meu pedido: observações em bloco informativo', /alert-info/.test(cls) && !/alert-warn/.test(cls), cls);
+  await page.context().close();
+});
+
+// 31. Títulos das telas do cliente são <h1>
+await step('títulos h1', async () => {
+  const page = await open('app-cliente.dc.html?module=cliente&screen=history', { seed: true });
+  const h = await page.locator('h1:visible').allInnerTexts();
+  check('histórico: o título é um <h1>', h.includes('Meus pedidos'), JSON.stringify(h));
+  await page.context().close();
+});
+
 await browser.close();
 server.close();
 const failed = results.filter(r => !r.ok);
