@@ -1,6 +1,9 @@
 // Login e cadastro cabem na altura da tela, sem rolar: tela de entrada
 // (chamada e formulário no celular), erro dos campos, aviso de e-mail não
-// confirmado e cadastro, no celular, tablet, computador e tela larga. O
+// confirmado e cadastro, no celular, tablet, computador e tela larga, com as
+// alturas reais do navegador (barra de endereço e abas descontadas). Do tablet
+// para cima a tela diminui de escala só o necessário (caber.js, mínimo 75%) e
+// os cartões do cardápio não achatam; no celular a escala fica em 100%. O
 // rodapé (Conheça o Sunfood etc.) continua na tela. Celular bem baixo com
 // aviso aberto e cadastro com vários erros podem rolar (último recurso).
 // Uso: node fluxo/sem-rolagem.mjs (de dentro de tests)
@@ -48,15 +51,19 @@ const sobra = p => p.evaluate(() => Math.max(0, document.documentElement.scrollH
 // O elemento aparece inteiro dentro da tela, sem rolar.
 const naTela = (p, sel) => p.evaluate(s => { const r = document.querySelector(s).getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight + 1; }, sel);
 
-const TELAS = [
+const escala = (p, sel) => p.evaluate(s => Number(document.querySelector(s).style.zoom || 1), sel);
+const escalaOk = async (p, sel, cel) => { const z = await escala(p, sel); return cel ? z === 1 : z >= 0.75; };
+
+const TELAS = process.env.TELAS ? process.env.TELAS.split(',').map(t => { const [w, h] = t.split('x').map(Number); return [t, { width: w, height: h }]; }) : [
   ['celular baixo', { width: 360, height: 640 }],
   ['iPhone com barras', { width: 390, height: 664 }],
-  ['celular', { width: 412, height: 915 }],
-  ['tablet em pé', { width: 768, height: 1024 }],
-  ['tablet deitado', { width: 1024, height: 768 }],
-  ['notebook', { width: 1280, height: 720 }],
-  ['computador', { width: 1366, height: 768 }],
-  ['tela larga', { width: 1920, height: 1080 }]
+  ['celular', { width: 412, height: 780 }],
+  ['tablet em pé', { width: 768, height: 950 }],
+  ['tablet deitado', { width: 1024, height: 680 }],
+  ['notebook baixo', { width: 1276, height: 573 }],
+  ['notebook', { width: 1366, height: 625 }],
+  ['computador', { width: 1536, height: 730 }],
+  ['tela larga', { width: 1920, height: 950 }]
 ];
 
 for (const [nome, vw] of TELAS) {
@@ -65,6 +72,8 @@ for (const [nome, vw] of TELAS) {
     const p = await open(vw, 'index.html');
     check(`login (${nome}): cabe sem rolar`, await sobra(p) <= 1, `${await sobra(p)} px a mais`);
     check(`login (${nome}): "Conheça o Sunfood" na tela`, await naTela(p, '.foot a[href="#conheca"]'));
+    check(`login (${nome}): escala de 75% ou mais (100% no celular)`, await escalaOk(p, '.lp', cel), await escala(p, '.lp'));
+    check(`login (${nome}): cartões do cardápio sem achatar`, await p.locator('.lp-cat').first().evaluate((e, cel) => e.getBoundingClientRect().height >= (cel ? 140 : 150), cel));
     if (cel) {
       await p.locator('#com-email').tap(); await p.waitForTimeout(300);
       check(`login (${nome}): formulário cabe sem rolar`, await sobra(p) <= 1, `${await sobra(p)} px a mais`);
@@ -85,9 +94,11 @@ for (const [nome, vw] of TELAS) {
     check(`cadastro (${nome}): cabe sem rolar`, await sobra(p) <= 1, `${await sobra(p)} px a mais`);
     const btn = p.getByText('Criar minha conta', { exact: true }).first();
     check(`cadastro (${nome}): "Criar minha conta" na tela`, await btn.evaluate(e => e.getBoundingClientRect().bottom <= innerHeight + 1));
-    const alturas = await p.locator('.su .inp').evaluateAll(l => l.map(e => Math.round(e.getBoundingClientRect().height)));
-    const min = vw.width > 1024 ? 44 : 48;
-    check(`cadastro (${nome}): campos com ${min} px`, alturas.length === 7 && alturas.every(h => h >= min), alturas.join(','));
+    check(`cadastro (${nome}): escala de 75% ou mais (100% no celular)`, await escalaOk(p, '.auth', cel), await escala(p, '.auth'));
+    if (cel) {
+      const alturas = await p.locator('.su .inp').evaluateAll(l => l.map(e => Math.round(e.getBoundingClientRect().height)));
+      check(`cadastro (${nome}): campos com 48 px no celular`, alturas.length === 7 && alturas.every(h => h >= 48), alturas.join(','));
+    }
     check(`cadastro (${nome}): sem rolagem lateral`, await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1));
     await p.context().close();
   });
