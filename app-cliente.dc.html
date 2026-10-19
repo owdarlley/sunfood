@@ -328,6 +328,44 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
   .auth-foot a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;color:var(--ink-2);text-decoration:none;border-radius:var(--r-ctl)}
   .auth-foot a:hover{color:var(--brand);text-decoration:underline;text-underline-offset:3px}
 }
+/* ---- Cadastro e entrada cabem na altura da tela (2026-10-19) ----
+   Os espaços verticais encolhem com a altura visível (--au-h = 1% dela), sem
+   mexer nos mínimos do design system: campos e botões seguem com 48 px (44 no
+   computador), toque de 44-48 px e texto de 14-16 px. No cadastro os campos
+   ficam lado a lado onde há largura: 5 linhas no celular, 4 no tablet e 3 no
+   computador (cartão mais largo). Se ainda assim não couber (celular muito
+   baixo, teclado aberto, várias mensagens de erro), a página volta a rolar. */
+.auth{--au-h:1vh}
+@supports (height:1dvh){.auth{--au-h:1dvh}}
+.auth-top{padding-top:clamp(4px,calc(1 * var(--au-h)),16px)}
+.auth-main{padding-top:clamp(4px,calc(1.2 * var(--au-h)),var(--sec));padding-bottom:clamp(6px,calc(1.2 * var(--au-h)),var(--sec))}
+.su{display:flex;flex-direction:column;gap:clamp(8px,calc(1.2 * var(--au-h)),16px)}
+.su-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}
+.su-sub{font-size:var(--fs-body)}
+.su-sub .link{font-size:inherit}
+.su-grid{container-type:inline-size;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(6px,calc(1 * var(--au-h)),12px) 12px;align-items:start}
+.su-f{grid-column:span 6;min-width:0}
+.su-tel,.su-cpf,.su-senha,.su-conf{grid-column:span 3}
+.su .lbl{margin-bottom:4px;line-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@container (min-width:400px){.su-email,.su-nasc{grid-column:span 3}}
+@container (min-width:520px){.su-nome,.su-email,.su-senha,.su-conf{grid-column:span 3}.su-tel,.su-cpf,.su-nasc{grid-column:span 2}}
+@media (min-width:768px){
+  .auth-box{padding:clamp(20px,calc(3 * var(--au-h)),32px)}
+}
+@media (min-width:1024px){
+  .auth{--au-box-pad:clamp(20px,calc(3 * var(--au-h)),32px);padding-top:calc(clamp(8px,calc(1.6 * var(--au-h)),16px) + var(--sat));padding-bottom:calc(clamp(8px,calc(1.6 * var(--au-h)),16px) + var(--sab))}
+  .auth-top{padding-top:0}
+  .auth-main{padding:clamp(8px,calc(3 * var(--au-h)),40px) 0}
+  .auth-box{padding:var(--au-box-pad)}
+  .auth-cats{margin-top:clamp(16px,calc(3 * var(--au-h)),32px)}
+  .auth-cat{height:clamp(140px,calc(22 * var(--au-h)),200px)}
+  .auth-foot{margin-top:clamp(0px,calc(1.5 * var(--au-h)),24px)}
+  .auth-main:has(.su){grid-template-columns:minmax(0,1fr) calc(560px + 2 * var(--au-box-pad) + 2px)}
+}
+@media (min-width:1024px) and (max-width:1199px){.auth-main:has(.su) .auth-cats{display:none}}
+@media (max-height:819px){.auth-lgpd{display:none !important}}
+/* Celular baixo: o "ou com e-mail" sai e os blocos ficam mais juntos. */
+@media (max-width:767px) and (max-height:700px){.su .divider{display:none}.su{gap:6px}}
 input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .divider{display:flex;align-items:center;gap:12px;color:#55626A;font:500 var(--fs-cap) 'Manrope',system-ui,sans-serif}
 .divider span{flex:1;height:1px;background:#E3DDD0;display:block}
@@ -1016,30 +1054,28 @@ select{caret-color:auto}
                 </sc-if>
 
                 <sc-if value="{{ is_signup }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;flex-direction:column;gap:16px">
-                    <div>
+                  <div class="su">
+                    <div class="su-head">
                       <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Criar conta</h1>
-                      <div class="muted" style="font-size:var(--fs-body);margin-top:8px">Leva menos de um minuto. Já tem conta? <span onClick="{{ goLogin }}" class="link" style="font-size:var(--fs-body)">Entrar</span></div>
+                      <div class="muted su-sub">Já tem conta? <span onClick="{{ goLogin }}" class="link">Entrar</span></div>
                     </div>
                     <div onClick="{{ signInWithGoogle }}" class="gbtn">
                       <svg viewBox="0 0 48 48" width="20" height="20" style="display:block"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2.1 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.1Z"></path><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.6-3.9-12.3-9.1H4.4v5.7C8 41.1 15.4 46 24 46Z"></path><path fill="#FBBC05" d="M11.7 28.1c-.4-1.3-.7-2.7-.7-4.1s.2-2.8.7-4.1v-5.7H4.4C2.9 17.1 2 20.5 2 24s.9 6.9 2.4 9.8l7.3-5.7Z"></path><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 30 2 24 2 15.4 2 8 6.9 4.4 14.2l7.3 5.7c1.7-5.2 6.6-9.1 12.3-9.1Z"></path></svg>Cadastrar com Google
                     </div>
                     <div class="divider"><span></span>ou com e-mail<span></span></div>
-                    <div><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo" class="inp {{ suClsName }}" aria-invalid="{{ suInvName }}"><sc-if value="{{ suHasFeName }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeName }}</span></sc-if></div>
-                    <div><span class="lbl">E-mail</span><input placeholder="Digite seu e-mail" type="email" autocomplete="email" value="{{ suEmail }}" onChange="{{ setSuEmail }}" aria-label="E-mail" class="inp {{ suClsEmail }}" aria-invalid="{{ suInvEmail }}"><sc-if value="{{ suHasFeEmail }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeEmail }}</span></sc-if></div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
-                      <div><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" type="tel" autocomplete="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone" class="inp {{ suClsPhone }}" aria-invalid="{{ suInvPhone }}"><sc-if value="{{ suHasFePhone }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePhone }}</span></sc-if></div>
-                      <div>
+                    <div class="su-grid">
+                      <div class="su-f su-nome"><span class="lbl">Nome completo</span><input placeholder="Digite seu nome completo" autocomplete="name" value="{{ suName }}" onChange="{{ setSuName }}" aria-label="Nome completo" class="inp {{ suClsName }}" aria-invalid="{{ suInvName }}"><sc-if value="{{ suHasFeName }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeName }}</span></sc-if></div>
+                      <div class="su-f su-email"><span class="lbl">E-mail</span><input placeholder="Digite seu e-mail" type="email" autocomplete="email" value="{{ suEmail }}" onChange="{{ setSuEmail }}" aria-label="E-mail" class="inp {{ suClsEmail }}" aria-invalid="{{ suInvEmail }}"><sc-if value="{{ suHasFeEmail }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeEmail }}</span></sc-if></div>
+                      <div class="su-f su-tel"><span class="lbl">WhatsApp / telefone</span><input placeholder="DDD + número" type="tel" autocomplete="tel" value="{{ suPhone }}" onChange="{{ setSuPhone }}" aria-label="WhatsApp / telefone" class="inp {{ suClsPhone }}" aria-invalid="{{ suInvPhone }}"><sc-if value="{{ suHasFePhone }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePhone }}</span></sc-if></div>
+                      <div class="su-f su-cpf">
                         <span class="lbl">CPF</span>
                         <input placeholder="Digite seu CPF" class="inp {{ suClsCpf }}" aria-invalid="{{ suInvCpf }}" value="{{ suCpf }}" onChange="{{ setSuCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF">
                         <sc-if value="{{ suCpfBad }}" hint-placeholder-val="{{ false }}"><span class="ferr">CPF inválido. Confira os números.</span></sc-if>
                         <sc-if value="{{ suHasFeCpf }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeCpf }}</span></sc-if>
                       </div>
-                    </div>
-                    <div><span class="lbl">Data de nascimento</span><input placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" autocomplete="bday" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento" class="inp {{ suClsBirth }}" aria-invalid="{{ suInvBirth }}"><sc-if value="{{ suHasFeBirth }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeBirth }}</span></sc-if></div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
-                      <div><span class="lbl">Senha</span><input placeholder="Mínimo de 6 caracteres" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha" class="inp {{ suClsPass }}" aria-invalid="{{ suInvPass }}"><sc-if value="{{ suHasFePass }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass }}</span></sc-if></div>
-                      <div><span class="lbl">Confirmar senha</span><input placeholder="Digite a senha novamente" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" aria-label="Confirmar senha" class="inp {{ suClsPass2 }}" aria-invalid="{{ suInvPass2 }}"><sc-if value="{{ suHasFePass2 }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass2 }}</span></sc-if></div>
+                      <div class="su-f su-nasc"><span class="lbl">Data de nascimento</span><input placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" autocomplete="bday" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento" class="inp {{ suClsBirth }}" aria-invalid="{{ suInvBirth }}"><sc-if value="{{ suHasFeBirth }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeBirth }}</span></sc-if></div>
+                      <div class="su-f su-senha"><span class="lbl">Senha</span><input placeholder="Mín. 6 caracteres" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha" class="inp {{ suClsPass }}" aria-invalid="{{ suInvPass }}"><sc-if value="{{ suHasFePass }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass }}</span></sc-if></div>
+                      <div class="su-f su-conf"><span class="lbl">Confirmar senha</span><input placeholder="Repita a senha" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" aria-label="Confirmar senha" class="inp {{ suClsPass2 }}" aria-invalid="{{ suInvPass2 }}"><sc-if value="{{ suHasFePass2 }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass2 }}</span></sc-if></div>
                     </div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
                       <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" aria-label="Li e aceito os Termos de Uso e a Política de Privacidade" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:#1F5A63;cursor:pointer">
