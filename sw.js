@@ -12,7 +12,7 @@
 //
 // Ao mudar a lista abaixo ou a lógica deste arquivo, aumente a VERSAO para
 // o navegador trocar o cache antigo.
-const VERSAO = 'v13';
+const VERSAO = 'v14';
 const CACHE = 'sunfood-' + VERSAO;
 
 const PRECACHE = [
