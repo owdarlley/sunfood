@@ -186,7 +186,7 @@ select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:ima
    produto, numa coluna só. */
 .sf-dialog.pf-dialog.rf-dialog{max-width:560px}
 .rf-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--cpad);display:flex;flex-direction:column;gap:16px}
-.rf-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px;border-radius:12px;background:var(--surface-off)}
+.rf-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:var(--cpad);border-radius:12px;background:var(--surface-off)}
 @media (max-width:420px){.rf-sum{grid-template-columns:1fr 1fr}}
 .rf-item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 16px;border:1px solid var(--line-2);border-radius:8px;cursor:pointer;background:#fff}
 .rf-item.on{border-color:var(--brand);background:var(--brand-tint);box-shadow:inset 3px 0 0 var(--brand)}
@@ -505,7 +505,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .adm-brand{display:flex;align-items:center;gap:8px;padding:0 8px 16px}
 .adm-brand b{font:800 20px 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
 .adm-brand small{font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#C3D8DB;margin-left:2px}
-.adm-item{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border-radius:var(--r-ctl);font:600 15px 'Manrope',system-ui,sans-serif;cursor:pointer;color:#EAF2F3;white-space:nowrap;transition:background .15s}
+.adm-item{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border-radius:var(--r-ctl);font:600 var(--fs-body) 'Manrope',system-ui,sans-serif;cursor:pointer;color:#EAF2F3;white-space:nowrap;transition:background .15s}
 .adm-item:hover{background:rgba(255,255,255,.1)}
 .adm-item.on{background:var(--sun);color:var(--ink);font-weight:700}
 .adm-sep{height:1px;background:rgba(255,255,255,.32);margin:8px}
@@ -540,7 +540,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .catlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));gap:8px;align-items:start}
 @media (min-width:768px){.catlist{gap:16px}}
 @media (min-width:1025px){.catlist{gap:20px}}
-.catrow{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.catrow{border:1px solid var(--line);border-radius:12px;padding:var(--cpad);display:flex;flex-direction:column;gap:12px;min-width:0}
 .catrow-top{display:flex;align-items:center;gap:8px}
 .catdot{width:40px;height:40px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center}
 .catname{flex:1;min-width:0;display:flex;flex-direction:column;font-size:var(--fs-cap)}
@@ -587,7 +587,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 @media (max-width:1024px){
   .tbl-cards{min-width:0 !important}
   .tbl-cards .tr.th{display:none}
-  .tbl-cards .tr{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:12px;padding:16px}
+  .tbl-cards .tr{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:12px;padding:var(--cpad)}
   .tbl-cards .tr > div{text-align:left !important;min-width:0}
   .tbl-cards .tr > [data-l]::before{content:attr(data-l);display:block;font:600 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:var(--ink-2);margin-bottom:4px}
   .tbl-cards .tr > .wide{grid-column:1/-1}
@@ -683,7 +683,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
   .adm-side{width:100%;height:auto;position:sticky;top:0;z-index:20;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible;padding:8px var(--px);gap:8px}
   .adm-brand{flex:1;padding:0;min-height:48px}
   .adm-brand small{display:inline}
-  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid rgba(255,255,255,.32);color:#EAF2F3;font:700 15px 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none}
+  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid rgba(255,255,255,.32);color:#EAF2F3;font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none}
   .adm-side:not(.open) .adm-item,.adm-side:not(.open) .adm-sep,.adm-side:not(.open) .adm-foot{display:none}
   .adm-side.open .adm-item{flex:1 1 calc(50% - 8px);min-height:48px;padding:8px 12px;font-size:15px}
   .adm-side.open .adm-sep{display:none}
@@ -2240,7 +2240,7 @@ select{caret-color:auto}
                 </div>
               </sc-for>
               <sc-if value="{{ noMsgRows }}" hint-placeholder-val="{{ false }}">
-                <div class="card muted" style="padding:40px;text-align:center">{{ msgEmptyText }}</div>
+                <div class="card muted" style="padding:40px var(--cpad);text-align:center">{{ msgEmptyText }}</div>
               </sc-if>
             </div>
           </sc-if>
@@ -2317,10 +2317,10 @@ select{caret-color:auto}
             <div class="cols wd-cols rise">
               <div class="col-main">
                 <sc-if value="{{ waitersLoading }}" hint-placeholder-val="{{ false }}">
-                  <div class="card muted" style="padding:40px;text-align:center">Carregando…</div>
+                  <div class="card muted" style="padding:40px var(--cpad);text-align:center">Carregando…</div>
                 </sc-if>
                 <sc-if value="{{ noWaiters }}" hint-placeholder-val="{{ false }}">
-                  <div class="card muted" style="padding:40px;text-align:center">Nenhum garçom cadastrado ainda. Cadastre o primeiro ao lado.</div>
+                  <div class="card muted" style="padding:40px var(--cpad);text-align:center">Nenhum garçom cadastrado ainda. Cadastre o primeiro ao lado.</div>
                 </sc-if>
                 <sc-if value="{{ hasWaiters }}" hint-placeholder-val="{{ true }}">
                   <div class="pgrid wd-grid">
