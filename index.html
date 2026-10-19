@@ -375,17 +375,19 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 @media (max-width:479px){.lp .foot{display:grid;grid-template-columns:auto auto;justify-content:center}}
 
 /* ---- Entrada cabe na altura da tela (2026-10-19) ----
-   Os espaços verticais encolhem com a altura visível (--lp-h = 1% dela) e os
-   cartões do cardápio baixam junto; campos e botões seguem com 48 px (44 no
-   computador), toque de 44-48 px e texto de 14-16 px. Os links do rodapé
-   (Conheça o Sunfood etc.) continuam na tela. Se ainda assim não couber
-   (celular muito baixo, teclado aberto), a página volta a rolar. */
+   Os espaços verticais encolhem com a altura visível (--lp-h = 1% dela). Do
+   tablet para cima, se ainda faltar altura, a tela inteira diminui de escala
+   só o necessário (zoom calculado por caber.js, nunca abaixo de 75%), sem
+   mudar o layout nem achatar os cartões do cardápio. No celular a escala fica
+   em 100% (campos de 16 px, sem zoom do iPhone ao tocar) e só os cartões
+   baixam um pouco. Se ainda assim não couber (celular muito baixo, teclado
+   aberto), a página rola. Os links do rodapé continuam na tela. */
+@media (min-width:768px){.lp{min-height:calc(100vh / var(--fit,1));min-height:calc(100dvh / var(--fit,1))}}
 .lp{--lp-h:1vh}
 @supports (height:1dvh){.lp{--lp-h:1dvh}}
 .lp{padding-top:calc(clamp(4px,calc(1.2 * var(--lp-h)),16px) + env(safe-area-inset-top,0px));padding-bottom:calc(clamp(4px,calc(1.2 * var(--lp-h)),16px) + env(safe-area-inset-bottom,0px))}
 .lp-title{margin-top:clamp(8px,calc(2.4 * var(--lp-h)),24px)}
 .lp-cats{margin-top:clamp(12px,calc(2 * var(--lp-h)),16px)}
-.lp-cat{height:clamp(120px,calc(20 * var(--lp-h)),var(--lp-cat-h))}
 .login{padding-top:clamp(12px,calc(2.4 * var(--lp-h)),24px)}
 .login-form{margin-top:clamp(12px,calc(2.4 * var(--lp-h)),24px)}
 .login #entrar{margin-top:clamp(12px,calc(2.4 * var(--lp-h)),24px)}
@@ -394,6 +396,7 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .login-foot{margin-top:clamp(12px,calc(2.4 * var(--lp-h)),32px)}
 .lp .foot{margin-top:clamp(4px,calc(1.6 * var(--lp-h)),24px)}
 @media (max-width:767px){
+  .lp-cat{height:clamp(140px,calc(20 * var(--lp-h)),var(--lp-cat-h))}
   .lp[data-step="form"] .login{padding-top:clamp(4px,calc(1.2 * var(--lp-h)),16px)}
   .lp[data-step="inicio"] .login-foot{margin-top:clamp(8px,calc(1.6 * var(--lp-h)),16px)}
 }
@@ -412,10 +415,7 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 /* No celular, com o aviso aberto, o "Novo por aqui? Criar conta" sai (quem
    vê o aviso já tem conta) e o Voltar encosta no título. */
 @media (max-width:767px){.lp[data-step="form"] .login:has(#msg:not([hidden])) .login-foot{display:none}.lp[data-step="form"] .login:has(#msg:not([hidden])) .lp-back{margin-bottom:0}}
-@media (min-width:768px) and (max-width:1023px){.lp:has(#msg:not([hidden])) .lp-cat{height:120px}}
 @media (min-width:1024px){.lp:has(#msg:not([hidden])) .lp-main{padding-block:var(--lg-s8)}}
-/* Tablet: cartões do cardápio um pouco mais baixos, para o login caber em pé. */
-@media (min-width:768px) and (max-width:1023px){.lp{--lp-cat-h:150px}}
 @media (min-width:768px){
   .lp-cats{margin-top:clamp(12px,calc(2.4 * var(--lp-h)),24px)}
   .login{margin-top:clamp(16px,calc(2.4 * var(--lp-h)),32px);padding:clamp(20px,calc(2.6 * var(--lp-h)),var(--lg-pad))}
@@ -1105,5 +1105,7 @@ $('c-nova').addEventListener('click', function () {
   $('contact').reset(); $('c-ok').hidden = true; $('contact').hidden = false; $('c-nome').focus();
 });
 </script>
+<script src="./caber.js"></script>
+<script>sunfoodCaber('.lp');</script>
 </body>
 </html>
