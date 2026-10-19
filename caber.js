@@ -1,28 +1,57 @@
 // Caber na tela (2026-10-19): do tablet para cima, a tela de entrada e a de
-// cadastro diminuem de escala só o necessário para caber na altura da janela,
-// sem rolagem e sem mudar o layout (nunca abaixo de 75%). No celular (< 768 px)
-// a escala fica em 100%: lá os espaços é que encolhem, pelo CSS da página.
-// Uso: sunfoodCaber('.lp') — o elemento recebe zoom e --fit (a escala usada).
+// cadastro usam a MESMA escala, calculada só pela altura da janela, para as
+// duas caberem sem rolagem (nunca abaixo de 75%). No celular (< 768 px) a
+// escala fica em 100%: lá os espaços é que encolhem, pelo CSS da página.
+// Carregado no <head>: a escala sai antes da tela aparecer, então a página
+// nunca abre grande para depois encolher. A escala vai em --fit no <html>; o
+// CSS de cada página aplica (zoom:var(--fit)) na tela de entrada/cadastro.
+// ALTURA é a altura da mais alta das duas telas em 100% (o cadastro no
+// computador, a entrada no tablet, onde tudo fica empilhado); o teste
+// tests/fluxo/sem-rolagem.mjs confere que continua certa. Se a tela atual
+// ainda passar da janela (vários erros abertos), só ela diminui mais um pouco.
 (function () {
-  var MIN = 0.75;
+  var MIN = 0.75, raiz = document.documentElement;
+  function altura(w) { return w < 1024 ? 968 : w < 1040 ? 776 : 748; }
+  function base() {
+    if (innerWidth < 768) return 1;
+    return Math.max(MIN, Math.min(1, Math.floor(innerHeight / altura(innerWidth) * 1000) / 1000));
+  }
+  function aplicar(z) {
+    if (z === 1) raiz.style.removeProperty('--fit'); else raiz.style.setProperty('--fit', z);
+  }
+  aplicar(base());
   window.sunfoodCaber = function (sel) {
-    var agendado = false;
+    var agendado = false, teclado = false;
     function caber() {
       agendado = false;
-      var el = document.querySelector(sel);
-      if (!el) return;
-      el.style.removeProperty('zoom'); el.style.removeProperty('--fit');
+      if (teclado) return;
+      var z = base();
+      aplicar(z);
       if (innerWidth < 768) return;
-      var alto = document.documentElement.scrollHeight, tela = innerHeight;
-      if (alto <= tela + 1) return;
-      var z = Math.max(MIN, Math.floor(tela / alto * 1000) / 1000);
-      el.style.zoom = z; el.style.setProperty('--fit', z);
+      // Ainda passa da janela? Só esta tela diminui o que faltar (mínimo 75%).
+      // A altura vem do layout (offsetHeight, em 100%), sem o mínimo de uma
+      // tela cheia e sem contar animações de entrada (translateY).
+      var el = document.querySelector(sel);
+      if (!el || z <= MIN) return;
+      el.style.minHeight = '0px';
+      var alto = el.offsetHeight;
+      el.style.minHeight = '';
+      if (alto * z <= innerHeight + 1) return;
+      aplicar(Math.max(MIN, Math.floor(innerHeight / alto * 1000) / 1000));
     }
     function agendar() { if (!agendado) { agendado = true; requestAnimationFrame(caber); } }
-    addEventListener('resize', agendar);
+    // Teclado do tablet abrindo (só a altura diminui com um campo em foco): a
+    // escala fica como está, para a tela não pular enquanto a pessoa digita.
+    var largura = innerWidth, altura0 = innerHeight, toque = matchMedia('(pointer:coarse)').matches;
+    addEventListener('resize', function () {
+      var foco = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+      if (toque && innerWidth === largura && innerHeight < altura0 && foco) teclado = true;
+      else if (innerWidth !== largura || innerHeight > altura0) teclado = false;
+      largura = innerWidth; altura0 = innerHeight;
+      if (!teclado) agendar();
+    });
     addEventListener('load', agendar);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(agendar);
-    // Avisos, erros dos campos e troca de tela (cadastro ↔ entrada) mudam a altura.
     new MutationObserver(agendar).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'aria-invalid', 'data-step'] });
     agendar();
   };

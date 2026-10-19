@@ -7,6 +7,7 @@
      liberados porque o runtime das telas (support.js) precisa deles. -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="./caber.js"></script>
 <title>Sunfood</title>
 <script>
 // Sem isto o support.js baixa esta página (1 MB) de novo logo depois de abrir
@@ -329,9 +330,9 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
   .auth-foot a:hover{color:var(--brand);text-decoration:underline;text-underline-offset:3px}
 }
 /* ---- Cadastro e entrada cabem na altura da tela (2026-10-19) ----
-   Os espaços verticais encolhem com a altura visível (--au-h = 1% dela). Do
-   tablet para cima, se ainda faltar altura, a tela inteira diminui de escala
-   só o necessário (zoom calculado por caber.js, nunca abaixo de 75%), sem
+   No celular os espaços verticais encolhem com a altura visível (--au-h = 1%
+   dela). Do tablet para cima a tela inteira diminui de escala, na mesma
+   escala da tela de login (zoom por caber.js, nunca abaixo de 75%), sem
    mudar o layout nem achatar os cartões do cardápio. No celular a escala fica
    em 100% (campos de 16 px, sem zoom do iPhone ao tocar) e o título divide a
    linha com "Já tem conta? Entrar". Se ainda assim não couber (celular muito
@@ -341,12 +342,19 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
    e-mail e o nascimento ocupam a linha toda. */
 .auth{--au-h:1vh}
 @supports (height:1dvh){.auth{--au-h:1dvh}}
+/* Do tablet para cima os espaços ficam fixos (os de uma janela de 640 px) e
+   só a escala muda: assim cadastro e login usam a mesma escala (caber.js).
+   Cartão, título e respiro iguais aos da tela de login. */
+@media (min-width:768px){.auth{--au-h:6.4px;zoom:var(--fit,1)}}
 .auth-top{padding-top:clamp(4px,calc(1 * var(--au-h)),16px)}
 .auth-main{padding-top:clamp(4px,calc(1.2 * var(--au-h)),var(--sec));padding-bottom:clamp(6px,calc(1.2 * var(--au-h)),var(--sec))}
 .su{display:flex;flex-direction:column;gap:clamp(8px,calc(1.2 * var(--au-h)),16px)}
-.su-sub{margin-top:8px;font-size:var(--fs-body)}
+.su-sub{margin-top:8px;font-size:var(--fs-sm)}
 .su-sub .link{font-size:inherit}
 .su-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(8px,calc(1.2 * var(--au-h)),16px) 16px;align-items:start}
+.su h1{font-size:22px}
+@media (min-width:768px){.su h1{font-size:24px}}
+@media (min-width:1024px){.su h1{font-size:26px}}
 .su-f{min-width:0}
 .su-nome{grid-column:span 2}
 .su .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -360,12 +368,25 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 }
 @media (min-width:768px){
   .auth{min-height:calc(100vh / var(--fit,1));min-height:calc(100dvh / var(--fit,1))}
-  .auth-box{padding:clamp(20px,calc(3 * var(--au-h)),32px)}
+  .auth-box{padding:clamp(20px,calc(2.6 * var(--au-h)),32px)}
+}
+/* Tablet: o mesmo esqueleto da tela de login no tablet (coluna de até 608 px,
+   cartão de 560 px no meio da tela e links do rodapé embaixo). */
+@media (min-width:768px) and (max-width:1023px){
+  .auth{width:100%;max-width:608px;margin:0 auto;padding:calc(8px + var(--sat)) 20px calc(8px + var(--sab))}
+  .auth-top{padding:0}
+  .auth-main{align-items:center;padding:24px 0}
+  .auth-box{max-width:560px}
+  .auth-foot{display:flex !important;flex-wrap:wrap;justify-content:center;gap:0 16px;margin-top:16px;font:400 12px/18px 'Manrope',system-ui,sans-serif}
+  .auth-foot a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;color:var(--ink-2);text-decoration:none;border-radius:var(--r-ctl)}
+  .auth-foot a:hover{color:var(--brand);text-decoration:underline;text-underline-offset:3px}
 }
 @media (min-width:1024px){
-  .auth{--au-box-pad:clamp(20px,calc(3 * var(--au-h)),32px);padding-top:calc(clamp(8px,calc(1.6 * var(--au-h)),16px) + var(--sat));padding-bottom:calc(clamp(8px,calc(1.6 * var(--au-h)),16px) + var(--sab))}
+  .auth{--au-box-pad:clamp(20px,calc(2.6 * var(--au-h)),32px);padding-top:calc(clamp(4px,calc(1.2 * var(--au-h)),16px) + var(--sat));padding-bottom:calc(clamp(4px,calc(1.2 * var(--au-h)),16px) + var(--sab))}
   .auth-top{padding-top:0}
+  .auth-logo,.auth-menu{min-height:var(--ctl)}
   .auth-main{padding:clamp(8px,calc(3 * var(--au-h)),40px) 0}
+  .auth-main{grid-template-columns:minmax(0,1fr) calc(408px + 2 * 32px + 2px)}
   .auth-box{padding:var(--au-box-pad)}
   .auth-cats{margin-top:clamp(16px,calc(3 * var(--au-h)),32px)}
   .auth-foot{margin-top:clamp(0px,calc(1.5 * var(--au-h)),24px)}
@@ -1063,7 +1084,7 @@ select{caret-color:auto}
                 <sc-if value="{{ is_signup }}" hint-placeholder-val="{{ false }}">
                   <div class="su">
                     <div class="su-head">
-                      <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Criar conta</h1>
+                      <h1 class="tt" style="margin:0">Criar conta</h1>
                       <div class="muted su-sub"><span class="su-lead">Leva menos de um minuto. </span>Já tem conta? <span onClick="{{ goLogin }}" class="link">Entrar</span></div>
                     </div>
                     <div onClick="{{ signInWithGoogle }}" class="gbtn">
@@ -7071,7 +7092,6 @@ class Component extends DCLogic {
   }
 }
 </script>
-<script src="./caber.js"></script>
 <script>sunfoodCaber('.auth');</script>
 </body>
 </html>

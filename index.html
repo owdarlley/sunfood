@@ -7,6 +7,7 @@
      liberados porque o runtime das telas (support.js) precisa deles. -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="./caber.js"></script>
 <title>Sunfood · Entrar</title>
 <meta name="description" content="Entre no Sunfood para pedir do seu guarda-sol. Cliente, cozinha e administração usam o mesmo login.">
 <link rel="manifest" href="manifest.json">
@@ -375,16 +376,21 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 @media (max-width:479px){.lp .foot{display:grid;grid-template-columns:auto auto;justify-content:center}}
 
 /* ---- Entrada cabe na altura da tela (2026-10-19) ----
-   Os espaços verticais encolhem com a altura visível (--lp-h = 1% dela). Do
-   tablet para cima, se ainda faltar altura, a tela inteira diminui de escala
-   só o necessário (zoom calculado por caber.js, nunca abaixo de 75%), sem
-   mudar o layout nem achatar os cartões do cardápio. No celular a escala fica
+   No celular os espaços verticais encolhem com a altura visível (--lp-h = 1%
+   dela). Do tablet para cima a tela inteira diminui de escala, na mesma
+   escala do cadastro (zoom por caber.js, nunca abaixo de 75%), sem mudar o
+   layout nem achatar os cartões do cardápio. No celular a escala fica
    em 100% (campos de 16 px, sem zoom do iPhone ao tocar) e só os cartões
    baixam um pouco. Se ainda assim não couber (celular muito baixo, teclado
    aberto), a página rola. Os links do rodapé continuam na tela. */
 @media (min-width:768px){.lp{min-height:calc(100vh / var(--fit,1));min-height:calc(100dvh / var(--fit,1))}}
 .lp{--lp-h:1vh}
 @supports (height:1dvh){.lp{--lp-h:1dvh}}
+/* Do tablet para cima os espaços ficam fixos (os de uma janela de 640 px) e
+   só a escala muda: assim login e cadastro usam a mesma escala (caber.js). */
+@media (min-width:768px){.lp{--lp-h:6.4px;zoom:var(--fit,1)}}
+/* Textos iguais aos do cadastro (design system: mínimo de 14 px). */
+.lp{--lg-fs-sub:14px;--lg-fs-label:14px;--lg-fs-link:14px;--lg-fs-btn:16px}
 .lp{padding-top:calc(clamp(4px,calc(1.2 * var(--lp-h)),16px) + env(safe-area-inset-top,0px));padding-bottom:calc(clamp(4px,calc(1.2 * var(--lp-h)),16px) + env(safe-area-inset-bottom,0px))}
 .lp-title{margin-top:clamp(8px,calc(2.4 * var(--lp-h)),24px)}
 .lp-cats{margin-top:clamp(12px,calc(2 * var(--lp-h)),16px)}
@@ -414,7 +420,7 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .login:has(#msg:not([hidden])) .btn-ghost{margin-top:var(--lg-s8)}
 /* No celular, com o aviso aberto, o "Novo por aqui? Criar conta" sai (quem
    vê o aviso já tem conta) e o Voltar encosta no título. */
-@media (max-width:767px){.lp[data-step="form"] .login:has(#msg:not([hidden])) .login-foot{display:none}.lp[data-step="form"] .login:has(#msg:not([hidden])) .lp-back{margin-bottom:0}}
+@media (max-width:767px){.lp[data-step="form"] .login:has(#msg:not([hidden])) .login-foot{display:none}.lp[data-step="form"] .login:has(#msg:not([hidden])) .lp-back{margin-bottom:0}.lp[data-step="form"] .login:has(#msg:not([hidden])) .alert,.lp[data-step="form"] .login:has(#msg:not([hidden])) .alert + #entrar,.lp[data-step="form"] .login:has(#msg:not([hidden])) .btn-ghost + #entrar{margin-top:var(--lg-s8)}}
 @media (min-width:1024px){.lp:has(#msg:not([hidden])) .lp-main{padding-block:var(--lg-s8)}}
 @media (min-width:768px){
   .lp-cats{margin-top:clamp(12px,calc(2.4 * var(--lp-h)),24px)}
@@ -1105,7 +1111,6 @@ $('c-nova').addEventListener('click', function () {
   $('contact').reset(); $('c-ok').hidden = true; $('contact').hidden = false; $('c-nome').focus();
 });
 </script>
-<script src="./caber.js"></script>
 <script>sunfoodCaber('.lp');</script>
 </body>
 </html>
