@@ -881,6 +881,16 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .pcard .stepper{padding:0;gap:6px}
 .pcard .stepper .sb{width:40px;height:40px;font-size:18px}.pcard .stepper .sb::after{inset:-4px}.pcard .stepper .sq{min-width:20px;font-size:16px}
 .pcard .pbody > div:nth-child(3) > .chip{min-height:40px;display:inline-flex;align-items:center}
+/* Cartão mais enxuto (2026-10-19, pedido do Dárlley): o botão +, o seletor
+   +/− e o "Esgotado" ficam sobre o canto de baixo da foto, e não numa linha
+   própria. Abaixo da foto ficam só nome, descrição e preço, sem vão em
+   branco. Continuam com 40 px (toque de 48) e o cartão não muda de altura
+   ao adicionar. */
+.pcard .pbody{position:relative}
+.pcard .pbody > div:nth-child(3){flex-wrap:nowrap !important;row-gap:0;padding-top:4px}
+.pcard .pbody > div:nth-child(3) > span:first-child{flex:0 1 auto}
+.pcard .addbtn,.pcard .pbody .stepper,.pcard .pbody > div:nth-child(3) > .chip{position:absolute;right:8px;bottom:calc(100% + 8px);margin:0;z-index:1;box-shadow:0 4px 12px -4px rgba(20,35,42,.45)}
+.pcard .pbody .stepper{background:#fff !important}
 
 /* Links de texto: área de toque maior no celular sem mudar o desenho. */
 @media (max-width:920px){.link{display:inline-block;padding:12px 0;margin:-12px 0}}
