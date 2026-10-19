@@ -34,6 +34,9 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) { window.SUNFOOD_SAINDO = 
   try {
     var s = JSON.parse(localStorage.getItem('sunfood_session') || 'null');
     if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash) && !/^#(conheca|fale-conosco|termos|privacidade)$/.test(location.hash)) { window.SUNFOOD_SAINDO = true; location.replace(DEST[s.user.role] || DEST.cliente); }
+    // Quem já entrou e veio de um link do rodapé do app (#termos etc.) vê só o
+    // painel, sem a tela de login por trás; fechar o painel volta para o app.
+    else if (s && s.token && s.user) { window.SUNFOOD_APP = DEST[s.user.role] || DEST.cliente; window.SUNFOOD_PAPEL = s.user.role; document.documentElement.classList.add('sf-logado'); }
   } catch (e) {}
 })();
 </script>
@@ -108,6 +111,9 @@ a{color:#1F5A63}
 .info{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end}
 .info-bg{position:absolute;inset:0;background:rgba(20,35,42,.45);animation:sffade .2s ease both}
 .info-sheet{position:relative;width:min(760px,100%);height:100%;background:#F7F5F0;display:flex;flex-direction:column;box-shadow:-24px 0 60px -20px rgba(20,35,42,.35);animation:sfslide .28s cubic-bezier(.2,.8,.2,1) both}
+/* Quem já entrou: o painel ocupa a tela toda, sem o login por trás. */
+.sf-logado #lp,.sf-logado .info-bg{display:none}
+.sf-logado .info-sheet{width:100%;box-shadow:none}
 @keyframes sffade{from{opacity:0}}
 @keyframes sfslide{from{transform:translateX(40px);opacity:0}}
 /* Cabeçalho claro, no mesmo visual da tela de login: fundo areia, marca em
@@ -833,6 +839,7 @@ var info = $('info'), voltarFoco = null;
 function abrirSecao() {
   var sec = location.hash.slice(1);
   if (SECOES.indexOf(sec) < 0) {
+    if (window.SUNFOOD_APP) { voltarAoApp(); return; }
     if (!info.hidden) {
       info.hidden = true; document.body.style.overflow = ''; document.title = 'Sunfood · Entrar';
       if (voltarFoco && voltarFoco.focus) voltarFoco.focus();
@@ -858,7 +865,22 @@ function abrirSecao() {
   document.title = 'Sunfood · ' + TITULOS[sec];
 }
 
+// Quem já entrou volta para a tela do app de onde veio (ou para o seu
+// módulo, se abriu o link direto), nunca para a tela de login.
+function voltarAoApp() {
+  var ref = document.referrer;
+  var veioDoApp = ref && ref.indexOf(location.origin + '/') === 0 && /app-cliente/.test(ref);
+  window.SUNFOOD_SAINDO = true;
+  location.replace(veioDoApp ? ref : window.SUNFOOD_APP);
+}
+if (window.SUNFOOD_APP) {
+  info.querySelector('.info-close').setAttribute('aria-label', 'Fechar e voltar ao app');
+  var volta = window.SUNFOOD_PAPEL === 'cliente' ? 'Voltar ao cardápio' : 'Voltar ao app';
+  info.querySelectorAll('.cta').forEach(function (c) { c.innerHTML = '<a class="pri" href="#" data-close></a>'; c.firstChild.textContent = volta; });
+}
+
 function fecharSecao() {
+  if (window.SUNFOOD_APP) { voltarAoApp(); return; }
   // Tira o #secao do endereço sem criar outra entrada no histórico.
   history.replaceState(null, '', location.pathname + location.search);
   abrirSecao();
