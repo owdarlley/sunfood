@@ -14,13 +14,7 @@ O site é publicado direto da branch `main` deste repositório — qualquer alte
 
 O front-end detecta sozinho onde está rodando: em `localhost`, fala com a API local (`http://localhost:8787`); publicado (GitHub Pages ou qualquer outro domínio), fala com a API de produção. Se a API de produção estiver fora do ar, o botão **Entrar** mostra "Falha de conexão com o servidor" — as páginas de conteúdo (Sobre, Funcionalidades, etc.) continuam funcionando normalmente.
 
-**Conta de demonstração** (o endereço principal, `index.html`, já abre a tela de login):
-
-| Perfil | E-mail | Senha | Abre |
-| --- | --- | --- | --- |
-| Cliente | `ana@email.com` | `praia2026` | cardápio da mesa |
-
-As contas de **Administração** (`admin@sunfood.com`, abre o dashboard de vendas) e **Cozinha** (`cozinha@sunfood.com`, abre o kanban de pedidos) não têm a senha publicada: quem tem essas senhas consegue mudar preços, pausar o quiosque e encerrar o dia de verdade, já que o site fala com o banco de produção. Peça a senha ao responsável pelo projeto.
+**Contas**: o site fala com o banco de produção, então nenhuma senha fica publicada aqui. Para testar como cliente, crie uma conta pelo próprio site (Criar conta) ou peça a conta de demonstração ao responsável pelo projeto. As contas de **Administração** (abre o dashboard de vendas) e **Cozinha** (abre o kanban de pedidos) também são pedidas ao responsável: quem tem essas senhas consegue mudar preços, pausar o quiosque e encerrar o dia de verdade.
 
 O **Garçom** (abre "Para entregar": pedidos prontos para levar, lançar pedido feito na mesa e as próprias métricas) também não tem senha publicada: cada garçom recebe a conta do admin, na tela **Garçons** do painel.
 
@@ -77,14 +71,21 @@ O `sw.js` guarda as páginas e arquivos do site para abrirem mais rápido e most
 server/                                      → a API (Node/Express) e o banco (Supabase), publicada pela Vercel
 index.html                                   → login + painéis Conheça, Fale conosco, Termos e Privacidade
 inicio.html, sobre.html, termos.html, ...    → endereços antigos, redirecionam para o painel certo
+prototipo.html                               → endereço antigo do protótipo, redireciona para /#conheca
 redefinir-senha.html                         → segunda etapa da recuperação de senha
 app-cliente.dc.html                          → o app (cliente, cozinha, garçom e administração), fala com a API
-prototipo-completo.html                      → protótipo navegável das telas (material da faculdade)
+abertura.js                                  → animação de abertura do app
 support.js                                   → script de apoio às páginas (gerado, não editar)
 manifest.json, sw.js, pwa.js, offline.html   → app instalável (PWA): manifesto, service worker, registro e aviso sem internet
 icons/                                       → ícones do app instalado (192, 512, maskable, iPhone, favicon)
+android/                                     → app Android (TWA) que abre o site; o APK sai pelo GitHub Actions
+.well-known/assetlinks.json                  → liga o app Android ao domínio sunfood.app.br
 tests/                                       → testes de tela (Playwright)
 ```
+
+O GitHub Pages publica só as páginas: `server/`, `tests/`, `android/` e este README ficam fora do site (veja `_config.yml`).
+
+O repositório `owdarlley/sunfood-backend` é uma cópia antiga da API, parada desde 07/10/2026. A API publicada é a pasta `server/` deste repositório.
 
 ## Grupo
 

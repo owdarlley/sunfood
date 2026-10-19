@@ -75,8 +75,8 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 
 const called = (page, p) => page.api.db.calls.filter(c => c.p === p);
 async function login(page) {
-  await page.getByPlaceholder('voce@email.com').first().fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).first().fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
 }
 
@@ -87,7 +87,7 @@ await step('admin quantidade de mesas', async () => {
   let t = await text(page);
   check('admin: campo "Quantidade de mesas" aparece', t.includes('Quantidade de mesas'));
   const inp = page.locator('#tableCountInp');
-  check('admin: mostra a quantidade de hoje', await inp.getAttribute('placeholder') === 'Hoje: 5', await inp.getAttribute('placeholder'));
+  check('admin: mostra a quantidade de hoje', t.includes('Hoje: 5'), await inp.getAttribute('placeholder'));
   const salvar = async () => { await page.locator('#tableCountInp ~ div').click(); await page.waitForTimeout(600); };
   await inp.fill('0');
   await salvar();
@@ -120,8 +120,8 @@ await step('cliente mesa fora da faixa', async () => {
   await login(page);
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
-  await click(page, 'Ir para pagamento');
-  const mesa = page.getByPlaceholder('Ex.: 12');
+  await click(page, 'Escolher a mesa');
+  const mesa = page.getByLabel('Número da mesa', { exact: true });
   await mesa.fill('123');
   check('cliente: aceita número de 3 dígitos', await mesa.inputValue() === '123', await mesa.inputValue());
   for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tablet', { width: 768, height: 1000 }], ['computador', { width: 1366, height: 900 }], ['tela larga', { width: 1920, height: 1080 }]]) {
@@ -134,7 +134,7 @@ await step('cliente mesa fora da faixa', async () => {
   }
   await page.setViewportSize({ width: 400, height: 860 }); await page.waitForTimeout(300);
   await mesa.fill('9');
-  await click(page, 'Confirmar mesa');
+  await click(page, 'Escolher pagamento');
   const t = await text(page);
   check('cliente: avisa "Mesa 9 não existe (o quiosque tem mesas de 1 a 5)"', t.includes('Mesa 9 não existe (o quiosque tem mesas de 1 a 5)'), (t.match(/Mesa 9[^\n]*/) || [])[0]);
   check('cliente: não vai para o pagamento', !t.includes('Total do pedido · Mesa 9'));

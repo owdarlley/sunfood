@@ -4,7 +4,7 @@
 >
 > Todos os comandos abaixo rodam de dentro da pasta: `cd server`.
 
-Backend real do Sunfood — Node.js + Express, com **Supabase** (Postgres + Auth) como banco de dados e autenticação, e **Mercado Pago** para pagamento por PIX e cartão. Todas as regras de negócio (pedido mínimo, cancelamento, disponibilidade de item, permissão por papel) são validadas aqui no servidor, nunca só no front-end.
+Backend real do Sunfood — Node.js + Express, com **Supabase** (Postgres + Auth) como banco de dados e autenticação, **Mercado Pago** para pagamento por PIX e **Stripe** para cartão (hoje em modo de teste). Todas as regras de negócio (pedido mínimo, cancelamento, disponibilidade de item, permissão por papel) são validadas aqui no servidor, nunca só no front-end.
 
 Requer **Node.js 22.5 ou mais recente**.
 
@@ -24,7 +24,9 @@ Preencha o `.env`:
 | `CORS_ORIGIN` | Endereços do site que podem chamar a API, separados por vírgula (ex.: `https://owdarlley.github.io`) |
 | `EMAIL_CONFIRM_REDIRECT_URL` | Para onde o link do e-mail de confirmação de cadastro leva (a tela de login do site, ex.: `https://owdarlley.github.io/sunfood/index.html?login=1`) |
 | `PASSWORD_RESET_REDIRECT_URL` | URL pública de `redefinir-senha.html` (ex.: `https://seu-site.github.io/sunfood/redefinir-senha.html`) — precisa também estar na lista de Redirect URLs em Authentication → URL Configuration no Supabase |
-| `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET` | Painel do Mercado Pago → Suas integrações → Credenciais. Sem isso, PIX e cartão são aprovados na hora como **provisório** (não cobra dinheiro real) |
+| `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET` | Painel do Mercado Pago → Suas integrações → Credenciais. Sem isso, o PIX (e o cartão, se o Stripe também não estiver configurado) é aprovado na hora como **provisório** (não cobra dinheiro real) |
+| `STRIPE_PUBLISHABLE_KEY` | Mesma página, chave publicável de teste (`pk_test_...`). Com ela, o cartão é digitado na própria tela do app (Payment Element) em vez da página do Stripe |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Dashboard do Stripe → Developers → API keys (use a **chave de teste** `sk_test_...`) e o signing secret (`whsec_...`) do webhook `<API>/payments/stripe/webhook` com os eventos `checkout.session.completed`, `payment_intent.succeeded` e `charge.refunded` (estorno feito no painel do Stripe aparece no app). Com a chave, cartão (crédito ou débito, sempre à vista) e PIX (se o Mercado Pago não estiver configurado) são cobrados pelo Stripe; em modo de teste nada é cobrado (cartão `4242 4242 4242 4242`) |
 | `RESEND_API_KEY` (+ opcionais `EMAIL_FROM`, `CONTACT_REPLY_TO`) | resend.com → API Keys (Sending access, domínio sunfood.app.br). Usada para responder o Fale conosco por e-mail. Sem ela, só as respostas por WhatsApp funcionam |
 
 ```bash
@@ -37,7 +39,7 @@ npm test    # roda os testes (ver abaixo)
 | Onde | O que testa | Como rodar |
 | --- | --- | --- |
 | `test/*.test.js` | Regras de negócio, permissões por papel, validação, assinatura do webhook e o fluxo completo da API (cadastro → pedido → entregue → excluir conta) com um Supabase falso em memória | `npm test` (roda sozinho no GitHub a cada push) |
-| `test/banco/*.sql` | As funções do banco de verdade: CPF do cadastro, estoque, status do pedido, formas de pagamento, prazo de cancelamento, pedido mínimo, quantidade de mesas, categorias do cardápio, número curto do pedido (#001 por dia), painel, encerrar o dia, relatórios e perfil garçom (pedido lançado na mesa, quem entregou e métricas) | Colar no SQL Editor do Supabase |
+| `test/banco/*.sql` | As funções do banco de verdade: CPF do cadastro, estoque, status do pedido, formas de pagamento, prazo de cancelamento, pedido mínimo, quantidade de mesas, categorias do cardápio, número curto do pedido (#001 por dia), painel, encerrar o dia, relatórios, perfil garçom (pedido lançado na mesa, quem entregou e métricas) e estorno pelo painel (estorno parcial fora do faturamento, cancelar em preparo sem devolver estoque) | Colar no SQL Editor do Supabase |
 
 Os `.sql` terminam com um erro **de propósito**: o Postgres desfaz tudo o que fizeram, então nada fica gravado. Passou = a mensagem começa com `TESTE_..._PASSOU`; qualquer `FALHA ...` é um bug.
 
@@ -52,7 +54,7 @@ Os testes das telas ficam no repositório do site (`owdarlley/sunfood`, pasta `t
 
 | Perfil | E-mail | Senha |
 | --- | --- | --- |
-| Cliente | `ana@email.com` | `praia2026` |
+| Cliente | `ana@email.com` | (não publicada) |
 | Administração | `admin@sunfood.com` | (não publicada) |
 | Cozinha | `cozinha@sunfood.com` | (não publicada) |
 
@@ -85,17 +87,23 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | PATCH | `/tables/:number/active` | admin | Ativar/desativar mesa |
 | POST | `/orders` | cliente | Criar pedido (pedido mínimo, mesa ativa, estoque, quiosque aberto) |
 | POST | `/orders/manual` | garcom, admin | Garçom lança pedido feito na mesa (mesmas regras do app; pago na entrega; fica no nome do garçom) |
-| GET | `/orders/mine` | cliente | Pedidos do próprio usuário |
+| GET | `/orders/mine` | cliente | Pedidos do próprio usuário. Cada um traz `refunds`: valor, motivo, itens e data de cada estorno (sem quem da equipe estornou); cancelamento pelo cliente e pagamento atrasado devolvido também entram |
 | GET | `/orders` | admin, cozinha, garcom | Lista de pedidos (`?status=` opcional; o garçom recebe só fila, preparo e prontos) |
-| GET | `/orders/:id` | dono ou admin/cozinha | Detalhe de um pedido |
+| GET | `/orders/:id` | dono ou admin/cozinha | Detalhe de um pedido (para o cliente, com `refunds` como em `/orders/mine`) |
 | POST | `/orders/:id/cancel` | cliente (dono) | Cancelar (só "Na Fila" e dentro do prazo); estorna se já foi pago |
+| POST | `/orders/:id/refund` | admin | Estorno pelo painel: `{cancel: true, reason}` tira o pedido da cozinha (Na Fila, Em Preparo ou Pronto) e devolve tudo o que falta; `{amount, reason, items?}` devolve só uma parte (em reais) e o pedido continua; `items` (`[{name, qty}]`) são os itens devolvidos, que o cliente vê no pedido (precisa da migração `20261017220000_add_refund_items.sql`; sem ela o estorno é registrado sem os itens). Mesmo meio do pagamento (Stripe ou Mercado Pago). Pedido "na entrega" ou não pago só é cancelado. Precisa da migração `20261017210000_add_order_refunds.sql` |
+| GET | `/orders/:id/refunds` | admin | Estornos do pedido: valor, motivo, quem fez e quando (estorno feito no painel do Stripe aparece como "Painel do Stripe") |
 | PATCH | `/orders/:id/status` | admin, cozinha, garcom | Avançar status (kanban). O garçom só marca "Entregue"; quem entregou fica gravado no pedido |
 | PATCH | `/orders/:id/payment-received` | admin, garcom | Anotar como o garçom recebeu um pedido "pagar na entrega" |
-| GET | `/payments/status` | — | Diz se o Mercado Pago está configurado |
-| POST | `/payments/pix/:orderId` | cliente (dono) | Gera a cobrança PIX (ou aprova como provisório sem Mercado Pago) |
-| POST | `/payments/card/:orderId` | cliente (dono) | Abre o checkout de cartão do Mercado Pago (ou aprova como provisório) |
+| GET | `/payments/status` | — | Diz quem cobra o PIX e o cartão (`mercadopago`, `stripe` ou `provisorio`) e se o Stripe está em modo de teste |
+| POST | `/payments/pix/:orderId` | cliente (dono) | Gera a cobrança PIX no Mercado Pago ou no Stripe (só aprova como provisório se nenhum dos dois estiver configurado) |
+| POST | `/payments/card/:orderId` | cliente (dono) | Abre o checkout de cartão do Stripe (ou do Mercado Pago, ou aprova como provisório) |
+| POST | `/payments/card-session` | cliente | Sessão do cliente no Stripe antes de existir o pedido: devolve o `customerSessionClientSecret` (cartões salvos, uso só com o cliente presente) e a chave publicável, pra o app desenhar os campos do cartão na hora |
+| POST | `/payments/card-intent/:orderId` | cliente (dono) | Pagamento do pedido: devolve o `clientSecret` do PaymentIntent, o valor em centavos (`amount`), a chave publicável e o `customerSessionClientSecret` (com `?session=0`, vem `null`: o app já pegou a sessão em `/card-session`) |
+| POST | `/payments/card-holder/:orderId` | cliente (dono) | Titular do cartão (`{name, cpf}`): nome completo e CPF válido, guardados no PaymentIntent antes de confirmar |
 | GET | `/payments/pix/:orderId/status` | cliente (dono) | Status do pagamento do pedido |
 | POST | `/payments/mercadopago/webhook` | Mercado Pago | Aviso de pagamento: assinatura verificada e status sempre reconferido na API deles |
+| POST | `/payments/stripe/webhook` | Stripe | Fim do checkout de cartão: assinatura `Stripe-Signature` verificada e sessão reconferida na API do Stripe antes de liberar o pedido |
 | GET | `/kiosk-settings` | — | Estado do quiosque (pausado, dia encerrado, pedido mínimo, prazo de cancelamento) |
 | PATCH | `/kiosk-settings/pause` | admin | Pausar/reabrir o quiosque |
 | PATCH | `/kiosk-settings/min-order` | admin | Mudar o pedido mínimo |
@@ -110,6 +118,8 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | GET | `/waiters` | admin | Garçons cadastrados (ativo ou não) e o que cada um fez hoje |
 | POST | `/waiters` | admin | Cria a conta de um garçom (nome, e-mail, senha inicial) |
 | PATCH | `/waiters/:id` | admin | Desativa (`{ "active": false }`, não entra mais) ou reativa um garçom |
+| GET | `/waiters/:id/report?period=hoje\|7d\|30d` | admin | Página do garçom: métricas (atendidos, valor total, ticket médio, entregas, tempo até entregar) e os pedidos que ele lançou ou entregou no período |
+| DELETE | `/waiters/:id` | admin | Exclui a conta do garçom. Os pedidos continuam, só perdem o vínculo com ele |
 | POST | `/contact` | — | "Fale conosco" do site: grava a mensagem e devolve o protocolo (limite: 5 / 15 min por IP) |
 | GET | `/contact` | admin | Mensagens recebidas pelo Fale conosco, mais novas primeiro |
 | PATCH | `/contact/:id/status` | admin | Marcar mensagem como respondida (ou nova) |
@@ -129,13 +139,14 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 - **express-rate-limit** em login, cadastro, recuperação de senha, criação de pedido e geração de PIX.
 - **helmet** + **CORS** restrito a uma lista de origens (`CORS_ORIGIN`, separadas por vírgula).
 - Webhook do Mercado Pago com **verificação de assinatura HMAC** e reconsulta do status na API deles antes de liberar qualquer pedido — o corpo da notificação nunca é confiado por si só.
-- Sem `MERCADOPAGO_ACCESS_TOKEN`, PIX e cartão são aprovados como **provisório** (sem cobrança) e aparecem assim na tela de Pagamentos do admin. Configure o token antes de usar com clientes de verdade.
+- Webhook do Stripe com **verificação de assinatura** sobre o corpo cru e reconsulta da sessão na API do Stripe. A chave secreta fica só na variável de ambiente do servidor.
+- Sem `MERCADOPAGO_ACCESS_TOKEN`, o PIX (e o cartão, sem `STRIPE_SECRET_KEY`) é aprovado como **provisório** (sem cobrança) e aparecem assim na tela de Pagamentos do admin. Configure o token antes de usar com clientes de verdade.
 
 ## Deploy (Vercel)
 
 O projeto já está preparado pra rodar como função serverless (`api/index.js` + `vercel.json`). A função roda em `pdx1` (Portland, EUA), perto do banco do Supabase (`us-west-2`, Oregon): cada pedido à API faz 2 ou mais consultas ao banco em sequência, e com a função na região padrão da Vercel (Washington) cada uma atravessava os EUA. Se o banco mudar de região, mude `regions` no `vercel.json` junto. Pra publicar:
 
-1. No painel da Vercel, confirme as variáveis de ambiente do projeto (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `PASSWORD_RESET_REDIRECT_URL`, `EMAIL_CONFIRM_REDIRECT_URL`, `CORS_ORIGIN`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `RESEND_API_KEY`).
+1. No painel da Vercel, confirme as variáveis de ambiente do projeto (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `PASSWORD_RESET_REDIRECT_URL`, `EMAIL_CONFIRM_REDIRECT_URL`, `CORS_ORIGIN`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`).
 2. No painel do Supabase, em Authentication → URL Configuration, adicione a URL de `redefinir-senha.html` publicada na lista de Redirect URLs (senão o link do e-mail de recuperação de senha não funciona).
 3. No painel do Mercado Pago, configure a Webhook URL apontando pra `https://<seu-domínio-vercel>/payments/mercadopago/webhook`.
 4. Ative "Leaked Password Protection" em Authentication → Providers → Email, no painel do Supabase (recomendado pelo próprio linter de segurança do projeto).

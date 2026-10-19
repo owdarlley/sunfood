@@ -12,7 +12,7 @@
 //
 // Ao mudar a lista abaixo ou a lógica deste arquivo, aumente a VERSAO para
 // o navegador trocar o cache antigo.
-const VERSAO = 'v11';
+const VERSAO = 'v12';
 const CACHE = 'sunfood-' + VERSAO;
 
 const PRECACHE = [
@@ -32,8 +32,7 @@ const PRECACHE = [
 
 const LIBS = [
   'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
-  'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js',
-  'https://unpkg.com/@babel/standalone@7.29.0/babel.min.js'
+  'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js'
 ];
 
 self.addEventListener('install', event => {

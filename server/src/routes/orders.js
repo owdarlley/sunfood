@@ -2,7 +2,7 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole, requireCompleteProfile } from "../middleware/auth.js";
-import { createOrderSchema, manualOrderSchema, orderStatusUpdateSchema, paymentReceivedSchema, validate } from "../validation/schemas.js";
+import { createOrderSchema, manualOrderSchema, orderStatusUpdateSchema, paymentReceivedSchema, orderRefundSchema, validate } from "../validation/schemas.js";
 import {
   computeOrderTotals,
   meetsMinimumOrder,
@@ -18,7 +18,8 @@ import {
   canRecordReceipt,
   VALID_TRANSITIONS,
 } from "../business-rules.js";
-import { cancelOrderWithRefund, expireUnpaidOrders } from "../order-payments.js";
+import { cancelOrderWithRefund, expireUnpaidOrders, expireUnpaidOrdersSoon } from "../order-payments.js";
+import { refundOrderByAdmin, customerRefunds } from "../order-refunds.js";
 
 export const ordersRouter = Router();
 
@@ -62,6 +63,10 @@ function toApi(row, cancelWindow) {
     paymentProvider: row.payment_provider,
     paymentId: row.payment_id,
     paymentStatus: row.payment_status,
+    // Soma dos estornos (total ou parciais) feitos pelo painel ou pelo Stripe.
+    refundedAmount: Number(row.refunded_amount || 0),
+    // Só nas respostas pro cliente: valor, motivo, itens e quando de cada estorno.
+    refunds: row.refunds,
     receivedWith: row.received_with,
     receivedAt: row.received_at,
     cancelDeadline: cancelWindow === undefined ? undefined : cancelDeadline(row.created_at, cancelWindow),
@@ -79,10 +84,14 @@ function toApi(row, cancelWindow) {
 
 const ORDER_SELECT = "*, order_items(*)";
 
+const hasRefund = (row) => Number(row.refunded_amount || 0) > 0 || row.payment_status === "refunded";
+
 // Valida e grava um pedido. Todas as regras de negócio são checadas aqui,
 // no servidor — o front pode ser enganado, o backend não. Usado pelo cliente
 // (pedido pelo app) e pelo garçom (pedido feito na mesa, sem cliente no app).
 async function placeOrder(res, { tableNumber, items, note, paymentMethod, customerId = null, waiterId = null }) {
+  // Libera o estoque de PIX/cartão abandonados antes de conferir o deste pedido.
+  await expireUnpaidOrdersSoon();
   const { data: settings } = await supabaseAdmin.from("kiosk_settings").select("*").eq("id", 1).single();
   if (settings?.paused) {
     return res.status(409).json({ error: "Quiosque pausado no momento — não é possível fechar o pedido." });
@@ -184,7 +193,8 @@ ordersRouter.get("/mine", requireAuth, requireRole("cliente"), async (req, res) 
     .eq("customer_id", req.user.sub)
     .order("created_at", { ascending: false });
   if (error) return res.status(500).json({ error: "Erro ao carregar histórico." });
-  res.json(data.map(toApi));
+  const refunds = await customerRefunds(data.filter(hasRefund).map((row) => row.id));
+  res.json(data.map((row) => toApi({ ...row, refunds: refunds.get(row.id) || [] })));
 });
 
 // Admin/cozinha/garçom: lista de pedidos (opcionalmente filtrada por status), para o kanban/painel.
@@ -210,6 +220,49 @@ ordersRouter.get("/", requireAuth, requireRole("admin", "cozinha", "garcom"), as
   res.json(visible.map((row) => toApi({ ...row, customer_name: names.get(row.customer_id) || null })));
 });
 
+// Admin: estorno total (cancela o pedido) ou parcial (o pedido continua),
+// pelo mesmo meio em que o cliente pagou. Também cancela pedido "pagar na
+// entrega" ou ainda não pago, sem estorno.
+ordersRouter.post("/:id/refund", requireAuth, requireRole("admin"), validate(orderRefundSchema), async (req, res) => {
+  const { data: row, error } = await supabaseAdmin.from("orders").select("*").eq("id", req.params.id).maybeSingle();
+  if (error || !row) return res.status(404).json({ error: "Pedido não encontrado." });
+  const { cancel, amount, reason, items } = req.body;
+  const result = await refundOrderByAdmin(row, {
+    cancel,
+    items,
+    amountCents: amount === undefined ? undefined : Math.round(amount * 100),
+    reason,
+    actor: req.user.sub,
+  });
+  if (!result.ok) return res.status(result.httpStatus).json({ error: result.error });
+  const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();
+  res.json({ ...toApi(updated), refundedNow: result.refunded });
+});
+
+// Admin: histórico de estornos do pedido (valor, motivo, quem e quando).
+ordersRouter.get("/:id/refunds", requireAuth, requireRole("admin"), async (req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from("order_refunds")
+    .select("*")
+    .eq("order_id", req.params.id)
+    .order("created_at", { ascending: true });
+  if (error) return res.json([]);
+  const ids = [...new Set(data.map((r) => r.actor).filter(Boolean))];
+  const names = new Map();
+  if (ids.length) {
+    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, name").in("id", ids);
+    for (const p of profiles || []) names.set(p.id, p.name);
+  }
+  res.json(data.map((r) => ({
+    amount: Number(r.amount),
+    reason: r.reason,
+    provider: r.provider,
+    items: r.items || [],
+    by: names.get(r.actor) || (r.actor ? null : "Painel do Stripe"),
+    at: r.created_at,
+  })));
+});
+
 // Qualquer papel autenticado pode ver o detalhe — cliente só o próprio pedido.
 ordersRouter.get("/:id", requireAuth, async (req, res) => {
   const { data: row, error } = await supabaseAdmin
@@ -221,7 +274,9 @@ ordersRouter.get("/:id", requireAuth, async (req, res) => {
   if (req.user.role === "cliente" && row.customer_id !== req.user.sub) {
     return res.status(403).json({ error: "Sem permissão para ver este pedido." });
   }
-  res.json(toApi(row, req.user.role === "cliente" ? await loadCancelWindow() : undefined));
+  if (req.user.role !== "cliente") return res.json(toApi(row));
+  const refunds = hasRefund(row) ? (await customerRefunds([row.id])).get(row.id) || [] : [];
+  res.json(toApi({ ...row, refunds }, await loadCancelWindow()));
 });
 
 // Cliente: cancelar — RN04, só permitido enquanto o status for "Na Fila" e
@@ -253,7 +308,8 @@ ordersRouter.post("/:id/cancel", requireAuth, requireRole("cliente"), async (req
   if (!result.ok) return res.status(result.httpStatus).json({ error: result.error });
 
   const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();
-  res.json(toApi(updated, cancelWindow));
+  const refunds = hasRefund(updated) ? (await customerRefunds([row.id])).get(row.id) || [] : [];
+  res.json(toApi({ ...updated, refunds }, cancelWindow));
 });
 
 // Admin ou o próprio garçom: anota que o garçom recebeu um pedido "pagar na
@@ -326,6 +382,14 @@ ordersRouter.patch(
         p_actor: req.user.sub,
       });
       if (rpcError) return res.status(500).json({ error: "Não foi possível atualizar o pedido." });
+      // Entregou e já recebeu na mesa: o recebimento fica anotado junto, sem
+      // depender de alguém lembrar de abrir a tela de Pagamentos depois.
+      if (next === "Entregue" && req.body.receivedWith && canRecordReceipt(row) && row.payment_status !== "approved") {
+        await supabaseAdmin
+          .from("orders")
+          .update({ payment_status: "approved", received_with: req.body.receivedWith, received_at: new Date().toISOString() })
+          .eq("id", row.id);
+      }
     }
 
     const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();

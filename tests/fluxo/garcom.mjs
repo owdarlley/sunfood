@@ -1,7 +1,7 @@
 // Teste do perfil Garçom num navegador de verdade (Chromium): login leva ao
 // módulo do garçom, pedidos prontos com "Marcar como entregue" e recebimento
 // na mesa, lançar pedido escolhendo a mesa, "Meu desempenho" e a tela Garçons
-// do admin. API falsa em memória: nada sai da máquina, nada vai pro banco.
+// do admin (cadastrar, desativar, página de cada garçom e excluir). API falsa em memória: nada sai da máquina, nada vai pro banco.
 // Uso: node tests/fluxo/garcom.mjs   (a partir da raiz do repositório)
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
@@ -97,16 +97,19 @@ await step('garçom para entregar', async () => {
   check('entregar: mostra o que ainda está na cozinha', t.includes('Ainda na cozinha') && t.includes('Mesa 1') && t.includes('Em preparo'));
   check('entregar: PIX ainda não pago não aparece', !t.includes('Mesa 3'));
   check('entregar: botões de recebimento só no pedido "na entrega"', await page.getByText('Dinheiro', { exact: true }).count() === 1);
+  check('entregar: pedido "na entrega" pede como recebeu, não só "Marcar como entregue"',
+    t.includes('Entregue e recebido em') && t.includes('Entregue, ainda não pagou') && await page.getByText('Marcar como entregue').count() === 1);
   await click(page, 'Dinheiro', true);
-  const recv = called(page, '/orders/o21/payment-received')[0];
-  check('entregar: anota o recebimento em dinheiro', recv && recv.body.receivedWith === 'dinheiro' && recv.auth === 'Bearer tok', JSON.stringify(recv));
-  t = await text(page);
-  check('entregar: cartão passa a mostrar "Recebido na entrega (dinheiro)"', t.includes('Recebido na entrega (dinheiro)'));
-  await page.getByText('Marcar como entregue').first().click(); await page.waitForTimeout(800);
   const st = called(page, '/orders/o21/status')[0];
-  check('entregar: "Marcar como entregue" manda status Entregue', st && st.body.status === 'Entregue', JSON.stringify(st));
+  check('entregar: "Dinheiro" entrega e anota o recebimento num toque', st && st.body.status === 'Entregue' && st.body.receivedWith === 'dinheiro' && st.auth === 'Bearer tok', JSON.stringify(st));
   t = await text(page);
   check('entregar: o pedido entregue sai da lista', !t.includes('Mesa 4') && /Prontos\s*1/.test(t), (t.match(/Prontos\s*\d+/) || [])[0]);
+  await page.getByText('Marcar como entregue').first().click(); await page.waitForTimeout(800);
+  const st2 = called(page, '/orders/o22/status')[0];
+  check('entregar: pedido já pago no app usa "Marcar como entregue"', st2 && st2.body.status === 'Entregue' && !st2.body.receivedWith, JSON.stringify(st2));
+  // Volta um pronto pra conferir o botão nos tamanhos de tela.
+  page.api.db.orders.push(order('o25', 6, 'Pronto', { paymentMethod: 'pix', paymentStatus: 'approved' }));
+  await page.reload(); await page.waitForTimeout(1200);
   for (const [nome, viewport] of SIZES) {
     await page.setViewportSize(viewport); await page.waitForTimeout(300);
     const btn = await page.getByText('Marcar como entregue').first().boundingBox();
@@ -137,7 +140,7 @@ await step('garçom lançar pedido', async () => {
   await page.waitForTimeout(300);
   t = await text(page);
   check('lançar: resumo com a mesa, itens e total', t.includes('Pedido da mesa 3') && t.includes('2× Caipirinha') && t.includes('R$ 44,00') && !t.includes('× Água de Coco'), (t.match(/Total[^\n]*\n?[^\n]*/) || [])[0]);
-  await page.getByPlaceholder('Ex.: sem gelo, guarda-sol azul').fill('guarda-sol azul');
+  await page.getByLabel('Observação', { exact: true }).fill('guarda-sol azul');
   for (const [nome, viewport] of SIZES) {
     await page.setViewportSize(viewport); await page.waitForTimeout(300);
     const tile = await page.getByRole('button', { name: 'Mesa 3', exact: true }).boundingBox();
@@ -197,12 +200,12 @@ await step('admin garçons', async () => {
   const cadastrar = page.locator('.btn', { hasText: 'Cadastrar garçom' });
   const enviar = async () => { await cadastrar.click(); await page.waitForTimeout(600); };
   let t = await text(page);
-  check('admin: menu tem "Garçons" e lista o garçom', t.includes('Carlos Souza') && t.includes('carlos@sunfood.com') && t.includes('Hoje: 4 entregue(s) · 2 lançado(s)'));
+  check('admin: menu tem "Garçons" e lista o garçom', t.includes('Carlos Souza') && t.includes('carlos@sunfood.com') && t.includes('Hoje: 4 entregues · 2 lançados'));
   await enviar();
   check('admin: pede o nome antes de enviar', (await text(page)).includes('Informe o nome do garçom.'));
-  await page.getByPlaceholder('Ex.: Carlos Souza').fill('Bruna Lima');
-  await page.getByPlaceholder('garcom@sunfood.com').fill('garcom@sunfood.com');
-  await page.getByPlaceholder('Mínimo de 6 caracteres').fill('Sunfood@123');
+  await page.getByLabel('Nome', { exact: true }).fill('Bruna Lima');
+  await page.getByLabel('E-mail', { exact: true }).fill('garcom@sunfood.com');
+  await page.getByLabel('Senha inicial', { exact: true }).fill('Sunfood@123');
   await enviar();
   const post = called(page, '/waiters').find(c => c.body.name);
   check('admin: envia nome, e-mail e senha', post && post.body.email === 'garcom@sunfood.com' && post.body.password === 'Sunfood@123', JSON.stringify(post));
@@ -218,6 +221,42 @@ await step('admin garçons', async () => {
     if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/admin-garcons-${nome}.png`, fullPage: true });
   }
   check('admin: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+  await page.close();
+});
+
+// 7. Admin: página de cada garçom (métricas e pedidos) e excluir com confirmação
+await step('admin página do garçom e excluir', async () => {
+  const page = await open('app-cliente.dc.html?module=admin&screen=waiters', { role: 'admin' });
+  await click(page, 'Métricas e pedidos', true);
+  let t = await text(page);
+  check('garçom: abre a página com as métricas de hoje', page.api.db.lastWaiterReport?.id === 'w1' && page.api.db.lastWaiterReport.period === 'hoje'
+    && t.includes('Carlos Souza') && t.includes('Pedidos atendidos') && t.includes('R$ 90,00') && t.includes('R$ 45,00') && t.includes('4,5 min'), JSON.stringify(page.api.db.lastWaiterReport));
+  check('garçom: lista os pedidos com o atendimento', t.includes('#007') && t.includes('Lançou e entregou') && t.includes('Entregou') && t.includes('Lançou na mesa') && t.includes('2x Caipirinha, 1x Água de Coco'));
+  await click(page, '30 dias', true);
+  t = await text(page);
+  check('garçom: troca o período', page.api.db.lastWaiterReport.period === '30d' && t.includes('Nenhum pedido atendido nos últimos 30 dias.'));
+  await click(page, '7 dias', true);
+  for (const [nome, viewport] of SIZES) {
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    const btn = await page.locator('.wd-acts .btn', { hasText: 'Excluir' }).boundingBox();
+    check(`garçom ${nome}: sem rolagem lateral e botão de 44 px ou mais`, (await noScroll(page)) && btn && btn.height >= 44, JSON.stringify(btn));
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/admin-garcom-pagina-${nome}.png`, fullPage: true });
+  }
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.locator('.wd-acts .btn', { hasText: 'Excluir' }).click(); await page.waitForTimeout(400);
+  t = await text(page);
+  check('excluir: pede confirmação numa janela', t.includes('Excluir Carlos Souza?') && t.includes('continuam nos relatórios') && !page.api.db.deletedWaiter);
+  await click(page, 'Manter garçom', true);
+  check('excluir: "Manter garçom" fecha sem excluir', !(await text(page)).includes('Excluir Carlos Souza?') && !page.api.db.deletedWaiter);
+  await page.locator('.wd-acts .btn', { hasText: 'Excluir' }).click(); await page.waitForTimeout(400);
+  for (const [nome, viewport] of SIZES) {
+    await page.setViewportSize(viewport); await page.waitForTimeout(300);
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/admin-garcom-excluir-${nome}.png` });
+  }
+  await click(page, 'Excluir garçom', true);
+  t = await text(page);
+  check('excluir: apaga e volta para a lista', page.api.db.deletedWaiter === 'w1' && t.includes('Carlos Souza foi excluído') && t.includes('Nenhum garçom cadastrado ainda'));
+  check('garçom: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
 });
 

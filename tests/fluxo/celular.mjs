@@ -50,12 +50,11 @@ const semRolagemLateral = p => p.evaluate(() => document.documentElement.scrollW
 await step('aba Pedido', async () => {
   // Pedido em andamento + página recarregada (o celular faz isso sozinho): a aba volta a mostrar o pedido.
   const p = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
-  await tap(p, 'Pedido');
+  await p.getByText('Meu pedido', { exact: true }).filter({ visible: true }).first().tap(); await p.waitForTimeout(500);
   check('aba Pedido: mostra o pedido em andamento depois de recarregar', p.url().includes('screen=status') || (await text(p)).includes('#o9'), p.url());
   await p.context().close();
   const sem = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente', { seed: false });
-  await tap(sem, 'Pedido');
-  check('aba Pedido: sem pedido, avisa em vez de não fazer nada', (await text(sem)).includes('Você não tem pedido em andamento.'));
+  check('aba Pedido: sem pedido, a aba Meu pedido não aparece', !(await sem.locator('.bottomnav').innerText()).includes('Meu pedido'));
   await sem.context().close();
 });
 
@@ -94,6 +93,9 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
     check(`admin ${w}px: menu aberto, marca e botão Fechar lado a lado sem se sobrepor`, !(await sobrepoe()));
     const itens = await p.locator('.adm-item').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return r.right <= innerWidth + 1 && r.height >= 40; }));
     check(`admin ${w}px: todos os itens do menu aparecem e são fáceis de tocar`, itens.length >= 9 && itens.every(Boolean), JSON.stringify(itens));
+    // Menu aberto sempre de 2 em 2 e todos da mesma altura (antes Quiosque e mesas ia sozinho e deixava os vizinhos em linha inteira).
+    const grade = await p.locator('.adm-item:visible').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }));
+    check(`admin ${w}px: menu aberto de 2 em 2, todos do mesmo tamanho`, grade.length % 2 === 0 && grade.every(([gw, gh]) => Math.abs(gw - grade[0][0]) <= 1 && gh === grade[0][1] && gw < w / 2), JSON.stringify(grade));
     await tap(p, 'Pedidos');
     check(`admin ${w}px: tocar num item abre a tela e fecha o menu`, p.url().includes('module=admin') && (await text(p)).includes('Buscar por mesa ou código') && await p.locator('.adm-item').first().isHidden());
     check(`admin ${w}px: tabela de pedidos sem arrastar para os lados`, await p.locator('.tblwrap').first().evaluate(e => e.scrollWidth <= e.clientWidth + 1));
@@ -126,8 +128,8 @@ await step('fonte grande (300 px)', async () => {
   // Topo cheio: marca + mesa + carrinho (revisão do pedido, depois de informar a mesa).
   const c = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
   await c.locator('.addbtn').first().tap(); await c.waitForTimeout(300);
-  await c.locator('.mobilebar > div').first().tap(); await c.waitForTimeout(400); await tap(c, 'Ir para pagamento');
-  await c.getByPlaceholder('Ex.: 12').fill('1'); await tap(c, 'Confirmar mesa');
+  await c.locator('.mobilebar > div').first().tap(); await c.waitForTimeout(400); await tap(c, 'Escolher a mesa');
+  await c.getByLabel('Número da mesa', { exact: true }).fill('1'); await tap(c, 'Escolher pagamento');
   await c.locator('.brand:visible').first().tap(); await c.waitForTimeout(500);
   await c.locator('.pcard').nth(1).tap(); await c.waitForTimeout(600);
   check('300px: topo com mesa e carrinho cabe na tela', (await c.locator('.mesachip').isVisible()) && (await c.locator('.cartpill').isVisible()) && await semRolagemLateral(c), String(await c.evaluate(() => document.documentElement.scrollWidth)));
@@ -139,7 +141,7 @@ await step('fonte grande (300 px)', async () => {
 await step('cozinha em abas', async () => {
   const p = await open('app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha');
   const visiveis = () => p.locator('.kz-board > .kz-col').evaluateAll(els => els.filter(e => e.offsetParent).length);
-  check('cozinha celular: abas Novos / Preparo / Prontos aparecem', await p.locator('.kz-tabs').isVisible() && (await p.locator('.kz-tab').count()) === 3);
+  check('cozinha celular: abas Na fila / Em preparo / Prontos aparecem', await p.locator('.kz-tabs').isVisible() && (await p.locator('.kz-tab').count()) === 3);
   check('cozinha celular: uma coluna por vez', await visiveis() === 1, String(await visiveis()));
   await p.locator('.kz-tab', { hasText: 'Prontos' }).tap(); await p.waitForTimeout(400);
   check('cozinha celular: tocar na aba troca a coluna', (await p.locator('.kz-tab.on').innerText()).includes('Prontos'));

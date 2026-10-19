@@ -73,6 +73,10 @@ export const profileUpdateSchema = z
   })
   .refine((d) => Object.values(d).some((v) => v !== undefined), { message: "Nada para salvar." });
 
+export const deleteAccountSchema = z.object({
+  password: z.string().max(200).optional(),
+});
+
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Digite sua senha atual."),
   newPassword: z.string().min(6, "Senha deve ter ao menos 6 caracteres."),
@@ -206,9 +210,27 @@ export const kioskCancelWindowSchema = z.object({
     .max(MAX_CANCEL_WINDOW_MINUTES, `O máximo é ${MAX_CANCEL_WINDOW_MINUTES} minutos.`),
 });
 
+// receivedWith: ao marcar "Entregue" um pedido de pagar na entrega, quem
+// entregou já anota como recebeu (dinheiro, cartão ou PIX do quiosque).
 export const orderStatusUpdateSchema = z.object({
   status: z.enum(["Em Preparo", "Pronto", "Entregue", "Cancelado"]),
+  receivedWith: z.enum(RECEIVED_WITH).optional(),
 });
+
+// Estorno pelo painel do admin. cancel: tira o pedido da cozinha e devolve
+// tudo; sem cancel, amount (em reais) é o estorno parcial.
+export const orderRefundSchema = z
+  .object({
+    cancel: z.boolean().default(false),
+    amount: z.number().positive().max(100000).optional(),
+    reason: z.string().trim().min(3, "Informe o motivo do estorno.").max(200),
+    // Itens marcados no estorno parcial, para o cliente ver o que voltou.
+    items: z
+      .array(z.object({ name: z.string().trim().min(1).max(120), qty: z.number().int().min(1).max(999) }))
+      .max(50)
+      .optional(),
+  })
+  .refine((b) => b.cancel || b.amount !== undefined, { message: "Informe o valor do estorno.", path: ["amount"] });
 
 // Relatórios do admin: período em dias (hoje, últimos 7 ou últimos 30 dias).
 export const REPORT_PERIODS = { hoje: 1, "7d": 7, "30d": 30 };

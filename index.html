@@ -2,6 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<!-- Segurança: só roda script do próprio site, do unpkg (React) e do Stripe;
+     nada de plugin (object) nem troca do endereço base. inline/eval ficam
+     liberados porque o runtime das telas (support.js) precisa deles. -->
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sunfood · Entrar</title>
 <meta name="description" content="Entre no Sunfood para pedir do seu guarda-sol. Cliente, cozinha e administração usam o mesmo login.">
@@ -86,9 +90,16 @@ a{color:#1F5A63}
 .link:hover{color:#174A52}
 .info-body .link,.info-body a{position:relative}
 .info-body .link::after,.info-body p a::after,.info-body li a::after{content:"";position:absolute;inset:-12px -4px}
-.alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif}
-.alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
-.alert-ok{background:#E7F7ED;color:#14532D;border:1px solid #BFE3CB}
+/* Avisos (erro, atenção, sucesso, informação): um estilo só em todo o app.
+   Fundo branco como os cartões, borda e ícone na cor do tipo, texto escuro. */
+.alert{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E");position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 16px 12px 44px;border-radius:12px;background:#fff;border:1px solid var(--al-line);box-shadow:0 1px 2px rgba(20,35,42,.04);color:#14232A;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;text-align:left}
+.alert::before{content:"";position:absolute;left:16px;top:13px;width:18px;height:18px;background:var(--al);-webkit-mask:var(--al-ico) center/contain no-repeat;mask:var(--al-ico) center/contain no-repeat}
+.alert:has(> svg){padding-left:16px}
+.alert:has(> svg)::before{content:none}
+.alert-err{--al:#B42318;--al-line:#F3D3CB;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 7.5v5.5M12 16.5v.01'/%3E%3C/svg%3E")}
+.alert-warn{--al:#B0791A;--al-line:#F1DDB1;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5 2.8 19.5h18.4z'/%3E%3Cpath d='M12 10v4M12 17v.01'/%3E%3C/svg%3E")}
+.alert-ok{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='m8 12.5 2.7 2.7L16 9.8'/%3E%3C/svg%3E")}
+.alert-info{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E")}
 .foot{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;margin-top:var(--sec);font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif}
 .foot a{color:#55626A;text-decoration:none}
 .foot a:hover{color:#1F5A63}
@@ -169,7 +180,8 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
 .note{background:#FFF4DB;border:1px solid #F5DDA4;border-radius:var(--r-card);padding:var(--cpad);margin-top:var(--sec)}
 .note p{margin:0 !important;font-size:var(--fs-sm) !important;color:#5A4210 !important}
 .form{display:flex;flex-direction:column;gap:16px;margin-top:24px}
-.form textarea.inp{min-height:128px;padding:12px;resize:vertical;line-height:1.5}
+textarea{resize:none;overflow-y:auto}
+.form textarea.inp{min-height:128px;padding:12px;resize:none;overflow-y:auto;line-height:1.5}
 .form select.inp{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235A6670' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px}
 .ferr{font:600 13px 'Manrope',system-ui,sans-serif;color:#B42318;margin-top:8px}
 .inp[aria-invalid="true"]{border-color:#B42318}
@@ -213,6 +225,15 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 :root{--lg-pad:var(--lg-s20);--lg-h:46px;--lg-fs-title:22px;--lg-fs-sub:13px;--lg-fs-label:13px;--lg-fs-btn:14px;--lg-fs-link:13px;--lp-px:16px;--lp-logo:22px;--lp-fs-brand:18px;--lp-fs-hero:24px;--lp-cat-w:136px;--lp-cat-h:160px;--lp-ico:48px;--lp-fs-cat:16px;--lp-fs-cat-sub:12px}
 @media (min-width:768px){:root{--lg-pad:var(--lg-s24);--lg-fs-title:24px;--lp-px:20px;--lp-fs-hero:30px;--lp-cat-h:170px}}
 @media (min-width:1024px){:root{--lg-pad:var(--lg-s32);--lg-h:48px;--lg-fs-title:26px;--lp-px:28px;--lp-logo:24px;--lp-fs-brand:20px;--lp-fs-hero:34px;--lp-cat-h:200px;--lp-ico:56px;--lp-fs-cat:18px}}
+/* Design system (Dárlley, 2026-10-07), igual ao app: campos e botões com
+   48 px no celular e no tablet e 44 px no computador (> 1024 px), cantos de
+   8 px em botões e campos, links e textos de apoio com 14 px. */
+:root{--ctl:48px;--r-btn:8px;--r-ctl:8px;--fs-sm:14px;--lg-h:48px;--lg-h2:48px;--lg-fs-link:14px}
+@media (min-width:1025px){:root{--ctl:44px;--lg-h:44px}}
+/* Áreas de toque de 48x48 em volta de alvos menores que o desenho:
+   o olho da senha e os links de texto do cartão de login. */
+.pw-toggle::after{content:'';position:absolute;inset:-4px}
+.login .link::after{content:'';position:absolute;left:-4px;right:-4px;top:-14px;bottom:-14px}
 
 /* ---- Página de entrada (design "Cardápio em destaque", 2026-10-10) ----
    Celular: marca + "Ver cardápio", chamada, cartões do cardápio que rolam
@@ -258,6 +279,8 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
   .lp[data-step="form"] .lp-hero,.lp[data-step="form"] .lp-email,.lp[data-step="form"] .login .divider,.lp[data-step="form"] .login .gbtn{display:none}
   .lp[data-step="form"] .login{margin-top:0;padding-top:var(--lg-s16)}
   .lp[data-step="inicio"] .login-foot{margin-top:var(--lg-s16)}
+  /* Botões logo abaixo dos cartões, sem um vão no meio da tela. */
+  .lp[data-step="inicio"] .login{margin-top:0}
 }
 /* Tablet para cima: formulário direto, num cartão. */
 @media (min-width:768px){
@@ -313,9 +336,7 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .login .link:hover,.login .link:focus-visible{color:var(--lg-pri-hover);text-decoration:underline}
 @media (max-width:359px){.login-row{justify-content:flex-start}}
 
-.login .alert{margin-top:var(--lg-s16);display:flex;gap:var(--lg-s8);align-items:flex-start;padding:var(--lg-s12) var(--lg-s16);border-radius:var(--r-ctl);font:var(--lg-w-medium) var(--lg-fs-label)/20px 'Manrope',system-ui,sans-serif;animation:sffade .15s ease-out both}
-.login .alert svg{flex:none;width:16px;height:16px;margin-top:2px}
-.login .alert-err{background:var(--lg-err-bg);color:var(--lg-err-ink);border:1px solid var(--lg-err-line)}
+.login .alert{margin-top:var(--lg-s16);font-size:var(--lg-fs-label);animation:sffade .15s ease-out both}
 .login .btn{height:var(--lg-h);min-height:0;padding:0 var(--lg-s20);border-radius:var(--r-btn);font:var(--lg-w-strong) var(--lg-fs-btn)/1 'Manrope',system-ui,sans-serif;letter-spacing:.01em;transition:background-color var(--lg-ease),box-shadow var(--lg-ease),transform var(--lg-ease)}
 .login #entrar{margin-top:var(--lg-s24)}
 .login .alert + #entrar,.login .alert + .btn-ghost{margin-top:var(--lg-s16)}
@@ -391,14 +412,14 @@ select{caret-color:auto}
         <div class="field">
           <label class="field-label" for="email">E-mail</label>
           <div class="field-control">
-            <input class="inp" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" aria-describedby="email-msg">
+            <input placeholder="Digite seu e-mail" class="inp" id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" aria-describedby="email-msg">
           </div>
           <p class="field-msg" id="email-msg"></p>
         </div>
         <div class="field">
           <label class="field-label" for="pass">Senha</label>
           <div class="field-control">
-            <input class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" placeholder="••••••••" aria-describedby="pass-msg">
+            <input placeholder="Digite sua senha" class="inp inp-pw" id="pass" name="password" type="password" autocomplete="current-password" aria-describedby="pass-msg">
             <button type="button" class="pw-toggle" id="pw-toggle" aria-controls="pass" aria-pressed="false" aria-label="Mostrar senha">
               <svg class="ico-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="ico-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.7 3.6M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></svg>
@@ -517,12 +538,12 @@ select{caret-color:auto}
         <form id="contact" class="form" novalidate>
           <div>
             <label class="lbl" for="c-nome">Nome</label>
-            <input class="inp" id="c-nome" autocomplete="name" placeholder="Como podemos te chamar">
+            <input placeholder="Digite seu nome" class="inp" id="c-nome" autocomplete="name">
             <div class="ferr" id="e-nome" hidden>Informe seu nome para a equipe saber com quem falar.</div>
           </div>
           <div>
             <label class="lbl" for="c-contato">E-mail ou telefone</label>
-            <input class="inp" id="c-contato" autocomplete="email" placeholder="seu@email.com ou (13) 99999-0000">
+            <input placeholder="E-mail ou telefone com DDD" class="inp" id="c-contato" autocomplete="email">
             <div class="ferr" id="e-contato" hidden>Informe um e-mail válido ou um telefone com DDD.</div>
           </div>
           <div>
@@ -537,7 +558,7 @@ select{caret-color:auto}
           </div>
           <div>
             <label class="lbl" for="c-msg">Mensagem</label>
-            <textarea class="inp" id="c-msg" placeholder="Ex.: quero reservar dois guarda-sóis para sábado às 11h, somos 4 pessoas."></textarea>
+            <textarea placeholder="Descreva como podemos ajudar" class="inp" id="c-msg"></textarea>
             <div class="ferr" id="e-msg" hidden>Escreva pelo menos algumas palavras sobre o que precisa.</div>
           </div>
           <div id="c-alert" class="alert alert-err" role="alert" hidden></div>
@@ -558,15 +579,15 @@ select{caret-color:auto}
       <section data-sec="termos">
         <p class="eyebrow">Documento legal</p>
         <h2>Termos de uso</h2>
-        <p>Última atualização: 6 de outubro de 2026. Ao acessar o cardápio digital, criar uma conta ou fazer um pedido pelo Sunfood, você concorda com as regras descritas abaixo.</p>
+        <p>Última atualização: 18 de outubro de 2026. Ao acessar o cardápio digital, criar uma conta ou fazer um pedido pelo Sunfood, você concorda com as regras descritas abaixo.</p>
         <h3>1. Natureza do serviço</h3>
         <p>O Sunfood é um sistema de pedidos online desenvolvido para operar em um quiosque de praia específico. O acesso é feito pelo navegador do próprio celular do cliente, a partir do QR Code fixado no quiosque ou do endereço sunfood.app.br, e abre o cardápio, o carrinho e o pagamento. O Sunfood não é uma plataforma multi-tenant nem um marketplace que conecta vários estabelecimentos independentes: cada instância do sistema pertence e é operada por um único quiosque.</p>
         <h3>2. Cadastro e conta de usuário</h3>
         <p>Para fazer um pedido, o cliente cria uma conta informando nome, e-mail, senha, telefone, CPF e data de nascimento, ou entra com a conta Google e completa esses dados no primeiro acesso. A senha é armazenada apenas em formato criptografado (hash), nunca em texto puro, e é de responsabilidade do usuário mantê-la em sigilo. O usuário é responsável pela veracidade dos dados informados no cadastro e por qualquer atividade realizada com sua conta, devendo comunicar imediatamente o quiosque em caso de suspeita de uso indevido. Contas de administração e de cozinha são criadas e geridas exclusivamente pelo quiosque, para uso interno da operação.</p>
         <h3>3. Pedidos e pagamento</h3>
-        <p>Cada pedido é vinculado ao número da mesa ou guarda-sol informado pelo cliente ao fazer o pedido. O quiosque pode estabelecer um valor mínimo de pedido, exibido no carrinho antes da confirmação. O pagamento é processado por meio da plataforma Mercado Pago, aceitando PIX e cartão de crédito. O Sunfood não armazena, processa ou tem acesso a números de cartão, CVV ou dados sensíveis de pagamento: essas informações são inseridas diretamente na interface do Mercado Pago e ficam sob a responsabilidade exclusiva dessa instituição, sujeitas aos próprios termos e políticas dela. O Sunfood recebe apenas a confirmação do status do pagamento (aprovado, recusado ou pendente).</p>
+        <p>Cada pedido é vinculado ao número da mesa ou guarda-sol informado pelo cliente ao fazer o pedido. O quiosque pode estabelecer um valor mínimo de pedido, exibido no carrinho antes da confirmação. O pagamento pelo app é processado pela plataforma Stripe, aceitando PIX e cartão de crédito; também é possível pagar na entrega, direto ao garçom. O Sunfood não armazena, processa ou tem acesso a números de cartão, CVV ou dados sensíveis de pagamento: essas informações são inseridas diretamente nos campos do Stripe e ficam sob a responsabilidade exclusiva dessa instituição, sujeitas aos próprios termos e políticas dela. Se o cliente marcar a opção de salvar o cartão, ele fica guardado no Stripe, e não no Sunfood. O Sunfood recebe apenas a confirmação do status do pagamento (aprovado, recusado ou pendente).</p>
         <h3>4. Cancelamento de pedidos</h3>
-        <p>O cancelamento de um pedido pelo cliente só é permitido enquanto o status do pedido estiver como <strong>"Na fila"</strong>, ou seja, antes de a cozinha iniciar o preparo. Uma vez que o pedido avança para "Em preparo" ou "Pronto", o cancelamento pelo próprio cliente não é mais possível pelo aplicativo, sendo necessário buscar diretamente o atendimento do quiosque, que avaliará o caso conforme sua política interna de estorno. Em caso de cancelamento aprovado após o pagamento, o eventual estorno segue as regras e prazos da forma de pagamento utilizada (PIX ou cartão) e da plataforma Mercado Pago.</p>
+        <p>O cancelamento de um pedido pelo cliente só é permitido enquanto o status do pedido estiver como <strong>"Na fila"</strong>, ou seja, antes de a cozinha iniciar o preparo. Uma vez que o pedido avança para "Em preparo" ou "Pronto", o cancelamento pelo próprio cliente não é mais possível pelo aplicativo, sendo necessário buscar diretamente o atendimento do quiosque, que avaliará o caso conforme sua política interna de estorno. Em caso de cancelamento aprovado após o pagamento, o eventual estorno segue as regras e prazos da forma de pagamento utilizada (PIX ou cartão) e da plataforma Stripe.</p>
         <h3>5. Responsabilidades do quiosque</h3>
         <p>O quiosque é responsável por manter o cardápio atualizado, incluindo preços, disponibilidade e descrição dos itens; por preparar e entregar os pedidos recebidos; pela qualidade e segurança dos alimentos e bebidas comercializados; e por informações claras sobre alérgenos, quando aplicável. O quiosque também é responsável pela precisão dos dados de contato e de funcionamento exibidos no sistema.</p>
         <h3>6. Responsabilidades do cliente</h3>
@@ -581,7 +602,7 @@ select{caret-color:auto}
       <section data-sec="privacidade">
         <p class="eyebrow">Documento legal · LGPD</p>
         <h2>Política de privacidade</h2>
-        <p>Última atualização: 6 de outubro de 2026. Este documento explica quais dados pessoais o Sunfood coleta, para que servem e quais direitos você tem sobre eles, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
+        <p>Última atualização: 18 de outubro de 2026. Este documento explica quais dados pessoais o Sunfood coleta, para que servem e quais direitos você tem sobre eles, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
         <h3>1. Quais dados coletamos</h3>
         <p>Para o funcionamento do sistema, coletamos e armazenamos:</p>
         <ul>
@@ -594,7 +615,7 @@ select{caret-color:auto}
           <li><strong>Histórico de pedidos</strong>: itens, valores, status e horários de pedidos já realizados.</li>
           <li><strong>Mensagens do Fale conosco</strong>: nome, contato, motivo e texto enviados, para a administração responder.</li>
         </ul>
-        <p><strong>O que não coletamos:</strong> o Sunfood não coleta nem armazena número de cartão de crédito, código de segurança (CVV), data de validade ou qualquer outro dado sensível de pagamento. Essas informações são digitadas diretamente na interface do Mercado Pago e permanecem sob a guarda exclusiva dessa instituição.</p>
+        <p><strong>O que não coletamos:</strong> o Sunfood não coleta nem armazena número de cartão de crédito, código de segurança (CVV), data de validade ou qualquer outro dado sensível de pagamento. Essas informações são digitadas diretamente nos campos do Stripe e permanecem sob a guarda exclusiva dessa instituição. No pagamento com cartão, o Sunfood pede o nome e o CPF do titular para conferir a compra: o nome é enviado ao Stripe, e do CPF só vão os três primeiros e os dois últimos dígitos.</p>
         <h3>2. Finalidade e base legal de cada dado</h3>
         <p>Os dados de cadastro são tratados com base na <strong>execução de contrato</strong> (art. 7º, V, da LGPD): sem eles não é possível criar a conta necessária para fazer um pedido. O número da mesa ou guarda-sol e o histórico de pedidos também têm base na execução do contrato, viabilizando a entrega correta e o suporte a pedidos anteriores. Quando o cadastro envolve o uso de cookies não essenciais ou comunicações de marketing (por exemplo, ofertas por e-mail), a base legal passa a ser o <strong>consentimento</strong> (art. 7º, I), sempre solicitado de forma destacada e revogável a qualquer momento.</p>
         <h3>3. Por quanto tempo os dados são guardados</h3>
@@ -602,10 +623,13 @@ select{caret-color:auto}
         <h3>4. Com quem os dados são compartilhados</h3>
         <p>Os dados pessoais podem ser compartilhados com:</p>
         <ul>
-          <li><strong>Mercado Pago</strong>: para processar o pagamento dos pedidos (PIX e cartão). Dados de pagamento são inseridos diretamente nessa plataforma e regidos pela política de privacidade dela.</li>
+          <li><strong>Stripe</strong>: para processar o pagamento dos pedidos pelo app (PIX e cartão). Recebe o e-mail e o nome do cliente, o valor do pedido e, no cartão, o nome e parte do CPF do titular. Os dados do cartão são inseridos diretamente nos campos do Stripe e regidos pela política de privacidade dele.</li>
           <li><strong>Supabase</strong>: atua como operador de dados, hospedando o banco de dados e a infraestrutura do sistema (cadastro de usuários, pedidos e cardápio) em nome do quiosque, sem uso próprio dessas informações para outras finalidades.</li>
+          <li><strong>Vercel</strong>: hospeda o servidor (API) do Sunfood, por onde passam o login, os pedidos e os pagamentos, sem uso próprio dessas informações.</li>
+          <li><strong>Resend</strong>: envia por e-mail a resposta da administração a quem escreveu pelo Fale conosco, e recebe só o e-mail, o nome e o texto da resposta.</li>
           <li><strong>Google</strong>: somente para quem escolhe entrar com a conta Google, que confirma a identidade e informa nome e e-mail.</li>
         </ul>
+        <p><strong>Transferência internacional:</strong> o banco de dados (Supabase) e o servidor (Vercel) ficam nos Estados Unidos, e o Stripe também processa dados fora do Brasil. Essa transferência é feita para executar o contrato com o cliente (art. 33, IX, da LGPD), com empresas que adotam cláusulas contratuais de proteção de dados.</p>
         <p>Não vendemos nem alugamos dados pessoais a terceiros para fins de publicidade.</p>
         <h3>5. Cookies e armazenamento local</h3>
         <p>Após o login, o token de sessão é guardado no armazenamento local (localStorage) do navegador do próprio dispositivo, permitindo manter o usuário conectado sem exigir login a cada tela. Esse token fica salvo apenas no aparelho do cliente e pode ser removido a qualquer momento limpando os dados do site no navegador ou saindo da conta. Não usamos cookies de rastreamento de terceiros para publicidade.</p>
@@ -637,8 +661,6 @@ var busy = false;
 
 function show(text, ok) {
   $('msg').textContent = text;
-  // Ícone discreto no alerta de erro (o texto continua sendo o da API).
-  if (text && !ok) $('msg').insertAdjacentHTML('afterbegin', ICO_ERRO);
   $('msg').className = 'alert ' + (ok ? 'alert-ok' : 'alert-err');
   $('msg').hidden = !text;
 }
@@ -773,8 +795,8 @@ $('login').addEventListener('submit', async function (e) {
       return;
     }
     try { localStorage.setItem('sunfood_session', JSON.stringify({ token: data.token, refreshToken: data.refreshToken, user: data.user })); } catch (err) {}
-    show('Bem-vindo(a), ' + data.user.name + '! Abrindo o Sunfood…', true);
-    location.href = window.SUNFOOD_DEST[data.user.role] || window.SUNFOOD_DEST.cliente;
+    // replace: o login não fica no histórico, então o voltar do celular não volta para ele.
+    location.replace(window.SUNFOOD_DEST[data.user.role] || window.SUNFOOD_DEST.cliente);
   } catch (err) {
     show('Falha de conexão com o servidor. Confira sua internet e tente de novo.');
   } finally {

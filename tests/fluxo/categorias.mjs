@@ -65,8 +65,8 @@ const SIZES = [['celular', 390, 844], ['tablet', 820, 1180], ['computador', 1280
 // 1. Cardápio do cliente: nenhum item mostra foto (só a cor da categoria + ícone).
 await step('cardápio sem fotos', async () => {
   const page = await open('app-cliente.dc.html', { role: 'cliente' });
-  await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
   const imgs = await page.evaluate(() => [...document.querySelectorAll('.pcard .pimg span')].filter(s => /background-image:\s*url\("?[^")]/.test(s.getAttribute('style') || '')).length);
   const icons = await page.locator('.pcard .pimg svg').count();
@@ -92,7 +92,12 @@ await step('admin gerencia categorias', async () => {
   const nova = page.api.db.categories.find(c => c.name === 'Porções');
   check('admin: cria categoria com a cor escolhida', nova && nova.color === 'verde', JSON.stringify(nova));
   check('admin: nova categoria entra no fim da lista', (await catOrder(page)).at(-1) === 'Porções');
-  check('admin: nova categoria aparece no filtro e no formulário', (await page.locator('.pills .fpill', { hasText: 'Porções' }).count()) === 1 && (await page.locator('.col-side .fpill', { hasText: 'Porções' }).count()) === 1);
+  // A janela de categorias cobre a tela: fecha no X para abrir o formulário.
+  await page.locator('.catpanel [aria-label="Fechar"]').click(); await page.waitForTimeout(300);
+  check('admin: X fecha a janela de categorias', (await page.locator('.catpanel').count()) === 0);
+  check('admin: nova categoria aparece no filtro e no formulário', (await page.locator('.pills .fpill', { hasText: 'Porções' }).count()) === 1 && (await page.getByText('+ Novo produto').first().click().then(() => page.locator('.pf-dialog .fpill', { hasText: 'Porções' }).count())) === 1);
+  await page.locator('.pf-dialog').getByText('Cancelar', { exact: true }).click(); await page.waitForTimeout(300);
+  await click(page, 'Categorias', true);
   await page.locator('#catNewInp').fill('porções');
   await click(page, 'Adicionar', true);
   check('admin: avisa nome repetido', (await page.locator('.catpanel').innerText()).includes('Já existe uma categoria com esse nome.'));
@@ -126,7 +131,14 @@ await step('admin gerencia categorias', async () => {
     const btn = await page.locator('.catrow .iconbtn').first().boundingBox();
     check(`admin ${nome}: painel cabe sem rolagem lateral`, scroll <= 0, String(scroll));
     check(`admin ${nome}: botões de ordem com área de toque boa`, btn && btn.width >= 40 && btn.height >= 40, JSON.stringify(btn));
-    if (SHOTS) { await page.locator('.catpanel').scrollIntoViewIfNeeded(); await page.screenshot({ path: `${SHOTS}/admin-categorias-${nome}.png`, fullPage: true }); }
+    // Janela inteira dentro da tela: X no topo e "Nova categoria" no pé à vista sem rolar.
+    const vis = await page.evaluate(() => {
+      const r = el => el && el.getBoundingClientRect();
+      const d = r(document.querySelector('.catpanel')), x = r(document.querySelector('.catpanel [aria-label="Fechar"]')), inp = r(document.querySelector('#catNewInp'));
+      return { ok: !!(d && x && inp) && d.top >= 0 && d.bottom <= innerHeight + 1 && x.top >= 0 && inp.bottom <= innerHeight && inp.top >= 0, d: d && [d.top, d.bottom, d.width], h: innerHeight };
+    });
+    check(`admin ${nome}: janela cabe na tela com X e nova categoria à vista`, vis.ok, JSON.stringify(vis));
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/admin-categorias-${nome}.png` });
   }
   await catRow(page, 'Porções').getByText('Sim, excluir').click(); await page.waitForTimeout(500);
   check('admin: exclui a categoria vazia', !page.api.db.categories.some(c => c.name === 'Porções') && !(await catOrder(page)).includes('Porções'));
@@ -141,8 +153,8 @@ await step('cliente vê categorias novas', async () => {
     .map(([name, color], i) => ({ name, color, position: i + 1 }));
   api.db.products.find(p => p.id === 'p4').category = 'Porções';
   const page = await open('app-cliente.dc.html', { role: 'cliente', api });
-  await page.getByPlaceholder('voce@email.com').fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
   check('cliente: abas seguem a ordem e escondem categoria vazia', JSON.stringify(await tabs(page)) === JSON.stringify(['Todos', 'Bebidas', 'Porções', 'Petiscos', 'Sobremesas']), JSON.stringify(await tabs(page)));
   await click(page, 'Porções', true);

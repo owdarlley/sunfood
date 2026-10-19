@@ -70,8 +70,8 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 
 const called = (page, p) => page.api.db.calls.filter(c => c.p === p);
 async function login(page) {
-  await page.getByPlaceholder('voce@email.com').first().fill('ana@email.com');
-  await page.getByPlaceholder('••••••••').fill('senha');
+  await page.getByLabel('E-mail', { exact: true }).first().fill('ana@email.com');
+  await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
 }
 
@@ -79,18 +79,21 @@ async function login(page) {
 await step('cadastro', async () => {
   // O cadastro abre pelo "Criar conta" do login principal, que leva direto a esta tela.
   const page = await open('app-cliente.dc.html?module=cliente&screen=signup');
-  await page.getByPlaceholder('Ana Souza').fill('Ana Teste');
-  await page.getByPlaceholder('voce@email.com').fill('ana@teste.com');
-  await page.getByPlaceholder('(11) 91234-5678').fill('11 91234-5678');
-  await page.locator('input[type=date]').fill('2000-01-01');
-  await page.getByPlaceholder('Mínimo 6 caracteres').fill('senha123');
-  await page.getByPlaceholder('Repita a senha').fill('senha123');
+  await click(page, 'Criar minha conta');
+  { const t0 = await text(page); check('cadastro: vazio mostra o erro de cada campo de uma vez', called(page, '/auth/signup').length === 0 && ['Informe seu nome completo', 'Informe um e-mail válido', 'telefone/WhatsApp com DDD', 'CPF inválido', 'dd/mm/aaaa', 'aceitar os termos'].every(x => t0.includes(x)), t0.slice(0, 400)); }
+  check('cadastro: campos com erro marcados como inválidos', await page.locator('input[aria-invalid=true]').count() >= 6);
+  await page.getByLabel('Nome completo', { exact: true }).fill('Ana Teste');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@teste.com');
+  await page.getByLabel('WhatsApp / telefone', { exact: true }).fill('11 91234-5678');
+  await page.getByLabel('Data de nascimento', { exact: true }).fill('01/01/2000');
+  await page.getByLabel('Senha', { exact: true }).fill('senha123');
+  await page.getByLabel('Confirmar senha', { exact: true }).fill('senha123');
   await page.locator('input[type=checkbox]').check();
-  await page.getByPlaceholder('voce@email.com').fill('ana@teste');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@teste');
   await click(page, 'Criar minha conta');
   check('cadastro: e-mail sem domínio completo não envia', called(page, '/auth/signup').length === 0 && (await text(page)).includes('Informe um e-mail válido'));
-  await page.getByPlaceholder('voce@email.com').fill('ana@teste.com');
-  const cpf = page.getByPlaceholder('000.000.000-00');
+  await page.getByLabel('E-mail', { exact: true }).fill('ana@teste.com');
+  const cpf = page.getByLabel('CPF', { exact: true });
   await cpf.pressSequentially('12345678900');
   check('cadastro: pontua o CPF enquanto digita', await cpf.inputValue() === '123.456.789-00', await cpf.inputValue());
   check('cadastro: avisa na hora que o CPF é inválido', (await text(page)).includes('CPF inválido'));
@@ -133,9 +136,9 @@ await step('pedido mínimo', async () => {
   await click(page, 'no carrinho');
   let t = await text(page);
   check('mínimo: carrinho avisa "Pedido mínimo de R$ 30,00"', t.includes('Pedido mínimo de R$ 30,00'));
-  await click(page, 'Ir para pagamento');
+  await click(page, 'Escolher a mesa');
   t = await text(page);
-  check('mínimo: não deixa ir para a mesa', !t.includes('Confirmar mesa'));
+  check('mínimo: não deixa ir para a mesa', !t.includes('Escolher pagamento'));
   check('mínimo: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
   await page.close();
 });
@@ -148,9 +151,9 @@ await step('dia encerrado', async () => {
   check('dia encerrado: cardápio mostra o aviso', t.includes('encerrou o dia'));
   await click(page, '+', true); await click(page, '+', true);
   await click(page, 'itens no carrinho');
-  await click(page, 'Ir para pagamento');
+  await click(page, 'Escolher a mesa');
   t = await text(page);
-  check('dia encerrado: não deixa ir para a mesa', !t.includes('Confirmar mesa'));
+  check('dia encerrado: não deixa ir para a mesa', !t.includes('Escolher pagamento'));
   check('dia encerrado: nenhum pedido enviado', page.api.db.orders.length === 0);
   await page.close();
 });
@@ -159,12 +162,16 @@ await step('dia encerrado', async () => {
 await step('excluir conta', async () => {
   const page = await open('app-cliente.dc.html');
   await login(page);
-  await click(page, 'Perfil');
+  await page.getByText('Perfil', { exact: true }).filter({ visible: true }).first().click(); await page.waitForTimeout(500);
   await click(page, 'Excluir minha conta');
   check('excluir: pede confirmação', (await text(page)).includes('Excluir sua conta?'));
   await click(page, 'Sim, excluir conta');
+  check('excluir: sem senha não chama a API', called(page, '/auth/delete-account').length === 0 && (await text(page)).includes('Digite sua senha'));
+  await page.getByLabel('Sua senha').fill('praia2026');
+  await click(page, 'Sim, excluir conta');
   const call = called(page, '/auth/delete-account')[0];
   check('excluir: chama a API com o token do cliente', call && call.auth === 'Bearer tok', JSON.stringify(call));
+  check('excluir: manda a senha digitada', call && call.body && call.body.password === 'praia2026', JSON.stringify(call));
   const t = await text(page);
   check('excluir: volta para o login', t.includes('Esqueci minha senha'));
   check('excluir: apaga a sessão salva', await page.evaluate(() => localStorage.getItem('sunfood_session')) === null);

@@ -1,4 +1,5 @@
 # GitHub Pages: publica a pasta .well-known (assetlinks.json do app Android)
-# e deixa o projeto Android fora do site.
+# e deixa fora do site o que não é página: o projeto Android, a API (server/),
+# os testes de tela e este README.
 include: [".well-known"]
-exclude: ["android"]
+exclude: ["android", "server", "tests", "README.md"]

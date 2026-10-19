@@ -2,6 +2,10 @@
 <html>
 <head>
 <meta charset="utf-8">
+<!-- Segurança: só roda script do próprio site, do unpkg (React) e do Stripe;
+     nada de plugin (object) nem troca do endereço base. inline/eval ficam
+     liberados porque o runtime das telas (support.js) precisa deles. -->
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="./support.js"></script>
 <link rel="manifest" href="manifest.json">
@@ -26,14 +30,14 @@
    e campos com 52 px, cantos 16 (cards), 14 (botões) e 12 (campos), fonte
    Manrope, títulos em peso 800 e texto 15/16 com line-height 1.5. */
 :root{
-  --px:24px;--gap:12px;--sec:24px;--cpad:16px;--ctl:52px;
-  --fs-h1:26px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;
-  --r-card:16px;--r-btn:14px;--r-ctl:12px;
+  --px:16px;--gap:12px;--sec:24px;--cpad:14px;--ctl:48px;
+  --fs-h1:24px;--fs-h2:18px;--fs-h3:16px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;
+  --r-card:14px;--r-btn:8px;--r-ctl:8px;
   --brand:#1F5A63;--brand-hover:#174A52;--brand-tint:#E6EFF0;--bg:#F7F5F0;--ink:#14232A;--ink-2:#55626A;
   --line:#E5E0D5;--field:#8F8676;--field-hover:#55626A;--ring:0 0 0 3px rgba(31,90,99,.2)
 }
-@media (min-width:768px){:root{--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px}}
-@media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
+@media (min-width:768px){:root{--px:24px;--gap:16px;--sec:28px;--cpad:16px;--fs-h1:28px;--fs-h2:20px;--fs-h3:17px}}
+@media (min-width:1025px){:root{--px:32px;--gap:20px;--sec:40px;--cpad:20px;--ctl:44px;--fs-h1:32px;--fs-h2:22px;--fs-h3:18px;--fs-body:16px}}
 
   html,body{margin:0;padding:0}
   body{background:#F7F5F0;font-family:'Manrope',system-ui,sans-serif;font-size:var(--fs-body);line-height:1.5;color:#14232A;-webkit-font-smoothing:antialiased}
@@ -63,11 +67,17 @@
   .inp{width:100%;min-height:var(--ctl);border:1px solid var(--field);border-radius:var(--r-ctl);padding:8px 16px;font:500 16px 'Manrope',system-ui,sans-serif;color:var(--ink);background:#fff;outline:none;transition:border-color .15s ease-out,box-shadow .15s ease-out}
   .inp:hover{border-color:var(--field-hover)}
   .inp:focus{border-color:var(--brand);box-shadow:var(--ring)}
+  /* Avisos (erro, atenção, sucesso, informação): um estilo só em todo o app.
+     Fundo branco como os cartões, borda e ícone na cor do tipo, texto escuro. */
   .inp::placeholder{color:#737C82;opacity:1}
-  .alert{border-radius:var(--r-ctl);padding:12px 16px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;display:flex;gap:12px;align-items:flex-start}
-  .alert-err{background:#FDECEA;color:#8A1C12;border:1px solid #F0C2BC}
-  .alert-ok{background:#E5F7EA;color:#1E6B36;border:1px solid #BFE3CB}
-  .alert-info{background:#E6EFF0;color:#174A52;border:1px solid #D2E3E5}
+  .alert{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E");position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 16px 12px 44px;border-radius:12px;background:#fff;border:1px solid var(--al-line);box-shadow:0 1px 2px rgba(20,35,42,.04);color:#14232A;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;text-align:left}
+  .alert::before{content:"";position:absolute;left:16px;top:13px;width:18px;height:18px;background:var(--al);-webkit-mask:var(--al-ico) center/contain no-repeat;mask:var(--al-ico) center/contain no-repeat}
+  .alert:has(> svg){padding-left:16px}
+  .alert:has(> svg)::before{content:none}
+  .alert-err{--al:#B42318;--al-line:#F3D3CB;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 7.5v5.5M12 16.5v.01'/%3E%3C/svg%3E")}
+  .alert-warn{--al:#B0791A;--al-line:#F1DDB1;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5 2.8 19.5h18.4z'/%3E%3Cpath d='M12 10v4M12 17v.01'/%3E%3C/svg%3E")}
+  .alert-ok{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='m8 12.5 2.7 2.7L16 9.8'/%3E%3C/svg%3E")}
+  .alert-info{--al:#1F5A63;--al-line:#D2E3E5;--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E")}
   .icon{width:56px;height:56px;border-radius:var(--r-card);background:var(--brand-tint);display:flex;align-items:center;justify-content:center}
   .auth{min-height:100vh;display:flex}
   .auth-art{flex:0 0 48%;max-width:620px;background:#1F5A63;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:48px}
@@ -136,7 +146,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         <div style="display:flex;flex-direction:column;gap:16px">
           <div class="icon" style="background:#FFF4DB"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B0791A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg></div>
           <div>
-            <div class="tt" style="font-size:var(--fs-h1)">{{ invalidTitle }}</div>
+            <h1 class="tt" style="font-size:var(--fs-h1);margin:0">{{ invalidTitle }}</h1>
             <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">{{ invalidMsg }}</div>
           </div>
           <a href="app-cliente.dc.html?module=cliente&amp;screen=forgot" class="btn btn-sun">Pedir um novo link</a>
@@ -149,7 +159,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
           <div style="display:flex;flex-direction:column;gap:16px">
             <div class="icon" style="background:#E5F7EA"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2E9C6A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></div>
             <div>
-              <div class="tt" style="font-size:var(--fs-h1)">Tudo certo!</div>
+              <h1 class="tt" style="font-size:var(--fs-h1);margin:0">Tudo certo!</h1>
               <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">Senha redefinida com sucesso. Já dá pra entrar com a nova senha.</div>
             </div>
             <a href="app-cliente.dc.html" class="btn btn-sun">Ir para o login</a>
@@ -159,16 +169,16 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
           <div style="display:flex;flex-direction:column;gap:16px">
             <div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></div>
             <div>
-              <div class="tt" style="font-size:var(--fs-h1)">Crie sua nova senha</div>
+              <h1 class="tt" style="font-size:var(--fs-h1);margin:0">Crie sua nova senha</h1>
               <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">Escolha uma senha com pelo menos 6 caracteres. Depois é só entrar com ela no app.</div>
             </div>
             <div>
               <span class="lbl">Nova senha</span>
-              <input class="inp" type="password" autocomplete="new-password" value="{{ newPass }}" onChange="{{ setNewPass }}" placeholder="Mínimo 6 caracteres">
+              <input placeholder="Mínimo de 6 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ newPass }}" onChange="{{ setNewPass }}" aria-label="Nova senha">
             </div>
             <div>
               <span class="lbl">Confirmar nova senha</span>
-              <input class="inp" type="password" autocomplete="new-password" value="{{ confirmPass }}" onChange="{{ setConfirmPass }}" placeholder="Repita a senha">
+              <input placeholder="Digite a nova senha novamente" class="inp" type="password" autocomplete="new-password" value="{{ confirmPass }}" onChange="{{ setConfirmPass }}" aria-label="Confirmar nova senha">
             </div>
             <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
               <div class="alert alert-err" role="alert">{{ err }}</div>

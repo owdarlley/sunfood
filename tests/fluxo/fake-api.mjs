@@ -6,7 +6,7 @@ export const FAKE_CHECKOUT_URL = 'https://www.mercadopago.com.br/checkout/teste'
 // Endereço das fotos enviadas (o teste serve uma imagem pequena nele).
 export const FAKE_PHOTO_BASE = 'https://teste.supabase.co/storage/v1/object/public/produtos/';
 
-export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
+export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTest = false, stripeInApp = false, stripePix = false } = {}) {
   const now = () => new Date().toISOString();
   const db = {
     products: [
@@ -23,7 +23,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     kiosk: { paused: false, dayClosed: false, cancelWindowMinutes: 0 },
     orders: [],
     contacts: [],
-    paymentsConfigured,
+    paymentsConfigured, stripeTest, stripeInApp, stripePix,
   };
   const user = { id: 'u1', email: role + '@teste', name: 'Teste', role, avatarUrl: null, avatarPreset: null, notifyReady: true, soundOn: true };
   // Tela Perfil (GET/PATCH /auth/profile, foto e trocar senha). A senha atual certa é "senha-atual".
@@ -100,9 +100,12 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     }
     if (p === '/kiosk-settings/cancel-window') { db.kiosk.cancelWindowMinutes = body.minutes; return json(200, db.kiosk); }
     if (p === '/kiosk-settings') return json(200, db.kiosk);
-    if (p === '/orders/mine') return json(200, db.orders);
+    // Cliente vê os próprios estornos (valor, motivo, itens e quando), sem quem fez.
+    const withRefunds = o => o && ({ ...o, refunds: (db.refunds || []).filter(x => x.orderId === o.id).map(({ amount, reason, items, at }) => ({ amount, reason, items: items || [], at })) });
+    if (p === '/orders/mine') return json(200, db.orders.map(withRefunds));
     if (p === '/orders' && m === 'GET') return json(200, db.orders);
     if (p === '/orders' && m === 'POST') {
+      if (db.orderDelayMs) await new Promise(res => setTimeout(res, db.orderDelayMs));
       const items = body.items.map(i => { const pr = db.products.find(x => x.id === i.productId);
         return { productId: pr.id, name: pr.name, qty: i.qty, unitPrice: pr.price, note: i.note }; });
       const subtotal = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
@@ -130,6 +133,8 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
       return json(200, { period, from: byDay[0].date, to: byDay[days - 1].date, delivered: byDay.reduce((a, d) => a + d.delivered, 0),
         avgDeliverMin: 3.5, launched: days, launchedTotal: 33 * days, received: 27.5, byDay });
     }
+    // A cozinha pergunta se há garçom (com garçom, quem marca Entregue é ele).
+    if (p === '/waiters/any') return json(200, { hasWaiters: !!db.hasWaiters });
     db.waiters = db.waiters || [{ id: 'w1', name: 'Carlos Souza', email: 'carlos@sunfood.com', active: true, deliveredToday: 4, launchedToday: 2 }];
     if (p === '/waiters' && m === 'GET') return json(200, db.waiters);
     if (p === '/waiters' && m === 'POST') {
@@ -139,21 +144,75 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true } = {}) {
     }
     let r;
     if ((r = p.match(/^\/payments\/card\/([^/]+)$/))) { db.cardReturnUrl = body.returnUrl;
-      if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
+      if (!db.paymentsConfigured && !db.stripeTest) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { checkoutUrl: FAKE_CHECKOUT_URL }); }
     if ((r = p.match(/^\/payments\/pix\/([^/]+)$/))) {
+      if (db.stripePix) return json(200, { qrCode: '000201STRIPEPIX', qrCodeImageUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E', testPayUrl: 'https://payments.stripe.com/pix/teste' });
       if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '' }); }
-    if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured });
+    if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured,
+      pix: db.paymentsConfigured ? 'mercadopago' : db.stripePix ? 'stripe' : 'provisorio',
+      card: db.stripeTest ? 'stripe' : db.paymentsConfigured ? 'mercadopago' : 'provisorio', cardTestMode: db.stripeTest,
+      stripePublishableKey: db.stripeTest && db.stripeInApp ? 'pk_test_fake' : null });
+    if ((r = p.match(/^\/payments\/card-holder\/([^/]+)$/))) {
+      db.cardHolder = body;
+      return json(200, { ok: true }); }
+    if ((r = p.match(/^\/payments\/card-intent\/([^/]+)$/))) {
+      db.cardIntentCalls = (db.cardIntentCalls || 0) + 1;
+      db.cardIntentSession = url.searchParams.get('session');
+      const ord = db.orders.find(o => o.id === r[1]);
+      return json(200, { clientSecret: 'pi_fake_secret_' + r[1], amount: Math.round((ord ? ord.total : 0) * 100), publishableKey: 'pk_test_fake',
+        customerSessionClientSecret: db.cardIntentSession === '0' ? null : 'cuss_fake_secret' }); }
+    if (p === '/payments/card-session') {
+      db.cardSessionCalls = (db.cardSessionCalls || 0) + 1;
+      return json(200, { customerSessionClientSecret: 'cuss_fake_secret', publishableKey: 'pk_test_fake' }); }
+    if ((r = p.match(/^\/waiters\/([^/]+)\/report$/)) && m === 'GET') {
+      const w = db.waiters.find(w => w.id === r[1]);
+      if (!w) return json(404, { error: 'Garçom não encontrado.' });
+      const period = url.searchParams.get('period') || 'hoje';
+      const days = { hoje: 1, '7d': 7, '30d': 30 }[period];
+      if (!days) return json(400, { error: 'Período inválido.' });
+      db.lastWaiterReport = { id: w.id, period };
+      const items = [{ name: 'Caipirinha', qty: 2 }, { name: 'Água de Coco', qty: 1 }];
+      const orders = period === '30d' ? [] : [
+        { id: 'ow1', number: 7, tableNumber: 4, status: 'Entregue', total: 56, launched: true, delivered: true, createdAt: now(), items },
+        { id: 'ow2', number: 9, tableNumber: 2, status: 'Entregue', total: 34, launched: false, delivered: true, createdAt: now(), items: items.slice(1) },
+        { id: 'ow3', number: 12, tableNumber: 6, status: 'Cancelado', total: 22, launched: true, delivered: false, createdAt: now(), items: items.slice(0, 1) },
+      ];
+      return json(200, { waiter: { id: w.id, name: w.name, email: w.email, active: w.active },
+        metrics: { period, delivered: 2, avgDeliverMin: 4.5, launched: 1, launchedTotal: 56, received: 56,
+          served: orders.length ? 2 : 0, servedTotal: orders.length ? 90 : 0, avgTicket: orders.length ? 45 : 0, byDay: [] }, orders });
+    }
+    if ((r = p.match(/^\/waiters\/([^/]+)$/)) && m === 'DELETE') {
+      if (!db.waiters.some(w => w.id === r[1])) return json(404, { error: 'Garçom não encontrado.' });
+      db.waiters = db.waiters.filter(w => w.id !== r[1]); db.deletedWaiter = r[1]; return json(200, { id: r[1] });
+    }
     if ((r = p.match(/^\/waiters\/([^/]+)$/)) && m === 'PATCH') { const w = db.waiters.find(w => w.id === r[1]); w.active = body.active; return json(200, { id: w.id, active: w.active }); }
     if ((r = p.match(/^\/orders\/([^/]+)\/payment-received$/))) { const o = db.orders.find(o => o.id === r[1]);
       if (o.paymentMethod !== 'entrega' || o.status === 'Cancelado') return json(409, { error: 'Só pedido na entrega.' });
       Object.assign(o, body.receivedWith ? { paymentStatus: 'approved', receivedWith: body.receivedWith } : { paymentStatus: 'pending', receivedWith: null });
       return json(200, o); }
     if ((r = p.match(/^\/payments\/pix\/([^/]+)\/status$/))) return json(200, { paymentStatus: db.orders.find(o => o.id === r[1]).paymentStatus });
+    // Estorno pelo painel do admin (total cancela; parcial mantém o pedido).
+    if ((r = p.match(/^\/orders\/([^/]+)\/refunds$/))) return json(200, (db.refunds || []).filter(x => x.orderId === r[1]));
+    if ((r = p.match(/^\/orders\/([^/]+)\/refund$/))) { const o = db.orders.find(o => o.id === r[1]);
+      db.refundCalls = (db.refundCalls || []).concat({ id: r[1], ...body });
+      const paid = o.paymentMethod !== 'entrega' && o.paymentStatus === 'approved' && o.paymentProvider !== 'provisorio';
+      const left = paid ? Math.round((o.total - (o.refundedAmount || 0)) * 100) / 100 : 0;
+      const amount = body.cancel ? left : body.amount;
+      if (!body.cancel && (!left || amount > left)) return json(400, { error: 'Valor maior do que dá para estornar.' });
+      if (amount > 0) {
+        o.refundedAmount = Math.round(((o.refundedAmount || 0) + amount) * 100) / 100;
+        if (o.refundedAmount >= o.total) o.paymentStatus = 'refunded';
+        db.refunds = (db.refunds || []).concat({ orderId: o.id, amount, reason: body.reason, items: body.cancel ? [] : body.items || [], by: 'Admin Teste', at: now() });
+      }
+      if (body.cancel) o.status = 'Cancelado';
+      return json(200, { ...o, refundedNow: amount }); }
     if ((r = p.match(/^\/orders\/([^/]+)\/cancel$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = 'Cancelado'; return json(200, o); }
-    if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now(); return json(200, o); }
-    if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, db.orders.find(o => o.id === r[1]));
+    if ((r = p.match(/^\/orders\/([^/]+)\/status$/))) { const o = db.orders.find(o => o.id === r[1]); o.status = body.status; o.updatedAt = now();
+      if (body.receivedWith && o.paymentMethod === 'entrega') Object.assign(o, { paymentStatus: 'approved', receivedWith: body.receivedWith });
+      return json(200, o); }
+    if ((r = p.match(/^\/orders\/([^/]+)$/))) return json(200, withRefunds(db.orders.find(o => o.id === r[1])));
     if ((r = p.match(/^\/products\/([^/]+)$/)) && m === 'PUT') { const pr = db.products.find(x => x.id === r[1]);
       db.lastProductBody = body;
       Object.assign(pr, { name: body.name, price: body.price, category: body.category, description: body.description },
