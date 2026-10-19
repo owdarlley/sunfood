@@ -72,6 +72,10 @@
     var s = (r.height * (noApp ? 32 / 36 : 38 / 48)) / (sol.height * 38 / 48);
     var px = sol.left + sol.width / 2 - L.left, py = sol.top + sol.height / 2 - L.top;
     var tx = r.left + r.width / 2 - L.left - s * px, ty = r.top + r.height / 2 - L.top - s * py;
+    // Com o zoom do app no computador (--sfz) as medidas da tela já vêm
+    // encolhidas e o translate encolhe de novo: divide para casar.
+    var z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sfz')) || 1;
+    tx /= z; ty /= z;
     logo.style.visibility = 'hidden';
     lock.style.transformOrigin = '0 0';
     lock.animate([{ transform: 'none' }, { transform: 'translate(' + tx + 'px,' + ty + 'px) scale(' + s + ')' }],

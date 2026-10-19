@@ -105,11 +105,12 @@ await step('etapas da compra', async () => {
   await page.context().close();
 });
 
-// 9 e 10. Medidas do design system
+// 9 e 10. Medidas do design system (tamanho final na tela: no computador o
+// app tem zoom e os tokens compensam)
 await step('design system', async () => {
   for (const [w, h, ctl, h1, sm] of [[390, 844, 48, 24, 14], [820, 1180, 48, 28, 14], [1280, 800, 44, 32, 14]]) {
     const page = await open('app-cliente.dc.html?module=cliente&screen=menu', { width: w, height: h });
-    const m = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement); const g = k => parseInt(cs.getPropertyValue(k)); return { ctl: g('--ctl'), h1: g('--fs-h1'), sm: g('--fs-sm'), rb: g('--r-btn'), rc: g('--r-ctl') }; });
+    const m = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement); const g = k => { const d = document.createElement('div'); d.style.cssText = 'position:absolute;height:var(' + k + ')'; document.body.appendChild(d); const v = Math.round(d.getBoundingClientRect().height); d.remove(); return v; }; return { ctl: g('--ctl'), h1: g('--fs-h1'), sm: g('--fs-sm'), rb: g('--r-btn'), rc: g('--r-ctl') }; });
     check(`tokens ${w}px: botão ${ctl}, H1 ${h1}, texto pequeno ${sm}, cantos 8`, m.ctl === ctl && m.h1 === h1 && m.sm === sm && m.rb === 8 && m.rc === 8, JSON.stringify(m));
     if (w === 820) {
       const cols = await page.evaluate(() => getComputedStyle(document.querySelector('.grid')).gridTemplateColumns.split(' ').length);
