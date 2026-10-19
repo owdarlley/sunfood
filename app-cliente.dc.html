@@ -707,7 +707,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .kz-col{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad);display:flex;flex-direction:column;gap:12px}
 .kz-colhead{display:flex;align-items:center;justify-content:space-between;font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif;padding:0 0 4px;color:var(--ink)}
 .kz-n{display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:999px;background:var(--divider);font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif;padding:0 8px}
-.kz-card{background:var(--row-hover);border-radius:var(--r-card);padding:16px;border:2px solid var(--divider);display:flex;flex-direction:column;gap:12px}
+.kz-card{background:var(--row-hover);border-radius:var(--r-card);padding:var(--cpad);border:2px solid var(--divider);display:flex;flex-direction:column;gap:12px}
 .kz-card.late{border-color:#D9432F;background:#FFF8F6}
 .kz-mesa{font:800 var(--fs-h2) 'Manrope',system-ui,sans-serif;letter-spacing:-.02em;color:var(--ink)}
 .kz-time{font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif;padding:4px 12px;border-radius:999px;background:var(--divider);color:var(--ink);white-space:nowrap}
@@ -724,7 +724,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .kz-act:hover{background:var(--brand-hover)}
 .kz-empty{color:var(--ink-2);font:500 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;text-align:center;padding:24px 8px}
 .kz-avail{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:8px 4px;border-top:1px solid var(--divider);font:500 var(--fs-body) 'Manrope',system-ui,sans-serif}
-.kz-sound{padding:16px;border-radius:var(--r-card);background:var(--sun-tint);border:1px solid #F3DDA6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--gap)}
+.kz-sound{padding:var(--cpad);border-radius:var(--r-card);background:var(--sun-tint);border:1px solid #F3DDA6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--gap)}
 @media (max-width:1024px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:767px){ .kz-board{grid-template-columns:1fr} }
 /* Garçom: mesmo painel da cozinha. Cartões em 1 coluna no celular, 2 no
@@ -760,7 +760,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .gc-day-n{flex:0 0 32px;text-align:right;font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif}
 /* Tablet: as 3 colunas de pedidos lado a lado. */
 @media (max-width:1024px){
-  .kz-board{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .kz-board{grid-template-columns:repeat(3,minmax(0,1fr))}
   .kz-board .kz-col{padding:12px}
 }
 /* Celular: abas Na fila / Em preparo / Prontos, uma coluna por vez (arrastar
