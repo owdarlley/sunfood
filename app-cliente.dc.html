@@ -627,7 +627,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 @media (max-width:767px){.kz-stats{width:100%;gap:8px}.kz-stats .kz-chip{padding:0 12px}.kz-clock{margin-left:auto;font-size:var(--fs-h2)}}
 .kz-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid rgba(255,255,255,.32);background:transparent;color:#EAF2F3;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer;white-space:nowrap}
 .kz-btn:hover{background:rgba(255,255,255,.1);border-color:#C3D8DB}
-.kz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,.9fr);gap:var(--gap);align-items:start}
+.kz-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gap);align-items:start}
 .kz-col{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:var(--cpad);display:flex;flex-direction:column;gap:12px}
 .kz-colhead{display:flex;align-items:center;justify-content:space-between;font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif;padding:0 0 4px;color:#14232A}
 .kz-n{display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:999px;background:#EFEADF;font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif;padding:0 8px}
@@ -649,12 +649,6 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .kz-empty{color:#55626A;font:500 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;text-align:center;padding:24px 8px}
 .kz-avail{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:8px 4px;border-top:1px solid #EFEADF;font:500 var(--fs-body) 'Manrope',system-ui,sans-serif}
 .kz-sound{padding:16px;border-radius:var(--r-card);background:#FFF4DB;border:1px solid #F3DDA6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--gap)}
-@media (max-width:1400px){
-  .kz-board{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .kz-board > .kz-availcol{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));column-gap:24px;row-gap:0}
-  .kz-board > .kz-availcol > .kz-colhead,.kz-board > .kz-availcol > .kz-sub{grid-column:1/-1}
-  .kz-board > .kz-availcol > .kz-sub{margin:0 0 8px !important}
-}
 @media (max-width:1024px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:767px){ .kz-board{grid-template-columns:1fr} }
 /* Garçom: mesmo painel da cozinha. Cartões em 1 coluna no celular, 2 no
@@ -688,11 +682,9 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .gc-day-lbl{flex:0 0 72px;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2)}
 .gc-day-track{flex:1;height:12px;border-radius:999px;background:#EFEADF;overflow:hidden}
 .gc-day-n{flex:0 0 32px;text-align:right;font:800 var(--fs-sm) 'Manrope',system-ui,sans-serif}
-/* Tablet: as 3 colunas de pedidos lado a lado. A Disponibilidade sai do
-   quadro (fica na tela própria, pelo menu), para não ir parar no fim da página. */
+/* Tablet: as 3 colunas de pedidos lado a lado. */
 @media (max-width:1024px){
   .kz-board{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-  .kz-board > .kz-availcol{display:none !important}
   .kz-board .kz-col{padding:12px}
 }
 /* Celular: abas Na fila / Em preparo / Prontos, uma coluna por vez (arrastar
@@ -2780,13 +2772,6 @@ select{caret-color:auto}
                   </sc-if>
                 </div>
               </sc-for>
-              <div class="kz-col kz-availcol">
-                <div class="kz-colhead"><span>Disponibilidade</span><span class="kz-n">{{ soldOutN }}</span></div>
-                <div class="kz-sub" style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#55626A;margin-top:-8px">Desligue o que acabou: some do cardápio na hora.</div>
-                <sc-for list="{{ availRows }}" as="p" hint-placeholder-count="8">
-                  <div class="kz-avail"><span style="{{ p.nameStyle }}">{{ p.name }}</span><div onClick="{{ p.toggle }}" class="toggle" style="{{ p.swStyle }}"><span style="{{ p.knobStyle }}"></span></div></div>
-                </sc-for>
-              </div>
             </div>
           </sc-if>
         </div>
