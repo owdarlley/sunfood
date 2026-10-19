@@ -119,7 +119,14 @@ html.sf-espera #dc-root{opacity:0}
 @media (min-width:768px){.sf-app,.adm{--ctl:calc(48px / var(--z))}}
 @media (min-width:1025px){.sf-app,.adm{--ctl:calc(44px / var(--z))}}
 /* Interruptores (48 x 28) também ficam no tamanho real. */
-.sf-z .toggle{zoom:calc(1 / var(--z))}
+.sf-z :is(.toggle,.stepper .sb,.pcard .addbtn){zoom:calc(1 / var(--z))}
+/* Alvos de toque com medida fixa: compensados pelo zoom (tamanho real). */
+.iconbtn,.swatch{width:calc(48px / var(--z)) !important;height:calc(48px / var(--z)) !important}
+@media (min-width:1025px){.iconbtn,.swatch{width:var(--tap) !important;height:var(--tap) !important}}
+.gc-tables{grid-template-columns:repeat(auto-fill,minmax(calc(56px / var(--z)),1fr)) !important}
+.gc-table{min-height:calc(56px / var(--z)) !important}
+@media (min-width:1025px){.gc-tables{grid-template-columns:repeat(auto-fill,minmax(calc(64px / var(--z)),1fr)) !important}.gc-table{min-height:calc(64px / var(--z)) !important}}
+.pf-photo{flex-basis:calc(160px / var(--z)) !important;width:calc(160px / var(--z)) !important}
 @media (min-width:768px) and (pointer:coarse){:where(.sf-app,.adm) :is(input,select,textarea){font-size:calc(16px / var(--z)) !important}}
 
 /* ===== Sunfood · componentes =====

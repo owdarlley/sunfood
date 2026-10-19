@@ -53,7 +53,9 @@ const sobra = p => p.evaluate(() => Math.max(0, document.documentElement.scrollH
 // O elemento aparece inteiro dentro da tela, sem rolar.
 const naTela = (p, sel) => p.evaluate(s => { const r = document.querySelector(s).getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight + 1; }, sel);
 
-const escala = (p, sel) => p.evaluate(s => Number(getComputedStyle(document.querySelector(s)).zoom || 1), sel);
+// Escala efetiva na tela: o zoom do elemento vezes o dos pais (o app tem zoom
+// próprio do tablet para cima, que o da tela de cadastro compensa).
+const escala = (p, sel) => p.evaluate(s => { let z = 1; for (let e = document.querySelector(s); e; e = e.parentElement) z *= Number(getComputedStyle(e).zoom || 1); return Math.round(z * 1000) / 1000; }, sel);
 // Escala já definida antes da tela aparecer (sem abrir grande e encolher depois).
 const escalaInicial = p => p.evaluate(() => window.__fitInicial);
 // Altura da tela em 100%, sem o mínimo de uma tela cheia.
