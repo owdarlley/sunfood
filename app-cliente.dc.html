@@ -112,6 +112,12 @@ html.sf-espera #dc-root{opacity:0}
 :root{--z:.83}
 .sf-z{zoom:var(--z)}
 .sf-z .auth{zoom:calc(var(--fit,1) / var(--z))}
+/* Cadastro na mesma escala do login (caber.js, no máximo 83%, também no
+   celular): no celular botões e campos ficam com 48 px reais de toque e, no
+   celular e no tablet, os campos com 16 px reais. */
+.sf-z .auth{min-height:calc(100vh / var(--fit,1));min-height:calc(100dvh / var(--fit,1))}
+@media (max-width:767px){.sf-z .auth{--ctl:calc(48px / var(--fit,1))}}
+@media (max-width:767px),(pointer:coarse){.sf-z .auth :is(input,select,textarea){font-size:calc(16px / var(--fit,1)) !important}}
 /* Botões e campos mantêm a altura de toque real (48 px no tablet e 44 no
    computador; --tap = 44 px para os botões menores), mesmo com o zoom. */
 :root{--tap:calc(44px / var(--z))}

@@ -60,7 +60,7 @@ const escala = (p, sel) => p.evaluate(s => { let z = 1; for (let e = document.qu
 const escalaInicial = p => p.evaluate(() => window.__fitInicial);
 // Altura da tela em 100%, sem o mínimo de uma tela cheia.
 const alturaNatural = (p, sel) => p.evaluate(s => { const e = document.querySelector(s); e.style.minHeight = '0px'; const a = e.offsetHeight; e.style.minHeight = ''; return a; }, sel);
-const escalaOk = async (p, sel, cel) => { const z = await escala(p, sel); return cel ? z === 1 : z >= 0.75; };
+const escalaOk = async (p, sel, cel) => { const z = await escala(p, sel); return cel ? z === 0.83 : z >= 0.75 && z <= 0.83; };
 
 const TELAS = process.env.TELAS ? process.env.TELAS.split(',').map(t => { const [w, h] = t.split('x').map(Number); return [t, { width: w, height: h }]; }) : [
   ['celular baixo', { width: 360, height: 640 }],
@@ -81,11 +81,11 @@ for (const [nome, vw] of TELAS) {
     const p = await open(vw, 'index.html');
     check(`login (${nome}): cabe sem rolar`, await sobra(p) <= 1, `${await sobra(p)} px a mais`);
     check(`login (${nome}): "Conheça o Sunfood" na tela`, await naTela(p, '.foot a[href="#conheca"]'));
-    check(`login (${nome}): escala de 75% ou mais (100% no celular)`, await escalaOk(p, '.lp', cel), await escala(p, '.lp'));
+    check(`login (${nome}): escala entre 75% e 83% (83% no celular)`, await escalaOk(p, '.lp', cel), await escala(p, '.lp'));
     escalas[nome] = { login: await escala(p, '.lp'), loginInicial: await escalaInicial(p) };
     if (vw.width >= 768 && vw.width < 1024) { const a = await alturaNatural(p, '.lp'); check(`login (${nome}): altura de referência certa no tablet (${a} de 968 px)`, a <= 968 && 968 - a <= 12, `${a} px`); }
     check(`login (${nome}): já abre na escala certa`, escalas[nome].loginInicial === escalas[nome].login, `${escalas[nome].loginInicial} -> ${escalas[nome].login}`);
-    check(`login (${nome}): cartões do cardápio sem achatar`, await p.locator('.lp-cat').first().evaluate((e, cel) => e.getBoundingClientRect().height >= (cel ? 140 : 150), cel));
+    check(`login (${nome}): cartões do cardápio sem achatar`, await p.locator('.lp-cat').first().evaluate((e, cel) => e.getBoundingClientRect().height / e.currentCSSZoom >= (cel ? 140 : 150), cel));
     if (cel) {
       await p.locator('#com-email').tap(); await p.waitForTimeout(300);
       check(`login (${nome}): formulário cabe sem rolar`, await sobra(p) <= 1, `${await sobra(p)} px a mais`);
@@ -106,7 +106,7 @@ for (const [nome, vw] of TELAS) {
     check(`cadastro (${nome}): cabe sem rolar`, await sobra(p) <= 1, `${await sobra(p)} px a mais`);
     const btn = p.getByText('Criar minha conta', { exact: true }).first();
     check(`cadastro (${nome}): "Criar minha conta" na tela`, await btn.evaluate(e => e.getBoundingClientRect().bottom <= innerHeight + 1));
-    check(`cadastro (${nome}): escala de 75% ou mais (100% no celular)`, await escalaOk(p, '.auth', cel), await escala(p, '.auth'));
+    check(`cadastro (${nome}): escala entre 75% e 83% (83% no celular)`, await escalaOk(p, '.auth', cel), await escala(p, '.auth'));
     const zc = await escala(p, '.auth');
     check(`cadastro (${nome}): mesma escala do login`, zc === escalas[nome]?.login, `cadastro ${zc}, login ${escalas[nome]?.login}`);
     check(`cadastro (${nome}): já abre na escala certa`, await escalaInicial(p) === zc, `${await escalaInicial(p)} -> ${zc}`);

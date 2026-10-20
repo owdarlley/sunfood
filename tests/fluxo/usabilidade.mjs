@@ -299,7 +299,7 @@ await step('entrada no celular', async () => {
 // 29. Cadastro: mesma marca da entrada e frase de apoio abaixo do título
 await step('cadastro', async () => {
   const page = await open('app-cliente.dc.html?module=cliente&screen=signup', { context: await semSessao() });
-  const r = await page.evaluate(() => { const l = [...document.querySelectorAll('.auth-logo')].find(e => e.offsetParent); const h = document.querySelector('.auth-box h1'); return { logo: l ? Math.round(l.querySelector('svg').getBoundingClientRect().width) : 0, h1: h ? h.innerText : '', antes: !!h && [...document.querySelectorAll('body *')].some(e => e.offsetParent && e.children.length === 0 && /menos de um minuto/.test(e.innerText) && (e.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING)) }; });
+  const r = await page.evaluate(() => { const l = [...document.querySelectorAll('.auth-logo')].find(e => e.offsetParent); const h = document.querySelector('.auth-box h1'); return { logo: l ? Math.round(l.querySelector('svg').getBoundingClientRect().width / l.currentCSSZoom) : 0, h1: h ? h.innerText : '', antes: !!h && [...document.querySelectorAll('body *')].some(e => e.offsetParent && e.children.length === 0 && /menos de um minuto/.test(e.innerText) && (e.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING)) }; });
   check('cadastro: logo de 22 px, igual à entrada', r.logo === 22, String(r.logo));
   check('cadastro: título "Criar conta" é <h1> e nada vem antes dele', r.h1 === 'Criar conta' && !r.antes, JSON.stringify(r));
   await page.context().close();

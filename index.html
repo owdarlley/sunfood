@@ -397,6 +397,19 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 /* Do tablet para cima os espaços ficam fixos (os de uma janela de 640 px) e
    só a escala muda: assim login e cadastro usam a mesma escala (caber.js). */
 @media (min-width:768px){.lp{--lp-h:6.4px;zoom:var(--fit,1)}}
+/* Escala única (2026-10-20, pedido do Dárlley): login e páginas do rodapé
+   ficam em 83%, como o app, também no celular (caber.js nunca passa de 83%).
+   No celular campos e botões continuam com 48 px reais de toque; do tablet
+   para cima as medidas não mudam, para a tela continuar cabendo na altura.
+   No celular e no tablet os campos têm 16 px reais (abaixo disso o iOS dá
+   zoom ao tocar). O vh é dividido pela escala, porque o zoom também encolhe o vh. */
+:root{--z:.83}
+.lp{zoom:var(--fit,1);min-height:calc(100vh / var(--fit,1));min-height:calc(100dvh / var(--fit,1))}
+@media (max-width:767px){.lp{--lp-h:calc(1vh / var(--fit,1))}@supports (height:1dvh){.lp{--lp-h:calc(1dvh / var(--fit,1))}}}
+@media (max-width:767px){.lp{--lg-h:calc(48px / var(--fit,1));--lg-h2:calc(48px / var(--fit,1));--ctl:calc(48px / var(--fit,1))}}
+@media (max-width:767px),(pointer:coarse){.lp{--lg-fs-input:calc(16px / var(--fit,1))}.info :is(input,select,textarea){font-size:calc(16px / var(--z)) !important}}
+.info{zoom:var(--z)}
+.info-close{width:calc(48px / var(--z));height:calc(48px / var(--z))}
 /* Textos iguais aos do cadastro (design system: mínimo de 14 px). */
 .lp{--lg-fs-sub:14px;--lg-fs-label:14px;--lg-fs-link:14px;--lg-fs-btn:16px}
 .lp{padding-top:calc(clamp(4px,calc(1.2 * var(--lp-h)),16px) + env(safe-area-inset-top,0px));padding-bottom:calc(clamp(4px,calc(1.2 * var(--lp-h)),16px) + env(safe-area-inset-bottom,0px))}

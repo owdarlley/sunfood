@@ -1,7 +1,8 @@
 // Caber na tela (2026-10-19): do tablet para cima, a tela de entrada e a de
 // cadastro usam a MESMA escala, calculada só pela altura da janela, para as
-// duas caberem sem rolagem (nunca abaixo de 75%). No celular (< 768 px) a
-// escala fica em 100%: lá os espaços é que encolhem, pelo CSS da página.
+// duas caberem sem rolagem (nunca abaixo de 75%). No celular (< 768 px) os
+// espaços é que encolhem, pelo CSS da página. Desde 2026-10-20 a escala
+// nunca passa de 83% (ESCALA), a mesma do app, também no celular.
 // Carregado no <head>: a escala sai antes da tela aparecer, então a página
 // nunca abre grande para depois encolher. A escala vai em --fit no <html>; o
 // CSS de cada página aplica (zoom:var(--fit)) na tela de entrada/cadastro.
@@ -10,11 +11,11 @@
 // tests/fluxo/sem-rolagem.mjs confere que continua certa. Se a tela atual
 // ainda passar da janela (vários erros abertos), só ela diminui mais um pouco.
 (function () {
-  var MIN = 0.75, raiz = document.documentElement;
+  var MIN = 0.75, ESCALA = 0.83, raiz = document.documentElement;
   function altura(w) { return w < 1024 ? 968 : w < 1040 ? 776 : 748; }
   function base() {
-    if (innerWidth < 768) return 1;
-    return Math.max(MIN, Math.min(1, Math.floor(innerHeight / altura(innerWidth) * 1000) / 1000));
+    if (innerWidth < 768) return ESCALA;
+    return Math.max(MIN, Math.min(ESCALA, Math.floor(innerHeight / altura(innerWidth) * 1000) / 1000));
   }
   function aplicar(z) {
     if (z === 1) raiz.style.removeProperty('--fit'); else raiz.style.setProperty('--fit', z);
