@@ -104,19 +104,18 @@ html.sf-espera #dc-root{opacity:0}
    (--line-2, --divider, --danger...). Paleta e fonte continuam as mesmas. */
 
 /* Escala do app (2026-10-19, pedido do Dárlley): do tablet para cima o app
-   inteiro fica 17% menor (zoom de 83%), como a tela de login no notebook. No
-   celular continua em 100%. Login e cadastro mantêm a escala própria
+   inteiro fica 17% menor (zoom de 83%), como a tela de login no notebook; no
+   celular também (pedido do Dárlley, 2026-10-19). Login e cadastro mantêm a escala própria
    (caber.js): o zoom deles compensa o do app. Alturas de tela cheia dividem o
-   vh por --z, porque o zoom também encolhe o vh. Em tablet com toque os
-   campos ficam com 16 px reais (abaixo disso o iPad dá zoom ao tocar). */
-:root{--z:1}
-@media (min-width:768px){:root{--z:.83}}
+   vh por --z, porque o zoom também encolhe o vh. No celular e no tablet com
+   toque os campos ficam com 16 px reais (abaixo disso o iOS dá zoom ao tocar). */
+:root{--z:.83}
 .sf-z{zoom:var(--z)}
 .sf-z .auth{zoom:calc(var(--fit,1) / var(--z))}
 /* Botões e campos mantêm a altura de toque real (48 px no tablet e 44 no
    computador; --tap = 44 px para os botões menores), mesmo com o zoom. */
 :root{--tap:calc(44px / var(--z))}
-@media (min-width:768px){.sf-app,.adm{--ctl:calc(48px / var(--z))}}
+.sf-app,.adm{--ctl:calc(48px / var(--z))}
 @media (min-width:1025px){.sf-app,.adm{--ctl:calc(44px / var(--z))}}
 /* Interruptores (48 x 28) também ficam no tamanho real. */
 .sf-z :is(.toggle,.stepper .sb,.pcard .addbtn){zoom:calc(1 / var(--z))}
@@ -127,7 +126,7 @@ html.sf-espera #dc-root{opacity:0}
 .gc-table{min-height:calc(56px / var(--z)) !important}
 @media (min-width:1025px){.gc-tables{grid-template-columns:repeat(auto-fill,minmax(calc(64px / var(--z)),1fr)) !important}.gc-table{min-height:calc(64px / var(--z)) !important}}
 .pf-photo{flex-basis:calc(160px / var(--z)) !important;width:calc(160px / var(--z)) !important}
-@media (min-width:768px) and (pointer:coarse){:where(.sf-app,.adm) :is(input,select,textarea){font-size:calc(16px / var(--z)) !important}}
+@media (max-width:767px),(pointer:coarse){:where(.sf-app,.adm) :is(input,select,textarea){font-size:calc(16px / var(--z)) !important}}
 
 /* ===== Sunfood · componentes =====
    Botões, campos, cartões e cabeçalhos são os mesmos em todas as telas
@@ -214,7 +213,7 @@ select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:ima
 .rf-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--cpad);display:flex;flex-direction:column;gap:16px}
 .rf-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:var(--cpad);border-radius:12px;background:var(--surface-off)}
 @media (max-width:420px){.rf-sum{grid-template-columns:1fr 1fr}}
-.rf-item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 16px;border:1px solid var(--line-2);border-radius:8px;cursor:pointer;background:#fff}
+.rf-item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:calc(48px / var(--z));padding:0 16px;border:1px solid var(--line-2);border-radius:8px;cursor:pointer;background:#fff}
 .rf-item.on{border-color:var(--brand);background:var(--brand-tint);box-shadow:inset 3px 0 0 var(--brand)}
 .rf-dialog .pf-btns .btn{white-space:nowrap;padding:0 16px}
 .rf-dialog .pf-btns .btn-danger{flex:2}
@@ -264,7 +263,7 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 .sfc{min-height:calc(100vh / var(--z));display:flex;flex-direction:column;background:var(--bg)}
 .topbar{position:sticky;top:0;z-index:25;background:rgba(247,245,240,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line-2)}
 .topbar-in{max-width:var(--maxw);margin:0 auto;padding:12px var(--px);display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:8px;min-height:48px;cursor:pointer;color:var(--brand);text-decoration:none}
+.brand{display:flex;align-items:center;gap:8px;min-height:calc(48px / var(--z));cursor:pointer;color:var(--brand);text-decoration:none}
 .brand b{font:800 22px 'Manrope',system-ui,sans-serif;letter-spacing:-.02em}
 .toplinks{display:flex;align-items:center;gap:8px}
 .toplink{display:inline-flex;align-items:center;min-height:var(--tap);padding:0 16px;border-radius:999px;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer;color:var(--ink);white-space:nowrap}
@@ -274,7 +273,7 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 .cartpill{display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);padding:0 16px;border-radius:999px;background:var(--brand);color:#fff;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer}
 .cartpill:hover{background:var(--brand-hover)}
 .pagehead{max-width:1200px;width:100%;margin:0 auto;padding:var(--sec) var(--px) 0;display:flex;align-items:center;gap:16px}
-.backbtn{width:48px;height:48px;border-radius:var(--r-btn);background:#fff;border:1px solid var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.backbtn{width:calc(48px / var(--z));height:calc(48px / var(--z));border-radius:var(--r-btn);background:#fff;border:1px solid var(--line);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .backbtn:hover{border-color:var(--brand);color:var(--brand)}
 .wrap{width:100%;margin:0 auto;padding:var(--gap) var(--px) var(--sec);flex:1}
 .wrap-wide{max-width:var(--maxw)}
@@ -465,7 +464,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .avatar-opt{width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:box-shadow .15s}
 .form-2col{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
 @media (min-width:768px){.avatar-grid{grid-template-columns:repeat(8,56px)}}
-.menurow{display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:12px 4px;border-top:1px solid var(--divider);font:600 var(--fs-body) 'Manrope',system-ui,sans-serif;cursor:pointer}
+.menurow{display:flex;justify-content:space-between;align-items:center;min-height:calc(48px / var(--z));padding:12px 4px;border-top:1px solid var(--divider);font:600 var(--fs-body) 'Manrope',system-ui,sans-serif;cursor:pointer}
 .menurow:hover{color:var(--brand)}
 .footer{border-top:1px solid var(--line-2)}
 .footer-in{max-width:var(--maxw);margin:0 auto;padding:var(--gap) var(--px);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;justify-content:space-between;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2)}
@@ -664,7 +663,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
   .pay-btns .btn{flex:1 1 0;min-width:0}
 }
 @media (min-width:768px) and (max-width:1024px){.pay-tbl{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
-@media (max-width:767px){.pay-acts .btn{min-height:48px}.pay-pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--px));padding:0 var(--px)}.pay-pills::-webkit-scrollbar{display:none}.pay-pills .fpill{flex:none}.pay-pills{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent)}.pay-pills::after{content:'';flex:0 0 24px}}
+@media (max-width:767px){.pay-acts .btn{min-height:calc(48px / var(--z))}.pay-pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--px));padding:0 var(--px)}.pay-pills::-webkit-scrollbar{display:none}.pay-pills .fpill{flex:none}.pay-pills{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent)}.pay-pills::after{content:'';flex:0 0 24px}}
 /* Mapa da Localização (Google Maps sem chave de API, a partir do endereço). */
 .locmap{flex:1 1 380px;min-width:0;height:340px;border-radius:var(--r-card);overflow:hidden;background:var(--brand-line);border:1px solid var(--line-2)}
 .locmap iframe{display:block;width:100%;height:100%;border:0}
@@ -706,11 +705,11 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 @media (max-width:900px){
   .adm{flex-direction:column}
   .adm-side{width:100%;height:auto;position:sticky;top:0;z-index:20;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible;padding:8px var(--px);gap:8px}
-  .adm-brand{flex:1;padding:0;min-height:48px}
+  .adm-brand{flex:1;padding:0;min-height:calc(48px / var(--z))}
   .adm-brand small{display:inline}
-  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border-radius:var(--r-ctl);border:1px solid rgba(255,255,255,.32);color:#EAF2F3;font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none}
+  .adm-menubtn{display:inline-flex;align-items:center;gap:8px;min-height:calc(48px / var(--z));padding:0 16px;border-radius:var(--r-ctl);border:1px solid rgba(255,255,255,.32);color:#EAF2F3;font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none}
   .adm-side:not(.open) .adm-item,.adm-side:not(.open) .adm-sep,.adm-side:not(.open) .adm-foot{display:none}
-  .adm-side.open .adm-item{flex:1 1 calc(50% - 8px);min-height:48px;padding:8px 12px;font-size:15px}
+  .adm-side.open .adm-item{flex:1 1 calc(50% - 8px);min-height:calc(48px / var(--z));padding:8px 12px;font-size:15px}
   .adm-side.open .adm-sep{display:none}
   .adm-side.open .adm-foot{width:100%;margin:4px 0 0;padding:8px 0 0;border-top:1px solid rgba(255,255,255,.32);flex-direction:row;align-items:center;justify-content:space-between}
   .adm-side.open .adm-foot .em{display:block;padding:0 4px;min-width:0}
@@ -748,7 +747,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .kz-act{min-height:var(--ctl);border-radius:var(--r-btn);display:flex;align-items:center;justify-content:center;font:700 16px/1.2 'Manrope',system-ui,sans-serif;cursor:pointer;text-align:center;padding:0 20px;background:var(--brand);color:#fff;transition:background-color .15s ease-out}
 .kz-act:hover{background:var(--brand-hover)}
 .kz-empty{color:var(--ink-2);font:500 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;text-align:center;padding:24px 8px}
-.kz-avail{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:8px 4px;border-top:1px solid var(--divider);font:500 var(--fs-body) 'Manrope',system-ui,sans-serif}
+.kz-avail{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:calc(48px / var(--z));padding:8px 4px;border-top:1px solid var(--divider);font:500 var(--fs-body) 'Manrope',system-ui,sans-serif}
 .kz-sound{padding:var(--cpad);border-radius:var(--r-card);background:var(--sun-tint);border:1px solid #F3DDA6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--gap)}
 @media (max-width:1024px){ .kz-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:767px){ .kz-board{grid-template-columns:1fr} }
@@ -766,7 +765,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .gc-tag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;background:var(--brand-tint);color:var(--brand-hover);font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;white-space:nowrap}
 .gc-cap{font:600 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:var(--ink-2);margin-bottom:8px}
 .gc-recv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.gc-recv .btn{min-height:48px;padding:0 8px}
+.gc-recv .btn{min-height:calc(48px / var(--z));padding:0 8px}
 .gc-tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px}
 .gc-table{min-height:56px;border-radius:var(--r-ctl);border:1px solid var(--line-dash);background:#fff;display:flex;align-items:center;justify-content:center;font:800 18px 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none}
 .gc-table:hover{border-color:var(--ink)}
