@@ -104,7 +104,7 @@ await step('login no endereço principal', async () => {
   await salvo.close();
 
   const inicio = await open('inicio.html');
-  check('inicio.html: endereço antigo abre Conheça o Sunfood no login', inicio.url() === BASE + '#conheca' && (await text(inicio)).includes('Um sistema, três telas de trabalho'), inicio.url());
+  check('inicio.html: endereço antigo abre Conheça o Sunfood no login', inicio.url() === BASE + '#conheca' && (await text(inicio)).includes('Um sistema, quatro telas de trabalho'), inicio.url());
   await inicio.locator('#info').getByText('Entrar', { exact: true }).click(); await inicio.waitForTimeout(300);
   check('Conheça o Sunfood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Fome na praia?'), inicio.url());
   await inicio.close();

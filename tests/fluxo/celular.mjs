@@ -97,7 +97,7 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
     const grade = await p.locator('.adm-item:visible').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }));
     check(`admin ${w}px: menu aberto de 2 em 2, todos do mesmo tamanho`, grade.length % 2 === 0 && grade.every(([gw, gh]) => Math.abs(gw - grade[0][0]) <= 1 && gh === grade[0][1] && gw < w / 2), JSON.stringify(grade));
     await tap(p, 'Pedidos');
-    check(`admin ${w}px: tocar num item abre a tela e fecha o menu`, p.url().includes('module=admin') && (await text(p)).includes('Buscar por mesa ou código') && await p.locator('.adm-item').first().isHidden());
+    check(`admin ${w}px: tocar num item abre a tela e fecha o menu`, p.url().includes('module=admin') && (await text(p)).includes('Buscar por mesa ou número') && await p.locator('.adm-item').first().isHidden());
     check(`admin ${w}px: tabela de pedidos sem arrastar para os lados`, await p.locator('.tblwrap').first().evaluate(e => e.scrollWidth <= e.clientWidth + 1));
     await p.context().close();
   });

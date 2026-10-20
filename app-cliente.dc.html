@@ -131,6 +131,21 @@ html.sf-espera #dc-root{opacity:0}
 @media (max-width:767px),(pointer:coarse){.sf-z .auth :is(input,select,textarea){font-size:calc(16px / var(--fit,1)) !important}}
 /* Botões e campos mantêm a altura de toque real (48 px no tablet e 44 no
    computador; --tap = 44 px para os botões menores), mesmo com o zoom. */
+/* Textos no tamanho do design system na tela (2026-10-20): com o zoom de 83%
+   os textos de 14 px viravam 11,6 px e as legendas de 12 px viravam 10 px.
+   Os tamanhos do app são divididos pelo zoom, então o que aparece na tela é
+   o do design system: H1 24 / 28 / 32, corpo 15 / 15 / 16, menor 14 e
+   legenda 12 (nada abaixo de 12 px). Espaços e cartões seguem a escala. */
+.sf-z{--fs-h1:calc(24px / var(--z));--fs-h2:calc(20px / var(--z));--fs-h3:calc(18px / var(--z));--fs-body:calc(15px / var(--z));--fs-sm:calc(14px / var(--z));--fs-cap:calc(12px / var(--z))}
+@media (min-width:768px){.sf-z{--fs-h1:calc(28px / var(--z));--fs-h2:calc(22px / var(--z));--fs-h3:calc(20px / var(--z))}}
+@media (min-width:1025px){.sf-z{--fs-h1:calc(32px / var(--z));--fs-h2:calc(24px / var(--z));--fs-h3:calc(22px / var(--z));--fs-body:calc(16px / var(--z))}}
+/* Login e cadastro têm a escala própria (caber.js, --fit): ficam com os
+   tamanhos de antes, só com legendas e textos menores em pelo menos 12 px
+   reais, para continuarem cabendo na altura da tela. */
+.sf-z .auth{--fs-h1:24px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:max(14px, calc(12px / var(--fit,1)));--fs-cap:calc(12px / var(--fit,1))}
+@media (min-width:768px){.sf-z .auth{--fs-h1:28px;--fs-h2:22px;--fs-h3:20px}}
+@media (min-width:1025px){.sf-z .auth{--fs-h1:32px;--fs-h2:24px;--fs-h3:22px;--fs-body:16px}}
+.paycell{min-width:0}.paycell>span{white-space:normal!important;max-width:100%;line-height:1.3;border-radius:12px!important}
 :root{--tap:calc(44px / var(--z))}
 .sf-app,.adm{--ctl:calc(48px / var(--z))}
 @media (min-width:1025px){.sf-app,.adm{--ctl:calc(44px / var(--z))}}
@@ -573,6 +588,10 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .prog{height:8px;border-radius:999px;background:var(--divider);overflow:hidden}
 .prog > div{height:100%;border-radius:999px}
 .pills{display:flex;gap:8px;flex-wrap:wrap}
+/* Categorias do Lançar pedido: uma linha que rola para o lado, como no cardápio do cliente. */
+.pills-scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent)}
+.pills-scroll::-webkit-scrollbar{display:none}
+.pills-scroll .fpill{flex:none}
 /* Categorias do cardápio (admin): ordem, cor e edição na própria linha. */
 /* Abre numa janela como o formulário de produto (.pf-dialog): a lista rola e
    o campo de nova categoria fica fixo no pé. */
@@ -735,6 +754,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 
 /* ===== Cozinha (mesmo visual da administração: menu escuro, fundo areia e
    cartões brancos; letras grandes para ler de longe na parede) ===== */
+.kz-find{max-width:360px;margin-bottom:var(--gap)}
 .kz-chip{display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);padding:0 16px;border-radius:999px;background:#fff;border:1px solid var(--line-2);font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;white-space:nowrap}
 .kz-chip b{font:800 18px 'Manrope',system-ui,sans-serif}
 .kz-clock{font:800 var(--fs-h1) 'Manrope',system-ui,sans-serif;letter-spacing:-.02em;margin-left:4px}
@@ -816,7 +836,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
   /* Um nível de cartão só: a coluna perde a moldura e os pedidos ficam direto na tela. */
   .kz-board .kz-col{background:transparent;border:0;box-shadow:none;padding:0}
   .kz-board .kz-card{background:#fff}
-  .kz-tab .kz-n{min-width:24px;height:24px;font-size:12px;padding:0 6px}
+  .kz-tab .kz-n{min-width:24px;height:24px;font-size:var(--fs-cap);padding:0 6px}
   .kz-tab.on .kz-n{background:rgba(255,255,255,.2);color:#fff}
   .kz-board{grid-template-columns:1fr}
   .kz-board > .kz-col:not(.on){display:none}
@@ -1330,7 +1350,7 @@ select{caret-color:auto}
                             <div class="pimg" style="{{ p.tileStyle }}">
                               <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ true }}"><span style="{{ p.photoStyle }}"></span></sc-if>
                               <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 48 48" width="64" height="64" fill="none" stroke="{{ p.iconColor }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path sc-camel-d="{{ p.markPath }}"></path></svg></sc-if>
-                              <sc-if value="{{ p.hasPrep }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:12px;top:12px;padding:4px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.92);font:600 12px 'Manrope',system-ui,sans-serif;color:var(--ink)">{{ p.prep }}</span></sc-if>
+                              <sc-if value="{{ p.hasPrep }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:12px;top:12px;padding:4px 12px;border-radius:var(--r-card);background:rgba(255,255,255,.92);font:600 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:var(--ink)">{{ p.prep }}</span></sc-if>
                             </div>
                             <div class="pbody" style="padding:16px;display:flex;flex-direction:column;gap:8px;flex-grow:1">
                               <div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif">{{ p.name }}</div>
@@ -1385,7 +1405,7 @@ select{caret-color:auto}
                                   <div class="sumitem-price">{{ c.lineStr }}</div>
                                 </div>
                                 <div class="sumitem-bot">
-                                  <div class="muted" style="font-size:var(--fs-sm)">{{ c.qty }} × {{ c.unitStr }}</div>
+                                  <div class="muted" style="font-size:var(--fs-sm);min-width:0">{{ c.qty }} × {{ c.unitStr }}{{ c.noteSuffix }}</div>
                                   <div class="stepper stepper-sm">
                                     <span onClick="{{ c.dec }}" class="sb" role="button" aria-label="Remover um">−</span>
                                     <span class="sq">{{ c.qty }}</span>
@@ -1453,7 +1473,7 @@ select{caret-color:auto}
                       <div class="pd-note">
                         <span class="lbl">Observação deste item <span class="muted" style="font-weight:500">(opcional)</span></span>
                         <textarea placeholder="Preferências para este item" class="inp" value="{{ note }}" onChange="{{ setNote }}" maxlength="280" aria-label="Observação deste item"></textarea>
-                        <div class="muted" style="text-align:right;font-size:12px;margin-top:4px">{{ noteCount }}/280</div>
+                        <div class="muted" style="text-align:right;font-size:var(--fs-cap);margin-top:4px">{{ noteCount }}/280</div>
                       </div>
                       <div class="pd-act">
                         <div class="pd-row">
@@ -1712,7 +1732,7 @@ select{caret-color:auto}
                       </div>
                     </sc-if>
                     <sc-if value="{{ hasOrderObs }}" hint-placeholder-val="{{ false }}">
-                      <div class="alert alert-info" style="flex-direction:column;gap:4px"><b style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">Observações enviadas</b><span style="font-weight:500">{{ orderObs }}</span></div>
+                      <div class="alert alert-info" style="flex-direction:column;gap:4px"><b style="font-size:var(--fs-cap);text-transform:uppercase;letter-spacing:.06em">Observações enviadas</b><span style="font-weight:500">{{ orderObs }}</span></div>
                     </sc-if>
                     <sc-if value="{{ hasCancelHint }}" hint-placeholder-val="{{ false }}">
                       <div class="muted" style="font-size:var(--fs-sm);text-align:center">{{ cancelHint }}</div>
@@ -1774,6 +1794,9 @@ select{caret-color:auto}
                     </div>
                   </sc-for>
                 </div>
+                <sc-if value="{{ histHasMore }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ histMore }}" class="btn btn-ghost" role="button" style="margin-top:var(--gap)">{{ histMoreLabel }}</div>
+                </sc-if>
               </sc-if>
 
               <sc-if value="{{ is_historyEmpty }}" hint-placeholder-val="{{ false }}">
@@ -2002,8 +2025,8 @@ select{caret-color:auto}
             </sc-if>
             <sc-if value="{{ is_orders }}" hint-placeholder-val="{{ false }}">
               <div style="min-width:240px">
-                <span class="lbl" style="font-size:var(--fs-sm)">Buscar por mesa ou código</span>
-                <input placeholder="Número da mesa ou código do pedido" class="inp" value="{{ admSearch }}" onChange="{{ setAdmSearch }}" aria-label="Buscar por mesa ou código">
+                <span class="lbl" style="font-size:var(--fs-sm)">Buscar por mesa ou número</span>
+                <input placeholder="Mesa ou número do pedido" class="inp" value="{{ admSearch }}" onChange="{{ setAdmSearch }}" aria-label="Buscar por mesa ou número do pedido">
               </div>
             </sc-if>
             <sc-if value="{{ is_productForm }}" hint-placeholder-val="{{ false }}">
@@ -2089,20 +2112,20 @@ select{caret-color:auto}
               </div>
               <div class="tblwrap">
                 <sc-if value="{{ hasAdminOrders }}" hint-placeholder-val="{{ true }}">
-                  <div class="tbl tbl-cards" style="min-width:900px">
-                    <div class="tr th" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px 150px"><div>Pedido</div><div>Mesa</div><div>Hora</div><div>Itens</div><div style="text-align:right">Total</div><div>Pagamento</div><div>Status</div><div>Ações</div></div>
+                  <div class="tbl tbl-cards" style="min-width:1030px">
+                    <div class="tr th" style="grid-template-columns:90px 60px 100px minmax(0,1fr) 100px 290px 120px 170px"><div>Pedido</div><div>Mesa</div><div>Hora</div><div>Itens</div><div style="text-align:right">Total</div><div>Pagamento</div><div>Status</div><div>Ações</div></div>
                     <sc-for list="{{ adminOrders }}" as="r" hint-placeholder-count="6">
-                      <div class="tr" style="grid-template-columns:90px 60px 70px minmax(0,1fr) 100px 220px 120px 150px">
+                      <div class="tr" style="grid-template-columns:90px 60px 100px minmax(0,1fr) 100px 290px 120px 170px">
                         <div data-l="Pedido" style="font-weight:800;color:var(--brand)">{{ r.id }}</div>
                         <div data-l="Mesa" style="font-weight:700">{{ r.table }}</div>
                         <div data-l="Hora" class="muted" style="white-space:nowrap">{{ r.clock }}</div>
                         <div data-l="Itens" class="wide" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ r.itemsStr }}">{{ r.itemsStr }}</div>
                         <div data-l="Total" style="text-align:right;font-weight:800;white-space:nowrap">{{ r.totalStr }}</div>
-                        <div data-l="Pagamento"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
+                        <div data-l="Pagamento" class="paycell"><span style="{{ r.payStyle }}">{{ r.payLabel }}</span></div>
                         <div data-l="Status"><span style="{{ r.stStyle }}">{{ r.stLbl }}</span></div>
                         <div class="wide">
                           <sc-if value="{{ r.canManage }}" hint-placeholder-val="{{ false }}">
-                            <div onClick="{{ r.manage }}" class="btn btn-ghost btn-sm" role="button" style="display:inline-flex">{{ r.manageLabel }}</div>
+                            <div onClick="{{ r.manage }}" class="btn btn-ghost btn-sm" role="button" style="display:inline-flex;white-space:nowrap">{{ r.manageLabel }}</div>
                           </sc-if>
                         </div>
                       </div>
@@ -2511,7 +2534,7 @@ select{caret-color:auto}
                           <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ false }}"><span style="{{ p.photoStyle }}"></span></sc-if>
                           <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 48 48" width="28" height="28" fill="none" stroke="{{ p.iconColor }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path sc-camel-d="{{ p.markPath }}"></path></svg></sc-if>
                         </span>
-                        <div style="min-width:0;flex:1"><div class="eyebrow" style="font-size:12px">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif;margin-top:2px">{{ p.name }}</div></div>
+                        <div style="min-width:0;flex:1"><div class="eyebrow" style="font-size:var(--fs-cap)">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif;margin-top:2px">{{ p.name }}</div></div>
                         <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
                       </div>
                       <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;flex-grow:1">{{ p.desc }}</div>
@@ -2681,9 +2704,9 @@ select{caret-color:auto}
                 <div class="tiles">
                   <sc-for list="{{ tableTiles }}" as="t" hint-placeholder-count="12">
                     <div onClick="{{ t.toggle }}" class="tile" style="{{ t.tileStyle }}">
-                      <div style="font:700 12px 'Manrope',system-ui,sans-serif;opacity:.8">Mesa</div>
+                      <div style="font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;opacity:.8">Mesa</div>
                       <div class="tt" style="font-size:var(--fs-h2);margin:2px 0">{{ t.n }}</div>
-                      <div style="font:700 12px 'Manrope',system-ui,sans-serif">{{ t.pill }}</div>
+                      <div style="font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif">{{ t.pill }}</div>
                     </div>
                   </sc-for>
                 </div>
@@ -2710,7 +2733,7 @@ select{caret-color:auto}
                   <h2>Vendas por dia</h2>
                   <div class="bars" style="gap:4px;height:170px">
                     <sc-for list="{{ reportDayBars }}" as="b" hint-placeholder-count="7">
-                      <div title="{{ b.tip }}" class="bar"><div style="{{ b.style }}"></div><div class="bl" style="font-size:12px">{{ b.lbl }}</div></div>
+                      <div title="{{ b.tip }}" class="bar"><div style="{{ b.style }}"></div><div class="bl" style="font-size:var(--fs-cap)">{{ b.lbl }}</div></div>
                     </sc-for>
                   </div>
                 </div>
@@ -2721,7 +2744,7 @@ select{caret-color:auto}
                   <div class="muted" style="font-size:var(--fs-sm);margin-bottom:16px">{{ reportPeakText }}</div>
                   <div class="bars" style="gap:4px;height:180px">
                     <sc-for list="{{ reportHourBars }}" as="b" hint-placeholder-count="12">
-                      <div title="{{ b.tip }}" class="bar"><div class="bv" style="font-weight:700">{{ b.top }}</div><div style="{{ b.style }}"></div><div class="bl" style="font-size:12px">{{ b.lbl }}</div></div>
+                      <div title="{{ b.tip }}" class="bar"><div class="bv" style="font-weight:700">{{ b.top }}</div><div style="{{ b.style }}"></div><div class="bl" style="font-size:var(--fs-cap)">{{ b.lbl }}</div></div>
                     </sc-for>
                   </div>
                 </div>
@@ -2861,6 +2884,9 @@ select{caret-color:auto}
             </div>
           </sc-if>
           <sc-if value="{{ kBoardOn }}" hint-placeholder-val="{{ true }}">
+            <div class="kz-find">
+              <input placeholder="Buscar por mesa ou número do pedido" class="inp" value="{{ kSearch }}" onChange="{{ setKSearch }}" aria-label="Buscar pedido por mesa ou número" inputmode="numeric">
+            </div>
             <div class="kz-tabs" role="tablist" aria-label="Colunas de pedidos">
               <sc-for list="{{ kTabs }}" as="t" hint-placeholder-count="3">
                 <div onClick="{{ t.pick }}" class="{{ t.cls }}" role="tab" aria-selected="{{ t.sel }}"><span style="{{ t.dotStyle }}"></span>{{ t.title }}<span class="kz-n">{{ t.n }}</span></div>
@@ -2969,6 +2995,9 @@ select{caret-color:auto}
                         <div><span class="kz-mesa">{{ k.table }}</span> <span style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2)">{{ k.id }}</span></div>
                         <span class="kz-time">{{ k.min }}</span>
                       </div>
+                      <sc-if value="{{ k.hasCustomer }}" hint-placeholder-val="{{ true }}">
+                        <div class="kz-cliente"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>{{ k.customer }}</span></div>
+                      </sc-if>
                       <div>
                         <sc-for list="{{ k.lines }}" as="ln" hint-placeholder-count="2">
                           <div class="kz-item"><b>{{ ln.q }}</b> {{ ln.n }}</div>
@@ -3047,7 +3076,7 @@ select{caret-color:auto}
                       <input placeholder="Buscar no cardápio" class="inp" value="{{ gSearch }}" onChange="{{ setGSearch }}" aria-label="Buscar no cardápio" />
                     </div>
                   </div>
-                  <div class="pills">
+                  <div class="pills pills-scroll">
                     <sc-for list="{{ gCats }}" as="c" hint-placeholder-count="5">
                       <div onClick="{{ c.pick }}" class="fpill {{ c.cls }}">{{ c.c }}</div>
                     </sc-for>
@@ -3414,6 +3443,13 @@ function isAdult(birthDateStr){
 
 // Data de nascimento digitada como dd/mm/aaaa (o seletor nativo do navegador
 // aparecia em mm/dd/yyyy); a API continua recebendo aaaa-mm-dd.
+// Telefone com DDD como (11) 99999-0000 (ou (11) 3333-0000 no fixo).
+function maskPhone(v){
+  const d = String(v || '').replace(/\D/g, '').slice(0, 11);
+  if(d.length <= 2) return d.length ? '(' + d : '';
+  const rest = d.slice(2), cut = d.length === 11 ? 5 : 4;
+  return '(' + d.slice(0, 2) + ') ' + (rest.length > cut ? rest.slice(0, cut) + '-' + rest.slice(cut) : rest);
+}
 function maskDate(v){
   const d = String(v || '').replace(/\D/g, '').slice(0, 8);
   return d.length > 4 ? d.slice(0, 2) + '/' + d.slice(2, 4) + '/' + d.slice(4) : d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
@@ -3472,7 +3508,7 @@ function refundsFromApi(o){
 }
 // Monta o quadro "Estornos" (detalhe do pedido e acompanhamento).
 function refundCard(refunds, total){
-  const f = n => 'R$ ' + Number(n || 0).toFixed(2).replace('.', ',');
+  const f = n => brMoney(n);
   const sum = Math.round((refunds || []).reduce((a, r) => a + r.amount, 0) * 100) / 100;
   return {
     has:sum > 0,
@@ -3496,11 +3532,20 @@ function secondsToLabel(totalSeconds){
 
 // Admin/Cozinha: formato usado pelas telas de pedidos/kanban, com o id
 // numérico real da API preservado (apiId) para as ações de avançar status.
+// Itens devolvidos num estorno parcial entram na observação da cozinha e do
+// garçom, para ninguém preparar nem levar o que já foi devolvido.
+function kitchenNote(o){
+  const back = (o.refunds || []).flatMap(r => r.items || []).map(it => it.qty + 'x ' + it.name);
+  return [back.length ? 'Devolvido ao cliente, não preparar: ' + back.join(', ') : '', o.note || ''].filter(Boolean).join(' · ');
+}
+
 function adminOrderFromApi(o){
   return {
-    id:orderCode(o), apiId:o.id, table:o.tableNumber, status:o.status, totalStr:'R$ ' + o.total.toFixed(2).replace('.', ','),
+    id:orderCode(o), apiId:o.id, table:o.tableNumber, status:o.status, totalStr:brMoney(o.total),
     itemsStr:o.items.map(it => it.qty + 'x ' + it.name).join(' · '),
-    customer:o.customerName || '', obs:o.note || '', minAgo:minutesAgo(o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt,
+    // Na fila conta desde o pedido: estorno parcial ou pagamento aprovado mudam
+    // o updatedAt e zeravam o tempo de espera na cozinha.
+    customer:o.customerName || '', obs:kitchenNote(o), minAgo:minutesAgo(o.status === 'Na Fila' ? o.createdAt : o.updatedAt), createdAt:o.createdAt, updatedAt:o.updatedAt,
     paymentMethod:o.paymentMethod || 'pix', paymentStatus:o.paymentStatus || 'pending',
     receivedWith:o.receivedWith || null, total:o.total, paymentProvider:o.paymentProvider || null,
     waiterId:o.waiterId || null, refunded:o.refundedAmount || 0,
@@ -3514,6 +3559,21 @@ function adminOrderFromApi(o){
 const spDate = iso => new Date(iso).toLocaleDateString('en-CA', {timeZone:'America/Sao_Paulo'});
 const spTime = iso => new Date(iso).toLocaleTimeString('pt-BR', {timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit'});
 const brDate = ymd => ymd.slice(8, 10) + '/' + ymd.slice(5, 7) + '/' + ymd.slice(0, 4);
+const isTodaySp = iso => spDate(iso) === spDate(new Date().toISOString());
+// Busca de pedido (admin e cozinha): pelo número da tela (#005, 005 ou 5),
+// pela mesa ou pelo começo do código interno.
+const orderMatches = (r, q) => {
+  q = String(q || '').trim().toLowerCase().replace(/^#/, '');
+  if(!q) return true;
+  const n = /^\d+$/.test(q) ? Number(q) : null;
+  return String(r.table) === q || (q.length >= 4 && String(r.apiId).toLowerCase().startsWith(q))
+    || r.id.toLowerCase() === '#' + q || (n !== null && r.id === '#' + String(n).padStart(3, '0'));
+};
+// Pedido que a cozinha vê: pago no app ou "pagar na entrega".
+const inKitchen = k => k.paymentMethod === 'entrega' || k.paymentStatus === 'approved';
+// Atrasado: na fila ou em preparo há mais de 10 min sem avançar. É a mesma
+// conta na cozinha, no painel e em Desempenho, pra os números baterem.
+const lateOrdersOf = list => list.filter(k => (k.status === 'Na Fila' || k.status === 'Em Preparo') && inKitchen(k) && k.minAgo > 10);
 const brMoney = n => 'R$ ' + Number(n || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 // Valor digitado ("12,50", "R$ 1.234,50" ou "12.5") em reais.
 const parseMoney = t => {
@@ -3677,7 +3737,7 @@ const TONES = {
 };
 const pillStyle = (tone, dark) => {
   const t = TONES[tone] || TONES.muted;
-  return "display:inline-block;font:700 12px 'Manrope',system-ui,sans-serif;padding:5px 10px;border-radius:999px;white-space:nowrap;background:" +
+  return "display:inline-block;font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;padding:5px 10px;border-radius:999px;white-space:nowrap;background:" +
     (dark ? t[2] : t[0]) + ';color:' + (dark ? t[3] : t[1]);
 };
 // Glossário único dos status na tela (a API guarda "Na Fila" e "Em Preparo").
@@ -3686,15 +3746,17 @@ const statusLabel = st => ({'Na Fila':'Na fila', 'Em Preparo':'Em preparo'})[st]
 const statusTone = st => st === 'Pronto' || st === 'Entregue' ? 'ok' : st === 'Cancelado' ? 'err' : st === 'Em Preparo' ? 'info' : 'warn';
 
 function paymentBadge(o){
-  const total = 'R$ ' + o.total.toFixed(2).replace('.', ',');
+  const total = brMoney(o.total);
   const method = o.paymentMethod || 'pix';
   const recebido = {dinheiro:'dinheiro', cartao:'cartão', pix:'PIX'}[o.receivedWith];
   const badge = (payLabel, payTone) => ({payLabel, payTone, payStyle:pillStyle(payTone)});
   if(method === 'entrega' && o.paymentStatus === 'approved') return badge('Recebido na entrega' + (recebido ? ' (' + recebido + ')' : ''), 'ok');
+  // Cancelado sem ter sido pago: não há nada a cobrar nem a esperar.
+  if(o.status === 'Cancelado' && o.paymentStatus !== 'approved' && o.paymentStatus !== 'refunded') return badge(method === 'entrega' ? 'Na entrega · nada a cobrar' : 'Não pago (' + (method === 'cartao' ? 'cartão' : 'PIX') + ')', 'muted');
   if(method === 'entrega') return badge('Cobrar na entrega · ' + total, 'warn');
   const nome = method === 'cartao' ? 'cartão' : 'PIX';
   if(o.paymentStatus === 'approved' && o.paymentProvider === 'provisorio') return badge((method === 'cartao' ? 'Cartão' : 'PIX') + ' provisório (sem cobrança) · ' + total, 'info');
-  if(o.paymentStatus === 'approved' && o.refundedAmount > 0) return badge('Pago no app (' + nome + ') · estornado R$ ' + o.refundedAmount.toFixed(2).replace('.', ','), 'info');
+  if(o.paymentStatus === 'approved' && o.refundedAmount > 0) return badge('Pago no app (' + nome + ') · estornado ' + brMoney(o.refundedAmount), 'info');
   if(o.paymentStatus === 'approved') return badge('Pago no app (' + nome + ')', 'ok');
   if(o.paymentStatus === 'refunded') return badge('Estornado (' + nome + ')', 'muted');
   return badge('Aguardando pagamento (' + nome + ')', 'err');
@@ -3728,7 +3790,7 @@ const emptyPf = cats => ({id:null, name:'', price:'', cat:((cats || DEFAULT_CATE
 // "sem"/natural, característica); etiqueta digitada pelo admin usa a lilás.
 // Mensagens dos ajustes do admin: confirmação de salvo x erro, para escolher o tipo de aviso.
 const SAVED_OK = /atualizad|^Agora o quiosque tem|^Pedido mínimo (ligado|desligado)/;
-const TOAST_OK = /^(Cadastro completo|Perfil salvo|Avatar escolhido|Foto atualizada|Enviamos|Senha alterada|Recebimento|Mensagem (marcada|voltou)|Resposta (registrada|enviada)|Produto (atualizado|criado|excluído)|Pedido da mesa|Garçom (reativado|desativado)|Código PIX copiado|Seu pedido está pronto)|foi excluído/;
+const TOAST_OK = /^(Cadastro completo|Perfil salvo|Avatar escolhido|Foto atualizada|Enviamos|Senha alterada|Recebimento|Entregue e recebimento|Estorno de|Pedido cancelado|Mensagem (marcada|voltou)|Resposta (registrada|enviada)|Produto (atualizado|criado|excluído)|Pedido da mesa|Garçom (reativado|desativado)|Código PIX copiado|Seu pedido está pronto)|foi excluído/;
 const TAG_ALERT = ['#FDEBEA', '#E74C3C'], TAG_WARN = ['#FFF3DE', '#B0791A'], TAG_OK = ['#E7F7ED', '#16A34A'], TAG_INFO = ['#EFEBFF', '#7C5CFF'];
 const TAG_PRESETS = [['Alcoólico', TAG_ALERT], ['+18', TAG_WARN], ['Feito na hora', TAG_INFO], ['Gelado', TAG_INFO],
   ['Natural', TAG_OK], ['Vegano', TAG_INFO], ['Vegetariano', TAG_OK], ['Sem álcool', TAG_OK], ['Sem glúten', TAG_OK],
@@ -3930,7 +3992,7 @@ class Component extends DCLogic {
     categories:DEFAULT_CATEGORIES, catOpen:false, catEdit:null, catEditName:'', catEditColor:'areia',
     catNewName:'', catNewColor:'areia', catMsg:'', catBusy:false, catDeleting:null,
     // Admin: filtro/busca da lista de pedidos e filtro do cardápio.
-    admFilter:'Todos', payFilter:'Todos', admSearch:'', admCat:'Todos',
+    admFilter:'Todos', payFilter:'Todos', admSearch:'', admCat:'Todos', kSearch:'',
     // Cozinha/Garçom: som de pedido novo, salvo no aparelho (ligado por padrão).
     // O navegador só libera o áudio depois do primeiro toque na tela; o
     // unlockAudio() do componentDidMount cuida disso sozinho.
@@ -4400,7 +4462,7 @@ class Component extends DCLogic {
       const data = await res.json();
       this.setAuthUser(data.user);
       const upd = {profileInfo:{phone:data.phone, birthDate:data.birthDate, cpf:data.cpf, hasPassword:data.hasPassword}};
-      if(fillForm) Object.assign(upd, {meName:data.user.name, mePhone:data.phone, meBirth:isoToBrDate(data.birthDate), meErr:'', avatarErr:''});
+      if(fillForm) Object.assign(upd, {meName:data.user.name, mePhone:maskPhone(data.phone), meBirth:isoToBrDate(data.birthDate), meErr:'', avatarErr:''});
       this.setState(upd);
     } catch(e){}
   }
@@ -5596,14 +5658,18 @@ class Component extends DCLogic {
     if(!mod || !SCREENS[mod]) return;
     const telas = SCREENS[mod].map(s => s[0]);
     const pedida = q.get('screen');
+    // Tela que não existe (endereço digitado errado): com sessão aberta, vai
+    // para a tela inicial do perfil em vez do formulário de login.
+    const inicio = {cliente:'menu', admin:'dashboard', cozinha:'kanban', garcom:'entregar'}[mod];
     const screen = pedida && telas.indexOf(pedida) >= 0 ? pedida
+      : (this.state.token || (readSession() || {}).token) && inicio && telas.indexOf(inicio) >= 0 ? inicio
       : SCREENS[mod][mod === 'cliente' ? 3 : 0][0];
     this.setState({module:mod, screen});
   }
 
   componentWillUnmount(){ window.removeEventListener('popstate', this._onPop); window.removeEventListener('pageshow', this._onShow); document.removeEventListener('keydown', this._a11yKey); if(this._a11yObs) this._a11yObs.disconnect(); clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
 
-  fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
+  fmt(n){ return brMoney(n); }
   go(screen, module){
     this.setState(s => ({screen, module: module || s.module, toast:'', admMenu:false}));
     if(screen === 'reports' && this.state.token){ this.loadReport(); this.loadLatestDayReport(); }
@@ -6138,6 +6204,8 @@ class Component extends DCLogic {
       iconColor:catTile((s.products.find(p => p.id === c.id) || {}).cat, s.categories)[1],
       unitStr:f(c.price),
       sub:(c.note ? c.note + ' · ' : '') + f(c.price) + '/un',
+      // Na lateral do cardápio a observação diferencia o mesmo item com e sem obs.
+      noteSuffix:c.note ? ' · ' + c.note : '',
       lineStr:f(c.price * c.qty),
 
       inc:() => this.setState(x => { const cart = x.cart.slice(); cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty + 1}); return {cart}; }),
@@ -6234,7 +6302,10 @@ class Component extends DCLogic {
     const payOnDelivery = !!o && o.paymentMethod === 'entrega';
     // PIX/cartão provisório (sem Mercado Pago) não cobrou nada, então não há estorno.
     const paidInApp = !!o && !payOnDelivery && o.paymentStatus === 'approved' && o.paymentProvider !== 'provisorio';
-    v.totalPaidLabel = payOnDelivery ? 'A pagar na entrega' : 'Total pago';
+    // Provisório: o quiosque ainda não ligou o Mercado Pago/Stripe, o pedido é
+    // aprovado sem cobrança. O cliente não pode ler "pago" nesse caso.
+    const provisionalPay = !!o && !payOnDelivery && o.paymentProvider === 'provisorio';
+    v.totalPaidLabel = payOnDelivery ? 'A pagar na entrega' : provisionalPay ? 'Total (nada foi cobrado)' : 'Total pago';
     v.confirmMsg = payOnDelivery
       ? 'A cozinha já recebeu seu pedido. Pague ao garçom na entrega, com cartão ou dinheiro.'
       : 'A cozinha já recebeu seu pedido. Fique à vontade no guarda-sol — levamos até você.';
@@ -6261,6 +6332,7 @@ class Component extends DCLogic {
     const ci = o ? stages.indexOf(o.status) : 0;
     v.steps = [
       payOnDelivery ? {t:'Pagamento na entrega', d:'Cartão ou dinheiro com o garçom', i:0}
+        : provisionalPay ? {t:'Pedido aceito sem cobrança', d:'Pagamento online em modo de teste: nada foi cobrado', i:0}
         : {t:'Pagamento aprovado', d:(o && o.paymentMethod === 'cartao') ? 'Cartão confirmado' : 'PIX confirmado', i:0},
       {t:'Na fila', d:'Pedido recebido pelo quiosque', i:1},
       {t:'Em preparo', d:'A cozinha está montando seu pedido', i:2},
@@ -6279,7 +6351,12 @@ class Component extends DCLogic {
     v.doCancel = () => this.cancelOrder();
 
     // history
-    v.historyRows = s.history.map((h, i) => { const hr = refundCard(h.refunds, h.total); return {
+    // Lista em páginas de 20, do mais novo para o mais antigo.
+    const histShown = s.histShown || 20;
+    v.histHasMore = s.history.length > histShown;
+    v.histMoreLabel = 'Ver mais pedidos (' + Math.min(20, s.history.length - histShown) + ')';
+    v.histMore = () => this.setState({histShown:histShown + 20});
+    v.historyRows = s.history.slice(0, histShown).map((h, i) => { const hr = refundCard(h.refunds, h.total); return {
       id:h.id, table:h.table, when:h.when + ' · ' + h.items.length + (h.items.length === 1 ? ' item' : ' itens'), totalStr:f(h.total), status:h.status, stLbl:statusLabel(h.status),
       refundStr:hr.has ? 'Estornado ' + hr.total : '',
       refStyle:hr.has ? 'font:700 var(--fs-sm)/1.4 \'Manrope\',system-ui,sans-serif;color:#1F5A63;margin-top:2px' : 'display:none',
@@ -6322,7 +6399,7 @@ class Component extends DCLogic {
     v.setSuEmail = e => this.setState(suField('suEmail', e.target.value));
     v.setSuPass = e => this.setState(suField('suPass', e.target.value));
     v.setSuPass2 = e => this.setState(suField('suPass2', e.target.value));
-    v.setSuPhone = e => this.setState(suField('suPhone', e.target.value));
+    v.setSuPhone = e => this.setState(suField('suPhone', maskPhone(e.target.value)));
     v.setSuCpf = e => this.setState(suField('suCpf', formatCpf(e.target.value)));
     v.setSuBirth = e => this.setState(suField('suBirth', maskDate(e.target.value)));
     v.toggleSuTerms = () => this.setState(st => suField('suTerms', !st.suTerms)(st));
@@ -6424,9 +6501,9 @@ class Component extends DCLogic {
 
     const dash = s.dashboard;
     v.kpis = dash ? [
-      {lbl:'Faturamento hoje', val:'R$ ' + dash.revenueToday.toFixed(2).replace('.', ','), delta:dash.ordersToday + (dash.ordersToday === 1 ? ' pedido hoje' : ' pedidos hoje')},
+      {lbl:'Faturamento hoje', val:brMoney(dash.revenueToday), delta:dash.ordersToday + (dash.ordersToday === 1 ? ' pedido hoje' : ' pedidos hoje')},
       {lbl:'Pedidos', val:String(dash.ordersToday), delta:'hoje'},
-      {lbl:'Ticket médio', val:'R$ ' + dash.avgTicket.toFixed(2).replace('.', ','), delta:'por pedido'},
+      {lbl:'Ticket médio', val:brMoney(dash.avgTicket), delta:'por pedido'},
       {lbl:'Tempo médio de preparo', val:s.opsMetrics && s.opsMetrics.avgPrepSeconds != null ? secondsToLabel(s.opsMetrics.avgPrepSeconds) : '—', delta:s.opsMetrics && s.opsMetrics.avgPrepSeconds != null ? 'hoje' : 'sem dados hoje'}
     ] : [
       {lbl:'Faturamento hoje', val:'—', delta:'carregando…'},
@@ -6436,7 +6513,8 @@ class Component extends DCLogic {
     ];
 
     const admQ = s.admSearch.trim().toLowerCase().replace(/^#/, '');
-    const admMatch = r => !admQ || String(r.table) === admQ || String(r.apiId).toLowerCase().includes(admQ);
+    // Busca pelo número da tela (#005, 005 ou 5), pela mesa ou pelo começo do código interno.
+    const admMatch = r => orderMatches(r, admQ);
     const searched = s.adminOrders.filter(admMatch);
     v.orderFilters = ['Todos','Na Fila','Em Preparo','Pronto','Entregue','Cancelado'].map(st => ({
       label:statusLabel(st), cls:s.admFilter === st ? 'on' : '',
@@ -6447,7 +6525,8 @@ class Component extends DCLogic {
     v.setAdmSearch = e => this.setState({admSearch:e.target.value});
     v.adminOrders = searched.filter(r => s.admFilter === 'Todos' || r.status === s.admFilter).map(r => Object.assign({}, r, {
       hora:r.minAgo === 0 ? 'agora' : r.minAgo + ' min atrás',
-      clock:new Date(r.createdAt).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+      // Os números recomeçam todo dia: pedido de outro dia mostra a data junto da hora.
+      clock:(isTodaySp(r.createdAt) ? '' : brDate(spDate(r.createdAt)).slice(0, 5) + ' ') + spTime(r.createdAt),
       stStyle:pillStyle(statusTone(r.status)), stLbl:statusLabel(r.status),
       canManage:canManageOrder(r), manageLabel:refundableOf(r) > 0 ? 'Estornar' : 'Cancelar pedido',
       manage:() => this.openRefund(r.apiId)
@@ -6645,7 +6724,7 @@ class Component extends DCLogic {
     const minLabel = sec => sec == null ? '—' : Math.round(sec / 60) + ' min';
     v.opsMini = [
       ['Tempo médio na fila', opsM ? minLabel(opsM.avgQueueSeconds) : '—', false],
-      ['Pedidos atrasados', opsM ? String(opsM.lateOrders) : '—', opsM && opsM.lateOrders > 0],
+      ['Pedidos atrasados', String(lateOrdersOf(s.adminOrders).length), lateOrdersOf(s.adminOrders).length > 0],
       ['Cancelamentos hoje', opsM ? String(opsM.cancelledToday) : '—', false],
       ['Itens esgotados', opsM ? String(opsM.soldOutProducts.length) : '—', opsM && opsM.soldOutProducts.length > 0]
     ].map(([k, val, bad]) => ({k, v:val, style:'font-size:var(--fs-h2);color:' + (bad ? '#B42318' : '#14232A')}));
@@ -6707,10 +6786,12 @@ class Component extends DCLogic {
     v.reportEmptyText = rep ? 'Nenhuma venda paga nesse período.' : 'Carregando…';
 
     const ops = s.opsMetrics;
+    const lateNow = lateOrdersOf(s.adminOrders).length;
+    const openNow = s.adminOrders.filter(k => (k.status === 'Na Fila' || k.status === 'Em Preparo') && inKitchen(k)).length;
     v.opsRows = ops ? [
       ['Tempo médio na fila', secondsToLabel(ops.avgQueueSeconds), 'Meta: 5 min', (ops.avgQueueSeconds == null || ops.avgQueueSeconds <= 300) ? 'ok' : 'warn'],
       ['Tempo médio de preparo', secondsToLabel(ops.avgPrepSeconds), 'Meta: 10 min', (ops.avgPrepSeconds == null || ops.avgPrepSeconds <= 600) ? 'ok' : 'warn'],
-      ['Pedidos atrasados', ops.lateOrders + ' de ' + ops.ordersInQueueOrPrep, 'Mais de 10 min sem avançar', ops.lateOrders > 0 ? 'warn' : 'ok'],
+      ['Pedidos atrasados', lateNow + ' de ' + openNow, 'Mais de 10 min sem avançar', lateNow > 0 ? 'warn' : 'ok'],
       ['Itens indisponíveis', ops.soldOutProducts.length ? (ops.soldOutProducts.length + ' (' + ops.soldOutProducts.join(', ') + ')') : 'Nenhum', 'Sinalizado pela cozinha', ops.soldOutProducts.length ? 'warn' : 'ok'],
       ['Cancelamentos', String(ops.cancelledToday), 'Hoje', ops.cancelledToday > 0 ? 'warn' : 'ok']
     ].map(([k, val, sub, kind]) => ({
@@ -6816,7 +6897,7 @@ class Component extends DCLogic {
     v.catMsg = s.catMsg; v.hasCatMsg = !!s.catMsg;
 
     v.productRows = s.products.filter(p => admCat === 'Todos' || p.cat === admCat).map(p => ({
-      id:p.id, name:p.name, cat:p.cat, priceStr:'R$ ' + p.price.toFixed(2).replace('.', ','), desc:p.desc || '',
+      id:p.id, name:p.name, cat:p.cat, priceStr:brMoney(p.price), desc:p.desc || '',
       meta:[p.porcao, p.tempo].filter(x => x && x !== '1').join(' · '),
       markPath:ITEM_ICON, photoStyle:photoBg(p), hasPhoto:!!photoSrc(p), noPhoto:!photoSrc(p),
       thumbStyle:'background:' + catTile(p.cat, s.categories)[0], iconColor:catTile(p.cat, s.categories)[1],
@@ -6845,16 +6926,16 @@ class Component extends DCLogic {
     {
       const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios);
       const abertos = (s.adminOrders || []).filter(o => ['Na Fila', 'Em Preparo', 'Pronto'].indexOf(o.status) >= 0).length;
-      v.closeAskSummary = dash ? 'Hoje: ' + plural(dash.ordersToday, 'pedido', 'pedidos') + ' e R$ ' + dash.revenueToday.toFixed(2).replace('.', ',') + ' de faturamento. O relatório do dia é gerado na hora.' : 'O relatório do dia é gerado na hora.';
+      v.closeAskSummary = dash ? 'Hoje: ' + plural(dash.ordersToday, 'pedido', 'pedidos') + ' e ' + brMoney(dash.revenueToday) + ' de faturamento. O relatório do dia é gerado na hora.' : 'O relatório do dia é gerado na hora.';
       v.closeAskHasOpen = abertos > 0;
       v.closeAskOpenText = abertos === 1 ? '1 pedido ainda está aberto.' : abertos + ' pedidos ainda estão abertos.';
     }
     v.reopenDay = () => this.reopenDayReal();
     const report = s.lastDayReport;
     v.hasDayReport = !!report;
-    v.reportRevenue = report ? 'R$ ' + report.totalRevenue.toFixed(2).replace('.', ',') : '—';
+    v.reportRevenue = report ? brMoney(report.totalRevenue) : '—';
     v.reportOrders = report ? String(report.totalOrders) : '—';
-    v.reportAvgTicket = report ? 'R$ ' + report.avgTicket.toFixed(2).replace('.', ',') : '—';
+    v.reportAvgTicket = report ? brMoney(report.avgTicket) : '—';
     v.reportTopProducts = report ? report.topProducts.map(p => ({name:p.name, qty:p.qty})) : [];
 
     // cozinha — deriva do mesmo s.adminOrders (não há mais uma "comanda" separada
@@ -6880,7 +6961,7 @@ class Component extends DCLogic {
       const m = t.match(/^(\d+)\s*[x×]\s*(.*)$/i);
       return m ? {q:m[1] + '×', n:m[2]} : {q:'', n:t};
     });
-    const kRaw = st => s.adminOrders.filter(k => k.status === st && (k.paymentMethod === 'entrega' || k.paymentStatus === 'approved'));
+    const kRaw = st => s.adminOrders.filter(k => k.status === st && inKitchen(k) && orderMatches(k, s.kSearch));
     const KCOLS = [
       ['Na Fila', 'Na fila', '#F5B83D', 'Iniciar preparo', ''],
       ['Em Preparo', 'Em preparo', '#1F5A63', 'Marcar como pronto', ''],
@@ -6888,7 +6969,8 @@ class Component extends DCLogic {
     ];
     v.kCols = KCOLS.map(([st, title, dot, btn, btnStyle]) => {
       const cards = kRaw(st).map(k => ({
-        id:k.id, table:'Mesa ' + k.table, min:k.minAgo + ' min',
+        // Pedido de outro dia que ficou aberto mostra a data, não milhares de minutos.
+        id:k.id, table:'Mesa ' + k.table, min:isTodaySp(k.createdAt) ? k.minAgo + ' min' : 'desde ' + brDate(spDate(k.createdAt)).slice(0, 5),
         customer:k.customer, hasCustomer:!!k.customer,
         lateCls:st !== 'Pronto' && k.minAgo > 10 ? 'late' : '',
         lines:kLines(k.itemsStr), obs:k.obs || '', hasObs:!!k.obs,
@@ -6911,8 +6993,10 @@ class Component extends DCLogic {
     v.kTabs = v.kCols.map((c, i) => ({title:c.title, n:c.n, dotStyle:c.dotStyle,
       cls:'kz-tab' + (i === (s.kzTab || 0) ? ' on' : ''), sel:i === (s.kzTab || 0) ? 'true' : 'false',
       pick:() => this.setState({kzTab:i})}));
-    v.kDelivered = String(s.adminOrders.filter(k => k.status === 'Entregue').length);
-    v.kLate = String(s.adminOrders.filter(k => (k.status === 'Na Fila' || k.status === 'Em Preparo') && k.minAgo > 10).length);
+    v.kSearch = s.kSearch;
+    v.setKSearch = e => this.setState({kSearch:e.target.value});
+    v.kDelivered = String(s.adminOrders.filter(k => k.status === 'Entregue' && isTodaySp(k.createdAt)).length);
+    v.kLate = String(lateOrdersOf(s.adminOrders).length);
     v.kLateStyle = v.kLate !== '0' ? 'color:#B3261E' : 'color:var(--ink)';
     v.kClock = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
     v.soundOff = !s.soundOn;
@@ -6936,6 +7020,7 @@ class Component extends DCLogic {
     const gVisible = s.adminOrders.filter(k => k.paymentMethod === 'entrega' || k.paymentStatus === 'approved');
     v.gReady = gVisible.filter(k => k.status === 'Pronto').map(k => ({
       id:k.id, table:'Mesa ' + k.table, min:k.minAgo + ' min', lateCls:k.minAgo > 5 ? 'late' : '',
+      customer:k.customer, hasCustomer:!!k.customer,
       lines:kLines(k.itemsStr), obs:k.obs || '', hasObs:!!k.obs,
       payLabel:k.payLabel, payStyle:pillStyle(k.payTone), mine:!!myId && k.waiterId === myId,
       canReceive:k.paymentMethod === 'entrega' && k.paymentStatus !== 'approved',
@@ -7077,7 +7162,7 @@ class Component extends DCLogic {
     v.availRows = s.products.map(p => ({
       name:p.name, cat:p.cat, markPath:ITEM_ICON, photoStyle:photoBg(p), hasPhoto:!!photoSrc(p), noPhoto:!photoSrc(p),
       pill:noStock(p) ? 'Esgotado' : p.soldOut ? 'Indisponível' : (p.stock != null ? 'Disponível · estoque ' + p.stock : 'Disponível'),
-      pillStyle:"font:700 12px 'Manrope',system-ui,sans-serif;padding:4px 12px;border-radius:999px;background:" + (p.soldOut ? '#FDECEA;color:#8A1C12' : '#E5F7EA;color:#1E6B36'),
+      pillStyle:"font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;padding:4px 12px;border-radius:999px;background:" + (p.soldOut ? '#FDECEA;color:#8A1C12' : '#E5F7EA;color:#1E6B36'),
       // Esgotado por estoque zerado não se resolve no interruptor (o PATCH só
       // mexe no sinal manual): avisa onde repor em vez de não fazer nada.
       toggle:() => noStock(p) ? this.flash('Esgotado. Reponha o estoque em Cardápio e estoque para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
@@ -7159,7 +7244,7 @@ class Component extends DCLogic {
     v.meName = s.meName; v.mePhone = s.mePhone; v.meBirth = s.meBirth;
     v.meCpf = (s.profileInfo && s.profileInfo.cpf) || 'Não informado';
     v.setMeName = e => this.setState({meName:e.target.value, meErr:''});
-    v.setMePhone = e => this.setState({mePhone:e.target.value, meErr:''});
+    v.setMePhone = e => this.setState({mePhone:maskPhone(e.target.value), meErr:''});
     v.setMeBirth = e => this.setState({meBirth:maskDate(e.target.value), meErr:''});
     v.meErr = s.meErr; v.hasMeErr = !!s.meErr;
     v.saveProfile = () => this.saveProfile();

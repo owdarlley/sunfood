@@ -24,7 +24,7 @@ O endereço principal (`index.html`, ou seja, https://sunfood.app.br/) é a **te
 
 | Link do rodapé | Endereço | Conteúdo |
 | --- | --- | --- |
-| Conheça o Sunfood | `/#conheca` | Proposta, benefícios, como funciona, os três perfis e sobre o projeto |
+| Conheça o Sunfood | `/#conheca` | Proposta, benefícios, como funciona, os quatro perfis e sobre o projeto |
 | Fale conosco | `/#fale-conosco` | Formulário de contato (grava pela API, `POST /contact`) |
 | Termos de uso | `/#termos` | Termos de uso do sistema |
 | Privacidade | `/#privacidade` | Política de privacidade, conforme a LGPD |

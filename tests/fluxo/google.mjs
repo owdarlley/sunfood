@@ -138,7 +138,7 @@ await step('Google primeiro acesso', async () => {
   await click(page, 'Salvar e continuar');
   const sent = called(page, '/auth/complete-profile')[0];
   check('completar: envia nome, telefone, CPF, nascimento e aceite com o token', sent && sent.auth === 'Bearer gtok' && sent.body.name === 'Bia Google'
-    && sent.body.phone === '11 98888-7777' && sent.body.cpf === '11144477735' && sent.body.birthDate === '1999-05-05' && sent.body.termsAccepted === true, JSON.stringify(sent));
+    && sent.body.phone === '(11) 98888-7777' && sent.body.cpf === '11144477735' && sent.body.birthDate === '1999-05-05' && sent.body.termsAccepted === true, JSON.stringify(sent));
   t = await text(page);
   check('completar: vai para o cardápio', t.includes('Batata Frita') && !t.includes('Falta pouco'));
   const savedUser = await page.evaluate(() => JSON.parse(localStorage.getItem('sunfood_session')).user);

@@ -103,7 +103,7 @@ await step('editar', async () => {
   await nome.fill('Ana Maria Souza');
   await page.getByLabel('WhatsApp / telefone', { exact: true }).fill('11 98888-7777');
   await pressBtn(page, 'Salvar');
-  check('editar: envia nome, telefone e nascimento', page.api.user.name === 'Ana Maria Souza' && page.api.db.profile.phone === '11 98888-7777' && page.api.db.profile.birthDate === '1999-05-10');
+  check('editar: envia nome, telefone e nascimento', page.api.user.name === 'Ana Maria Souza' && page.api.db.profile.phone === '(11) 98888-7777' && page.api.db.profile.birthDate === '1999-05-10');
   const t = await text(page);
   check('editar: volta ao perfil com o nome novo', t.includes('Olá, Ana') && t.includes('Ana Maria Souza') && t.includes('Perfil salvo'));
   await noErrors('editar', page);
