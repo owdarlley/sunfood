@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { cancelWindowFrom, locationFrom, minOrderCentsFrom, tableCountFrom } from "../business-rules.js";
+import { cancelWindowFrom, locationFrom, minOrderCentsFrom, minOrderEnabledFrom, tableCountFrom } from "../business-rules.js";
 import {
   kioskPauseSchema,
   kioskCancelWindowSchema,
@@ -21,6 +21,7 @@ function kioskToApi(row) {
     dayClosed: !!row.day_closed,
     cancelWindowMinutes: cancelWindowFrom(row),
     minOrder: minOrderCentsFrom(row) / 100,
+    minOrderEnabled: minOrderEnabledFrom(row),
     tableCount: tableCountFrom(row),
     location: locationFrom(row),
   };
@@ -73,9 +74,14 @@ adminRouter.patch(
   requireRole("admin"),
   validate(kioskMinOrderSchema),
   async (req, res) => {
+    // Só manda a coluna que mudou: assim salvar o valor continua funcionando
+    // mesmo antes da migration de min_order_enabled.
+    const changes = {};
+    if (req.body.minOrder !== undefined) changes.min_order_cents = Math.round(req.body.minOrder * 100);
+    if (req.body.enabled !== undefined) changes.min_order_enabled = req.body.enabled;
     const { data, error } = await supabaseAdmin
       .from("kiosk_settings")
-      .update({ min_order_cents: Math.round(req.body.minOrder * 100) })
+      .update(changes)
       .eq("id", 1)
       .select()
       .single();

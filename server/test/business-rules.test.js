@@ -10,6 +10,8 @@ import {
   computeOrderTotals,
   meetsMinimumOrder,
   minOrderCentsFrom,
+  minOrderEnabledFrom,
+  effectiveMinOrderCents,
   formatBRL,
   canCancel,
   canRecordReceipt,
@@ -133,4 +135,12 @@ test("locationFrom usa o local do banco e cai no padrão se faltar", () => {
   assert.deepEqual(locationFrom({ paused: false }), DEFAULT_LOCATION);
   assert.deepEqual(locationFrom(null), DEFAULT_LOCATION);
   assert.equal(locationFrom({ location_name: "  ", location_address: "Rua A, 10" }).name, DEFAULT_LOCATION.name);
+});
+
+test("pedido mínimo desligado vale 0, mas guarda o valor", () => {
+  assert.equal(minOrderEnabledFrom({}), true, "sem coluna: ligado");
+  assert.equal(minOrderEnabledFrom({ min_order_enabled: false }), false);
+  assert.equal(effectiveMinOrderCents({ min_order_cents: 2500, min_order_enabled: true }), 2500);
+  assert.equal(effectiveMinOrderCents({ min_order_cents: 2500, min_order_enabled: false }), 0);
+  assert.equal(effectiveMinOrderCents({ min_order_cents: 2500 }), 2500);
 });
