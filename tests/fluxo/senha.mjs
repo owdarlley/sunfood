@@ -47,7 +47,7 @@ async function open(path) {
       if (body.email === 'ana@emial.com') return json(404, { error: 'Não encontramos uma conta com este e-mail. Confira se digitou certo ou crie uma conta.', code: 'email_not_found' });
       if (body.cpf === '11144477735') return json(404, { error: 'Não encontramos uma conta com este CPF. Confira os números ou crie uma conta.', code: 'cpf_not_found' });
       if (body.cpf) return json(200, { message: 'Enviamos um link de redefinição para a*a@email.com.', sentTo: 'a*a@email.com' });
-      if (body.email === 'bia@gmail.com') return json(400, { error: 'Esta conta foi criada com o Google e não tem senha. Use o botão "Entrar com Google".', code: 'google_account' });
+      if (body.email === 'bia@gmail.com') return json(400, { error: 'Esta conta foi criada com o Google e não tem senha. Entre pelo botão do Google na tela de entrada.', code: 'google_account' });
       return json(200, { message: 'ok' });
     }
     if (p === '/auth/update-password') return body.accessToken === 'tok-recuperacao'

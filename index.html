@@ -465,6 +465,11 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 body{caret-color:transparent;-webkit-user-select:none;user-select:none;cursor:default;-webkit-tap-highlight-color:transparent}
 input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable="true"]{caret-color:auto;-webkit-user-select:text;user-select:text;cursor:text}
 select{caret-color:auto}
+/* Nada abaixo de 12 px na tela (2026-10-20): com a escala de 83% as legendas
+   ficavam com 10 px e os rótulos com 11,6 px. Esses textos passam a ter no
+   mínimo 12 px reais. Campos e títulos continuam na escala, para login e
+   cadastro seguirem cabendo na altura da tela sem rolar. */
+.lp{--lg-fs-sub:max(14px, calc(12px / var(--fit,1)));--lg-fs-label:max(14px, calc(12px / var(--fit,1)));--lg-fs-link:max(14px, calc(12px / var(--fit,1)));--lg-fs-err:max(13px, calc(12px / var(--fit,1)));--lg-fs-foot:calc(12px / var(--fit,1));--lp-fs-cat-sub:calc(12px / var(--fit,1))}
 </style>
 </head>
 <body>
@@ -570,7 +575,7 @@ select{caret-color:auto}
         <p class="lead">Em quiosque de praia o pedido ainda vive no bloco de papel: o cliente espera o garçom para pedir, espera de novo para pagar, e o gestor não sabe o que está vendendo. O Sunfood põe o cardápio, o pagamento e a fila da cozinha na mesma tela, em tempo real.</p>
         <div class="cta"><a class="pri" href="#" data-close>Entrar</a><a class="sec" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></div>
         <div class="stats">
-          <div><b>3 perfis</b>Cliente, cozinha e gestão</div>
+          <div><b>4 perfis</b>Cliente, cozinha, garçom e gestão</div>
           <div><b>Zero fila</b>Pedido e pagamento pelo celular</div>
           <div><b>App instalável</b>Abre no navegador, sem loja</div>
         </div>
@@ -590,13 +595,14 @@ select{caret-color:auto}
           <div class="card"><span class="num">3</span><b>Acompanhe</b><p>O status muda de Na fila para Em preparo e Pronto, e a entrega vai até a sua mesa.</p></div>
         </div>
 
-        <h3>Um sistema, três telas de trabalho</h3>
-        <div class="grid">
+        <h3>Um sistema, quatro telas de trabalho</h3>
+        <div class="grid g2">
           <div class="card"><div class="tag">Celular</div><b>Cliente</b><ul><li>Cardápio por categorias</li><li>Carrinho com observações</li><li>PIX ou cartão</li><li>Status e histórico</li></ul></div>
           <div class="card"><div class="tag">Tablet</div><b>Cozinha</b><ul><li>Fila de pedidos em tempo real</li><li>Item esgotado com um toque</li><li>Alerta de pedido atrasado</li></ul></div>
           <div class="card"><div class="tag">Computador</div><b>Administração</b><ul><li>Painel de vendas do dia</li><li>Cardápio, preços e estoque</li><li>Mesas e pedido mínimo</li><li>Relatórios e fechamento</li></ul></div>
+          <div class="card"><div class="tag">Celular</div><b>Garçom</b><ul><li>Pedidos prontos para levar</li><li>Lançar pedido feito na mesa</li><li>Recebimento na entrega</li></ul></div>
         </div>
-        <p>Cozinha e administração entram por este mesmo login; cada perfil cai direto na sua tela.</p>
+        <p>Cozinha, garçom e administração entram por este mesmo login; cada perfil cai direto na sua tela.</p>
 
         <figure class="quote">
           <blockquote>“No fim de semana de carnaval a gente atendia 40 guarda-sóis com dois garçons. Com o pedido saindo do celular do cliente, a cozinha passou a receber tudo na ordem certa e parou de errar mesa.”</blockquote>

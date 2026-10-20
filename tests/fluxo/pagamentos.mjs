@@ -160,7 +160,10 @@ await step('sem Mercado Pago', async () => {
   check('sem MP: cartão aprovado na hora como provisório', o && o.paymentMethod === 'cartao' && o.paymentStatus === 'approved' && o.paymentProvider === 'provisorio', JSON.stringify(o));
   t = await text(page);
   check('sem MP: cliente vai direto para a confirmação', t.toLowerCase().includes('pedido confirmado'), t.slice(0, 200));
+  check('sem MP: confirmação não diz "Total pago" quando nada foi cobrado', t.includes('Total (nada foi cobrado)') && !t.includes('Total pago'), t.slice(0, 400));
   await click(page, 'Acompanhar pedido');
+  t = await text(page);
+  check('sem MP: acompanhamento avisa que nada foi cobrado', t.includes('Pedido aceito sem cobrança') && !t.includes('Cartão confirmado'), t.slice(0, 400));
   await click(page, 'Cancelar pedido');
   check('sem MP: cancelar cartão provisório não promete estorno', (await text(page)).includes('Nada a estornar'));
   check('sem MP: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));

@@ -111,7 +111,7 @@ for (const [nome, vw] of TELAS) {
     check(`cadastro (${nome}): mesma escala do login`, zc === escalas[nome]?.login, `cadastro ${zc}, login ${escalas[nome]?.login}`);
     check(`cadastro (${nome}): já abre na escala certa`, await escalaInicial(p) === zc, `${await escalaInicial(p)} -> ${zc}`);
     // A altura de referência de caber.js continua certa: a do cadastro (computador) cabe nela, com folga de até 12 px.
-    if (vw.width >= 1040 && vw.height < 820) { const a = await alturaNatural(p, '.auth'), ref = 748; check(`cadastro (${nome}): altura de referência certa (${a} de ${ref} px)`, a <= ref && ref - a <= 12, `${a} px`); }
+    if (vw.width >= 1040 && vw.height < 820) { const a = await alturaNatural(p, '.auth'), ref = 758; check(`cadastro (${nome}): altura de referência certa (${a} de ${ref} px)`, a <= ref && ref - a <= 12, `${a} px`); }
     if (cel) {
       const alturas = await p.locator('.su .inp').evaluateAll(l => l.map(e => Math.round(e.getBoundingClientRect().height)));
       check(`cadastro (${nome}): campos com 48 px no celular`, alturas.length === 7 && alturas.every(h => h >= 48), alturas.join(','));
