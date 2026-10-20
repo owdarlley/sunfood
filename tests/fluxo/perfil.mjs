@@ -92,7 +92,7 @@ await step('editar', async () => {
   await click(page, 'Editar perfil e foto');
   const nome = page.getByLabel('Nome completo', { exact: true });
   check('editar: nome já preenchido', await nome.inputValue() === 'Ana Souza');
-  check('editar: telefone já preenchido', await page.getByLabel('WhatsApp / telefone', { exact: true }).inputValue() === '11999999999');
+  check('editar: telefone já preenchido', await page.getByLabel('WhatsApp / telefone', { exact: true }).inputValue() === '(11) 99999-9999');
   check('editar: e-mail e CPF travados', await page.locator('input[disabled]').count() === 2 && (await text(page)).includes('E-mail e CPF não mudam'));
   check('editar: CPF mascarado', await page.locator('input[disabled]').nth(1).inputValue() === '529.***.***-25');
   check('editar: nascimento em dd/mm/aaaa', await page.getByLabel('Data de nascimento', { exact: true }).inputValue() === '01/01/2000');
