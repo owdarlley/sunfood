@@ -6,7 +6,7 @@ import { createOrderSchema, manualOrderSchema, orderStatusUpdateSchema, paymentR
 import {
   computeOrderTotals,
   meetsMinimumOrder,
-  minOrderCentsFrom,
+  effectiveMinOrderCents,
   tableCountFrom,
   formatBRL,
   canCancel,
@@ -137,7 +137,7 @@ async function placeOrder(res, { tableNumber, items, note, paymentMethod, custom
   // volta pra reais decimais na hora de gravar.
   const priceCentsOf = (item) => Math.round(Number(byId.get(item.productId).price) * 100);
   const { subtotalCents, totalCents } = computeOrderTotals(items, priceCentsOf);
-  const minOrderCents = minOrderCentsFrom(settings);
+  const minOrderCents = effectiveMinOrderCents(settings);
   if (!meetsMinimumOrder(subtotalCents, minOrderCents)) {
     return res.status(422).json({ error: `Pedido mínimo de ${formatBRL(minOrderCents)}.` });
   }

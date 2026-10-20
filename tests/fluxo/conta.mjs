@@ -143,6 +143,21 @@ await step('pedido mínimo', async () => {
   await page.close();
 });
 
+// 3b. Pedido mínimo desligado pelo admin: o mesmo carrinho passa
+await step('pedido mínimo desligado', async () => {
+  const page = await open('app-cliente.dc.html', { kiosk: { minOrder: 30, minOrderEnabled: false } });
+  await login(page);
+  await click(page, '+', true);
+  await click(page, 'no carrinho');
+  let t = await text(page);
+  check('mínimo desligado: carrinho não fala em pedido mínimo', !t.includes('Pedido mínimo de') && !t.includes('Faltam'), t.slice(0, 300));
+  await click(page, 'Escolher a mesa');
+  t = await text(page);
+  check('mínimo desligado: deixa ir para a mesa', !t.includes('Pedido mínimo de R$ 30,00') && /mesa/i.test(t));
+  check('mínimo desligado: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | '));
+  await page.close();
+});
+
 // 4. Dia encerrado: cardápio avisa e não deixa fechar pedido
 await step('dia encerrado', async () => {
   const page = await open('app-cliente.dc.html', { kiosk: { dayClosed: true } });

@@ -35,6 +35,17 @@ export function minOrderCentsFrom(settings) {
   return Number.isInteger(v) && v >= 0 ? v : MIN_ORDER_CENTS;
 }
 
+// O admin pode desligar o pedido mínimo sem perder o valor salvo
+// (kiosk_settings.min_order_enabled). Sem a coluna, continua ligado.
+export function minOrderEnabledFrom(settings) {
+  return settings?.min_order_enabled !== false;
+}
+
+// O mínimo que vale de verdade no pedido: 0 quando está desligado.
+export function effectiveMinOrderCents(settings) {
+  return minOrderEnabledFrom(settings) ? minOrderCentsFrom(settings) : 0;
+}
+
 // Quantas mesas o quiosque tem (kiosk_settings.table_count, escolhido pelo
 // admin). O cliente só pode pedir pra mesa de 1 até esse número.
 export const DEFAULT_TABLE_COUNT = 12;

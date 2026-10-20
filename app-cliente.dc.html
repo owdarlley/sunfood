@@ -1388,10 +1388,12 @@ select{caret-color:auto}
                             <div class="sumrow"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
                             <div class="sumtotal" style="border-top:0;margin-top:2px;padding-top:4px"><span>Total</span><span>{{ totalStr }}</span></div>
                           </div>
-                          <div style="margin-top:16px">
-                            <div class="prog"><div style="{{ minProgStyle }}"></div></div>
-                            <p class="muted" style="margin:8px 0 0;font-size:var(--fs-sm)">{{ minHint }}</p>
-                          </div>
+                          <sc-if value="{{ hasMinOrder }}" hint-placeholder-val="{{ true }}">
+                            <div style="margin-top:16px">
+                              <div class="prog"><div style="{{ minProgStyle }}"></div></div>
+                              <p class="muted" style="margin:8px 0 0;font-size:var(--fs-sm)">{{ minHint }}</p>
+                            </div>
+                          </sc-if>
                           <div onClick="{{ goCart }}" class="btn btn-sun" style="margin-top:16px">Fechar pedido · {{ totalStr }}</div>
                         </sc-if>
                         <sc-if value="{{ noCart }}" hint-placeholder-val="{{ true }}">
@@ -2613,7 +2615,10 @@ select{caret-color:auto}
                   <div style="display:flex;align-items:center;gap:12px;margin-top:20px"><span style="{{ pauseDotStyle }};width:14px;height:14px"></span><span class="tt" style="font-size:var(--fs-h2)">{{ pauseLabel }}</span></div>
                 </div>
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-                  <div><h2 style="margin:0">Pedido mínimo</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Atual: {{ minOrderStr }}. O cliente só fecha o pedido se o total chegar nesse valor. Use 0 para não ter mínimo.</div></div>
+                  <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+                    <div><h2 style="margin:0">Pedido mínimo</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">{{ minOrderSub }}</div></div>
+                    <div onClick="{{ toggleMinOrder }}" class="toggle" role="switch" aria-checked="{{ minOrderOnAria }}" aria-label="Cobrar pedido mínimo" style="{{ minOrderSwitchStyle }}"><span style="{{ minOrderKnobStyle }}"></span></div>
+                  </div>
                   <div style="display:flex;gap:8px">
                     <input placeholder="Valor em reais" class="inp" value="{{ minOrderInput }}" onChange="{{ setMinOrderInput }}" aria-label="Pedido mínimo, em reais" style="flex:1;min-width:0" />
                     <div onClick="{{ saveMinOrder }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar mínimo</div>
@@ -3711,7 +3716,7 @@ const emptyPf = cats => ({id:null, name:'', price:'', cat:((cats || DEFAULT_CATE
 // formato que o banco guarda. As sugestões já vêm com a cor do tipo (alerta,
 // "sem"/natural, característica); etiqueta digitada pelo admin usa a lilás.
 // Mensagens dos ajustes do admin: confirmação de salvo x erro, para escolher o tipo de aviso.
-const SAVED_OK = /atualizad|^Agora o quiosque tem/;
+const SAVED_OK = /atualizad|^Agora o quiosque tem|^Pedido mínimo (ligado|desligado)/;
 const TOAST_OK = /^(Cadastro completo|Perfil salvo|Avatar escolhido|Foto atualizada|Enviamos|Senha alterada|Recebimento|Mensagem (marcada|voltou)|Resposta (registrada|enviada)|Produto (atualizado|criado|excluído)|Pedido da mesa|Garçom (reativado|desativado)|Código PIX copiado|Seu pedido está pronto)|foi excluído/;
 const TAG_ALERT = ['#FDEBEA', '#E74C3C'], TAG_WARN = ['#FFF3DE', '#B0791A'], TAG_OK = ['#E7F7ED', '#16A34A'], TAG_INFO = ['#EFEBFF', '#7C5CFF'];
 const TAG_PRESETS = [['Alcoólico', TAG_ALERT], ['+18', TAG_WARN], ['Feito na hora', TAG_INFO], ['Gelado', TAG_INFO],
@@ -3898,7 +3903,7 @@ class Component extends DCLogic {
     location:{name:'Quiosque Sunfood · Praia do Forte', address:'Av. Beira-Mar, s/n, em frente ao posto 4', hours:'Aberto todos os dias, 9h às 18h.'},
     locInput:{name:null, address:null, hours:null}, locMsg:'',
     // Pedido mínimo (R$) — vem de GET /kiosk-settings; 10 é só o padrão até carregar.
-    minOrder:10, minOrderInput:'', minOrderMsg:'',
+    minOrder:10, minOrderEnabled:true, minOrderInput:'', minOrderMsg:'',
     // Admin/Cozinha: tudo abaixo vem da API de verdade (adminOrders, dashboard,
     // opsMetrics), carregado em loadAdminData()/pollAdminData() — nada é mock.
     adminOrders:[], dashboard:null, opsMetrics:null, lastDayReport:null,
@@ -4629,6 +4634,7 @@ class Component extends DCLogic {
         tables: tables.map(t => ({n:t.number, active:t.active, seats:t.seats})),
         paused: kiosk.paused, dayClosed: kiosk.dayClosed,
         minOrder: typeof kiosk.minOrder === 'number' ? kiosk.minOrder : this.state.minOrder,
+        minOrderEnabled: kiosk.minOrderEnabled !== false,
         location: kiosk.location && kiosk.location.address ? kiosk.location : this.state.location
       };
       const categories = await categoriesReq;
@@ -4729,7 +4735,7 @@ class Component extends DCLogic {
         const updates = {};
         if(dashRes.ok) updates.dashboard = await dashRes.json();
         if(opsRes.ok) updates.opsMetrics = await opsRes.json();
-        if(kioskRes.ok && gen === (this._writeGen || 0)){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; if(typeof k.minOrder === 'number') updates.minOrder = k.minOrder; if(k.location && k.location.address) updates.location = k.location; }
+        if(kioskRes.ok && gen === (this._writeGen || 0)){ const k = await kioskRes.json(); updates.paused = k.paused; updates.dayClosed = k.dayClosed; if(typeof k.cancelWindowMinutes === 'number') updates.cancelWindow = k.cancelWindowMinutes; if(typeof k.minOrder === 'number') updates.minOrder = k.minOrder; updates.minOrderEnabled = k.minOrderEnabled !== false; if(k.location && k.location.address) updates.location = k.location; }
         this.setChanged(updates);
       } catch(e){}
       // Na tela de relatórios, atualiza sozinho a cada 30 s (não a cada 3 s).
@@ -4951,8 +4957,25 @@ class Component extends DCLogic {
       });
       const data = await res.json();
       if(!res.ok) return this.setState({minOrderMsg: (data.details && data.details[0] && data.details[0].message) || data.error || 'Não foi possível salvar.'});
-      this.setState({minOrder:data.minOrder, minOrderInput:'', minOrderMsg:'Pedido mínimo atualizado.'});
+      this.setState({minOrder:data.minOrder, minOrderEnabled:data.minOrderEnabled !== false, minOrderInput:'', minOrderMsg:'Pedido mínimo atualizado.'});
     } catch(e){ this.setState({minOrderMsg:'Falha de conexão com o servidor.'}); }
+  }
+
+  // Liga/desliga o pedido mínimo sem mexer no valor salvo.
+  async toggleMinOrderEnabled(){
+    const was = this.state.minOrderEnabled !== false;
+    this._writeGen = (this._writeGen || 0) + 1;
+    this.setState({minOrderEnabled:!was, minOrderMsg:''});
+    try {
+      const res = await authFetch(API_BASE + '/kiosk-settings/min-order', {
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + this.state.token},
+        body:JSON.stringify({enabled: !was})
+      });
+      const data = await res.json().catch(() => ({}));
+      if(res.ok) this.setState({minOrderEnabled:data.minOrderEnabled !== false, minOrderMsg:data.minOrderEnabled === false ? 'Pedido mínimo desligado.' : 'Pedido mínimo ligado.'});
+      else this.setState({minOrderEnabled:was, minOrderMsg:data.error || 'Não foi possível mudar o pedido mínimo.'});
+    } catch(e){ this.setState({minOrderEnabled:was, minOrderMsg:'Falha de conexão com o servidor.'}); }
+    this._writeGen++;
   }
 
   async saveLocation(){
@@ -6066,10 +6089,13 @@ class Component extends DCLogic {
     v.subtotalStr = f(this.subtotal());
     v.totalStr = f(this.subtotal());
     v.goCart = () => this.go(v.hasCart ? 'cart' : 'cartEmpty');
-    const minPct = s.minOrder > 0 ? Math.min(100, Math.round(this.subtotal() / s.minOrder * 100)) : 100;
+    // Mínimo que vale no carrinho: 0 quando o admin desligou.
+    const minEff = s.minOrderEnabled === false ? 0 : s.minOrder;
+    v.hasMinOrder = minEff > 0;
+    const minPct = minEff > 0 ? Math.min(100, Math.round(this.subtotal() / minEff * 100)) : 100;
     v.minProgStyle = 'width:' + minPct + '%;background:' + (minPct >= 100 ? '#1F5A63' : '#F5B83D');
-    v.minHint = s.minOrder <= 0 ? 'Sem pedido mínimo.' : minPct >= 100 ? 'Pedido mínimo de ' + f(s.minOrder) + ' atingido.'
-      : 'Faltam ' + f(s.minOrder - this.subtotal()) + ' para o pedido mínimo de ' + f(s.minOrder) + '.';
+    v.minHint = minEff <= 0 ? 'Sem pedido mínimo.' : minPct >= 100 ? 'Pedido mínimo de ' + f(minEff) + ' atingido.'
+      : 'Faltam ' + f(minEff - this.subtotal()) + ' para o pedido mínimo de ' + f(minEff) + '.';
 
     // product detail
     const sel = s.products.find(p => p.id === s.selId) || s.products[0] || BLANK_PRODUCT;
@@ -6106,8 +6132,8 @@ class Component extends DCLogic {
       inc:() => this.setState(x => { const cart = x.cart.slice(); cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty + 1}); return {cart}; }),
       dec:() => this.setState(x => { const cart = x.cart.slice(); if(cart[i].qty === 1) cart.splice(i, 1); else cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty - 1}); return {cart, screen:cart.length || x.screen !== 'cart' ? x.screen : 'cartEmpty'}; })
     }));
-    v.minOk = this.subtotal() >= s.minOrder;
-    v.minWarnText = 'Pedido mínimo de ' + f(s.minOrder) + '.';
+    v.minOk = this.subtotal() >= minEff;
+    v.minWarnText = 'Pedido mínimo de ' + f(minEff) + '.';
     v.minWarn = !v.minOk && v.hasCart;
     v.goTable = () => { if(s.paused) return this.flash('O quiosque não está recebendo pedidos agora.'); if(s.dayClosed) return this.flash('O quiosque já encerrou o dia — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
 
@@ -6545,6 +6571,14 @@ class Component extends DCLogic {
     v.saveCancelWindow = () => this.saveCancelWindow();
     v.cancelWindowMsg = s.cancelWindowMsg; v.hasCancelWindowMsg = !!s.cancelWindowMsg; v.cancelWindowMsgCls = SAVED_OK.test(s.cancelWindowMsg || '') ? 'alert-ok' : 'alert-err';
     v.minOrderStr = f(s.minOrder);
+    const minOn = s.minOrderEnabled !== false;
+    v.minOrderSub = minOn
+      ? 'Ligado: ' + v.minOrderStr + '. O cliente só fecha o pedido se o total chegar nesse valor.'
+      : 'Desligado: o cliente fecha o pedido com qualquer valor. O valor salvo (' + v.minOrderStr + ') volta quando você ligar.';
+    v.toggleMinOrder = () => this.toggleMinOrderEnabled();
+    v.minOrderOnAria = minOn ? 'true' : 'false';
+    v.minOrderSwitchStyle = 'background:' + (minOn ? '#2E9C6A' : '#8C949A');
+    v.minOrderKnobStyle = 'left:' + (minOn ? '23px' : '3px');
     // Localização: o mapa e o link saem do endereço (Google Maps, sem chave de API).
     const mapsQ = a => encodeURIComponent(a);
     v.locName = s.location.name; v.locAddress = s.location.address;

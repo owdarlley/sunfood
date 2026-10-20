@@ -421,6 +421,26 @@ test("admin muda o pedido mínimo e o cliente sente na hora", async () => {
   assert.equal(r.status, 403, "cliente não pode mudar o mínimo");
 });
 
+test("admin desliga o pedido mínimo sem perder o valor", async () => {
+  const admin = staff("admin");
+  let r = await api("PATCH", "/kiosk-settings/min-order", {}, admin);
+  assert.equal(r.status, 400, "precisa mandar o valor ou o liga/desliga");
+  r = await api("PATCH", "/kiosk-settings/min-order", { enabled: "não" }, admin);
+  assert.equal(r.status, 400);
+  r = await api("PATCH", "/kiosk-settings/min-order", { enabled: false }, admin);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.minOrderEnabled, false);
+  assert.equal(r.body.minOrder, 10, "o valor fica guardado");
+  r = await api("GET", "/kiosk-settings");
+  assert.equal(r.body.minOrderEnabled, false);
+  r = await api("POST", "/orders", { tableNumber: 1, items: [{ productId: P2, qty: 1 }], paymentMethod: "entrega" }, anaToken);
+  assert.equal(r.status, 201, "desligado: pedido abaixo do valor passa");
+  r = await api("PATCH", "/kiosk-settings/min-order", { enabled: true }, admin);
+  assert.equal(r.body.minOrderEnabled, true);
+  r = await api("POST", "/orders", { tableNumber: 1, items: [{ productId: P2, qty: 1 }], paymentMethod: "entrega" }, anaToken);
+  assert.equal(r.status, 422, "ligado de novo: volta a barrar");
+});
+
 let pixOrder;
 test("admin muda a localização do quiosque e o cliente vê", async () => {
   const admin = "tok-admin-1";

@@ -179,10 +179,14 @@ export const kioskPauseSchema = z.object({
   paused: z.boolean(),
 });
 
-// Em reais (como os preços); 0 = sem pedido mínimo.
-export const kioskMinOrderSchema = z.object({
-  minOrder: z.number().min(0, "Valor não pode ser negativo.").max(1000, "Valor máximo é R$ 1.000,00."),
-});
+// Em reais (como os preços); 0 = sem pedido mínimo. `enabled` liga ou
+// desliga o mínimo sem apagar o valor. Manda um dos dois, ou os dois.
+export const kioskMinOrderSchema = z
+  .object({
+    minOrder: z.number().min(0, "Valor não pode ser negativo.").max(1000, "Valor máximo é R$ 1.000,00.").optional(),
+    enabled: z.boolean().optional(),
+  })
+  .refine((b) => b.minOrder !== undefined || b.enabled !== undefined, { message: "Informe o valor ou se o mínimo está ligado." });
 
 // Quantas mesas (guarda-sóis) o quiosque tem; numeradas de 1 até esse número.
 export const kioskTableCountSchema = z.object({

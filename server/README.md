@@ -106,7 +106,7 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 | POST | `/payments/stripe/webhook` | Stripe | Fim do checkout de cartão: assinatura `Stripe-Signature` verificada e sessão reconferida na API do Stripe antes de liberar o pedido |
 | GET | `/kiosk-settings` | — | Estado do quiosque (pausado, dia encerrado, pedido mínimo, prazo de cancelamento) |
 | PATCH | `/kiosk-settings/pause` | admin | Pausar/reabrir o quiosque |
-| PATCH | `/kiosk-settings/min-order` | admin | Mudar o pedido mínimo |
+| PATCH | `/kiosk-settings/min-order` | admin | Mudar o valor do pedido mínimo (`minOrder`) e/ou ligar e desligar (`enabled`) |
 | PATCH | `/kiosk-settings/cancel-window` | admin | Mudar o prazo de cancelamento (0 a 120 min) |
 | GET | `/dashboard` | admin | Vendas do dia, por horário e mais vendidos |
 | GET | `/reports/sales?period=hoje\|7d\|30d` | admin | Relatórios: vendas, mais vendidos e horários de pico no período (só pedidos pagos ou na entrega, sem cancelados/estornados) |
