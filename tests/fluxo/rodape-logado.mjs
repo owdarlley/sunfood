@@ -1,5 +1,6 @@
-// Links do rodapé com a conta aberta: "Onde estamos", "Termos" e "Privacidade"
-// abrem o conteúdo (e não a tela de login) e fechar o painel volta ao app.
+// Links do rodapé do app: "Termos", "Privacidade", "Conheça o Sunfood" e "Fale
+// conosco" abrem numa janela por cima da tela atual, sem sair dela; fechar só
+// tira a janela. Os endereços antigos (termos.html...) continuam funcionando.
 // Uso: node fluxo/rodape-logado.mjs (de dentro de tests)
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
@@ -53,22 +54,53 @@ for (const [tela, width, height] of TELAS) {
   const vp = { width, height };
   const comRodape = width > 920; // abaixo disso o app usa a barra de baixo e o Perfil
 
-  await step(`${tela}: termos e privacidade com a conta aberta`, async () => {
+  await step(`${tela}: rodapé do app abre numa janela por cima da tela`, async () => {
     const p = await open('app-cliente.dc.html?module=cliente&screen=menu', vp, 'cliente');
-    for (const [link, hash, trecho] of [['Termos', '#termos', 'Natureza do serviço'], ['Privacidade', '#privacidade', 'Seus direitos como titular']]) {
-      if (comRodape) { await p.locator('.footer a', { hasText: link }).click(); await p.waitForTimeout(1500); }
-      else { await p.goto(BASE + hash); await p.waitForTimeout(1200); }
-      check(`${tela}: ${link} abre na mesma aba`, p.context().pages().length === 1 && p.url() === BASE + hash, p.url());
-      check(`${tela}: ${link} mostra o conteúdo sem a tela de login por trás`, (await p.locator('#info').innerText()).includes(trecho) && await semLogin(p));
-      check(`${tela}: ${link} sem rolagem lateral`, await semRolagemLateral(p));
-      await fechar(p);
-      check(`${tela}: fechar ${link} volta ao cardápio, não ao login`, /app-cliente\.dc\.html\?module=cliente&screen=menu/.test(p.url()) && (await text(p)).includes('Batata Frita'), p.url());
+    const antes = p.url();
+    for (const [link, trecho] of [['Termos', 'Natureza do serviço'], ['Privacidade', 'Seus direitos como titular']]) {
+      if (comRodape) await p.locator('.footer a', { hasText: link }).click();
+      else await p.evaluate(h => { const a = document.createElement('a'); a.href = h; document.body.appendChild(a); a.click(); a.remove(); }, link === 'Termos' ? './#termos' : './#privacidade');
+      await p.waitForTimeout(1500);
+      const f = p.frameLocator('iframe.sf-painel');
+      check(`${tela}: ${link} não sai da tela (mesmo endereço, mesma aba)`, p.context().pages().length === 1 && p.url() === antes, p.url());
+      check(`${tela}: ${link} mostra o conteúdo na janela, sem a tela de login`, (await f.locator('#info').innerText()).includes(trecho) && await f.locator('#lp').isHidden());
+      check(`${tela}: ${link} com o cardápio atrás da janela`, (await text(p)).includes('Batata Frita'));
+      check(`${tela}: ${link} sem rolagem lateral`, await semRolagemLateral(p) && await f.locator('html').evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await f.locator('.info-close').click(); await p.waitForTimeout(800);
+      check(`${tela}: fechar ${link} continua no cardápio`, p.url() === antes && await p.locator('iframe.sf-painel').count() === 0 && (await text(p)).includes('Batata Frita'), p.url());
     }
+    // Abas dentro da janela e Esc também não saem da tela.
+    await p.evaluate(() => { const a = document.createElement('a'); a.href = './#conheca'; document.body.appendChild(a); a.click(); a.remove(); });
+    await p.waitForTimeout(1500);
+    const f = p.frameLocator('iframe.sf-painel');
+    check(`${tela}: Conheça troca Entrar/Criar conta por Voltar ao cardápio na janela`, await f.locator('[data-sec="conheca"] .cta').innerText() === 'Voltar ao cardápio');
+    await f.locator('.tab', { hasText: 'Fale conosco' }).click(); await p.waitForTimeout(600);
+    check(`${tela}: aba Fale conosco abre dentro da janela`, p.url() === antes && await f.locator('[data-sec="fale-conosco"]').isVisible(), p.url());
+    await f.locator('[data-sec="fale-conosco"]').press('Escape'); await p.waitForTimeout(600);
+    check(`${tela}: Esc fecha a janela e fica no cardápio`, p.url() === antes && await p.locator('iframe.sf-painel').count() === 0, p.url());
     if (comRodape) {
       await p.locator('.footer .link', { hasText: 'Onde estamos' }).click(); await p.waitForTimeout(800);
       check(`${tela}: Onde estamos abre a localização`, /screen=location/.test(p.url()) && (await text(p)).includes('Abrir no mapa'), p.url());
     }
     check(`${tela}: sem erro de JavaScript`, p.jsErrors.length === 0, p.jsErrors.join(' | '));
+    await p.context().close();
+  });
+
+  await step(`${tela}: rodapé do cadastro abre por cima sem perder o que foi digitado`, async () => {
+    const p = await open('app-cliente.dc.html?module=cliente&screen=signup', vp);
+    const antes = p.url();
+    const campo = p.locator('input').first();
+    await campo.fill('Maria Teste');
+    const fale = p.locator('.auth-foot a', { hasText: 'Fale conosco' });
+    if (await fale.isVisible()) await fale.click();
+    else await p.evaluate(() => { const a = document.createElement('a'); a.href = './#fale-conosco'; document.body.appendChild(a); a.click(); a.remove(); });
+    await p.waitForTimeout(1500);
+    const f = p.frameLocator('iframe.sf-painel');
+    check(`${tela}: cadastro: Fale conosco abre na janela sem sair do cadastro`, p.url() === antes && await f.locator('[data-sec="fale-conosco"]').isVisible() && await f.locator('#lp').isHidden(), p.url());
+    await f.locator('.info-bg').click({ position: { x: 5, y: 5 } }).catch(() => f.locator('.info-close').click());
+    await p.waitForTimeout(800);
+    check(`${tela}: cadastro: fechar mantém o que foi digitado`, p.url() === antes && await p.locator('iframe.sf-painel').count() === 0 && await campo.inputValue() === 'Maria Teste', p.url());
+    check(`${tela}: cadastro: sem erro de JavaScript`, p.jsErrors.length === 0, p.jsErrors.join(' | '));
     await p.context().close();
   });
 

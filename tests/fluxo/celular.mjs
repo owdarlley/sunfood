@@ -72,7 +72,7 @@ await step('localização', async () => {
   const mapa = await p.getByText('Abrir no mapa', { exact: true }).getAttribute('href');
   check('localização: Abrir no mapa abre o Google Maps', /google\.com\/maps/.test(mapa || ''), mapa);
   await tap(p, 'Fale conosco'); await p.waitForTimeout(800);
-  check('localização: Fale conosco abre o formulário', (await text(p)).includes('Dúvida, reserva ou suporte?'), p.url());
+  check('localização: Fale conosco abre o formulário por cima, sem sair da tela', /screen=location/.test(p.url()) && (await p.frameLocator('iframe.sf-painel').locator('#info').innerText()).includes('Dúvida, reserva ou suporte?'), p.url());
   await p.context().close();
 });
 
