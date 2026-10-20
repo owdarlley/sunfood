@@ -3773,6 +3773,12 @@ const STAFF_HOME = {
   garcom:'app-cliente.dc.html?module=garcom&screen=entregar'
 };
 const STAFF_MODULES = ['admin','cozinha','garcom'];
+// Módulos que cada papel pode abrir (o admin também abre a cozinha e o garçom).
+// O endereço (?module=…) e o voltar do navegador nunca levam para fora disso.
+const ROLE_MODULES = {cliente:['cliente'], admin:['admin','cozinha','garcom'], cozinha:['cozinha'], garcom:['garcom']};
+const podeAbrir = (role, mod) => (ROLE_MODULES[role] || ROLE_MODULES.cliente).indexOf(mod) >= 0;
+// Endereço da tela inicial do papel, nesta mesma página.
+const rotaInicial = role => window.location.pathname + (STAFF_HOME[role] || '?module=cliente&screen=menu').replace(/^[^?]*/, '');
 
 // Voltar do celular/APK: cada troca de tela vira uma entrada no histórico do
 // navegador (?module=…&screen=…). As telas abaixo substituem a anterior, para
@@ -4046,11 +4052,26 @@ class Component extends DCLogic {
       const q = new URLSearchParams(window.location.search);
       const mod = q.get('module'), scr = q.get('screen');
       if(!this.state.token || !mod || !SCREENS[mod] || !SCREENS[mod].some(x => x[0] === scr)) return;
-      if(mod !== this.state.module && STAFF_MODULES.indexOf(mod) >= 0) return;
+      // Entrada do histórico de outro perfil (ex.: o cardápio de quem usou o
+      // aparelho antes): fica na tela atual, sem virar outro perfil.
+      const role = this.state.authUser && this.state.authUser.role;
+      if(!podeAbrir(role, mod)){
+        try { history.replaceState(null, '', window.location.pathname + '?module=' + this.state.module + '&screen=' + this.state.screen); } catch(e){}
+        return;
+      }
       this._route = mod + '|' + scr;
       this.go(scr, mod);
     };
     window.addEventListener('popstate', this._onPop);
+    // Voltou para uma página guardada pelo navegador (cache do voltar) de
+    // outra conta ou de quem já saiu: recarrega com a sessão de agora.
+    this._onShow = e => {
+      if(!e.persisted) return;
+      const atual = readSession();
+      const eu = this.state.authUser;
+      if((atual && atual.user && atual.user.id) !== (eu && eu.id) || (atual && atual.user && atual.user.role) !== (eu && eu.role)) window.location.reload();
+    };
+    window.addEventListener('pageshow', this._onShow);
     // Teclado e leitor de tela: o que é clicável e não é botão de verdade
     // (div/span com onClick) vira "botão": entra no Tab, é anunciado como
     // botão e responde a Enter e Espaço. Quem já tem um link ou campo dentro
@@ -4158,6 +4179,14 @@ class Component extends DCLogic {
     try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){ saved = null; }
     if(!saved || !saved.token) return;
     this.setState({token:saved.token, authUser:saved.user, email:saved.user.email});
+    // O endereço é de outro perfil (ex.: o voltar caiu no cardápio de quem
+    // usou o aparelho antes, ou o admin num endereço de cliente): abre na
+    // tela inicial de quem entrou.
+    const pedido = new URLSearchParams(window.location.search).get('module');
+    if(SCREENS[pedido] && !podeAbrir(saved.user.role, pedido)){
+      try { history.replaceState(null, '', rotaInicial(saved.user.role)); } catch(e){}
+      this.aplicarRota();
+    }
     // Já entrou: não fica parado na tela de login quando o app abre sem
     // ?module=…&screen=… na URL (ex.: volta do Google, link "Voltar ao login"
     // ou o celular recarregando a aba) — isso parecia que tinha deslogado.
@@ -4277,7 +4306,7 @@ class Component extends DCLogic {
     // Cozinha e administração também podem entrar por esta tela: vão para o
     // módulo delas, como no login da página inicial.
     if(STAFF_HOME[user.role]){
-      window.location.href = STAFF_HOME[user.role];
+      window.location.replace(STAFF_HOME[user.role]);
       return;
     }
     this.loadHistory(token);
@@ -5532,7 +5561,7 @@ class Component extends DCLogic {
     this.setState({module:mod, screen});
   }
 
-  componentWillUnmount(){ window.removeEventListener('popstate', this._onPop); document.removeEventListener('keydown', this._a11yKey); if(this._a11yObs) this._a11yObs.disconnect(); clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('popstate', this._onPop); window.removeEventListener('pageshow', this._onShow); document.removeEventListener('keydown', this._a11yKey); if(this._a11yObs) this._a11yObs.disconnect(); clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
 
   fmt(n){ return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
   go(screen, module){

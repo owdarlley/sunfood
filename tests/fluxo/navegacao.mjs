@@ -145,6 +145,44 @@ await step('teclado', async () => {
   await admin.context().close();
 });
 
+// 6. Voltar não troca de perfil: quem entra como admin, cozinha ou garçom num
+// aparelho que tinha telas de cliente no histórico continua no seu perfil.
+await step('voltar sem trocar de perfil', async () => {
+  const sessao = (role) => JSON.stringify({ token: 'tok', user: { id: 'u-' + role, email: role + '@teste', name: 'Teste', role } });
+  const home = { admin: 'module=admin&screen=dashboard', cozinha: 'module=cozinha&screen=kanban', garcom: 'module=garcom&screen=entregar' };
+  for (const role of ['admin', 'cozinha', 'garcom']) {
+    for (const width of [390, 1280]) {
+      const page = await open('app-cliente.dc.html?module=cliente&screen=menu', { width, height: 844 });
+      // O cliente andou pelo app (o cardápio fica no histórico) antes de sair.
+      await page.goto(BASE + 'app-cliente.dc.html?module=cliente&screen=profile'); await page.waitForTimeout(1200);
+      page.api = fakeApi(role); page.api.seed();
+      await page.unroute('http://localhost:8787/**'); await page.route('http://localhost:8787/**', page.api);
+      // Saiu do cliente e entrou com a conta da equipe (o login troca a entrada do histórico).
+      await page.evaluate(([s, h]) => { localStorage.setItem('sunfood_session', s); location.replace('app-cliente.dc.html?' + h); }, [sessao(role), home[role]]);
+      await page.waitForTimeout(1500);
+      await page.goBack(); await page.waitForTimeout(1500);
+      const mod = new URL(page.url()).searchParams.get('module');
+      const cliente = await page.locator('.addbtn:visible').count();
+      check(`perfil: ${role} (${width}px) continua ${role} depois de voltar`, mod === role && cliente === 0, page.url() + ' | botões do cardápio: ' + cliente);
+      await page.context().close();
+    }
+  }
+  // Endereço de cliente aberto com conta de admin vai para o painel; e o admin
+  // que abre a tela da cozinha volta para o painel com o voltar.
+  const adm = await open('app-cliente.dc.html?module=cliente&screen=profile', { role: 'admin', seed: true, width: 1280, height: 800 });
+  check('perfil: endereço de cliente com conta de admin abre o painel', screen(adm) === 'dashboard' && new URL(adm.url()).searchParams.get('module') === 'admin', adm.url());
+  await adm.getByText('Tela da cozinha').click(); await adm.waitForTimeout(500);
+  check('perfil: admin abre a tela da cozinha', new URL(adm.url()).searchParams.get('module') === 'cozinha', adm.url());
+  await adm.goBack(); await adm.waitForTimeout(800);
+  check('perfil: voltar da cozinha leva ao painel do admin', new URL(adm.url()).searchParams.get('module') === 'admin' && (await adm.locator('.adm-brand small').first().innerText()) === 'admin', adm.url());
+  check('perfil: sem erro de JavaScript', adm.jsErrors.length === 0, adm.jsErrors.join(' | '));
+  await adm.context().close();
+  // Cliente não abre módulo da equipe pelo endereço.
+  const cli = await open('app-cliente.dc.html?module=admin&screen=dashboard', { width: 390 });
+  check('perfil: cliente com endereço do admin fica no cardápio', new URL(cli.url()).searchParams.get('module') === 'cliente', cli.url());
+  await cli.context().close();
+});
+
 await browser.close();
 server.close();
 const failed = results.filter(r => !r.ok);
