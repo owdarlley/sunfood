@@ -82,16 +82,20 @@ async function login(page) {
 
 const deletes = page => page.api.db.calls.filter(c => /^\/products\/[^/]+$/.test(c.p) && !c.body.name);
 const card = (page, nome) => page.locator('.pgrid .card').filter({ hasText: nome });
+const dialog = page => page.locator('.pfdel-dialog');
 
 await step('admin exclui item', async () => {
   const page = await open('app-cliente.dc.html?module=admin&screen=productForm', { role: 'admin' });
   check('admin: botão Excluir em cada item', await page.locator('.pgrid .card .prod-del').count() === 5);
 
+  const alturas = async () => page.locator('.pgrid .card').evaluateAll(cs => cs.map(c => Math.round(c.getBoundingClientRect().height)));
+  const antes = await alturas();
   await card(page, 'Caipirinha').locator('.prod-del').click(); await page.waitForTimeout(400);
+  check('admin: confirmação abre numa janela, sem mudar a altura dos cards', await dialog(page).isVisible() && JSON.stringify(await alturas()) === JSON.stringify(antes), JSON.stringify({ antes, depois: await alturas() }));
   let t = await text(page);
   check('admin: pede confirmação antes de excluir', t.includes('Excluir Caipirinha?') && t.includes('Pedidos antigos e relatórios continuam'));
   check('admin: nada é apagado só de clicar em Excluir', !deletes(page).length);
-  await card(page, 'Caipirinha').getByText('Cancelar', { exact: true }).click(); await page.waitForTimeout(400);
+  await dialog(page).getByText('Cancelar', { exact: true }).click(); await page.waitForTimeout(400);
   t = await text(page);
   check('admin: Cancelar desiste e mantém o item', !t.includes('Excluir Caipirinha?') && t.includes('Caipirinha') && !deletes(page).length);
 
@@ -101,14 +105,14 @@ await step('admin exclui item', async () => {
   await page.locator('.pf-dialog').getByText('Cancelar', { exact: true }).click(); await page.waitForTimeout(300);
   check('admin: Cancelar fecha a janela', (await page.locator('.pf-dialog').count()) === 0);
   await card(page, 'Caipirinha').locator('.prod-del').click(); await page.waitForTimeout(400);
-  for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tablet', { width: 768, height: 1000 }], ['computador', { width: 1366, height: 900 }]]) {
+  for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tablet', { width: 768, height: 1000 }], ['computador', { width: 1366, height: 900 }], ['tela larga', { width: 1920, height: 1080 }]]) {
     await page.setViewportSize(viewport); await page.waitForTimeout(300);
-    const btn = await card(page, 'Caipirinha').locator('.btn-danger').boundingBox();
+    const btn = await dialog(page).locator('.btn-danger').boundingBox();
     const scroll = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     check(`admin ${nome}: confirmação cabe na tela`, btn && btn.x >= 0 && btn.x + btn.width <= viewport.width && btn.height >= 30 && scroll <= 0, JSON.stringify({ btn, scroll }));
-    if (process.env.SHOTS) await card(page, 'Caipirinha').scrollIntoViewIfNeeded().then(() => page.screenshot({ path: `${process.env.SHOTS}/excluir-${nome}.png` }));
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/excluir-${nome}.png` });
   }
-  await card(page, 'Caipirinha').getByText('Sim, excluir').click(); await page.waitForTimeout(700);
+  await dialog(page).getByText('Sim, excluir').click(); await page.waitForTimeout(700);
   const call = deletes(page)[0];
   check('admin: chama DELETE /products/p3 com o token', call && call.p === '/products/p3' && call.auth === 'Bearer tok', JSON.stringify(call));
   t = await text(page);

@@ -2502,20 +2502,22 @@ select{caret-color:auto}
                           <div onClick="{{ p.askDelete }}" class="btn btn-ghost btn-sm prod-del" aria-label="Excluir {{ p.name }}" title="Excluir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16 M10 11v6 M14 11v6 M6 7l1 13h10l1-13 M9 7V4h6v3"></path></svg></div>
                         </div>
                       </div>
-                      <sc-if value="{{ p.confirming }}" hint-placeholder-val="{{ false }}">
-                        <div style="display:flex;flex-direction:column;gap:12px;padding:12px;border-radius:var(--r-ctl);background:var(--danger-tint)">
-                          <div style="font-size:var(--fs-sm);line-height:1.5;color:#7A1A12"><b>Excluir {{ p.name }}?</b> Ele sai do cardápio. Pedidos antigos e relatórios continuam como estão.</div>
-                          <div style="display:flex;gap:8px;flex-wrap:wrap">
-                            <div onClick="{{ p.doDelete }}" class="btn btn-danger btn-sm" style="flex:1;white-space:nowrap">{{ p.deleteLabel }}</div>
-                            <div onClick="{{ p.cancelDelete }}" class="btn btn-ghost btn-sm" style="flex:1;white-space:nowrap">Cancelar</div>
-                          </div>
-                        </div>
-                      </sc-if>
                     </div>
                   </sc-for>
                 </div>
               </div>
             </div>
+            <sc-if value="{{ pfDelOpen }}" hint-placeholder-val="{{ false }}">
+              <div class="sf-overlay">
+                <div class="rise sf-dialog pfdel-dialog" role="alertdialog" aria-modal="true" aria-label="Excluir {{ pfDelName }}" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+                  <span style="width:72px;height:72px;border-radius:50%;background:var(--danger-tint);display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16 M10 11v6 M14 11v6 M6 7l1 13h10l1-13 M9 7V4h6v3"></path></svg></span>
+                  <div class="tt" style="font-size:var(--fs-h2)">Excluir {{ pfDelName }}?</div>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Ele sai do cardápio. Pedidos antigos e relatórios continuam como estão.</p>
+                  <div onClick="{{ confirmPfDelete }}" class="btn btn-danger" style="width:100%">{{ pfDelLabel }}</div>
+                  <div onClick="{{ cancelPfDelete }}" class="btn btn-ghost" style="width:100%">Cancelar</div>
+                </div>
+              </div>
+            </sc-if>
             <sc-if value="{{ pfOpen }}" hint-placeholder-val="{{ false }}">
               <div class="sf-overlay pf-overlay">
                 <div class="rise sf-dialog pf-dialog" role="dialog" aria-modal="true" aria-label="{{ pfFormTitle }}">
@@ -6740,16 +6742,17 @@ class Component extends DCLogic {
       availLabel:p.soldOut ? 'Esgotado' : 'Disponível',
       swStyle:'background:' + (p.soldOut ? '#8C949A' : '#2E9C6A'),
       knobStyle:'left:' + (p.soldOut ? '3px' : '23px'),
-      confirming:s.pfDeleting === p.id,
-      deleteLabel:s.pfDeletingBusy && s.pfDeleting === p.id ? 'Excluindo…' : 'Sim, excluir',
       askDelete:() => this.setState({pfDeleting:p.id}),
-      cancelDelete:() => this.setState({pfDeleting:null}),
-      doDelete:() => this.deleteProduct(p.id),
       toggle:() => noStock(p) ? this.flash('Esgotado. Edite o produto e reponha o estoque para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
 
       edit:() => this.setState({pf:{id:p.id, name:p.name, price:String(p.price), cat:p.cat, desc:p.desc, portion:p.porcao, prepTime:p.tempo, stock:p.stock != null ? String(p.stock) : '', stockOrig:p.stock != null ? String(p.stock) : '', photo:p.photo || '', photoOrig:p.photo || '', ingredients:p.ingredientes || '', tags:(p.tags || []).filter(t => tagLabel(t)).map(normTag), tagNew:''}, pfMsg:'', pfOpen:true})
     }));
 
+    const pfDel = s.pfDeleting ? s.products.find(p => p.id === s.pfDeleting) : null;
+    v.pfDelOpen = !!pfDel; v.pfDelName = pfDel ? pfDel.name : '';
+    v.pfDelLabel = s.pfDeletingBusy ? 'Excluindo…' : 'Sim, excluir';
+    v.confirmPfDelete = () => pfDel && this.deleteProduct(pfDel.id);
+    v.cancelPfDelete = () => s.pfDeletingBusy || this.setState({pfDeleting:null});
     v.dayClosed = s.dayClosed; v.dayOpen = !s.dayClosed;
     v.askCloseDay = () => this.setState({closeAsk:true});
     v.cancelCloseDay = () => this.setState({closeAsk:false});
