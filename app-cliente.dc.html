@@ -229,7 +229,7 @@ select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:ima
 .pf-btns{display:flex;gap:8px}
 .pf-btns .btn{flex:1}
 @media (min-width:768px){.pf-body{grid-template-columns:1fr 1fr;gap:24px}.pf-btns{justify-content:flex-end}.pf-btns .btn{flex:0 0 auto;min-width:160px}}
-@media (max-width:767px){.sf-overlay.pf-overlay{padding:0;align-items:stretch}.sf-dialog.pf-dialog{max-width:none;max-height:none;height:100vh;height:100dvh;border-radius:0;border:0}}
+@media (max-width:767px){.sf-overlay.pf-overlay{padding:0;align-items:stretch}.sf-dialog.pf-dialog{max-width:none;max-height:none;height:calc(100vh / var(--z));height:calc(100dvh / var(--z));border-radius:0;border:0}}
 .pf-photo-acts{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
 .pf-photo-acts .btn{width:100%}
 .pf-photo{position:relative;flex:0 0 160px;width:160px;aspect-ratio:4/3;border-radius:var(--r-ctl);overflow:hidden;background:var(--surface-off);border:1px dashed var(--field)}
@@ -507,7 +507,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .pd-add{order:4}
 @media (max-width:760px){
   .pd{gap:16px}
-  .pd-photo{aspect-ratio:auto;height:34vh;min-height:150px;max-height:none}
+  .pd-photo{aspect-ratio:auto;height:calc(34vh / var(--z));min-height:150px;max-height:none}
   .pd-photo svg{width:96px;height:96px}
   .pd-info{gap:12px;padding-bottom:96px}
   .pd-name{margin-top:4px}
