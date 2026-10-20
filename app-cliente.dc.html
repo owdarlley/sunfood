@@ -7125,6 +7125,51 @@ class Component extends DCLogic {
   }
 }
 </script>
+<script>
+// Links do rodapé (Conheça o Sunfood, Fale conosco, Termos, Privacidade): o
+// conteúdo abre numa janela por cima da tela atual, sem sair dela. A janela é
+// o próprio painel da tela de login (index.html?painel=1#secao) num iframe
+// transparente; fechar (X, véu, Esc ou "Voltar") só tira a janela.
+(function () {
+  var RE = /^(?:\.\/|\/|index\.html)?#(conheca|fale-conosco|termos|privacidade)$/;
+  var janela = null, voltarFoco = null, overflow = '';
+  function abrir(sec) {
+    if (janela) { janela.contentWindow.location.replace('index.html?painel=1#' + sec); return; }
+    voltarFoco = document.activeElement;
+    janela = document.createElement('iframe');
+    janela.className = 'sf-painel';
+    janela.title = 'Sobre o Sunfood';
+    janela.src = 'index.html?painel=1#' + sec;
+    janela.addEventListener('load', function () { try { janela.contentWindow.focus(); } catch (e) {} });
+    document.body.appendChild(janela);
+    overflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
+  }
+  function fechar() {
+    if (!janela) return;
+    janela.remove(); janela = null;
+    document.body.style.overflow = overflow;
+    if (voltarFoco && voltarFoco.focus) voltarFoco.focus();
+  }
+  // Fase de captura: chega antes do React (o clique no link dos termos do
+  // cadastro não marca/desmarca a caixa). Ctrl/Cmd+clique continua abrindo
+  // em outra aba.
+  window.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    var m = a && a.getAttribute('href').match(RE);
+    if (!m || e.button || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault(); e.stopPropagation();
+    abrir(m[1]);
+  }, true);
+  window.addEventListener('message', function (e) {
+    if (e.origin === location.origin && e.data && e.data.sunfood === 'painel-fechar') fechar();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && janela) fechar(); });
+  window.sunfoodFecharPainel = fechar;
+})();
+</script>
+<style>
+.sf-painel{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:2147483000;background:transparent;color-scheme:normal}
+</style>
 <script>sunfoodCaber('.auth');</script>
 </body>
 </html>
