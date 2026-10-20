@@ -217,7 +217,9 @@ ordersRouter.get("/", requireAuth, requireRole("admin", "cozinha", "garcom"), as
     const { data: profiles } = await supabaseAdmin.from("profiles").select("id, name").in("id", ids);
     for (const p of profiles || []) names.set(p.id, p.name);
   }
-  res.json(visible.map((row) => toApi({ ...row, customer_name: names.get(row.customer_id) || null })));
+  // Estornos parciais: a cozinha e o garçom veem quais itens foram devolvidos.
+  const refunds = await customerRefunds(visible.filter(hasRefund).map((row) => row.id));
+  res.json(visible.map((row) => toApi({ ...row, customer_name: names.get(row.customer_id) || null, refunds: refunds.get(row.id) || [] })));
 });
 
 // Admin: estorno total (cancela o pedido) ou parcial (o pedido continua),

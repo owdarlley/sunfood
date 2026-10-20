@@ -226,7 +226,7 @@ authRouter.post("/forgot-password", forgotLimiter, validate(forgotPasswordSchema
   const providers = found?.user?.app_metadata?.providers || [];
   if (providers.length && !providers.includes("email")) {
     return res.status(400).json({
-      error: "Esta conta foi criada com o Google e não tem senha. Use o botão \"Entrar com Google\".",
+      error: "Esta conta foi criada com o Google e não tem senha. Entre pelo botão do Google na tela de entrada.",
       code: "google_account",
       ...(byCpf && { sentTo: maskEmail(email) }),
     });
