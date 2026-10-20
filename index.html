@@ -32,9 +32,13 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) { window.SUNFOOD_SAINDO = 
     garcom: 'app-cliente.dc.html?module=garcom&screen=entregar'
   };
   window.SUNFOOD_DEST = DEST;
+  // Aberta dentro do app (link do rodapé, ?painel=1): mostra só o painel, por
+  // cima da tela em que a pessoa estava, sem mandar para lugar nenhum.
+  window.SUNFOOD_EMBED = /(^|[?&])painel=1(&|$)/.test(location.search) && window.parent !== window;
   try {
     var s = JSON.parse(localStorage.getItem('sunfood_session') || 'null');
-    if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash) && !/^#(conheca|fale-conosco|termos|privacidade)$/.test(location.hash)) { window.SUNFOOD_SAINDO = true; location.replace(DEST[s.user.role] || DEST.cliente); }
+    if (window.SUNFOOD_EMBED) { document.documentElement.classList.add('sf-embed'); if (s && s.token && s.user) window.SUNFOOD_PAPEL = s.user.role; }
+    else if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash) && !/^#(conheca|fale-conosco|termos|privacidade)$/.test(location.hash)) { window.SUNFOOD_SAINDO = true; location.replace(DEST[s.user.role] || DEST.cliente); }
     // Quem já entrou e veio de um link do rodapé do app (#termos etc.) vê só o
     // painel, sem a tela de login por trás; fechar o painel volta para o app.
     else if (s && s.token && s.user) { window.SUNFOOD_APP = DEST[s.user.role] || DEST.cliente; window.SUNFOOD_PAPEL = s.user.role; document.documentElement.classList.add('sf-logado'); }
@@ -115,6 +119,10 @@ a{color:#1F5A63}
 /* Quem já entrou: o painel ocupa a tela toda, sem o login por trás. */
 .sf-logado #lp,.sf-logado .info-bg{display:none}
 .sf-logado .info-sheet{width:100%;box-shadow:none}
+/* Dentro do app (janela por cima da tela atual): fundo transparente, para a
+   tela do app aparecer atrás do véu escuro, e sem a tela de login. */
+html.sf-embed,html.sf-embed body{background:transparent}
+.sf-embed #lp{display:none}
 @keyframes sffade{from{opacity:0}}
 @keyframes sfslide{from{transform:translateX(40px);opacity:0}}
 /* Cabeçalho claro, no mesmo visual da tela de login: fundo areia, marca em
@@ -894,9 +902,14 @@ var SECOES = ['conheca', 'fale-conosco', 'termos', 'privacidade'];
 var TITULOS = { conheca: 'Conheça o Sunfood', 'fale-conosco': 'Fale conosco', termos: 'Termos de uso', privacidade: 'Privacidade' };
 var info = $('info'), voltarFoco = null;
 
+var EMBED = window.SUNFOOD_EMBED;
+// Dentro do app, fechar só avisa a tela do app, que tira a janela.
+function fecharNoApp() { window.parent.postMessage({ sunfood: 'painel-fechar' }, location.origin); }
+
 function abrirSecao() {
   var sec = location.hash.slice(1);
   if (SECOES.indexOf(sec) < 0) {
+    if (EMBED) { fecharNoApp(); return; }
     if (window.SUNFOOD_APP) { voltarAoApp(); return; }
     if (!info.hidden) {
       info.hidden = true; document.body.style.overflow = ''; document.title = 'Sunfood · Entrar';
@@ -937,7 +950,30 @@ if (window.SUNFOOD_APP) {
   info.querySelectorAll('.cta').forEach(function (c) { c.innerHTML = '<a class="pri" href="#" data-close></a>'; c.firstChild.textContent = volta; });
 }
 
+if (EMBED) {
+  info.querySelector('.info-close').setAttribute('aria-label', 'Fechar');
+  var logado = !!window.SUNFOOD_PAPEL;
+  var volta = window.SUNFOOD_PAPEL === 'cliente' ? 'Voltar ao cardápio' : 'Voltar ao app';
+  if (logado) info.querySelectorAll('.cta').forEach(function (c) { c.innerHTML = '<a class="pri" href="#" data-close></a>'; c.firstChild.textContent = volta; });
+  // A marca fecha a janela; os outros links (Criar conta...) abrem na tela do
+  // app, não dentro da janela.
+  info.querySelector('.brand').setAttribute('data-close', '');
+  info.querySelectorAll('a[href]').forEach(function (a) {
+    var h = a.getAttribute('href');
+    if (h.charAt(0) !== '#' && !/^mailto:|^tel:/.test(h) && !a.hasAttribute('data-close')) a.target = '_top';
+  });
+  // Trocar de aba não cria entradas no histórico (o Voltar do aparelho
+  // continua sendo o da tela do app).
+  info.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href^="#"]');
+    if (!a || a.hasAttribute('data-close')) return;
+    var sec = a.getAttribute('href').slice(1);
+    if (SECOES.indexOf(sec) >= 0) { e.preventDefault(); location.replace('#' + sec); }
+  });
+}
+
 function fecharSecao() {
+  if (EMBED) { fecharNoApp(); return; }
   if (window.SUNFOOD_APP) { voltarAoApp(); return; }
   // Tira o #secao do endereço sem criar outra entrada no histórico.
   history.replaceState(null, '', location.pathname + location.search);
