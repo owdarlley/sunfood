@@ -413,6 +413,12 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
   .lp-cat{height:clamp(140px,calc(20 * var(--lp-h)),var(--lp-cat-h))}
   .lp[data-step="form"] .login{padding-top:clamp(4px,calc(1.2 * var(--lp-h)),16px)}
   .lp[data-step="inicio"] .login-foot{margin-top:clamp(8px,calc(1.6 * var(--lp-h)),16px)}
+  /* Celular alto: o bloco (chamada, cartões, botões) fica no meio, entre o
+     topo e o rodapé, e os cartões crescem um pouco, sem sobrar um vão
+     branco embaixo. */
+  .lp[data-step="inicio"] .lp-main{justify-content:center;padding-bottom:clamp(0px,calc(4 * var(--lp-h)),48px)}
+  .lp[data-step="inicio"] .lp-cat{height:clamp(140px,calc(23 * var(--lp-h)),220px)}
+  .lp[data-step="inicio"] .lp-cats{margin-top:clamp(12px,calc(2.4 * var(--lp-h)),24px)}
 }
 /* Celular bem baixo (até 660 px de altura): o aviso da cozinha/administração
    sai do formulário para os campos e o rodapé caberem. */
