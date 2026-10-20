@@ -117,6 +117,17 @@ html.sf-espera #dc-root{opacity:0}
    celular e no tablet, os campos com 16 px reais. */
 .sf-z .auth{min-height:calc(100vh / var(--fit,1));min-height:calc(100dvh / var(--fit,1))}
 @media (max-width:767px){.sf-z .auth{--ctl:calc(48px / var(--fit,1))}}
+/* Cadastro no celular (2026-10-20, pedido do Dárlley): o formulário ocupa a
+   altura da tela; a sobra vira espaço entre as linhas de campos, em vez de
+   ficar em branco embaixo do botão. */
+@media (max-width:767px){
+  .sf-z .auth-main{flex-direction:column;align-items:center}
+  .sf-z .auth{--au-h:calc(1vh / var(--fit,1))}
+  .sf-z .auth-box,.sf-z .su{flex:1 0 auto}
+  .sf-z .su-grid{row-gap:clamp(8px,calc(1.6 * var(--au-h)),20px)}
+  .sf-z .su > * + *{margin-top:auto}
+}
+@supports (height:1dvh){@media (max-width:767px){.sf-z .auth{--au-h:calc(1dvh / var(--fit,1))}}}
 @media (max-width:767px),(pointer:coarse){.sf-z .auth :is(input,select,textarea){font-size:calc(16px / var(--fit,1)) !important}}
 /* Botões e campos mantêm a altura de toque real (48 px no tablet e 44 no
    computador; --tap = 44 px para os botões menores), mesmo com o zoom. */
