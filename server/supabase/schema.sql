@@ -773,6 +773,21 @@ begin
 end;
 $function$;
 
+-- Idade mínima de 18 anos no perfil (auditoria M-01).
+create or replace function public.enforce_profile_min_age()
+ returns trigger
+ language plpgsql
+ set search_path to ''
+as $function$
+begin
+  if new.birth_date is not null
+     and new.birth_date > ((now() at time zone 'America/Sao_Paulo')::date - interval '18 years') then
+    raise exception 'underage' using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$function$;
+
 -- ---------------------------------------------------------------------------
 -- Triggers
 -- ---------------------------------------------------------------------------
@@ -781,6 +796,7 @@ create trigger on_auth_user_created after insert on auth.users for each row exec
 create trigger orders_daily_number before insert on public.orders for each row execute function public.set_order_daily_number();
 create trigger orders_touch_updated_at before update on public.orders for each row execute function public.touch_order_updated_at();
 create trigger products_touch_updated_at before update on public.products for each row execute function public.touch_order_updated_at();
+create trigger profiles_min_age before insert or update of birth_date on public.profiles for each row execute function public.enforce_profile_min_age();
 create trigger profiles_prevent_role_escalation before update on public.profiles for each row execute function public.prevent_role_self_escalation();
 
 -- ---------------------------------------------------------------------------
