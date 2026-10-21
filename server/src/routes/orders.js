@@ -249,7 +249,8 @@ ordersRouter.get("/:id/refunds", requireAuth, requireRole("admin"), async (req, 
     .select("*")
     .eq("order_id", req.params.id)
     .order("created_at", { ascending: true });
-  if (error) return res.json([]);
+  // Erro não vira lista vazia (auditoria B-07): o admin acharia que não houve estorno.
+  if (error) return res.status(500).json({ error: "Não foi possível carregar os estornos." });
   const ids = [...new Set(data.map((r) => r.actor).filter(Boolean))];
   const names = new Map();
   if (ids.length) {

@@ -1,0 +1,16 @@
+# Abre PR quando sai versão nova (ou correção de segurança) das dependências
+# da API, dos testes de tela e das ações do GitHub (auditoria B-06).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /tests
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
