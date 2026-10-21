@@ -64,11 +64,27 @@ function publicImagePrefix() {
 
 // A foto só pode apontar pro nosso bucket: impede o admin (ou um token roubado)
 // de colocar no cardápio uma imagem de um site qualquer.
+// Além do prefixo, o resto tem que ser um caminho de foto simples (auditoria
+// B-05): nada de "..", outro bucket por trás de barras ou extensão estranha.
+// As fotos antigas ficam em cardapio/ e levam ?v= para furar o cache.
+const IMAGE_PATH = /^[\w-]+(\/[\w-]+)*\.(jpg|png|webp)(\?v=\d+)?$/;
+
 function checkImageUrl(req, res, next) {
   const url = req.body.imageUrl;
-  if (url != null && !url.startsWith(publicImagePrefix()))
+  if (url != null && !(url.startsWith(publicImagePrefix()) && IMAGE_PATH.test(url.slice(publicImagePrefix().length))))
     return res.status(400).json({ error: "Foto inválida. Envie a foto pelo botão do formulário." });
   next();
+}
+
+// Apaga a foto do Storage. Se falhar, sobra só um arquivo solto, então não vira erro.
+async function removeProductImage(url) {
+  if (!url?.startsWith(publicImagePrefix())) return;
+  const path = url.slice(publicImagePrefix().length).split("?")[0];
+  try {
+    await supabaseAdmin.storage.from(PRODUCT_IMAGES_BUCKET).remove([path]);
+  } catch {
+    // arquivo solto no bucket não atrapalha o cardápio
+  }
 }
 
 // A chave estrangeira recusou: a categoria foi excluída ou renomeada enquanto
@@ -122,6 +138,12 @@ productsRouter.post("/", requireAuth, requireRole("admin"), validate(productSche
 
 // Admin: editar produto existente.
 productsRouter.put("/:id", requireAuth, requireRole("admin"), validate(productSchema), checkImageUrl, async (req, res) => {
+  // Foto trocada ou retirada: a antiga sai do Storage depois de salvar (B-05).
+  let oldImage = null;
+  if (req.body.imageUrl !== undefined) {
+    const { data: current } = await supabaseAdmin.from("products").select("image_url").eq("id", req.params.id).maybeSingle();
+    oldImage = current?.image_url || null;
+  }
   const { data, error } = await supabaseAdmin
     .from("products")
     .update(fromApi(req.body))
@@ -131,6 +153,11 @@ productsRouter.put("/:id", requireAuth, requireRole("admin"), validate(productSc
     .single();
   if (error?.code === "23503") return res.status(400).json({ error: MISSING_CATEGORY });
   if (error || !data) return res.status(404).json({ error: "Produto não encontrado." });
+  if (oldImage && oldImage !== data.image_url) {
+    // Só apaga se nenhum outro produto (nem arquivado) usa a mesma foto.
+    const { data: others } = await supabaseAdmin.from("products").select("id").eq("image_url", oldImage).limit(1);
+    if (others && !others.length) await removeProductImage(oldImage);
+  }
   res.json(toApi(data));
 });
 
@@ -144,14 +171,8 @@ productsRouter.delete("/:id", requireAuth, requireRole("admin"), async (req, res
       return res.status(404).json({ error: "Produto não encontrado." });
     return res.status(500).json({ error: "Não foi possível excluir o produto." });
   }
-  // A foto só sai do Storage quando o produto foi apagado de verdade. Se falhar,
-  // o produto já sumiu; sobra só um arquivo solto, então não vira erro.
-  if (data.action === "deleted" && data.imageUrl?.startsWith(publicImagePrefix())) {
-    await supabaseAdmin.storage
-      .from(PRODUCT_IMAGES_BUCKET)
-      .remove([data.imageUrl.slice(publicImagePrefix().length)])
-      .catch(() => {});
-  }
+  // A foto só sai do Storage quando o produto foi apagado de verdade.
+  if (data.action === "deleted") await removeProductImage(data.imageUrl);
   res.json({ action: data.action });
 });
 

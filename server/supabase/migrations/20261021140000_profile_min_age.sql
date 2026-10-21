@@ -1,3 +1,4 @@
+-- Aplicado em produção em 21/10/2026.
 -- Idade mínima de 18 anos também no banco (auditoria M-01): o cardápio tem
 -- bebida alcoólica e um cadastro feito direto no Supabase Auth (chave pública)
 -- não passa pela validação da API. O trigger barra perfil com data de

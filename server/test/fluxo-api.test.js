@@ -866,8 +866,15 @@ test("admin envia foto do produto e ela aparece no cardápio", async () => {
   const produto = { name: "Batata Frita", category: "Lanches", price: 25 };
   const fora = await api("PUT", "/products/" + P1, { ...produto, imageUrl: "https://site-qualquer.com/x.jpg" }, admin);
   assert.equal(fora.status, 400, "só aceita foto do nosso bucket");
+  for (const truque of ["../avatares/x.jpg", "a/../../x.jpg", "x.html", "x.jpg?x=1", ""]) {
+    const r = await api("PUT", "/products/" + P1, { ...produto, imageUrl: "https://teste.supabase.co/storage/v1/object/public/produtos/" + truque }, admin);
+    assert.equal(r.status, 400, "caminho recusado: " + truque);
+  }
+  const antiga = "https://teste.supabase.co/storage/v1/object/public/produtos/cardapio/velha.jpg?v=123";
+  assert.equal((await api("PUT", "/products/" + P1, { ...produto, imageUrl: antiga }, admin)).status, 200, "aceita foto antiga com ?v=");
   const ok = await api("PUT", "/products/" + P1, { ...produto, imageUrl: url }, admin);
   assert.equal(ok.status, 200);
+  assert.deepEqual(removed.at(-1), { bucket: "produtos", path: "cardapio/velha.jpg" }, "trocar a foto apaga a antiga");
   assert.equal(ok.body.imageUrl, url);
   const semMexer = await api("PUT", "/products/" + P1, produto, admin);
   assert.equal(semMexer.body.imageUrl, url, "editar sem mandar imageUrl mantém a foto");
@@ -875,6 +882,7 @@ test("admin envia foto do produto e ela aparece no cardápio", async () => {
   assert.equal(menu.body.find((p) => p.id === P1).imageUrl, url);
   const tirar = await api("PUT", "/products/" + P1, { ...produto, imageUrl: null }, admin);
   assert.equal(tirar.body.imageUrl, null);
+  assert.deepEqual(removed.at(-1), { bucket: "produtos", path: url.split("/produtos/")[1] }, "tirar a foto apaga do Storage");
 });
 
 test("admin exclui item: sem pedido apaga (e a foto), com pedido arquiva", async () => {

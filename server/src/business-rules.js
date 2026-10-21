@@ -5,6 +5,11 @@
 // (configurável pelo admin); este é só o padrão se a coluna não existir.
 export const MIN_ORDER_CENTS = 1000;
 
+// Transições que a rota PATCH /orders/:id/status aceita. É de propósito mais
+// estrita que set_order_status no banco (auditoria B-08): o banco também deixa
+// cancelar pedido Em Preparo ou Pronto, mas só para o estorno total feito pelo
+// admin (POST /orders/:id/refund), que devolve o dinheiro. Pela tela da
+// cozinha só se cancela o que ainda está Na Fila.
 export const VALID_TRANSITIONS = {
   "Na Fila": ["Em Preparo", "Cancelado"],
   "Em Preparo": ["Pronto"],

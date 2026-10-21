@@ -1,5 +1,4 @@
 import { Router } from "express";
-import rateLimit from "express-rate-limit";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import {
@@ -30,22 +29,19 @@ import { refundWholeOrder, refundDuplicatePayment, approveOrderPayment, LATE_PAY
 import { isValidCpf, onlyDigits } from "../validation/cpf.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
+import { limiter } from "../rate-limit.js";
 
 export const paymentsRouter = Router();
 
-const sessionLimiter = rateLimit({
+const sessionLimiter = limiter("card-session", {
   windowMs: 10 * 60 * 1000,
   max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas tentativas de pagamento. Tente novamente em alguns minutos." },
 });
 
-const pixLimiter = rateLimit({
+const pixLimiter = limiter("pix", {
   windowMs: 10 * 60 * 1000,
   max: 15,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas tentativas de pagamento. Tente novamente em alguns minutos." },
 });
 

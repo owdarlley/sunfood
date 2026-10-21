@@ -1,5 +1,4 @@
 import { Router } from "express";
-import rateLimit from "express-rate-limit";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole, requireCompleteProfile } from "../middleware/auth.js";
 import { createOrderSchema, manualOrderSchema, orderStatusUpdateSchema, paymentReceivedSchema, orderRefundSchema, validate } from "../validation/schemas.js";
@@ -21,6 +20,7 @@ import {
 } from "../business-rules.js";
 import { cancelOrderWithRefund, expireUnpaidOrdersSoon } from "../order-payments.js";
 import { refundOrderByAdmin, customerRefunds } from "../order-refunds.js";
+import { limiter } from "../rate-limit.js";
 
 export const ordersRouter = Router();
 
@@ -29,11 +29,9 @@ const WAITER_STATUSES = ["Na Fila", "Em Preparo", "Pronto"];
 
 // Trava contra spam de pedidos (bug de cliente ou tentativa de abuso) — bem
 // mais generoso que o limite de login, já que é uso normal repetir pedidos.
-const createOrderLimiter = rateLimit({
+const createOrderLimiter = limiter("create-order", {
   windowMs: 10 * 60 * 1000,
   max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitos pedidos em pouco tempo. Aguarde um instante." },
 });
 

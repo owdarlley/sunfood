@@ -1,5 +1,4 @@
 import { Router } from "express";
-import rateLimit from "express-rate-limit";
 import { randomInt } from "node:crypto";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
@@ -12,15 +11,14 @@ import {
   isEmailContact,
   validate,
 } from "../validation/schemas.js";
+import { limiter } from "../rate-limit.js";
 
 export const contactRouter = Router();
 
 // Formulário público: segura spam sem travar quem manda uma ou duas mensagens.
-const contactLimiter = rateLimit({
+const contactLimiter = limiter("contact", {
   windowMs: 15 * 60 * 1000,
   max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas mensagens em pouco tempo. Tente novamente mais tarde." },
 });
 
