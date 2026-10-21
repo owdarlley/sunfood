@@ -228,8 +228,8 @@ textarea.inp{min-height:96px;padding:12px 16px;resize:none;overflow-y:auto;line-
 select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2355626A' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;padding-right:40px}
 /* Avisos (erro, atenção, sucesso, informação): um estilo só em todo o app.
    Fundo branco como os cartões, borda e ícone na cor do tipo, texto escuro. */
-.inp::placeholder{color:#737C82;opacity:1}
-.mesafield input::placeholder{color:#737C82;font-weight:600}
+.inp::placeholder{color:var(--ink-2);opacity:1}
+.mesafield input::placeholder{color:var(--ink-2);font-weight:600}
 .alert{--al:var(--brand);--al-line:var(--brand-line);--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E");position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 16px 12px 44px;border-radius:12px;background:#fff;border:1px solid var(--al-line);box-shadow:0 1px 2px rgba(20,35,42,.04);color:var(--ink);font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;text-align:left}
 .alert::before{content:"";position:absolute;left:16px;top:13px;width:18px;height:18px;background:var(--al);-webkit-mask:var(--al-ico) center/contain no-repeat;mask:var(--al-ico) center/contain no-repeat}
 .alert:has(> svg){padding-left:16px}
@@ -1112,10 +1112,46 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
 body{caret-color:transparent;-webkit-user-select:none;user-select:none;cursor:default;-webkit-tap-highlight-color:transparent}
 input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable="true"]{caret-color:auto;-webkit-user-select:text;user-select:text;cursor:text}
 select{caret-color:auto}
+
+/* Auditoria de design e UX (2026-10-21). Faixa de conexão (D-01/D-04): fica
+   no topo enquanto a internet ou a API não respondem, para a equipe e para o
+   cliente. Amarelo da marca de fundo com texto escuro (9:1) e ícone, nunca só
+   a cor. Botão com 48 px reais de toque (44 no computador). */
+.netbar{position:sticky;top:0;z-index:95;display:flex;align-items:center;gap:calc(12px / var(--z));padding:calc(8px / var(--z)) var(--px);background:var(--sun);color:var(--ink);font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;box-shadow:0 1px 0 rgba(20,35,42,.18)}
+.netbar > svg{flex:none;width:calc(20px / var(--z));height:calc(20px / var(--z))}
+.netbar-txt{flex:1 1 0;min-width:0}
+.netbar-btn{flex:none;min-height:calc(48px / var(--z));padding:0 calc(16px / var(--z));border:1px solid var(--ink);border-radius:var(--r-btn);background:transparent;color:var(--ink);font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;cursor:pointer}
+@media (min-width:1025px){.netbar-btn{min-height:var(--tap)}}
+.netbar-btn:hover{background:rgba(20,35,42,.08)}
+.netbar-btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--sun),0 0 0 4px var(--ink)}
+/* Com a faixa à mostra, o topo fixo e o menu lateral descem a altura dela
+   (--net-h, medida pelo app) em vez de ficarem por baixo. */
+.sf-z .topbar,.sf-z .adm-side{top:var(--net-h,0px)}
+.sf-z .cartpanel{top:calc(85px + var(--net-h,0px))}
+/* Erro de pedido/pagamento fixo na tela (D-03): fica até a pessoa agir. */
+.payalert{flex-direction:column;gap:8px}
+.payalert .btn{align-self:stretch}
+/* Prazo do PIX (D-02): contagem regressiva e o estado de PIX vencido. */
+.pixtimer{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.pixtimer.late{color:var(--danger)}
+.pixtimer svg{flex:none}
+/* Alto contraste (D-10): quem pede mais contraste no aparelho ganha textos
+   secundários e bordas mais escuros. Paleta e fontes continuam as mesmas. */
+@media (prefers-contrast:more){
+  :root{--ink-2:#3B464D;--line:#8F8676;--line-2:#8F8676;--divider:#B9B1A2;--line-dash:#8F8676;--field:#55626A}
+  .muted{color:var(--ink)}
+}
 </style>
 </helmet>
 
 <div class="sf-z" style="min-height:calc(100vh / var(--z));position:relative;background:var(--bg)">
+      <sc-if value="{{ netDown }}" hint-placeholder-val="{{ false }}">
+        <div class="netbar" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.3a10 10 0 0 1 4.3-2.3M15.6 10.6A10 10 0 0 1 19 12.3M8.5 15.8a5 5 0 0 1 7 0M12 19.5h.01M3 3l18 18"></path></svg>
+          <span class="netbar-txt">{{ netMsg }}</span>
+          <button type="button" class="netbar-btn" onClick="{{ netRetry }}">{{ netRetryLabel }}</button>
+        </div>
+      </sc-if>
       <sc-if value="{{ isCliente }}" hint-placeholder-val="{{ true }}">
       <div class="sfc">
 
@@ -1593,13 +1629,33 @@ select{caret-color:auto}
                       </div>
                       <div class="sumtotal" style="border-top:0;margin-top:0;padding-top:8px"><span>Total</span><span>{{ totalStr }}</span></div>
                     </div>
-                    <div onClick="{{ goPay }}" class="btn btn-sun">{{ payLabel }}</div>
+                    <sc-if value="{{ hasPayAlert }}" hint-placeholder-val="{{ false }}">
+                      <div class="alert payalert {{ payAlertCls }}" role="alert" style="margin-bottom:12px">
+                        <span>{{ payAlertMsg }}</span>
+                        <sc-if value="{{ hasPayAlertBtn }}" hint-placeholder-val="{{ false }}">
+                          <button type="button" class="btn btn-ghost btn-sm" onClick="{{ payAlertGo }}">{{ payAlertBtn }}</button>
+                        </sc-if>
+                      </div>
+                    </sc-if>
+                    <div onClick="{{ goPay }}" class="btn btn-sun" aria-disabled="{{ payDisabled }}">{{ payLabel }}</div>
                   </div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_pix }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+                  <sc-if value="{{ hasPayAlert }}" hint-placeholder-val="{{ false }}">
+                    <div class="alert payalert {{ payAlertCls }}" role="alert"><span>{{ payAlertMsg }}</span></div>
+                  </sc-if>
+                  <sc-if value="{{ pixExpired }}" hint-placeholder-val="{{ false }}">
+                    <div class="card" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px" role="alert">
+                      <span style="width:72px;height:72px;border-radius:50%;background:var(--danger-tint);color:var(--danger);display:flex;align-items:center;justify-content:center"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5M9.5 2.5h5"></path></svg></span>
+                      <div class="tt" style="font-size:var(--fs-h2)">Este PIX expirou</div>
+                      <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0;max-width:380px">O código vale por 30 minutos e não pode mais ser pago. Seu carrinho continua guardado: gere um novo PIX para pagar {{ orderTotalStr }}.</p>
+                    </div>
+                    <div onClick="{{ renewPix }}" class="btn btn-sun" aria-disabled="{{ payDisabled }}">{{ renewPixLabel }}</div>
+                  </sc-if>
+                  <sc-if value="{{ pixActive }}" hint-placeholder-val="{{ true }}">
                   <div class="card" style="padding:var(--cpad);text-align:center">
                     <sc-if value="{{ hasPixQrImg }}" hint-placeholder-val="{{ false }}">
                       <img src="{{ pixQrImg }}" alt="QR Code PIX" style="width:200px;height:200px;margin:0 auto 16px;padding:8px;background:#fff;border-radius:var(--r-card);box-shadow:0 0 0 1px var(--line-2);display:block" />
@@ -1610,14 +1666,21 @@ select{caret-color:auto}
                     <div class="muted" style="font-size:var(--fs-body)">Valor a pagar</div>
                     <div class="tt" style="font-size:var(--fs-h1);margin-top:2px">{{ orderTotalStr }}</div>
                     <div style="font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--brand);margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><svg style="animation:sfspin .9s linear infinite" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>Aguardando confirmação do pagamento…</div>
+                    <sc-if value="{{ hasPixTimer }}" hint-placeholder-val="{{ false }}">
+                      <div class="pixtimer {{ pixTimerCls }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5M9.5 2.5h5"></path></svg><span>Este PIX expira em {{ pixLeft }}</span></div>
+                    </sc-if>
                   </div>
                   <div onClick="{{ copyPix }}" class="btn btn-dark">Copiar código PIX</div>
                   <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Abra o app do seu banco, escaneie o QR ou cole o código copia-e-cola.</div>
+                  </sc-if>
                 </div>
               </sc-if>
 
               <sc-if value="{{ is_card }}" hint-placeholder-val="{{ false }}">
                 <div class="rise" style="display:flex;flex-direction:column;gap:16px">
+                  <sc-if value="{{ hasPayAlert }}" hint-placeholder-val="{{ false }}">
+                    <div class="alert payalert {{ payAlertCls }}" role="alert"><span>{{ payAlertMsg }}</span></div>
+                  </sc-if>
                   <div class="card" style="padding:var(--cpad);text-align:center">
                     <span style="width:72px;height:72px;margin:0 auto 12px;border-radius:50%;background:var(--brand-tint);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="#1F5A63" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M11 13h26a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4Z M7 21h34 M14 29h7"></path></svg></span>
                     <div class="muted" style="font-size:var(--fs-body)">Valor a pagar</div>
@@ -2002,7 +2065,7 @@ select{caret-color:auto}
           <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>admin</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ adminSide }}" as="it" hint-placeholder-count="7">
-            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
           </sc-for>
           <div class="adm-sep"></div>
           <div onClick="{{ goKanban }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M10 7h4"></path></svg>Tela da cozinha</div>
@@ -2841,7 +2904,7 @@ select{caret-color:auto}
           <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>cozinha</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ cozinhaSide }}" as="it" hint-placeholder-count="2">
-            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
           </sc-for>
           <sc-if value="{{ isAdminUser }}" hint-placeholder-val="{{ false }}">
             <div class="adm-sep"></div>
@@ -2949,7 +3012,7 @@ select{caret-color:auto}
           <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>garçom</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ garcomSide }}" as="it" hint-placeholder-count="3">
-            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
           </sc-for>
           <div onClick="{{ toggleSound }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ soundIc }}"></path></svg>{{ soundLabel }}</div>
           <div class="adm-foot">
@@ -3790,7 +3853,7 @@ const emptyPf = cats => ({id:null, name:'', price:'', cat:((cats || DEFAULT_CATE
 // "sem"/natural, característica); etiqueta digitada pelo admin usa a lilás.
 // Mensagens dos ajustes do admin: confirmação de salvo x erro, para escolher o tipo de aviso.
 const SAVED_OK = /atualizad|^Agora o quiosque tem|^Pedido mínimo (ligado|desligado)/;
-const TOAST_OK = /^(Cadastro completo|Perfil salvo|Avatar escolhido|Foto atualizada|Enviamos|Senha alterada|Recebimento|Entregue e recebimento|Estorno de|Pedido cancelado|Mensagem (marcada|voltou)|Resposta (registrada|enviada)|Produto (atualizado|criado|excluído)|Pedido da mesa|Garçom (reativado|desativado)|Código PIX copiado|Seu pedido está pronto)|foi excluído/;
+const TOAST_OK = /^(Cadastro completo|Perfil salvo|Avatar escolhido|Foto atualizada|Enviamos|Senha alterada|Recebimento|Entregue e recebimento|Estorno de|Pedido cancelado|Mensagem (marcada|voltou)|Resposta (registrada|enviada)|Produto (atualizado|criado|excluído)|Pedido da mesa|Garçom (reativado|desativado)|Código PIX copiado|Seu pedido está pronto|Conexão de volta)|foi excluído/;
 const TAG_ALERT = ['#FDEBEA', '#E74C3C'], TAG_WARN = ['#FFF3DE', '#B0791A'], TAG_OK = ['#E7F7ED', '#16A34A'], TAG_INFO = ['#EFEBFF', '#7C5CFF'];
 const TAG_PRESETS = [['Alcoólico', TAG_ALERT], ['+18', TAG_WARN], ['Feito na hora', TAG_INFO], ['Gelado', TAG_INFO],
   ['Natural', TAG_OK], ['Vegano', TAG_INFO], ['Vegetariano', TAG_OK], ['Sem álcool', TAG_OK], ['Sem glúten', TAG_OK],
@@ -3877,7 +3940,9 @@ const CART_KEY = 'sunfood_cart';
 const CART_TTL = 3 * 60 * 60 * 1000;
 // QR do PIX em aberto, para voltar igual se a página for recarregada.
 const PIX_KEY = 'sunfood_pix';
-const PIX_TTL = 60 * 60 * 1000;
+// Quanto tempo a cobrança PIX vale quando o servidor não manda o expiresAt
+// (o mesmo PAYMENT_WINDOW_MINUTES do servidor).
+const PIX_WINDOW = 30 * 60 * 1000;
 
 // Nome que aparece na guia do navegador: "Sunfood · <tela>". Sem isto a guia
 // mostrava o endereço (app-cliente.dc.html?module=...).
@@ -3960,6 +4025,15 @@ class Component extends DCLogic {
     // (Payment Element) em vez de abrir a página do Stripe.
     stripePk:null, cardFormLoading:false, cardOrderPending:false, cardErr:'', cardHolderName:'', cardHolderCpf:'',
     payingPix:false, pixQrCode:'', pixQrImg:'', pixTestPayUrl:'', historyReady:false,
+    // Validade do QR do PIX (ms) e o relógio da contagem regressiva.
+    pixExpiresAt:0, clock:0,
+    // Erro de pedido/pagamento que fica na tela até a pessoa agir (não some
+    // como o aviso flutuante). payAlertAction: '' ou 'entrega' (botão para
+    // trocar para pagar na entrega).
+    payAlert:'', payAlertAction:'',
+    // Sem internet ou API sem responder: faixa no topo. netLastOk = hora da
+    // última atualização boa do painel da equipe.
+    netDown:false, netLastOk:0, netChecking:false,
     order:null, elapsed:0,
     // Histórico real vem da API (GET /orders/mine) após o login — carregado em
     // restoreSession()/submitLogin(), não é mais um mock fixo.
@@ -4093,23 +4167,34 @@ class Component extends DCLogic {
     }
   }
 
-  async resumePix(apiId){
+  // QR do PIX guardado neste aparelho para esta conta e este pedido, se ainda
+  // vale por mais de 1 minuto (menos que isso, melhor gerar outro).
+  savedPix(apiId){
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(PIX_KEY) || 'null'); } catch(e){}
     const user = this.state.authUser && this.state.authUser.id;
-    if(saved && saved.orderId === apiId && saved.user === user && Date.now() - saved.at < PIX_TTL && saved.qrCode){
-      this.setState({pixQrCode:saved.qrCode, pixQrImg:saved.qrImg || '', pixTestPayUrl:saved.testPayUrl || ''});
-      return;
-    }
+    if(!saved || saved.orderId !== apiId || saved.user !== user || !saved.qrCode) return null;
+    const expiresAt = saved.expiresAt || saved.at + PIX_WINDOW;
+    return expiresAt - Date.now() > 60000 ? Object.assign({}, saved, {expiresAt}) : null;
+  }
+
+  restorePix(saved){
+    this.setState({pixQrCode:saved.qrCode, pixQrImg:saved.qrImg || '', pixTestPayUrl:saved.testPayUrl || '', pixExpiresAt:saved.expiresAt, clock:Date.now()});
+  }
+
+  async resumePix(apiId){
+    const saved = this.savedPix(apiId);
+    if(saved) return this.restorePix(saved);
     // QR não guardado neste aparelho: pede de novo (o servidor reaproveita o PIX em aberto).
     this.setState({payingPix:true});
     try {
       const res = await authFetch(API_BASE + '/payments/pix/' + apiId, {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
       const data = await res.json().catch(() => ({}));
       if(res.ok && !data.provisional) this.showPix(apiId, data);
-      else if(!res.ok) this.flash(data.error || 'Não foi possível mostrar o PIX de novo.');
+      else if(!res.ok) this.payError(data.error || 'Não foi possível mostrar o PIX de novo.');
     } catch(e){
-      this.flash('Falha de conexão com o servidor.');
+      this.netFail();
+      this.payError('Sem conexão com o servidor para mostrar o PIX. Confira a internet; tentamos de novo quando ela voltar.');
     } finally {
       this.setState({payingPix:false});
     }
@@ -4120,10 +4205,13 @@ class Component extends DCLogic {
     const pix = {pixQrCode:data.qrCode || '',
       pixQrImg:data.qrCodeImageUrl || '',
       pixTestPayUrl:data.testPayUrl || ''};
-    this.setState(pix);
+    // Validade vem do servidor (expiresAt); sem ela, 30 min a partir de agora.
+    const exp = data.expiresAt ? Date.parse(data.expiresAt) : NaN;
+    pix.pixExpiresAt = isFinite(exp) ? exp : Date.now() + PIX_WINDOW;
+    this.setState(Object.assign({clock:Date.now(), payAlert:'', payAlertAction:''}, pix));
     try {
       localStorage.setItem(PIX_KEY, JSON.stringify({user:this.state.authUser && this.state.authUser.id, orderId:apiId, at:Date.now(),
-        qrCode:pix.pixQrCode, qrImg:pix.pixQrImg, testPayUrl:pix.pixTestPayUrl}));
+        expiresAt:pix.pixExpiresAt, qrCode:pix.pixQrCode, qrImg:pix.pixQrImg, testPayUrl:pix.pixTestPayUrl}));
     } catch(e){}
   }
 
@@ -4240,9 +4328,14 @@ class Component extends DCLogic {
     // cada poucos segundos (antes era uma simulação local por tempo decorrido;
     // agora quem muda o status é a cozinha/administração, do lado do servidor).
     this.timer = setInterval(() => {
+      // Sem conexão: depois da segunda falha, espera cada vez mais entre as
+      // tentativas (3, 6, 12, 24 e no máximo 30 s), sem gastar bateria e dados à toa.
+      if(Date.now() < (this._netNextAt || 0)) return;
       const o = this.state.order;
       if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue') this.pollOrder(o._apiId);
-      if(STAFF_MODULES.indexOf(this.state.module) >= 0 && this.state.token) this.loadAdminData();
+      // Equipe com a aba em segundo plano: atualiza a cada 30 s em vez de 3 s
+      // (o som de pedido novo continua chegando); ao voltar, atualiza na hora.
+      if(STAFF_MODULES.indexOf(this.state.module) >= 0 && this.state.token && (!document.hidden || Date.now() - (this._adminAt || 0) > 30000)) this.loadAdminData();
       // Garçom na tela de desempenho: atualiza as métricas a cada 30 s.
       if(this.state.module === 'garcom' && this.state.screen === 'desempenho' && this.state.token && Date.now() - this.state.gMetricsAt > 30000) this.loadWaiterMetrics();
     }, 3000);
@@ -4251,8 +4344,97 @@ class Component extends DCLogic {
     this.menuTimer = setInterval(() => {
       if(this.state.module === 'cliente' && !document.hidden) this.refreshProducts();
     }, 15000);
-    this.onVisible = () => { if(this.state.module === 'cliente' && !document.hidden) this.refreshProducts(); };
+    this.onVisible = () => {
+      if(document.hidden) return;
+      if(this.state.module === 'cliente') this.refreshProducts();
+      else if(STAFF_MODULES.indexOf(this.state.module) >= 0 && this.state.token) this.loadAdminData();
+    };
     document.addEventListener('visibilitychange', this.onVisible);
+    // Internet do aparelho caiu ou voltou: avisa na hora e, quando volta,
+    // tenta de novo sem esperar o próximo ciclo.
+    this._onOffline = () => { this._netFails = Math.max(this._netFails || 0, 1); this.netDownNow(); };
+    this._onOnline = () => this.netRetry();
+    this._onNetResize = () => { if(this.state.netDown) this.netMeasure(); };
+    window.addEventListener('resize', this._onNetResize);
+    window.addEventListener('offline', this._onOffline);
+    window.addEventListener('online', this._onOnline);
+    if(navigator.onLine === false) this.netDownNow();
+    // Contagem regressiva do PIX: redesenha 1 vez por segundo só na tela do PIX.
+    this.pixTimer = setInterval(() => {
+      if(this.state.screen === 'pix' && this.state.pixExpiresAt) this.setState({clock:Date.now()});
+    }, 1000);
+  }
+
+  // ===== Conexão (D-01/D-04) =====
+  // Uma falha solta (sinal oscilando) não mostra nada; a partir da segunda
+  // seguida, ou com o aparelho sem rede, aparece a faixa "Sem conexão".
+  netFail(){
+    this._netFails = (this._netFails || 0) + 1;
+    this._netNextAt = this._netFails < 2 ? 0 : Date.now() + Math.min(30000, 3000 * Math.pow(2, this._netFails - 2));
+    if(this._netFails >= 2 || navigator.onLine === false) this.netDownNow();
+  }
+
+  netDownNow(){
+    if(this.state.netDown) return;
+    this.setState({netDown:true, netLastOk:this._lastOkAt || 0}, () => this.netMeasure());
+    this.netTone(false);
+  }
+
+  // Altura da faixa (muda quando o texto quebra em duas linhas).
+  netMeasure(){
+    try {
+      const bar = this.state.netDown && document.querySelector('.netbar');
+      document.documentElement.style.setProperty('--net-h', (bar ? bar.offsetHeight : 0) + 'px');
+    } catch(e){}
+  }
+
+  netOk(){
+    this._netFails = 0; this._netNextAt = 0;
+    if(!this.state.netDown) return;
+    this.setState({netDown:false}, () => this.netMeasure());
+    this.netTone(true);
+    this.flash('Conexão de volta.');
+  }
+
+  // "Tentar agora" (e a volta da internet): consulta já, sem esperar.
+  netRetry(){
+    this._netNextAt = 0;
+    if(this.state.netChecking) return;
+    const jobs = [];
+    const staff = STAFF_MODULES.indexOf(this.state.module) >= 0;
+    if(staff && this.state.token) jobs.push(this.loadAdminData());
+    if(!staff) jobs.push(this.state.catalogError ? this.loadCatalog() : this.refreshProducts());
+    const o = this.state.order;
+    if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue') jobs.push(this.pollOrder(o._apiId));
+    this.setState({netChecking:true});
+    Promise.all(jobs).finally(() => this.setState({netChecking:false}));
+  }
+
+  // Equipe com o som ligado: dois tons descendo quando a conexão cai e
+  // subindo quando volta (diferente do sino de pedido novo).
+  netTone(up){
+    if(STAFF_MODULES.indexOf(this.state.module) < 0 || !this.state.soundOn) return;
+    try {
+      const ac = this.audioCtx(); if(!ac) return;
+      if(ac.state === 'suspended') ac.resume().catch(() => {});
+      const t0 = ac.currentTime + 0.03;
+      (up ? [523, 784] : [784, 392]).forEach((freq, i) => {
+        const osc = ac.createOscillator(), gain = ac.createGain(), t = t0 + i * 0.24;
+        osc.type = 'triangle'; osc.frequency.value = freq;
+        osc.connect(gain); gain.connect(ac.destination);
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.25, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        osc.start(t); osc.stop(t + 0.26);
+      });
+    } catch(e){}
+  }
+
+  // Erro de pedido ou pagamento: fica na tela (role="alert") até a pessoa
+  // tentar de novo ou sair da tela (D-03). action 'entrega' mostra o botão
+  // para trocar para pagar na entrega.
+  payError(msg, action){
+    this.setState({payAlert:msg, payAlertAction:action || ''});
   }
 
   restoreSession(){
@@ -4697,6 +4879,7 @@ class Component extends DCLogic {
         fetch(API_BASE + '/kiosk-settings')
       ]);
       if(!productsRes.ok || !tablesRes.ok || !kioskRes.ok) return this.setState(st => ({catalogPending:false, catalogError:!st.products.length}));
+      this.netOk();
       const [products, tables, kiosk] = await Promise.all([productsRes.json(), tablesRes.json(), kioskRes.json()]);
       const catalog = {
         products: products.map(apiProductToState),
@@ -4712,6 +4895,7 @@ class Component extends DCLogic {
       this.setState(Object.assign({catalogPending:false, catalogError:false}, catalog), () => this.dropUnavailableFromCart());
     } catch(e){
       // API fora do ar: mostra o cardápio guardado no aparelho; sem ele, o aviso de erro.
+      this.netFail();
       this.setState(st => ({catalogPending:false, catalogError:!st.products.length}));
     }
   }
@@ -4722,13 +4906,14 @@ class Component extends DCLogic {
     try {
       const res = await fetch(API_BASE + '/products');
       if(!res.ok) return;
+      this.netOk();
       const products = (await res.json()).map(apiProductToState);
       // Nada mudou: não redesenha a tela (a consulta roda a cada 15 s).
       if(JSON.stringify(products) === JSON.stringify(this.state.products)) return;
       const cache = readCatalogCache();
       if(cache) saveCatalogCache(Object.assign(cache, {products}));
       this.setState({products}, () => this.dropUnavailableFromCart());
-    } catch(e){}
+    } catch(e){ this.netFail(); }
   }
 
   // Tira do carrinho o que ficou indisponível (ou saiu do cardápio) e avisa.
@@ -4768,6 +4953,7 @@ class Component extends DCLogic {
     // Internet lenta: não empilha uma consulta em cima da outra.
     if(this._adminLoading) return;
     this._adminLoading = true;
+    this._adminAt = Date.now();
     try { await this.loadAdminDataNow(); } finally { this._adminLoading = false; }
   }
 
@@ -4784,8 +4970,12 @@ class Component extends DCLogic {
           this.setChanged({adminOrders});
           this.ringOnNewOrder(adminOrders);
         }
+        this._lastOkAt = Date.now();
+        this.netOk();
       }
-    } catch(e){}
+      // API fora do ar: conta como falha de conexão (a faixa avisa a equipe).
+      else if(ordersRes.status >= 500) this.netFail();
+    } catch(e){ this.netFail(); }
     // Cozinha: com garçom cadastrado, quem marca "Entregue" é o garçom.
     if(this.state.module === 'cozinha' && Date.now() - (this._waitersAt || 0) > 60000){
       this._waitersAt = Date.now();
@@ -5450,8 +5640,12 @@ class Component extends DCLogic {
 
   async pollOrder(apiId, token){
     try {
-      const res = await authFetch(API_BASE + '/orders/' + apiId, {headers:{Authorization:'Bearer ' + (token || this.state.token)}});
+      let res;
+      try { res = await authFetch(API_BASE + '/orders/' + apiId, {headers:{Authorization:'Bearer ' + (token || this.state.token)}}); }
+      catch(e){ this.netFail(); return; }
+      if(res.status >= 500) return this.netFail();
       if(!res.ok) return;
+      this.netOk();
       const data = await res.json();
       const before = this.state.order && this.state.order.status;
       this.setChanged({order: orderFromApi(data)});
@@ -5464,7 +5658,24 @@ class Component extends DCLogic {
       // Pagamento aprovado enquanto o cliente está vendo o QR: some com o QR
       // e confirma automaticamente — ninguém precisa "avisar" que pagou.
       if((this.state.screen === 'pix' || this.state.screen === 'card') && data.paymentStatus === 'approved') this.go('confirm');
+      // PIX vencido (o servidor cancela o pedido) ou pagamento recusado
+      // enquanto o cliente olha o QR ou o cartão: volta ao pagamento e explica.
+      else if((this.state.screen === 'pix' || this.state.screen === 'card') && data.paymentStatus !== 'approved'
+        && (data.status === 'Cancelado' || data.paymentStatus === 'cancelled' || data.paymentStatus === 'rejected')) this.payAbandoned(data);
     } catch(e){}
+  }
+
+  payAbandoned(data){
+    const card = this.state.screen === 'card';
+    const cancelled = data.status === 'Cancelado';
+    try { localStorage.removeItem(PIX_KEY); } catch(e){}
+    // Pedido cancelado: some do app (nunca chegou na cozinha); o carrinho continua.
+    if(cancelled){ this.pendingOnline = null; this.setState({order:null}); }
+    this.setState({pixExpiresAt:0, pixQrCode:'', pixQrImg:'', cardWaiting:false});
+    this.go('payment');
+    this.payError(!cancelled
+      ? 'O pagamento não foi aprovado. Seu carrinho continua aqui: tente de novo ou escolha outra forma de pagamento.'
+      : (card ? 'O tempo para pagar acabou e o pedido foi cancelado.' : 'O PIX expirou e o pedido foi cancelado.') + ' Seu carrinho continua aqui: é só pagar de novo.');
   }
 
   async submitLogin(){
@@ -5518,7 +5729,11 @@ class Component extends DCLogic {
     try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(CART_KEY); } catch(e){}
     // Admin/cozinha/garçom não têm uma tela de login própria dentro do app:
     // sair manda de volta para a tela de login do endereço principal (index.html).
-    if(STAFF_MODULES.indexOf(this.state.module) >= 0){ window.location.href = 'index.html'; return; }
+    if(STAFF_MODULES.indexOf(this.state.module) >= 0){
+      // Sessão expirada: o aviso aparece na tela de login (D-01).
+      if(aviso) try { sessionStorage.setItem('sunfood_login_aviso', JSON.stringify({texto:aviso, ok:false, email:''})); } catch(e){}
+      window.location.href = 'index.html'; return;
+    }
     this.irParaLogin(aviso);
   }
 
@@ -5663,11 +5878,11 @@ class Component extends DCLogic {
     this.setState({module:mod, screen});
   }
 
-  componentWillUnmount(){ window.removeEventListener('popstate', this._onPop); window.removeEventListener('pageshow', this._onShow); document.removeEventListener('keydown', this._a11yKey); if(this._a11yObs) this._a11yObs.disconnect(); clearInterval(this.timer); clearInterval(this.menuTimer); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('popstate', this._onPop); window.removeEventListener('pageshow', this._onShow); document.removeEventListener('keydown', this._a11yKey); if(this._a11yObs) this._a11yObs.disconnect(); clearInterval(this.timer); clearInterval(this.menuTimer); clearInterval(this.pixTimer); window.removeEventListener('offline', this._onOffline); window.removeEventListener('online', this._onOnline); window.removeEventListener('resize', this._onNetResize); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
 
   fmt(n){ return brMoney(n); }
   go(screen, module){
-    this.setState(s => ({screen, module: module || s.module, toast:'', admMenu:false}));
+    this.setState(s => ({screen, module: module || s.module, toast:'', payAlert:'', payAlertAction:'', admMenu:false}));
     if(screen === 'reports' && this.state.token){ this.loadReport(); this.loadLatestDayReport(); }
     if(screen === 'messages' && this.state.token) this.loadMessages();
     if(screen === 'desempenho' && this.state.token) this.loadWaiterMetrics();
@@ -5723,7 +5938,23 @@ class Component extends DCLogic {
     const prev = this.pendingOnline, cur = this.state.order;
     const prevOpen = prev && cur && cur._apiId === prev.id && cur.status === 'Na Fila' && cur.paymentStatus !== 'approved';
     if(prevOpen && prev.key === key) return prev.data;
-    if(prevOpen) authFetch(API_BASE + '/orders/' + prev.id + '/cancel', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}}).catch(() => {});
+    this.setState({payAlert:'', payAlertAction:''});
+    // Mudou o carrinho ou a forma de pagamento: cancela o pedido anterior (não
+    // pago) antes de criar o novo, para o estoque dele voltar na hora (D-05).
+    // Se o servidor respondeu (cancelou, ou o pedido já não pode ser
+    // cancelado e vence sozinho), segue; sem resposta, avisa e não cria outro.
+    if(prevOpen){
+      let answered = false;
+      try {
+        const cr = await authFetch(API_BASE + '/orders/' + prev.id + '/cancel', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
+        answered = cr.status < 500;
+      } catch(e){ this.netFail(); }
+      if(!answered){
+        this.payError('Não conseguimos trocar o pedido anterior agora. Confira a internet e toque em Pagar de novo.');
+        return null;
+      }
+      try { localStorage.removeItem(PIX_KEY); } catch(e){}
+    }
     this.pendingOnline = null;
     try {
       const res = await authFetch(API_BASE + '/orders', {
@@ -5734,14 +5965,15 @@ class Component extends DCLogic {
       const data = await res.json();
       if(!res.ok){
         if(data.code === 'profile_incomplete'){ this.askCompleteProfile(this.state.authUser); return null; }
-        this.flash(data.error || 'Não foi possível fechar o pedido.');
+        this.payError(data.error || 'Não foi possível fechar o pedido.');
         return null;
       }
       if(paymentMethod === 'entrega') this.setState({order:orderFromApi(data), cart:[], orderNote:''});
       else { this.pendingOnline = {id:data.id, key, data}; this._savedCart = null; this.setState({order:orderFromApi(data)}); }
       return data;
     } catch(e){
-      this.flash('Falha de conexão com o servidor.');
+      this.netFail();
+      this.payError('Sem conexão com o servidor: o pedido ainda não foi feito. Confira a internet e toque em Pagar de novo.');
       return null;
     }
   }
@@ -5769,13 +6001,19 @@ class Component extends DCLogic {
     try {
       const created = await this.createOrderOnServer('pix');
       if(!created){ this.setState({payingPix:false}); return; }
+      // Mesmo pedido de antes, com o QR ainda valendo neste aparelho: mostra o
+      // mesmo QR em vez de pedir outra cobrança.
+      const saved = this.savedPix(created.id);
+      if(saved){ this.restorePix(saved); this.setState({payingPix:false, screen:'pix'}); return; }
       const res = await authFetch(API_BASE + '/payments/pix/' + created.id, {
         method:'POST', headers:{Authorization:'Bearer ' + this.state.token}
       });
       const data = await res.json();
       if(!res.ok){
         this.setState({payingPix:false});
-        this.flash(data.error || 'Não foi possível gerar o PIX.');
+        // Já pago (409): a consulta do pedido leva para a confirmação.
+        if(res.status === 409) this.pollOrder(created.id);
+        this.payError(data.error || 'Não foi possível gerar o PIX.', res.status === 409 ? '' : 'entrega');
         return;
       }
       // Provisório (sem Stripe): o servidor já aprovou, segue pra confirmação.
@@ -5784,7 +6022,8 @@ class Component extends DCLogic {
       this.setState({payingPix:false, screen:'pix'});
     } catch(e){
       this.setState({payingPix:false});
-      this.flash('Falha de conexão com o servidor.');
+      this.netFail();
+      this.payError('A conexão caiu antes de gerar o PIX. Confira a internet e toque em Pagar de novo: o mesmo pedido é aproveitado.');
     } finally {
       this.setState({busy:null});
     }
@@ -6018,13 +6257,14 @@ class Component extends DCLogic {
         body:JSON.stringify({returnUrl:window.location.origin + window.location.pathname + '?module=cliente&screen=card'})
       });
       const data = await res.json();
-      if(!res.ok){ this.flash(data.error || 'Não foi possível abrir o pagamento com cartão.'); return; }
+      if(!res.ok){ this.payError(data.error || 'Não foi possível abrir o pagamento com cartão.'); return; }
       // Provisório (sem Stripe): o servidor já aprovou, segue pra confirmação.
       if(data.provisional){ this.pollOrder(o._apiId); return; }
-      if(!data.checkoutUrl){ this.flash('Não foi possível abrir o pagamento com cartão.'); return; }
+      if(!data.checkoutUrl){ this.payError('Não foi possível abrir o pagamento com cartão.'); return; }
       window.location.href = data.checkoutUrl;
     } catch(e){
-      this.flash('Falha de conexão com o servidor.');
+      this.netFail();
+      this.payError('Sem conexão com o servidor para abrir o pagamento. Confira a internet e toque em Pagar com cartão de novo.');
     } finally {
       this.setState({busy:null});
     }
@@ -6241,7 +6481,18 @@ class Component extends DCLogic {
     }));
 
     v.payLabel = s.payMethod === 'entrega' ? 'Fazer pedido · ' + v.totalStr : 'Pagar ' + v.totalStr;
+    // Sem conexão: o Pagar fica desligado e a explicação aparece no lugar do erro.
+    v.payDisabled = s.netDown ? 'true' : 'false';
+    v.payAlertMsg = s.netDown && s.screen === 'payment'
+      ? 'Sem conexão no momento. Seu carrinho continua guardado e o pagamento volta a funcionar quando a internet voltar.'
+      : s.payAlert;
+    v.hasPayAlert = !!v.payAlertMsg;
+    v.payAlertCls = s.netDown && s.screen === 'payment' ? 'alert-warn' : 'alert-err';
+    v.hasPayAlertBtn = !s.netDown && s.payAlertAction === 'entrega';
+    v.payAlertBtn = 'Mudar para pagar na entrega';
+    v.payAlertGo = () => this.setState({payMethod:'entrega', payAlert:'', payAlertAction:''});
     v.goPay = () => {
+      if(s.netDown) return;
       if(s.payMethod === 'cartao') this.payWithCard();
       else if(s.payMethod === 'entrega') this.placeOrderPayOnDelivery();
       else this.payWithPix();
@@ -6271,6 +6522,24 @@ class Component extends DCLogic {
     v.pixQrImg = s.pixQrImg || '';
     v.hasPixQrImg = !!s.pixQrImg;
     v.copyPix = () => this.copyPixCode();
+    // Prazo do PIX (D-02): contagem regressiva e, vencido, o botão de gerar outro.
+    const pixMs = s.pixExpiresAt ? s.pixExpiresAt - (s.clock || Date.now()) : null;
+    v.pixExpired = pixMs !== null && pixMs <= 0;
+    v.pixActive = !v.pixExpired;
+    v.hasPixTimer = pixMs !== null && pixMs > 0;
+    const pixSec = pixMs > 0 ? Math.ceil(pixMs / 1000) : 0;
+    v.pixLeft = Math.floor(pixSec / 60) + ':' + String(pixSec % 60).padStart(2, '0');
+    v.pixTimerCls = pixMs !== null && pixMs < 2 * 60000 ? 'late' : '';
+    v.renewPixLabel = s.payingPix ? 'Gerando…' : 'Gerar novo PIX';
+    v.renewPix = () => {
+      if(s.netDown || s.payingPix) return;
+      try { localStorage.removeItem(PIX_KEY); } catch(e){}
+      // Pedido ainda aberto: pede outra cobrança para ele (o servidor gera um
+      // QR novo porque o anterior venceu). Sem pedido aberto, cria outro.
+      const po = s.order;
+      if(po && po._apiId && po.status === 'Na Fila' && po.paymentStatus !== 'approved') this.resumePix(po._apiId);
+      else this.payWithPix();
+    };
 
     // order / status
     const o = s.order;
@@ -6429,7 +6698,7 @@ class Component extends DCLogic {
     // do menu porque a autenticação agora é só pelo modal do index.html).
     const sideOn = s.screen === 'pause' ? 'tables' : s.screen === 'closeDay' ? 'dashboard' : s.screen;
     v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio e estoque'],['reports','Relatórios'],['perfOps','Desempenho'],['tables','Quiosque e mesas'],['waiters','Garçons']]
-      .map(([k, label]) => ({label, ic:ADM_IC[k], cls:sideOn === k ? 'on' : '', go:() => this.go(k, 'admin')}));
+      .map(([k, label]) => ({label, ic:ADM_IC[k], cls:sideOn === k ? 'on' : '', cur:sideOn === k ? 'page' : 'false', go:() => this.go(k, 'admin')}));
     v.admMenuCls = s.admMenu ? 'open' : '';
     v.admMenuLabel = s.admMenu ? 'Fechar' : 'Menu';
     v.admMenuIc = s.admMenu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16';
@@ -6937,7 +7206,7 @@ class Component extends DCLogic {
     // cozinha — deriva do mesmo s.adminOrders (não há mais uma "comanda" separada
     // do pedido: avançar o kanban chama a mesma API que o admin usa em /orders).
     v.cozinhaSide = [['kanban','Pedidos','M4 4h4v16H4z M10 4h4v10h-4z M16 4h4v13h-4z'],['unavailable','Disponibilidade','M4 12l5 5L20 6']]
-      .map(([k, label, ic]) => ({label, ic, cls:(s.screen === 'unavailable') === (k === 'unavailable') ? 'on' : '',
+      .map(([k, label, ic]) => ({label, ic, cls:(s.screen === 'unavailable') === (k === 'unavailable') ? 'on' : '', cur:(s.screen === 'unavailable') === (k === 'unavailable') ? 'page' : 'false',
         go:() => this.go(k === 'kanban' ? (v.kitchenEmpty ? 'queueEmpty' : 'kanban') : k, 'cozinha')}));
     // Pedido de PIX/cartão ainda não pago não aparece pra cozinha (o servidor
     // já filtra pro perfil cozinha; aqui vale também pro admin olhando o kanban).
@@ -7011,7 +7280,7 @@ class Component extends DCLogic {
     // garçom — pedidos prontos para levar, pedido lançado na mesa e métricas.
     const myId = s.authUser && s.authUser.id;
     v.garcomSide = [['entregar','Para entregar','M5 12l4 4L19 6 M3 20h18'],['novoPedido','Lançar pedido','M12 5v14 M5 12h14'],['desempenho','Meu desempenho','M4 20h16 M7 16v-5 M11 16V8 M15 16v-3 M19 16V6']]
-      .map(([k, label, ic]) => ({label, ic, cls:s.screen === k ? 'on' : '', go:() => this.go(k, 'garcom')}));
+      .map(([k, label, ic]) => ({label, ic, cls:s.screen === k ? 'on' : '', cur:s.screen === k ? 'page' : 'false', go:() => this.go(k, 'garcom')}));
     v.gEyebrow = {entregar:'Atualiza sozinho, em tempo real', novoPedido:'Para o cliente que pediu direto com você', desempenho:'Seus números no período'}[s.screen] || '';
     const gVisible = s.adminOrders.filter(k => k.paymentMethod === 'entrega' || k.paymentStatus === 'approved');
     v.gReady = gVisible.filter(k => k.status === 'Pronto').map(k => ({
@@ -7191,6 +7460,15 @@ class Component extends DCLogic {
 
     // chrome
     v.toast = s.toast; v.hasToast = !!s.toast;
+    // Faixa de conexão: a equipe vê a hora da última atualização boa.
+    v.netDown = !!s.netDown;
+    const staffNet = STAFF_MODULES.indexOf(s.module) >= 0;
+    const lastOk = s.netLastOk ? new Date(s.netLastOk).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
+    v.netMsg = staffNet
+      ? 'Sem conexão' + (lastOk ? ' · última atualização às ' + lastOk : '') + '. Tentando de novo sozinho.'
+      : 'Sem conexão. Seu carrinho fica guardado e tentamos de novo sozinhos.';
+    v.netRetryLabel = s.netChecking ? 'Tentando…' : 'Tentar agora';
+    v.netRetry = () => this.netRetry();
     // Ícone do aviso flutuante: confirmação (✓) só quando deu certo; erro e atenção levam (!).
     v.toastOk = TOAST_OK.test(s.toast || ''); v.toastWarn = !!s.toast && !v.toastOk;
 

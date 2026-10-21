@@ -441,7 +441,7 @@ await step('recarregar a tela de pagamento', async () => {
     let t = await text(page);
     check(`recarregar ${tela}: PIX volta com o QR e o código copia-e-cola`, page.url().includes('screen=pix') && await page.locator('img[alt="QR Code PIX"]').count() === 1
       && t.includes('Aguardando confirmação do pagamento') && t.includes('Copiar código PIX')
-      && await page.evaluate(() => JSON.parse(localStorage.getItem('sunfood_pix')).qrCode === '000201STRIPEPIX'), t.slice(0, 400));
+      && await page.evaluate(() => JSON.parse(localStorage.getItem('sunfood_pix')).qrCode === '000201STRIPEPIX1'), t.slice(0, 400));
     check(`recarregar ${tela}: PIX não cria outro pedido nem outra cobrança`, page.api.db.orders.length === 1 && pixCalls === 1, `${page.api.db.orders.length} pedidos, ${pixCalls} chamadas de PIX`);
     if (tela === 'celular') {
       // QR não guardado no aparelho: pede o mesmo PIX de novo ao servidor.

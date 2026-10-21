@@ -31,6 +31,8 @@ export function fakeApi(role = 'cliente', { stripe = true, stripeTest = false, s
   const toApi = o => o;
   const handler = async route => {
     const req = route.request();
+    // Sem internet / API fora do ar (teste de conexão): db.down = true.
+    if (db.down) return route.abort('internetdisconnected');
     const url = new URL(req.url());
     const p = url.pathname, m = req.method();
     // Envio de foto vem como arquivo (binário), não JSON.
@@ -148,8 +150,12 @@ export function fakeApi(role = 'cliente', { stripe = true, stripeTest = false, s
       return json(200, { checkoutUrl: FAKE_CHECKOUT_URL }); }
     if ((r = p.match(/^\/payments\/pix\/([^/]+)$/))) {
       if (!db.stripe) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
-      return json(200, { qrCode: '000201STRIPEPIX', qrCodeImageUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E',
-        testPayUrl: db.stripeTest ? 'https://payments.stripe.com/pix/teste' : null }); }
+      // db.pixFail: o PIX não sai (ex.: 503 do provedor). db.pixTtlMs: validade do QR (expiresAt).
+      if (db.pixFail) return json(db.pixFail, { error: 'Pagamento online indisponível no momento. Escolha pagar na entrega.' });
+      db.pixCount = (db.pixCount || 0) + 1;
+      return json(200, { qrCode: '000201STRIPEPIX' + db.pixCount, qrCodeImageUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E',
+        testPayUrl: db.stripeTest ? 'https://payments.stripe.com/pix/teste' : null,
+        expiresAt: db.pixTtlMs ? new Date(Date.now() + db.pixTtlMs).toISOString() : undefined }); }
     if (p === '/payments/status') return json(200, {
       pix: db.stripe ? 'stripe' : 'provisorio', card: db.stripe ? 'stripe' : 'provisorio', cardTestMode: db.stripeTest,
       stripePublishableKey: db.stripeTest && db.stripeInApp ? 'pk_test_fake' : null });
