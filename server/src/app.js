@@ -33,7 +33,7 @@ app.use(
       // Pago) — permite; navegadores sempre mandam Origin em requisições
       // cross-site, então isso não abre a API pra qualquer site.
       if (!origin || CORS_ORIGINS.includes(origin)) return callback(null, true);
-      callback(new Error("Origem não permitida por CORS."));
+      callback(Object.assign(new Error("Origem não permitida por CORS."), { status: 403 }));
     },
   })
 );
@@ -58,6 +58,8 @@ app.use("/", adminRouter);
 app.use((err, req, res, next) => {
   if (err.type === "entity.too.large")
     return res.status(413).json({ error: "Arquivo grande demais. Use uma foto menor." });
+  if (err.type === "entity.parse.failed") return res.status(400).json({ error: "Corpo da requisição inválido." });
+  if (err.status === 403) return res.status(403).json({ error: err.message });
   console.error(err);
   res.status(500).json({ error: "Erro interno do servidor." });
 });

@@ -294,6 +294,13 @@ const ana = { name: "Ana Teste", email: "ana@teste.com", password: "senha-forte-
   cpf: "529.982.247-25", birthDate: "2000-01-01", termsAccepted: true };
 let anaToken;
 
+test("JSON malformado responde 400 e origem não permitida responde 403", async () => {
+  let res = await fetch(base + "/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{quebrado" });
+  assert.equal(res.status, 400);
+  res = await fetch(base + "/health", { headers: { Origin: "https://site-qualquer.com" } });
+  assert.equal(res.status, 403);
+});
+
 test("cadastro cria conta e pede confirmação por e-mail", async () => {
   const r = await api("POST", "/auth/signup", ana);
   assert.equal(r.status, 201, JSON.stringify(r.body));
