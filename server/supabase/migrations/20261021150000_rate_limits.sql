@@ -1,3 +1,4 @@
+-- Aplicado em produção em 21/10/2026.
 -- Limite de tentativas compartilhado (auditoria M-03). Na Vercel cada
 -- instância da função tinha o próprio contador em memória, então o limite de
 -- login/cadastro valia por instância e sumia a cada cold start. Agora o
