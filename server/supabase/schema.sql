@@ -241,6 +241,14 @@ create table public.contact_messages (
   constraint contact_messages_status_check check ((status = any (array['novo'::text, 'respondido'::text])))
 );
 
+-- Contador do limite de tentativas, compartilhado entre as instâncias da API
+-- (auditoria M-03). Só o servidor usa, pelas funções rate_limit_*.
+create table public.rate_limits (
+  key text primary key,
+  hits integer not null,
+  reset_at timestamptz not null
+);
+
 insert into public.kiosk_settings (id) values (1) on conflict do nothing;
 
 -- ---------------------------------------------------------------------------
@@ -788,6 +796,46 @@ begin
 end;
 $function$;
 
+-- Limite de tentativas compartilhado (auditoria M-03).
+create or replace function public.rate_limit_hit(p_key text, p_window_ms integer)
+ returns table(hits integer, reset_at timestamptz)
+ language plpgsql
+ security definer
+ set search_path to ''
+as $function$
+begin
+  if random() < 0.01 then
+    delete from public.rate_limits r where r.reset_at < now() - interval '1 day';
+  end if;
+  return query
+  insert into public.rate_limits as r (key, hits, reset_at)
+  values (p_key, 1, now() + make_interval(secs => p_window_ms / 1000.0))
+  on conflict (key) do update set
+    hits = case when r.reset_at <= now() then 1 else r.hits + 1 end,
+    reset_at = case when r.reset_at <= now() then excluded.reset_at else r.reset_at end
+  returning r.hits, r.reset_at;
+end;
+$function$;
+
+-- Desfaz uma tentativa (o express-rate-limit chama em skipFailedRequests e afins).
+create or replace function public.rate_limit_undo(p_key text)
+ returns void
+ language sql
+ security definer
+ set search_path to ''
+as $function$
+  update public.rate_limits set hits = greatest(hits - 1, 0) where key = p_key;
+$function$;
+
+create or replace function public.rate_limit_reset(p_key text)
+ returns void
+ language sql
+ security definer
+ set search_path to ''
+as $function$
+  delete from public.rate_limits where key = p_key;
+$function$;
+
 -- ---------------------------------------------------------------------------
 -- Triggers
 -- ---------------------------------------------------------------------------
@@ -816,6 +864,7 @@ alter table public.order_status_log enable row level security;
 alter table public.orders enable row level security;
 alter table public.products enable row level security;
 alter table public.profiles enable row level security;
+alter table public.rate_limits enable row level security;
 
 create policy "day_reports: admin reads" on public.day_reports as permissive for select to public using (public.is_admin());
 create policy "kiosk_settings: readable by everyone" on public.kiosk_settings as permissive for select to public using (true);
@@ -869,3 +918,4 @@ revoke execute on function public.is_staff() from public, anon;
 grant execute on function public."current_role"() to authenticated;
 grant execute on function public.is_admin() to authenticated;
 grant execute on function public.is_staff() to authenticated;
+revoke all on public.rate_limits from public, anon, authenticated;

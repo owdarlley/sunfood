@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import express, { Router } from "express";
-import rateLimit from "express-rate-limit";
 import { supabaseAuth, supabaseAdmin } from "../supabase.js";
 import { requireAuth, isProfileComplete } from "../middleware/auth.js";
 import { maskEmail } from "../mask-email.js";
@@ -18,31 +17,26 @@ import {
   deleteAccountSchema,
   validate,
 } from "../validation/schemas.js";
+import { limiter } from "../rate-limit.js";
 
 export const authRouter = Router();
 
 // Trava força bruta: no máximo 10 tentativas por IP a cada 15 minutos nesta rota.
-const loginLimiter = rateLimit({
+const loginLimiter = limiter("login", {
   windowMs: 15 * 60 * 1000,
   max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas tentativas de login. Tente novamente mais tarde." },
 });
 
-const signupLimiter = rateLimit({
+const signupLimiter = limiter("signup", {
   windowMs: 60 * 60 * 1000,
   max: 8,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas tentativas de cadastro. Tente novamente mais tarde." },
 });
 
-const forgotLimiter = rateLimit({
+const forgotLimiter = limiter("forgot", {
   windowMs: 15 * 60 * 1000,
   max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas solicitações. Tente novamente mais tarde." },
 });
 
@@ -329,11 +323,9 @@ authRouter.patch("/profile", requireAuth, validate(profileUpdateSchema), async (
 
 // Trocar a senha logado, confirmando a senha atual (um celular esquecido
 // desbloqueado não basta pra tomar a conta).
-const changePasswordLimiter = rateLimit({
+const changePasswordLimiter = limiter("change-password", {
   windowMs: 15 * 60 * 1000,
   max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas tentativas. Tente novamente mais tarde." },
 });
 
@@ -359,11 +351,9 @@ authRouter.post("/change-password", changePasswordLimiter, requireAuth, validate
 
 // Foto do perfil enviada pelo celular/computador (o app já reduz o tamanho).
 // Foto do perfil: cada envio grava um arquivo no Storage, então tem limite.
-const avatarLimiter = rateLimit({
+const avatarLimiter = limiter("avatar", {
   windowMs: 15 * 60 * 1000,
   max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas fotos enviadas em pouco tempo. Tente de novo daqui a pouco." },
 });
 
@@ -411,11 +401,9 @@ authRouter.delete("/avatar", requireAuth, async (req, res) => {
 // existia no protótipo, mas não apagava nada de verdade.
 // Quem tem senha confirma com ela (um celular esquecido desbloqueado não basta
 // pra apagar a conta); quem só entra pelo Google não tem senha pra digitar.
-const deleteAccountLimiter = rateLimit({
+const deleteAccountLimiter = limiter("delete-account", {
   windowMs: 15 * 60 * 1000,
   max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { error: "Muitas tentativas. Tente novamente mais tarde." },
 });
 
