@@ -2734,7 +2734,7 @@ select{caret-color:auto}
                 <div class="panel">
                   <h2 style="margin:0 0 4px">Pagamentos online</h2>
                   <div class="muted" style="font-size:var(--fs-sm);margin-bottom:12px">{{ payProvidersText }}</div>
-                  <div class="alert {{ mpAlertCls }}" style="flex-direction:column;gap:2px"><b>{{ mpTitle }}</b><span style="font-weight:500">{{ mpText }}</span></div>
+                  <div class="alert {{ payAlertCls }}" style="flex-direction:column;gap:2px"><b>{{ payTitle }}</b><span style="font-weight:500">{{ payText }}</span></div>
                   <div class="muted" style="font-size:var(--fs-sm);margin-top:12px;line-height:1.5">Pagar na entrega: o garçom marca o recebimento em <span onClick="{{ goPayments }}" class="link" style="font-size:var(--fs-sm)">Pagamentos</span>.</div>
                 </div>
               </div>
@@ -4018,10 +4018,8 @@ class Component extends DCLogic {
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
     payMethod:'pix', cardWaiting:false,
-    // Mercado Pago configurado no servidor (GET /payments/status)? Sem ele,
-    // o PIX é aprovado na hora como "provisório". null = ainda não sabemos.
-    paymentsOnline:null,
-    // Quem cobra o cartão: 'stripe', 'mercadopago' ou 'provisorio'. Com o
+    // Quem cobra PIX e cartão (GET /payments/status): 'stripe' ou 'provisorio'
+    // (sem Stripe no servidor, aprovado na hora sem cobrança). Com o
     // Stripe em modo teste, o admin vê o aviso de teste (o cliente não).
     cardProvider:null, pixProvider:null, cardTestMode:false,
     // Com a chave publicável do Stripe, o cartão é digitado na própria tela
@@ -4206,8 +4204,7 @@ class Component extends DCLogic {
   // Mostra o QR do PIX e guarda no aparelho (por conta e pedido).
   showPix(apiId, data){
     const pix = {pixQrCode:data.qrCode || '',
-      // Mercado Pago manda a imagem em base64; o Stripe manda o endereço da imagem.
-      pixQrImg:data.qrCodeImageUrl || (data.qrCodeBase64 ? 'data:image/png;base64,' + data.qrCodeBase64 : ''),
+      pixQrImg:data.qrCodeImageUrl || '',
       pixTestPayUrl:data.testPayUrl || ''};
     // Validade vem do servidor (expiresAt); sem ela, 30 min a partir de agora.
     const exp = data.expiresAt ? Date.parse(data.expiresAt) : NaN;
@@ -4803,10 +4800,9 @@ class Component extends DCLogic {
       const res = await authFetch(API_BASE + '/payments/status');
       if(!res.ok) return;
       const data = await res.json();
-      const online = !!data.configured;
-      const cardProvider = data.card || (online ? 'mercadopago' : 'provisorio');
-      const pixProvider = data.pix || (online ? 'mercadopago' : 'provisorio');
-      this.setState({paymentsOnline:online, cardProvider, pixProvider, cardTestMode:!!data.cardTestMode,
+      const cardProvider = data.card || 'provisorio';
+      const pixProvider = data.pix || 'provisorio';
+      this.setState({cardProvider, pixProvider, cardTestMode:!!data.cardTestMode,
         stripePk:cardProvider === 'stripe' && data.stripePublishableKey ? data.stripePublishableKey : null});
       // Já baixa o Stripe.js em segundo plano: na hora de pagar, os campos do
       // cartão aparecem sem esperar o download.
@@ -5996,9 +5992,9 @@ class Component extends DCLogic {
     }
   }
 
-  // PIX de verdade: cria o pedido, gera a cobrança no Mercado Pago (ou o
-  // modo simulado, se MERCADOPAGO_ACCESS_TOKEN não estiver configurado no
-  // servidor) e mostra o QR — a confirmação vem do polling em
+  // PIX de verdade: cria o pedido, gera a cobrança no Stripe (ou o modo
+  // provisório, se STRIPE_SECRET_KEY não estiver configurada no servidor) e
+  // mostra o QR — a confirmação vem do polling em
   // componentDidMount(), nunca de o próprio cliente "avisar" que pagou.
   async payWithPix(){
     if(this.state.busy) return;
@@ -6021,7 +6017,7 @@ class Component extends DCLogic {
         this.payError(data.error || 'Não foi possível gerar o PIX.', res.status === 409 ? '' : 'entrega');
         return;
       }
-      // Provisório (sem Mercado Pago): o servidor já aprovou, segue pra confirmação.
+      // Provisório (sem Stripe): o servidor já aprovou, segue pra confirmação.
       if(data.provisional){ this.setState({payingPix:false, screen:'pix'}); this.pollOrder(created.id); return; }
       this.showPix(created.id, data);
       this.setState({payingPix:false, screen:'pix'});
@@ -6036,7 +6032,7 @@ class Component extends DCLogic {
 
   // Cartão: com a chave publicável do Stripe, os campos aparecem na hora e o
   // pedido é criado ao mesmo tempo, em segundo plano. Sem ela, cria o pedido e
-  // manda o cliente pro checkout (Stripe ou Mercado Pago); na volta,
+  // manda o cliente pro checkout do Stripe; na volta,
   // handleCardReturn() retoma o pedido e o polling confirma quando o webhook aprovar.
   async payWithCard(){
     if(this.state.busy) return;
@@ -6263,7 +6259,7 @@ class Component extends DCLogic {
       });
       const data = await res.json();
       if(!res.ok){ this.payError(data.error || 'Não foi possível abrir o pagamento com cartão.'); return; }
-      // Provisório (sem Mercado Pago): o servidor já aprovou, segue pra confirmação.
+      // Provisório (sem Stripe): o servidor já aprovou, segue pra confirmação.
       if(data.provisional){ this.pollOrder(o._apiId); return; }
       if(!data.checkoutUrl){ this.payError('Não foi possível abrir o pagamento com cartão.'); return; }
       window.location.href = data.checkoutUrl;
@@ -6276,20 +6272,20 @@ class Component extends DCLogic {
   }
 
   // Volta do checkout: a URL traz ?pedido=<id> (posto pelo servidor) e o
-  // status (o do Mercado Pago, ou status=failure quando desiste no Stripe).
+  // status (status=failure quando desiste na página do Stripe).
   // Quem confirma o pagamento é sempre o servidor (webhook) — aqui só
   // mostramos a espera ou a falha.
   handleCardReturn(){
     const q = new URLSearchParams(window.location.search);
     const orderId = q.get('pedido');
     if(!orderId) return;
-    // Mercado Pago manda collection_status/status; o Stripe (volta do 3D Secure) manda redirect_status.
-    const mpStatus = q.get('collection_status') || q.get('status') || (q.get('redirect_status') === 'failed' ? 'failure' : null);
+    // Desistência na página do Stripe volta com status=failure; o 3D Secure manda redirect_status.
+    const returnStatus = q.get('status') || (q.get('redirect_status') === 'failed' ? 'failure' : null);
     history.replaceState(null, '', window.location.pathname);
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){}
     if(!saved || !saved.token) return;
-    const failed = mpStatus === 'rejected' || mpStatus === 'null' || mpStatus === 'failure';
+    const failed = returnStatus === 'failure';
     this.setState({module:'cliente', screen:failed ? 'payFail' : 'card', cardWaiting:!failed,
       order:{id:orderCode({id:orderId}), _apiId:orderId, table:'—', total:0, status:'Na Fila', obs:'', paymentStatus:'pending', paymentMethod:'cartao', items:[]}});
     this.pollOrder(orderId, saved.token);
@@ -6474,7 +6470,7 @@ class Component extends DCLogic {
     v.setOrderNote = e => this.setState({orderNote:e.target.value});
 
     // payment
-    v.cardProviderName = s.cardProvider === 'stripe' ? 'Stripe' : 'Mercado Pago';
+    v.cardProviderName = 'Stripe';
     v.cardTestMode = !!s.cardTestMode;
     v.payOpts = [['pix','PIX','Pague agora pelo app do banco','pix','#16A34A'],
                  ['cartao','Cartão de crédito ou débito','À vista, no app','card','#1F3B6B'],
@@ -6503,7 +6499,7 @@ class Component extends DCLogic {
       else this.payWithPix();
     };
 
-    // card (checkout do Stripe ou do Mercado Pago)
+    // card (campos no app ou checkout do Stripe)
     v.cardWaiting = !!s.cardWaiting;
     v.cardInApp = !!s.stripePk; v.cardRedirect = !v.cardInApp;
     v.cardFormVisible = v.cardInApp && !s.cardWaiting;
@@ -6570,9 +6566,9 @@ class Component extends DCLogic {
       ? 'O prazo para cancelar pelo app já passou. Fale com um atendente.'
       : 'Seu pedido já está sendo preparado e não pode mais ser cancelado pelo app.';
     const payOnDelivery = !!o && o.paymentMethod === 'entrega';
-    // PIX/cartão provisório (sem Mercado Pago) não cobrou nada, então não há estorno.
+    // PIX/cartão provisório (sem Stripe) não cobrou nada, então não há estorno.
     const paidInApp = !!o && !payOnDelivery && o.paymentStatus === 'approved' && o.paymentProvider !== 'provisorio';
-    // Provisório: o quiosque ainda não ligou o Mercado Pago/Stripe, o pedido é
+    // Provisório: o quiosque ainda não ligou o Stripe, o pedido é
     // aprovado sem cobrança. O cliente não pode ler "pago" nesse caso.
     const provisionalPay = !!o && !payOnDelivery && o.paymentProvider === 'provisorio';
     v.totalPaidLabel = payOnDelivery ? 'A pagar na entrega' : provisionalPay ? 'Total (nada foi cobrado)' : 'Total pago';
@@ -6966,13 +6962,13 @@ class Component extends DCLogic {
     v.pauseBtnLabel = s.paused ? 'Retomar pedidos' : 'Pausar pedidos';
     v.pausePanelStyle = s.paused ? 'background:#FDECEA;border-color:#F0C2BC' : 'background:#F0FAF3;border-color:#BFE3CB';
     // Quem cobra cada forma de pagamento (GET /payments/status).
-    const NOME = {stripe:'Stripe', mercadopago:'Mercado Pago', provisorio:'provisório (sem cobrança)'};
+    const NOME = {stripe:'Stripe', provisorio:'provisório (sem cobrança)'};
     const pixP = s.pixProvider, cardP = s.cardProvider;
     v.payProvidersText = !pixP ? '' : pixP === cardP ? 'PIX e cartão: ' + NOME[pixP] + '.' : 'PIX: ' + NOME[pixP] + '. Cartão: ' + NOME[cardP] + '.';
     const algumProvisorio = pixP === 'provisorio' || cardP === 'provisorio';
-    v.mpAlertCls = pixP && !algumProvisorio ? 'alert-ok' : 'alert-warn';
-    v.mpTitle = !pixP ? 'Verificando…' : algumProvisorio ? 'Pagamento online ainda não configurado.' : 'Pagamentos online configurados.';
-    v.mpText = !pixP ? '' : algumProvisorio ? 'O que estiver como provisório é aprovado na hora, sem cobrança de verdade.'
+    v.payAlertCls = pixP && !algumProvisorio ? 'alert-ok' : 'alert-warn';
+    v.payTitle = !pixP ? 'Verificando…' : algumProvisorio ? 'Pagamento online ainda não configurado.' : 'Pagamentos online configurados.';
+    v.payText = !pixP ? '' : algumProvisorio ? 'O que estiver como provisório é aprovado na hora, sem cobrança de verdade.'
       : (s.cardTestMode && (pixP === 'stripe' || cardP === 'stripe')) ? 'Stripe em modo de teste: nada é cobrado (cartão 4242 4242 4242 4242).' : 'Cobranças reais, confirmadas automaticamente.';
 
     const HOURS_WINDOW = [10,11,12,13,14,15,16,17,18,19,20,21];

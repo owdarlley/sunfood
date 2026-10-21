@@ -3,7 +3,7 @@
 //
 // Regras:
 // - Só mexe em GET. Pedidos, login, pagamentos (API na Vercel, Supabase,
-//   Mercado Pago) passam direto pela rede, nunca pelo cache.
+//   Stripe) passam direto pela rede, nunca pelo cache.
 // - Páginas e scripts do site: rede primeiro (atualização aparece na hora);
 //   o cache só é usado quando a rede falha.
 // - Imagens do site e fontes do Google: cache primeiro, atualizando por trás.
@@ -70,7 +70,7 @@ self.addEventListener('fetch', event => {
   if (url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com') {
     return event.respondWith(cachePrimeiroAtualizando(req));
   }
-  // Todo o resto (API, Supabase, Mercado Pago...) segue sem passar pelo service worker.
+  // Todo o resto (API, Supabase, Stripe...) segue sem passar pelo service worker.
 });
 
 async function guardar(req, res) {

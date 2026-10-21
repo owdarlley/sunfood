@@ -268,7 +268,7 @@ mock.module("../src/email.js", {
 let base, server;
 before(async () => {
   process.env.SUPABASE_URL = "https://teste.supabase.co";
-  delete process.env.MERCADOPAGO_ACCESS_TOKEN; // pagamentos no modo provisório
+  delete process.env.STRIPE_SECRET_KEY; // pagamentos no modo provisório
   const { app } = await import("../src/app.js");
   server = app.listen(0);
   await new Promise((r) => server.on("listening", r));

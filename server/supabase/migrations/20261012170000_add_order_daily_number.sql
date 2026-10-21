@@ -1,6 +1,6 @@
 -- Número curto do pedido: #001, #002... recomeçando a cada dia (horário de
 -- São Paulo). É o que cliente, cozinha e admin veem na tela; o id (uuid)
--- continua sendo a chave interna usada pela API e pelo Mercado Pago.
+-- continua sendo a chave interna usada pela API e pelo provedor de pagamento.
 alter table public.orders
   add column if not exists order_day date,
   add column if not exists daily_number integer;

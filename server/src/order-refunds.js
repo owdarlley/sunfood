@@ -1,5 +1,4 @@
 import { supabaseAdmin } from "./supabase.js";
-import { refundPayment } from "./payments/mercadopago.js";
 import { isStripePaymentId, refundStripePayment, fetchChargeRefunds } from "./payments/stripe.js";
 
 const cents = (v) => Math.round(Number(v || 0) * 100);
@@ -24,6 +23,20 @@ const parseItemsLabel = (label) =>
     .map((m) => ({ name: m[2], qty: Number(m[1]) }));
 
 const fail = (httpStatus, error) => ({ ok: false, httpStatus, error });
+
+// Estorno no Stripe (o pedido guarda o id do PaymentIntent, pi_...). Sem
+// amountCents devolve tudo o que falta. A chave de idempotência faz o mesmo
+// estorno, pedido de novo (webhook repetido, gravação que falhou), não
+// devolver duas vezes.
+export async function refundAtProvider(paymentId, { amountCents, key, metadata }) {
+  // Pedidos antigos do extinto modo simulado têm payment_id "sim_<pedido>":
+  // nunca houve cobrança, então não há o que devolver.
+  if (String(paymentId).startsWith("sim_")) return { simulated: true };
+  if (!isStripePaymentId(paymentId)) {
+    throw new Error(`Pagamento ${paymentId} não é do Stripe: estorne direto no provedor.`);
+  }
+  return refundStripePayment(paymentId, { amountCents, metadata, idempotencyKey: key });
+}
 
 // Grava um estorno no histórico do pedido. O mesmo estorno chegando de novo
 // (painel + webhook do Stripe) é ignorado pelo índice único do id. Sem a
@@ -91,8 +104,8 @@ async function addRefunded(row, amount) {
 // Estorno pelo painel do admin.
 //   cancel: tira o pedido da cozinha e devolve tudo o que falta devolver.
 //   parcial: devolve amountCents e o pedido continua.
-// O dinheiro volta antes de qualquer mudança no pedido: se o Stripe ou o
-// Mercado Pago recusar, nada muda.
+// O dinheiro volta antes de qualquer mudança no pedido: se o Stripe recusar,
+// nada muda.
 export async function refundOrderByAdmin(row, { cancel, amountCents, reason, actor, items }) {
   // A tabela de estornos vem da migração 20261017210000; sem ela não dá pra
   // registrar, então nem chega a devolver.
@@ -114,22 +127,19 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
 
   let refundedNow = 0;
   if (amount > 0) {
-    const stripe = isStripePaymentId(row.payment_id);
     let result;
     try {
-      result = stripe
-        ? await refundStripePayment(row.payment_id, {
-            amountCents: amount,
-            metadata: {
-              order_id: row.id,
-              sunfood_reason: reason.slice(0, 200),
-              sunfood_actor: actor || "",
-              ...(cancel || !items?.length ? {} : { sunfood_items: itemsLabel(items) }),
-            },
-            // Mesmo pedido, mesmo valor já devolvido e mesmo pedido de estorno = mesma chave.
-            idempotencyKey: `sunfood-refund-${row.id}-${cents(row.refunded_amount)}-${amount}`,
-          })
-        : await refundPayment(row.payment_id, amount === remaining ? undefined : amount / 100);
+      result = await refundAtProvider(row.payment_id, {
+        amountCents: amount,
+        metadata: {
+          order_id: row.id,
+          sunfood_reason: reason.slice(0, 200),
+          sunfood_actor: actor || "",
+          ...(cancel || !items?.length ? {} : { sunfood_items: itemsLabel(items) }),
+        },
+        // Mesmo pedido, mesmo valor já devolvido e mesmo pedido de estorno = mesma chave.
+        key: `sunfood-refund-${row.id}-${cents(row.refunded_amount)}-${amount}`,
+      });
     } catch (e) {
       console.error("Erro ao estornar pelo painel:", e);
       return fail(502, "Não foi possível estornar o pagamento. Tente novamente.");
@@ -138,7 +148,7 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
     await recordRefund(row.id, {
       amount: amount / 100,
       reason,
-      provider: stripe ? "stripe" : "mercadopago",
+      provider: "stripe",
       refundId: result.refundId,
       actor,
       // Itens só no estorno parcial: no cancelamento volta o pedido inteiro.

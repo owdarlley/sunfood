@@ -6,12 +6,17 @@ const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 // campos do cartão (Payment Element) dentro da tela de pagamento.
 export const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || null;
 
-// Com STRIPE_SECRET_KEY configurada, o cartão passa a ser cobrado pelo Stripe
-// (campos no app com STRIPE_PUBLISHABLE_KEY, senão Checkout hospedado); o PIX continua no Mercado Pago. A chave fica só na
-// variável de ambiente do servidor, nunca no repositório nem no front.
+// Com STRIPE_SECRET_KEY configurada, PIX e cartão são cobrados pelo Stripe
+// (cartão com campos no app se houver STRIPE_PUBLISHABLE_KEY, senão Checkout
+// hospedado). A chave fica só na variável de ambiente do servidor, nunca no
+// repositório nem no front.
 export const stripeConfigured = !!SECRET_KEY;
 // Chave sk_test_/rk_test_: nada é cobrado de verdade (cartão 4242 4242 4242 4242).
 export const stripeTestMode = /^(sk|rk)_test_/.test(SECRET_KEY || "");
+
+// Por quanto tempo uma cobrança online fica aberta. Depois disso o pedido não
+// pago sai da fila (ver order-payments.js).
+export const PAYMENT_WINDOW_MINUTES = 30;
 
 let client = null;
 function stripe() {
