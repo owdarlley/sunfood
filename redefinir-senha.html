@@ -170,11 +170,11 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
             <div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></div>
             <div>
               <h1 class="tt" style="font-size:var(--fs-h1);margin:0">Crie sua nova senha</h1>
-              <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">Escolha uma senha com pelo menos 6 caracteres. Depois é só entrar com ela no app.</div>
+              <div class="muted" style="font-size:var(--fs-body);line-height:1.5;margin-top:8px">Escolha uma senha com pelo menos 8 caracteres. Depois é só entrar com ela no app.</div>
             </div>
             <div>
               <span class="lbl">Nova senha</span>
-              <input placeholder="Mínimo de 6 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ newPass }}" onChange="{{ setNewPass }}" aria-label="Nova senha">
+              <input placeholder="Mínimo de 8 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ newPass }}" onChange="{{ setNewPass }}" aria-label="Nova senha">
             </div>
             <div>
               <span class="lbl">Confirmar nova senha</span>
@@ -215,7 +215,7 @@ class Component extends DCLogic {
 
   async submit(){
     const s = this.state;
-    if(s.newPass.length < 6) return this.setState({err:'A senha deve ter ao menos 6 caracteres.'});
+    if(s.newPass.length < 8) return this.setState({err:'A senha deve ter ao menos 8 caracteres.'});
     if(s.newPass !== s.confirmPass) return this.setState({err:'As senhas não conferem.'});
     try {
       const res = await fetch(API_BASE + '/auth/update-password', {

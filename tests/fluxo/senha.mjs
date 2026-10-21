@@ -45,8 +45,7 @@ async function open(path) {
     const json = (status, data) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
     if (p === '/auth/forgot-password') {
       if (body.email === 'ana@emial.com') return json(404, { error: 'Não encontramos uma conta com este e-mail. Confira se digitou certo ou crie uma conta.', code: 'email_not_found' });
-      if (body.cpf === '11144477735') return json(404, { error: 'Não encontramos uma conta com este CPF. Confira os números ou crie uma conta.', code: 'cpf_not_found' });
-      if (body.cpf) return json(200, { message: 'Enviamos um link de redefinição para a*a@email.com.', sentTo: 'a*a@email.com' });
+      if (body.cpf) return json(200, { message: 'Se esse CPF tiver uma conta com senha, enviamos um link para o e-mail cadastrado nela.' });
       if (body.email === 'bia@gmail.com') return json(400, { error: 'Esta conta foi criada com o Google e não tem senha. Entre pelo botão do Google na tela de entrada.', code: 'google_account' });
       return json(200, { message: 'ok' });
     }
@@ -100,7 +99,7 @@ await step('pedir link com e-mail errado', async () => {
   await page.close();
 });
 
-// 1c. Não lembra o e-mail: pede pelo CPF e vê o e-mail mascarado
+// 1c. Não lembra o e-mail: pede pelo CPF; a resposta não revela se há conta
 await step('pedir link pelo CPF', async () => {
   const page = await open('app-cliente.dc.html?module=cliente&screen=login');
   await click(page, 'Esqueci minha senha');
@@ -111,17 +110,13 @@ await step('pedir link pelo CPF', async () => {
   check('CPF: avisa CPF inválido na hora', t.includes('CPF inválido'));
   await click(page, 'Enviar link');
   check('CPF: CPF inválido não chama a API', !page.calls.some(c => c.p === '/auth/forgot-password'));
-  await input.fill('111.444.777-35');
-  check('CPF: pontua enquanto digita', (await input.inputValue()) === '111.444.777-35', await input.inputValue());
-  await click(page, 'Enviar link');
-  t = await text(page);
-  check('CPF sem conta: avisa e continua na tela', t.includes('Não encontramos uma conta com este CPF') && !t.includes('Link enviado'));
   await input.fill('529.982.247-25');
+  check('CPF: pontua enquanto digita', (await input.inputValue()) === '529.982.247-25', await input.inputValue());
   await click(page, 'Enviar link');
   const call = page.calls.filter(c => c.p === '/auth/forgot-password').at(-1);
   check('CPF: manda só os dígitos, sem e-mail', call?.body.cpf === '52998224725' && !('email' in call.body), JSON.stringify(call?.body));
   t = await text(page);
-  check('CPF: mostra o e-mail mascarado', t.includes('Link enviado') && t.includes('a*a@email.com'), t.slice(0, 400));
+  check('CPF: confirma sem revelar a conta nem o e-mail', t.includes('Link enviado') && t.includes('Se esse CPF tiver uma conta') && !t.includes('@email.com'), t.slice(0, 400));
   check('CPF: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();
 });
@@ -145,14 +140,14 @@ const LINK = '#access_token=tok-recuperacao&expires_in=3600&refresh_token=r&toke
 await step('trocar senha', async () => {
   const page = await open('redefinir-senha.html' + LINK);
   check('nova senha: token sai da barra de endereço', !page.url().includes('access_token'), page.url());
-  await page.getByLabel('Nova senha', { exact: true }).fill('nova123');
-  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('outra99');
+  await page.getByLabel('Nova senha', { exact: true }).fill('nova1234');
+  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('outra999');
   await page.getByText('Redefinir senha', { exact: true }).last().click(); await page.waitForTimeout(500);
   check('nova senha: senhas diferentes são recusadas', (await text(page)).includes('não conferem'));
-  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('nova123');
+  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('nova1234');
   await page.getByText('Redefinir senha', { exact: true }).last().click(); await page.waitForTimeout(500);
   const call = page.calls.find(c => c.p === '/auth/update-password');
-  check('nova senha: envia token + nova senha pra API', call?.body.accessToken === 'tok-recuperacao' && call?.body.newPassword === 'nova123', JSON.stringify(call?.body));
+  check('nova senha: envia token + nova senha pra API', call?.body.accessToken === 'tok-recuperacao' && call?.body.newPassword === 'nova1234', JSON.stringify(call?.body));
   check('nova senha: mostra sucesso', (await text(page)).includes('Senha redefinida com sucesso'));
   check('nova senha: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();

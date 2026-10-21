@@ -1226,7 +1226,7 @@ select{caret-color:auto}
                         <sc-if value="{{ suHasFeCpf }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeCpf }}</span></sc-if>
                       </div>
                       <div class="su-f su-nasc"><span class="lbl">Data de nascimento</span><input placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" autocomplete="bday" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento" class="inp {{ suClsBirth }}" aria-invalid="{{ suInvBirth }}"><sc-if value="{{ suHasFeBirth }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeBirth }}</span></sc-if></div>
-                      <div class="su-f su-senha"><span class="lbl">Senha</span><input placeholder="Mín. 6 caracteres" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha" class="inp {{ suClsPass }}" aria-invalid="{{ suInvPass }}"><sc-if value="{{ suHasFePass }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass }}</span></sc-if></div>
+                      <div class="su-f su-senha"><span class="lbl">Senha</span><input placeholder="Mín. 8 caracteres" type="password" autocomplete="new-password" value="{{ suPass }}" onChange="{{ setSuPass }}" aria-label="Senha" class="inp {{ suClsPass }}" aria-invalid="{{ suInvPass }}"><sc-if value="{{ suHasFePass }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass }}</span></sc-if></div>
                       <div class="su-f su-conf"><span class="lbl">Confirmar senha</span><input placeholder="Repita a senha" type="password" autocomplete="new-password" value="{{ suPass2 }}" onChange="{{ setSuPass2 }}" aria-label="Confirmar senha" class="inp {{ suClsPass2 }}" aria-invalid="{{ suInvPass2 }}"><sc-if value="{{ suHasFePass2 }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFePass2 }}</span></sc-if></div>
                     </div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
@@ -1272,7 +1272,8 @@ select{caret-color:auto}
                       <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px" class="rise">
                         <span style="width:76px;height:76px;border-radius:50%;background:var(--brand-tint);display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg></span>
                         <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Link enviado</h1>
-                        <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:var(--ink);word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
+                        <sc-if value="{{ fpSentByEmail }}" hint-placeholder-val="{{ true }}"><p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:var(--ink);word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p></sc-if>
+                        <sc-if value="{{ fpSentByCpf }}" hint-placeholder-val="{{ false }}"><p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Se esse CPF tiver uma conta com senha, o link foi para o e-mail cadastrado nela. Se não aparecer em alguns minutos, veja o spam.</p></sc-if>
                         <div onClick="{{ goLogin }}" class="btn btn-dark" style="width:100%;margin-top:8px">Voltar ao login</div>
                       </div>
                     </sc-if>
@@ -1984,7 +1985,7 @@ select{caret-color:auto}
               <sc-if value="{{ is_changePassword }}" hint-placeholder-val="{{ false }}">
                 <div class="card rise" style="padding:var(--cpad);display:flex;flex-direction:column;gap:16px">
                   <div><span class="lbl">Senha atual</span><input placeholder="Digite sua senha atual" class="inp" type="password" autocomplete="current-password" value="{{ pwCur }}" onChange="{{ setPwCur }}" aria-label="Senha atual"></div>
-                  <div><span class="lbl">Nova senha</span><input placeholder="Mínimo de 6 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ pwNew }}" onChange="{{ setPwNew }}" aria-label="Nova senha"></div>
+                  <div><span class="lbl">Nova senha</span><input placeholder="Mínimo de 8 caracteres" class="inp" type="password" autocomplete="new-password" value="{{ pwNew }}" onChange="{{ setPwNew }}" aria-label="Nova senha"></div>
                   <div><span class="lbl">Repita a nova senha</span><input placeholder="Digite a nova senha novamente" class="inp" type="password" autocomplete="new-password" value="{{ pwNew2 }}" onChange="{{ setPwNew2 }}" aria-label="Repita a nova senha"></div>
                   <sc-if value="{{ hasPwErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ pwErr }}</div></sc-if>
                   <div onClick="{{ submitChangePassword }}" class="btn btn-sun" style="opacity:{{ pwBusyOpacity }}">{{ pwSaveLabel }}</div>
@@ -2494,7 +2495,7 @@ select{caret-color:auto}
                   <div><h2 style="margin:0;font-size:var(--fs-h3)">Cadastrar garçom</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Ele entra pela mesma tela de login do Sunfood e vai direto para os pedidos prontos.</div></div>
                   <div><span class="lbl">Nome</span><input placeholder="Nome completo do garçom" class="inp" value="{{ wName }}" onChange="{{ setWName }}" aria-label="Nome" autocomplete="off" /></div>
                   <div><span class="lbl">E-mail</span><input placeholder="E-mail de acesso" class="inp" type="email" value="{{ wEmail }}" onChange="{{ setWEmail }}" aria-label="E-mail" autocomplete="off" /></div>
-                  <div><span class="lbl">Senha inicial</span><input placeholder="Mínimo de 6 caracteres" class="inp" type="password" value="{{ wPass }}" onChange="{{ setWPass }}" aria-label="Senha inicial" autocomplete="new-password" /></div>
+                  <div><span class="lbl">Senha inicial</span><input placeholder="Mínimo de 8 caracteres" class="inp" type="password" value="{{ wPass }}" onChange="{{ setWPass }}" aria-label="Senha inicial" autocomplete="new-password" /></div>
                   <sc-if value="{{ hasWErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ wErr }}</div></sc-if>
                   <sc-if value="{{ hasWMsg }}" hint-placeholder-val="{{ false }}"><div class="alert alert-ok">{{ wMsg }}</div></sc-if>
                   <div onClick="{{ createWaiter }}" class="btn btn-sun">{{ wBtnLabel }}</div>
@@ -3531,7 +3532,7 @@ function signupErrors(s, withAccount){
   if(s.suName.trim().length <= 2) e.name = 'Informe seu nome completo.';
   if(withAccount){
     if(!isEmailContact(s.suEmail)) e.email = 'Informe um e-mail válido, como nome@email.com.';
-    if(s.suPass.length < 6) e.pass = 'A senha precisa ter 6 ou mais caracteres.';
+    if(s.suPass.length < 8) e.pass = 'A senha precisa ter 8 ou mais caracteres.';
     if(s.suPass !== s.suPass2) e.pass2 = 'As senhas não conferem.';
   }
   if(s.suPhone.replace(/\D/g, '').length < 10) e.phone = 'Informe um telefone/WhatsApp com DDD.';
@@ -4012,7 +4013,7 @@ class Component extends DCLogic {
     email:'', pass:'', loginErr:'', loginNeedsConfirm:false,
     token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'', suFe:{},
-    fpEmail:'', fpCpf:'', fpMode:'email', fpSentTo:'', fpSent:false, fpErr:'',
+    fpEmail:'', fpCpf:'', fpMode:'email', fpSentTo:'', fpSent:false, fpSentByCpf:false, fpErr:'',
     cat:'Todos', menuSearch:'', products:[], catalogError:false,
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
@@ -4765,7 +4766,7 @@ class Component extends DCLogic {
     if(this.state.busy) return;
     const s = this.state;
     if(!s.pwCur) return this.setState({pwErr:'Digite sua senha atual.'});
-    if(s.pwNew.length < 6) return this.setState({pwErr:'A nova senha precisa ter pelo menos 6 caracteres.'});
+    if(s.pwNew.length < 8) return this.setState({pwErr:'A nova senha precisa ter pelo menos 8 caracteres.'});
     if(s.pwNew !== s.pwNew2) return this.setState({pwErr:'As duas senhas novas não são iguais.'});
     this.setState({pwErr:'', busy:'password'});
     try {
@@ -5542,7 +5543,7 @@ class Component extends DCLogic {
     if(s.wBusy) return;
     if(s.wName.trim().length < 2) return this.setState({wErr:'Informe o nome do garçom.', wMsg:''});
     if(!/^\S+@\S+\.\S+$/.test(s.wEmail.trim())) return this.setState({wErr:'Informe um e-mail válido.', wMsg:''});
-    if(s.wPass.length < 6) return this.setState({wErr:'A senha precisa ter pelo menos 6 caracteres.', wMsg:''});
+    if(s.wPass.length < 8) return this.setState({wErr:'A senha precisa ter pelo menos 8 caracteres.', wMsg:''});
     this.setState({wBusy:true, wErr:'', wMsg:''});
     try {
       const res = await authFetch(API_BASE + '/waiters', {
@@ -5845,8 +5846,8 @@ class Component extends DCLogic {
     if(byCpf ? !isValidCpf(this.state.fpCpf) : !/@/.test(this.state.fpEmail)) return;
     this.setState({busy:'forgot', fpErr:''});
     try {
-      // Com CPF, o servidor acha a conta e devolve o e-mail dela mascarado
-      // (d*****7@gmail.com) pra pessoa saber em qual caixa procurar.
+      // Com CPF, a resposta é sempre a mesma, exista a conta ou não (auditoria
+      // B-02): não revela quem tem conta nem o e-mail dela.
       const res = await authFetch(API_BASE + '/auth/forgot-password', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify(byCpf ? {cpf:cpfDigits(this.state.fpCpf)} : {email:this.state.fpEmail.trim()})
@@ -5858,7 +5859,7 @@ class Component extends DCLogic {
         return;
       }
       const data = await res.json().catch(() => ({}));
-      this.setState({fpSent:true, fpSentTo: byCpf ? (data.sentTo || 'e-mail da sua conta') : this.state.fpEmail.trim()});
+      this.setState({fpSent:true, fpSentByCpf:byCpf, fpSentTo: byCpf ? '' : this.state.fpEmail.trim()});
     } catch(e){
       this.setState({fpErr:'Falha de conexão com o servidor.'});
     } finally {
@@ -6681,7 +6682,7 @@ class Component extends DCLogic {
     v.completeBtnLabel = s.busy === 'complete' ? 'Salvando...' : 'Salvar e continuar';
     v.completeBusyOpacity = s.busy === 'complete' ? '.6' : '1';
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
-    v.fpSentTo = s.fpSentTo;
+    v.fpSentTo = s.fpSentTo; v.fpSentByCpf = s.fpSentByCpf; v.fpSentByEmail = !s.fpSentByCpf;
     v.fpModeEmail = s.fpMode !== 'cpf'; v.fpModeCpf = s.fpMode === 'cpf';
     v.fpEmailTabCls = v.fpModeEmail ? 'on' : ''; v.fpCpfTabCls = v.fpModeCpf ? 'on' : '';
     v.fpByEmail = () => this.setState({fpMode:'email', fpErr:''});
