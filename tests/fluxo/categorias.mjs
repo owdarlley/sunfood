@@ -68,6 +68,9 @@ await step('cardápio sem fotos', async () => {
   await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
   await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
+  // No CI o cardápio às vezes ainda não terminou de montar logo após entrar.
+  await page.locator('.cats .fpill', { hasText: 'Petiscos' }).first().waitFor({ timeout: 10000 });
+  await page.locator('.pcard .pimg svg').nth(3).waitFor({ timeout: 10000 });
   const imgs = await page.evaluate(() => [...document.querySelectorAll('.pcard .pimg span')].filter(s => /background-image:\s*url\("?[^")]/.test(s.getAttribute('style') || '')).length);
   const icons = await page.locator('.pcard .pimg svg').count();
   check('cliente: nenhum prato com foto padrão', imgs === 0, String(imgs));
