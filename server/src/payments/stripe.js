@@ -180,6 +180,7 @@ function pixResult(pi) {
     paymentIntentId: pi.id,
     qrCode: qr.data || null,
     qrCodeImageUrl: qr.image_url_png || null,
+    expiresAt: qr.expires_at ? new Date(qr.expires_at * 1000).toISOString() : null,
     // No modo de teste, essa página do Stripe tem o botão de simular o pagamento.
     instructionsUrl: qr.hosted_instructions_url || null,
   };

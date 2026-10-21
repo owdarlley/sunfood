@@ -63,6 +63,7 @@ export async function createPixPayment({ orderId, amount, payerEmail, notificati
     status: result.status, // 'pending' até o pagador escanear e pagar
     qrCode: txData?.qr_code || null,
     qrCodeBase64: txData?.qr_code_base64 || null,
+    expiresAt: result.date_of_expiration || null,
   };
 }
 

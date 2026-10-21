@@ -102,6 +102,8 @@ test("PIX: pedir de novo (página recarregada) mostra o mesmo QR, sem outra cobr
   const r2 = await api("POST", `/payments/pix/${ORDER}`);
   assert.equal(r2.status, 200);
   assert.equal(r2.body.qrCode, "PIX-101");
+  assert.equal(r2.body.expiresAt, r1.body.expiresAt);
+  assert.ok(Date.parse(r1.body.expiresAt) > Date.now(), "devolve quando o QR vence");
   assert.equal(created.length, 1);
 });
 

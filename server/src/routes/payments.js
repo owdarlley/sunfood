@@ -140,6 +140,7 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
         qrCodeImageUrl: pix.qrCodeImageUrl,
         testPayUrl: stripeTestMode ? pix.instructionsUrl : null,
         status: "pending",
+        expiresAt: pix.expiresAt,
       });
     } catch (e) {
       console.error("Erro ao criar PIX no Stripe:", e);
@@ -154,7 +155,7 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
       const old = await fetchPaymentStatus(order.payment_id).catch(() => null);
       const valid = !old?.expiresAt || Date.parse(old.expiresAt) > Date.now() + 60 * 1000;
       if (old && old.status === "pending" && old.qrCode && valid && paymentCoversOrder(old.amount, order.total)) {
-        return res.json({ qrCode: old.qrCode, qrCodeBase64: old.qrCodeBase64, status: old.status });
+        return res.json({ qrCode: old.qrCode, qrCodeBase64: old.qrCodeBase64, status: old.status, expiresAt: old.expiresAt });
       }
     }
     const payment = await createPixPayment({
@@ -174,6 +175,8 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
       qrCode: payment.qrCode,
       qrCodeBase64: payment.qrCodeBase64,
       status: payment.status,
+      // Quando o QR vence (ISO 8601), para o app mostrar a contagem regressiva.
+      expiresAt: payment.expiresAt,
     });
   } catch (e) {
     console.error("Erro ao criar pagamento PIX:", e);
