@@ -600,6 +600,11 @@ test("login com Google: completa telefone, CPF, nascimento e termos antes de ped
   assert.equal(r.body.user.profileComplete, true);
   assert.ok(db.profiles.find((p) => p.id === "g1").terms_accepted_at);
   assert.equal(db.profiles.find((p) => p.id === "g1").cpf, "11144477735");
+  const aceite = db.profiles.find((p) => p.id === "g1").terms_accepted_at;
+  r = await api("POST", "/auth/complete-profile", { ...dados, birthDate: "1990-01-01", cpf: "529.982.247-25" }, "tok-g1");
+  assert.equal(r.status, 409, "cadastro completo não reescreve CPF, nascimento nem aceite");
+  assert.equal(db.profiles.find((p) => p.id === "g1").cpf, "11144477735");
+  assert.equal(db.profiles.find((p) => p.id === "g1").terms_accepted_at, aceite);
   r = await api("GET", "/auth/me", null, "tok-g1");
   assert.equal(r.body.user.profileComplete, true);
   r = await api("POST", "/orders", { tableNumber: 1, items: [{ productId: P2, qty: 2 }], paymentMethod: "entrega" }, "tok-g1");
