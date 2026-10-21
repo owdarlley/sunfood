@@ -158,6 +158,8 @@ export async function createStripePix({ orderId, amount, payerEmail, description
     const valid = !qr?.expires_at || qr.expires_at * 1000 > Date.now() + 60 * 1000;
     if (old && old.status === "requires_action" && old.amount === cents && qr?.data && valid) return pixResult(old);
   }
+  // Mesma chave para dois pedidos simultâneos (clique duplo): uma cobrança só.
+  const idempotencyKey = `sunfood-pix-${orderId}-${existingId || "1"}`;
   const pi = await stripe().paymentIntents.create({
     amount: cents,
     currency: "brl",
@@ -168,7 +170,7 @@ export async function createStripePix({ orderId, amount, payerEmail, description
     description: description || `Pedido Sunfood #${orderId}`,
     receipt_email: payerEmail || undefined,
     metadata: { order_id: orderId },
-  });
+  }, { idempotencyKey });
   return pixResult(pi);
 }
 

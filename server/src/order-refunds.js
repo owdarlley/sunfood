@@ -67,6 +67,27 @@ export async function customerRefunds(orderIds) {
   return byOrder;
 }
 
+// Soma o estorno ao total já devolvido do pedido. A gravação só vale se
+// ninguém mudou o total no meio (dois estornos parciais ao mesmo tempo); se
+// mudou, relê e soma de novo, pra nenhum dos dois se perder.
+async function addRefunded(row, amount) {
+  let current = row.refunded_amount ?? 0;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const total = cents(current) + amount;
+    const { data: won } = await supabaseAdmin
+      .from("orders")
+      .update({ refunded_amount: total / 100, payment_status: total >= cents(row.total) ? "refunded" : "approved" })
+      .eq("id", row.id)
+      .eq("refunded_amount", current)
+      .select("id");
+    if (won?.length) return;
+    const { data: fresh } = await supabaseAdmin.from("orders").select("refunded_amount").eq("id", row.id).maybeSingle();
+    if (!fresh) return;
+    current = fresh.refunded_amount ?? 0;
+  }
+  console.error("Estorno feito mas o total devolvido não foi atualizado:", row.id, amount);
+}
+
 // Estorno pelo painel do admin.
 //   cancel: tira o pedido da cozinha e devolve tudo o que falta devolver.
 //   parcial: devolve amountCents e o pedido continua.
@@ -123,11 +144,7 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
       // Itens só no estorno parcial: no cancelamento volta o pedido inteiro.
       items: cancel ? undefined : items,
     });
-    const total = cents(row.refunded_amount) + amount;
-    await supabaseAdmin
-      .from("orders")
-      .update({ refunded_amount: total / 100, payment_status: total >= cents(row.total) ? "refunded" : "approved" })
-      .eq("id", row.id);
+    await addRefunded(row, amount);
   }
 
   if (cancel) {

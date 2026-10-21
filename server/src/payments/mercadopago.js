@@ -41,8 +41,11 @@ export function toOrderPaymentStatus(mpStatus) {
 // Cria uma cobrança PIX real pelo valor do pedido. Retorna o código
 // copia-e-cola e o QR code em base64 pra tela mostrar, mais o id do
 // pagamento (guardado no pedido pra casar com o webhook depois).
-export async function createPixPayment({ orderId, amount, payerEmail, notificationUrl, description }) {
+// idempotencyKey: dois pedidos de PIX ao mesmo tempo (clique duplo) recebem a
+// mesma cobrança em vez de duas.
+export async function createPixPayment({ orderId, amount, payerEmail, notificationUrl, description, idempotencyKey }) {
   const result = await client().create({
+    requestOptions: idempotencyKey ? { idempotencyKey } : undefined,
     body: {
       transaction_amount: Number(amount.toFixed(2)),
       description: description || `Pedido Sunfood #${orderId}`,
@@ -104,11 +107,13 @@ export async function createCardCheckout({ orderId, amount, payerEmail, notifica
 
 // Devolve o valor total de um pagamento aprovado (cancelamento de pedido pago).
 // Sem amount devolve tudo; com amount (em reais), só essa parte.
-export async function refundPayment(paymentId, amount) {
+// idempotencyKey: o mesmo estorno pedido de novo (webhook repetido) não devolve duas vezes.
+export async function refundPayment(paymentId, amount, { idempotencyKey } = {}) {
   if (String(paymentId).startsWith("sim_")) return { simulated: true };
+  const requestOptions = idempotencyKey ? { idempotencyKey } : undefined;
   const result = amount
-    ? await mpClients().refund.create({ payment_id: paymentId, body: { amount } })
-    : await mpClients().refund.total({ payment_id: paymentId });
+    ? await mpClients().refund.create({ payment_id: paymentId, body: { amount }, requestOptions })
+    : await mpClients().refund.total({ payment_id: paymentId, requestOptions });
   return { simulated: false, refundId: String(result.id), status: result.status };
 }
 
@@ -120,11 +125,16 @@ export async function fetchPaymentStatus(paymentId) {
     return { status: "pending", externalReference: paymentId.replace("sim_", "") };
   }
   const result = await client().get({ id: paymentId });
+  const txData = result.point_of_interaction?.transaction_data;
   return {
     status: result.status,
     externalReference: result.external_reference,
     amount: Number(result.transaction_amount),
     methodType: result.payment_type_id, // 'bank_transfer' (PIX), 'credit_card', 'debit_card'...
+    expiresAt: result.date_of_expiration || null,
+    // Só o PIX tem: permite mostrar de novo o mesmo QR em vez de gerar outra cobrança.
+    qrCode: txData?.qr_code || null,
+    qrCodeBase64: txData?.qr_code_base64 || null,
   };
 }
 

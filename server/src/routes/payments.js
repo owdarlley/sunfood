@@ -26,7 +26,7 @@ import {
   isStripePaymentId,
 } from "../payments/stripe.js";
 import { syncStripeRefunds } from "../order-refunds.js";
-import { refundWholeOrder, LATE_PAYMENT_REASON } from "../order-payments.js";
+import { refundWholeOrder, refundDuplicatePayment, approveOrderPayment, LATE_PAYMENT_REASON } from "../order-payments.js";
 import { isValidCpf, onlyDigits } from "../validation/cpf.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
@@ -148,12 +148,23 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
   }
 
   try {
+    // PIX do pedido ainda em aberto (ex.: o cliente recarregou a página): mostra
+    // o mesmo QR em vez de gerar outra cobrança, que poderia ser paga também.
+    if (order.payment_provider === "mercadopago" && order.payment_id) {
+      const old = await fetchPaymentStatus(order.payment_id).catch(() => null);
+      const valid = !old?.expiresAt || Date.parse(old.expiresAt) > Date.now() + 60 * 1000;
+      if (old && old.status === "pending" && old.qrCode && valid && paymentCoversOrder(old.amount, order.total)) {
+        return res.json({ qrCode: old.qrCode, qrCodeBase64: old.qrCodeBase64, status: old.status });
+      }
+    }
     const payment = await createPixPayment({
       orderId: order.id,
       amount: Number(order.total),
       payerEmail: req.user.email,
       notificationUrl: webhookUrl(req),
       description: `Pedido Sunfood — mesa ${order.table_number}`,
+      // Dois pedidos de PIX ao mesmo tempo recebem a mesma cobrança.
+      idempotencyKey: `sunfood-pix-${order.id}-${order.payment_id || "1"}`,
     });
     await supabaseAdmin
       .from("orders")
@@ -357,11 +368,23 @@ paymentsRouter.post("/mercadopago/webhook", async (req, res) => {
     if (!order || order.payment_method === "entrega") return res.status(200).end();
 
     const paymentStatus = toOrderPaymentStatus(status);
+    const paymentId = String(dataId);
+    // Outro pagamento que não o do pedido (PIX antigo, segunda aba do checkout).
+    const otherPayment = !!order.payment_id && String(order.payment_id) !== paymentId;
 
+    // Pedido já pago (ou já estornado) e chega um segundo pagamento aprovado:
+    // o cliente pagou em dobro, então esse segundo volta inteiro.
+    if (paymentStatus === "approved" && otherPayment && ["approved", "refunded"].includes(order.payment_status)) {
+      await refundDuplicatePayment(order, paymentId);
+      return res.status(200).end();
+    }
     // No cartão, o cliente pode errar e tentar de novo: uma tentativa recusada
     // que chega atrasada não pode apagar um pagamento já aprovado.
     if (order.payment_status === "approved" && paymentStatus !== "refunded") return res.status(200).end();
     if (order.payment_status === "refunded") return res.status(200).end();
+    // Mudança de um pagamento que não é o do pedido (PIX antigo vencendo,
+    // estorno do pagamento em dobro) não mexe no pedido.
+    if (otherPayment && paymentStatus !== "approved") return res.status(200).end();
 
     if (paymentStatus === "approved") {
       if (!paymentCoversOrder(amount, order.total)) {
@@ -371,17 +394,15 @@ paymentsRouter.post("/mercadopago/webhook", async (req, res) => {
       // Pagou depois de o pedido já ter saído da fila (desistência ou prazo
       // vencido): devolve o dinheiro em vez de cobrar por comida que não sai.
       if (order.status === "Cancelado") {
-        await refundWholeOrder(order, String(dataId), LATE_PAYMENT_REASON);
+        const { refundedTotal } = await refundWholeOrder({ ...order, payment_id: paymentId, refunded_amount: 0 }, paymentId,
+          LATE_PAYMENT_REASON, { paidCents: Math.round(amount * 100) });
         await supabaseAdmin
           .from("orders")
-          .update({ payment_status: "refunded", payment_id: String(dataId), refunded_amount: order.total })
+          .update({ payment_status: "refunded", payment_id: paymentId, refunded_amount: Math.min(refundedTotal, Number(order.total)) })
           .eq("id", order.id);
         return res.status(200).end();
       }
-      await supabaseAdmin
-        .from("orders")
-        .update({ payment_status: "approved", payment_id: String(dataId) })
-        .eq("id", order.id);
+      await approveOrderPayment(order, paymentId);
       return res.status(200).end();
     }
 
@@ -441,7 +462,14 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
       .eq("id", session.orderId)
       .maybeSingle();
     if (!order || order.payment_method === "entrega") return res.status(200).end();
-    if (order.payment_status === "approved" || order.payment_status === "refunded") return res.status(200).end();
+    if (order.payment_status === "approved" || order.payment_status === "refunded") {
+      // Mesmo pagamento chegando de novo (checkout.session.completed e
+      // payment_intent.succeeded) é ignorado; outro pagamento é cobrança em dobro.
+      if (order.payment_id && order.payment_id !== session.paymentIntentId) {
+        await refundDuplicatePayment(order, session.paymentIntentId);
+      }
+      return res.status(200).end();
+    }
 
     if (!paymentCoversOrder(session.amount, order.total)) {
       console.error("Pagamento Stripe com valor menor que o pedido:", session.paymentIntentId, session.amount, order.total);
@@ -449,17 +477,16 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
     }
     // Pagou depois de o pedido já ter saído da fila: devolve o dinheiro.
     if (order.status === "Cancelado") {
-      await refundWholeOrder(order, session.paymentIntentId, LATE_PAYMENT_REASON);
+      const { refundedTotal } = await refundWholeOrder({ ...order, payment_id: session.paymentIntentId, refunded_amount: 0 },
+        session.paymentIntentId, LATE_PAYMENT_REASON, { paidCents: Math.round(session.amount * 100) });
       await supabaseAdmin
         .from("orders")
-        .update({ payment_status: "refunded", payment_provider: "stripe", payment_id: session.paymentIntentId, refunded_amount: order.total })
+        .update({ payment_status: "refunded", payment_provider: "stripe", payment_id: session.paymentIntentId,
+          refunded_amount: Math.min(refundedTotal, Number(order.total)) })
         .eq("id", order.id);
       return res.status(200).end();
     }
-    await supabaseAdmin
-      .from("orders")
-      .update({ payment_status: "approved", payment_provider: "stripe", payment_id: session.paymentIntentId })
-      .eq("id", order.id);
+    await approveOrderPayment(order, session.paymentIntentId, { payment_provider: "stripe" });
     res.status(200).end();
   } catch (e) {
     console.error("Erro ao processar webhook do Stripe:", e);
