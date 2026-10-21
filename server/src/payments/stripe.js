@@ -158,6 +158,8 @@ export async function createStripePix({ orderId, amount, payerEmail, description
     const valid = !qr?.expires_at || qr.expires_at * 1000 > Date.now() + 60 * 1000;
     if (old && old.status === "requires_action" && old.amount === cents && qr?.data && valid) return pixResult(old);
   }
+  // Mesma chave para dois pedidos simultâneos (clique duplo): uma cobrança só.
+  const idempotencyKey = `sunfood-pix-${orderId}-${existingId || "1"}`;
   const pi = await stripe().paymentIntents.create({
     amount: cents,
     currency: "brl",
@@ -168,7 +170,7 @@ export async function createStripePix({ orderId, amount, payerEmail, description
     description: description || `Pedido Sunfood #${orderId}`,
     receipt_email: payerEmail || undefined,
     metadata: { order_id: orderId },
-  });
+  }, { idempotencyKey });
   return pixResult(pi);
 }
 
@@ -178,6 +180,7 @@ function pixResult(pi) {
     paymentIntentId: pi.id,
     qrCode: qr.data || null,
     qrCodeImageUrl: qr.image_url_png || null,
+    expiresAt: qr.expires_at ? new Date(qr.expires_at * 1000).toISOString() : null,
     // No modo de teste, essa página do Stripe tem o botão de simular o pagamento.
     instructionsUrl: qr.hosted_instructions_url || null,
   };

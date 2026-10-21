@@ -270,17 +270,25 @@ authRouter.get("/me", requireAuth, async (req, res) => {
 
 // Quem entrou pelo Google completa aqui o que o formulário de cadastro
 // pediria: telefone, CPF, data de nascimento (18+) e aceite dos termos (LGPD).
+// Só para cadastro incompleto: depois disso, CPF e nascimento não mudam por
+// aqui, e a data do aceite dos termos (prova de consentimento) é preservada.
 authRouter.post("/complete-profile", requireAuth, validate(completeProfileSchema), async (req, res) => {
-  const { name, phone, cpf, birthDate } = req.body;
+  const current = req.user.profile || {};
+  if (isProfileComplete(current)) {
+    return res.status(409).json({ error: "Seu cadastro já está completo. Altere seus dados pela tela Perfil." });
+  }
+  const { name, phone, birthDate } = req.body;
+  const cpf = current.cpf || req.body.cpf;
+  const termsAcceptedAt = current.terms_accepted_at || new Date().toISOString();
   if (await cpfTaken(cpf, req.user.sub)) return res.status(409).json({ error: CPF_TAKEN });
   const { error } = await supabaseAdmin
     .from("profiles")
-    .update({ name, phone, cpf, birth_date: birthDate, terms_accepted_at: new Date().toISOString() })
+    .update({ name, phone, cpf, birth_date: birthDate, terms_accepted_at: termsAcceptedAt })
     .eq("id", req.user.sub);
   // 23505 = o índice único do banco barrou (dois cadastros ao mesmo tempo com o mesmo CPF).
   if (error?.code === "23505") return res.status(409).json({ error: CPF_TAKEN });
   if (error) return res.status(500).json({ error: "Não foi possível salvar seu cadastro." });
-  const profile = { ...req.user.profile, name, phone, cpf, birth_date: birthDate, terms_accepted_at: new Date().toISOString() };
+  const profile = { ...current, name, phone, cpf, birth_date: birthDate, terms_accepted_at: termsAcceptedAt };
   res.json({ user: userApi(req.user.sub, req.user.email, profile) });
 });
 

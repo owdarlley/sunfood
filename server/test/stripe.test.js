@@ -11,7 +11,7 @@ const signer = new RealStripe("sk_test_assinatura");
 const ORDER = "00000000-0000-4000-8000-0000000000aa";
 const db = {
   profiles: [{ id: "ana", role: "cliente", name: "Ana", phone: "1", cpf: "1", birth_date: "2000-01-01", terms_accepted_at: "x" },
-    { id: "adm", role: "admin", name: "Bia Admin" }],
+    { id: "adm", role: "admin", name: "Bia Admin" }, { id: "coz", role: "cozinha", name: "Cozinha" }],
   orders: [],
   order_refunds: [],
   kiosk_settings: [{ id: 1, cancel_window_minutes: 0 }],
@@ -28,11 +28,13 @@ function query(table) {
       then: (ok, fail) => Promise.resolve({ data: null, error: { code: "42P01", message: "relation does not exist" } }).then(ok, fail) };
     return missing;
   }
-  const rows = () => db[table].filter((r) => filters.every(([k, v]) => (Array.isArray(v) ? v.includes(r[k]) : r[k] === v)));
+  const match = (x, v) => (Array.isArray(v) ? v.includes(x) : typeof v === "function" ? v(x) : x === v);
+  const rows = () => db[table].filter((r) => filters.every(([k, v]) => match(r[k], v)));
   const q = {
     select: () => q,
     eq: (k, v) => (filters.push([k, v]), q),
     in: (k, v) => (filters.push([k, v]), q),
+    gte: (k, v) => (filters.push([k, (x) => x >= v]), q),
     order: () => q,
     update: (p) => ((patch = p), q),
     insert: (row) => {
@@ -47,8 +49,10 @@ function query(table) {
     async maybeSingle() { return { data: rows()[0] || null, error: null }; },
     then(ok, fail) {
       if (inserted) return Promise.resolve({ data: null, ...inserted }).then(ok, fail);
-      if (patch) rows().forEach((r) => Object.assign(r, patch));
-      return Promise.resolve({ data: rows(), error: null }).then(ok, fail);
+      // Como o PostgREST: devolve as linhas que o filtro achou antes da mudança.
+      const hit = rows();
+      if (patch) hit.forEach((r) => Object.assign(r, patch));
+      return Promise.resolve({ data: hit, error: null }).then(ok, fail);
     },
   };
   return q;
@@ -57,11 +61,14 @@ const fake = {
   from: query,
   rpc: async (fn, args) => {
     rpcCalls.push([fn, args]);
+    // Simula a cozinha mexendo no pedido no meio do cancelamento.
+    if (fn === "set_order_status" && db.failNextStatus) { delete db.failNextStatus; return { error: { message: "invalid_transition: Em Preparo -> Cancelado" } }; }
     if (fn === "set_order_status") { const o = db.orders.find((x) => x.id === args.p_order_id); if (o) o.status = args.p_status; }
     return { error: null };
   },
   auth: { getUser: async (t) => (t === "tok-ana" ? { data: { user: { id: "ana", email: "ana@teste.com" } }, error: null }
-    : t === "tok-adm" ? { data: { user: { id: "adm", email: "bia@teste.com" } }, error: null } : { data: null, error: {} }) },
+    : t === "tok-adm" ? { data: { user: { id: "adm", email: "bia@teste.com" } }, error: null }
+    : t === "tok-coz" ? { data: { user: { id: "coz", email: "coz@teste.com" } }, error: null } : { data: null, error: {} }) },
 };
 mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: fake, supabaseAuth: fake } });
 
@@ -99,7 +106,9 @@ class FakeStripe {
     retrieve: async (id) => intents[id],
     update: async (id, body) => (Object.assign(intents[id].metadata, body.metadata), intents[id]),
   };
-  refunds = { create: async (b, opts) => (refunds.push(b), refundOpts.push(opts), { id: "re_" + refunds.length, status: "succeeded", amount: b.amount }) };
+  refunds = { create: async (b, opts) => {
+    if (db.failNextRefund) { delete db.failNextRefund; throw new Error("Stripe fora do ar"); }
+    return (refunds.push(b), refundOpts.push(opts), { id: "re_" + refunds.length, status: "succeeded", amount: b.amount }); } };
   charges = { retrieve: async (id) => charges[id] };
   customers = {
     list: async ({ email }) => ({ data: customers.filter((c) => c.email === email) }),
@@ -494,4 +503,109 @@ test("itens do estorno chegam também pelo webhook (metadata do Stripe)", async 
   const reg = db.order_refunds.find((x) => x.order_id === id);
   assert.equal(reg.reason, "Item em falta");
   assert.deepEqual(reg.items, [{ name: "Água", qty: 2 }, { name: "Suco de laranja", qty: 1 }]);
+});
+
+// Achados A-02, A-03, M-07 e M-08 da auditoria de 21/10/2026.
+const novoPedido = (id, extra = {}) => db.orders.push({ id, customer_id: "ana", total: 40, refunded_amount: 0, status: "Na Fila",
+  payment_method: "cartao", payment_status: "approved", payment_provider: "stripe", payment_id: "pi_" + id.slice(-4),
+  table_number: 1, created_at: new Date().toISOString(), order_items: [], ...extra });
+
+test("pagamento em dobro: o segundo PaymentIntent aprovado volta inteiro e o pedido continua pago pelo primeiro", async () => {
+  const id = "00000000-0000-4000-8000-000000000a01";
+  novoPedido(id, { payment_id: "pi_primeiro" });
+  intents.pi_segundo = { id: "pi_segundo", status: "succeeded", amount: 4000, amount_received: 4000, metadata: { order_id: id } };
+  const n = refunds.length;
+  const r = await webhook({ id: "evt_dobro", type: "payment_intent.succeeded", data: { object: { id: "pi_segundo" } } });
+  assert.equal(r.status, 200);
+  assert.equal(refunds.length, n + 1);
+  assert.equal(refunds[n].payment_intent, "pi_segundo");
+  assert.equal(refunds[n].amount, undefined, "devolve o pagamento inteiro");
+  assert.equal(refundOpts[n].idempotencyKey, "sunfood-duplicate-pi_segundo");
+  const o = db.orders.find((x) => x.id === id);
+  assert.equal(o.payment_id, "pi_primeiro");
+  assert.equal(o.payment_status, "approved");
+  assert.equal(db.order_refunds.filter((x) => x.order_id === id).length, 0, "não entra no histórico do pedido");
+});
+
+test("o mesmo pagamento chegando de novo (dois eventos do Stripe) não é estornado", async () => {
+  const id = "00000000-0000-4000-8000-000000000a01";
+  const n = refunds.length;
+  intents.pi_primeiro = { id: "pi_primeiro", status: "succeeded", amount: 4000, amount_received: 4000, metadata: { order_id: id } };
+  const r = await webhook({ id: "evt_repetido", type: "payment_intent.succeeded", data: { object: { id: "pi_primeiro" } } });
+  assert.equal(r.status, 200);
+  assert.equal(refunds.length, n);
+});
+
+test("cancelar: se a cozinha já pegou o pedido, nada é estornado e o cliente recebe 409", async () => {
+  const id = "00000000-0000-4000-8000-000000000a02";
+  novoPedido(id);
+  const n = refunds.length;
+  db.failNextStatus = true;
+  const r = await api("POST", `/orders/${id}/cancel`);
+  assert.equal(r.status, 409, JSON.stringify(r.body));
+  assert.equal(refunds.length, n, "não devolve dinheiro de pedido que está sendo preparado");
+  assert.equal(db.orders.find((x) => x.id === id).payment_status, "approved");
+});
+
+test("cancelar: o pedido sai da fila antes do estorno; estorno que falha é refeito depois, sem dobrar", async () => {
+  const id = "00000000-0000-4000-8000-000000000a03";
+  novoPedido(id);
+  const n = refunds.length;
+  db.failNextRefund = true;
+  const r = await api("POST", `/orders/${id}/cancel`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  const o = db.orders.find((x) => x.id === id);
+  assert.equal(o.status, "Cancelado");
+  assert.equal(o.payment_status, "approved", "continua pago até o estorno passar");
+  assert.equal(refunds.length, n);
+
+  const { retryPendingRefunds } = await import("../src/order-payments.js");
+  await retryPendingRefunds();
+  assert.equal(refunds.length, n + 1);
+  assert.equal(refunds[n].payment_intent, o.payment_id);
+  assert.equal(refundOpts[n].idempotencyKey, `sunfood-full-${o.payment_id}-0`);
+  assert.equal(o.payment_status, "refunded");
+  assert.equal(o.refunded_amount, 40);
+  await retryPendingRefunds();
+  assert.equal(refunds.length, n + 1, "pedido já estornado não é estornado de novo");
+});
+
+test("cancelar depois de estorno parcial devolve e registra só o saldo", async () => {
+  const id = "00000000-0000-4000-8000-000000000a04";
+  novoPedido(id);
+  assert.equal((await adm("POST", `/orders/${id}/refund`, { amount: 10, reason: "Faltou o suco" })).status, 200);
+  const n = refunds.length;
+  const r = await api("POST", `/orders/${id}/cancel`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(refunds[n].amount, 3000);
+  assert.equal(refundOpts[n].idempotencyKey, `sunfood-full-pi_${id.slice(-4)}-1000`);
+  const reg = db.order_refunds.filter((x) => x.order_id === id).map((x) => x.amount);
+  assert.deepEqual(reg, [10, 30]);
+  const o = db.orders.find((x) => x.id === id);
+  assert.equal(o.refunded_amount, 40);
+  assert.equal(o.payment_status, "refunded");
+});
+
+test("pagamento atrasado de pedido cancelado volta com chave de idempotência", async () => {
+  const id = "00000000-0000-4000-8000-000000000a05";
+  novoPedido(id, { status: "Cancelado", payment_status: "cancelled", payment_id: "pi_atrasado" });
+  intents.pi_atrasado = { id: "pi_atrasado", status: "succeeded", amount: 4000, amount_received: 4000, metadata: { order_id: id } };
+  const n = refunds.length;
+  const r = await webhook({ id: "evt_atrasado", type: "payment_intent.succeeded", data: { object: { id: "pi_atrasado" } } });
+  assert.equal(r.status, 200);
+  assert.equal(refunds[n].payment_intent, "pi_atrasado");
+  assert.equal(refundOpts[n].idempotencyKey, "sunfood-full-pi_atrasado-0");
+  const o = db.orders.find((x) => x.id === id);
+  assert.equal(o.payment_status, "refunded");
+  assert.equal(o.refunded_amount, 40);
+});
+
+test("cozinha não cancela pedido já pago (o estorno é decisão do admin)", async () => {
+  const id = "00000000-0000-4000-8000-000000000a06";
+  novoPedido(id);
+  const n = refunds.length;
+  const r = await api("PATCH", `/orders/${id}/status`, { status: "Cancelado" }, { Authorization: "Bearer tok-coz" });
+  assert.equal(r.status, 403, JSON.stringify(r.body));
+  assert.equal(refunds.length, n);
+  assert.equal(db.orders.find((x) => x.id === id).status, "Na Fila");
 });

@@ -8,53 +8,122 @@ import { recordRefund } from "./order-refunds.js";
 export const CUSTOMER_CANCEL_REASON = "Você cancelou o pedido";
 export const LATE_PAYMENT_REASON = "O pagamento chegou depois que o pedido já tinha saído da fila";
 
-// Devolve tudo o que foi pago e anota no histórico de estornos do pedido.
-// Cartão pelo Stripe guarda o id do PaymentIntent (pi_...); o resto é Mercado Pago.
-export async function refundWholeOrder(row, paymentId, reason) {
-  const stripe = isStripePaymentId(paymentId);
-  const result = stripe
-    ? await refundStripePayment(paymentId, { metadata: { order_id: row.id, sunfood_reason: reason } })
-    : await refundPayment(paymentId);
-  await recordRefund(row.id, {
-    amount: Number(row.total),
-    reason,
-    provider: stripe ? "stripe" : "mercadopago",
-    refundId: result?.refundId,
-  });
-  return result;
+const cents = (v) => Math.round(Number(v || 0) * 100);
+
+// Estorno no provedor certo: Stripe guarda o id do PaymentIntent (pi_...), o
+// resto é Mercado Pago. Sem amountCents devolve tudo o que falta. A chave de
+// idempotência faz o mesmo estorno, pedido de novo (webhook repetido, gravação
+// que falhou), não devolver duas vezes.
+function refundAtProvider(paymentId, { amountCents, key, metadata }) {
+  if (isStripePaymentId(paymentId)) {
+    return refundStripePayment(paymentId, { amountCents, metadata, idempotencyKey: key });
+  }
+  return refundPayment(paymentId, amountCents ? amountCents / 100 : undefined, { idempotencyKey: key });
 }
 
-// Cancela um pedido e, se ele já foi pago no app, devolve o dinheiro antes.
-// O estorno vem primeiro: se o Mercado Pago (ou o Stripe) recusar, nada muda e quem chamou
-// recebe o erro (o pedido não fica cancelado com o dinheiro preso).
-export async function cancelOrderWithRefund(row) {
-  let refunded = false;
-  if (needsRefund(row)) {
-    try {
-      await refundWholeOrder(row, row.payment_id, CUSTOMER_CANCEL_REASON);
-      refunded = true;
-    } catch (e) {
-      console.error("Erro ao estornar pagamento:", e);
-      return { ok: false, httpStatus: 502, error: "Não foi possível estornar o pagamento. Tente novamente." };
-    }
-  }
+// Devolve o que falta devolver de um pagamento e anota no histórico de
+// estornos do pedido. paidCents: quanto esse pagamento cobrou (padrão: o
+// total do pedido). Se já houve estorno parcial, devolve só o saldo.
+export async function refundWholeOrder(row, paymentId, reason, { paidCents } = {}) {
+  const already = String(row.payment_id || "") === String(paymentId) ? cents(row.refunded_amount) : 0;
+  const amountCents = Math.max(0, (paidCents ?? cents(row.total)) - already);
+  const result = await refundAtProvider(paymentId, {
+    amountCents: already ? amountCents : undefined,
+    key: `sunfood-full-${paymentId}-${already}`,
+    metadata: { order_id: row.id, sunfood_reason: reason },
+  });
+  await recordRefund(row.id, {
+    amount: amountCents / 100,
+    reason,
+    provider: isStripePaymentId(paymentId) ? "stripe" : "mercadopago",
+    refundId: result?.refundId,
+  });
+  return { ...result, refundedTotal: (already + amountCents) / 100 };
+}
 
+// Segundo pagamento aprovado para um pedido que já estava pago (dois QR Codes,
+// duas abas de checkout): devolve esse pagamento inteiro. Não entra no
+// histórico do pedido, que continua pago pelo primeiro.
+export async function refundDuplicatePayment(order, paymentId) {
+  console.warn("Pagamento em dobro estornado:", { order: order.id, kept: order.payment_id, refunded: paymentId });
+  await refundAtProvider(paymentId, {
+    key: `sunfood-duplicate-${paymentId}`,
+    metadata: { order_id: order.id, sunfood_reason: "Pagamento em dobro" },
+  });
+}
+
+// Aprova o pedido com este pagamento, só se ninguém aprovou antes (dois
+// webhooks ao mesmo tempo). Se outro pagamento ganhou, este é estornado.
+export async function approveOrderPayment(order, paymentId, extra = {}) {
+  const { data: won } = await supabaseAdmin
+    .from("orders")
+    .update({ ...extra, payment_status: "approved", payment_id: paymentId })
+    .eq("id", order.id)
+    .eq("payment_status", order.payment_status)
+    .select("id");
+  if (won?.length) return;
+  const { data: now } = await supabaseAdmin.from("orders").select("*").eq("id", order.id).maybeSingle();
+  if (now && now.payment_id && String(now.payment_id) !== String(paymentId)
+      && ["approved", "refunded"].includes(now.payment_status)) {
+    await refundDuplicatePayment(now, paymentId);
+  }
+}
+
+// Cancela um pedido e, se ele já foi pago no app, devolve o dinheiro.
+// O pedido sai da fila PRIMEIRO (set_order_status trava a linha): se a
+// cozinha já começou a preparar, nada é estornado e quem chamou recebe 409.
+// Se o estorno falhar depois disso, o pedido fica cancelado e pago, e
+// retryPendingRefunds tenta de novo (a chave de idempotência evita estorno em dobro).
+export async function cancelOrderWithRefund(row) {
   const { error: rpcError } = await supabaseAdmin.rpc("set_order_status", {
     p_order_id: row.id,
     p_status: "Cancelado",
   });
-  if (rpcError && !refunded) return { ok: false, httpStatus: 500, error: "Não foi possível cancelar o pedido." };
-  if (rpcError) console.error("Pedido estornado mas não cancelado:", row.id, rpcError);
+  if (rpcError) {
+    if (String(rpcError.message || "").includes("invalid_transition")) {
+      return { ok: false, httpStatus: 409, error: "O pedido já saiu da fila e não pode mais ser cancelado." };
+    }
+    return { ok: false, httpStatus: 500, error: "Não foi possível cancelar o pedido." };
+  }
 
-  if (refunded) {
-    await supabaseAdmin.from("orders").update({ payment_status: "refunded", refunded_amount: row.total }).eq("id", row.id);
-  } else if (
-    row.payment_method !== "entrega" &&
-    (row.payment_status === "pending" || row.payment_provider === "provisorio")
-  ) {
+  if (needsRefund(row)) {
+    try {
+      const { refundedTotal } = await refundWholeOrder(row, row.payment_id, CUSTOMER_CANCEL_REASON);
+      await supabaseAdmin.from("orders").update({ payment_status: "refunded", refunded_amount: refundedTotal }).eq("id", row.id);
+      return { ok: true, refunded: true };
+    } catch (e) {
+      console.error("Pedido cancelado, estorno pendente:", row.id, e);
+      return { ok: true, refunded: false, refundPending: true };
+    }
+  }
+  if (row.payment_method !== "entrega" && (row.payment_status === "pending" || row.payment_provider === "provisorio")) {
     await supabaseAdmin.from("orders").update({ payment_status: "cancelled" }).eq("id", row.id);
   }
-  return { ok: true, refunded };
+  return { ok: true, refunded: false };
+}
+
+// Pedido cancelado que continua pago no app: estorno que falhou no
+// cancelamento, ou pagamento que chegou enquanto o pedido era cancelado.
+// Só olha as últimas 24 horas, pra nunca mexer em pedido antigo.
+export async function retryPendingRefunds() {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .select("*")
+    .eq("status", "Cancelado")
+    .eq("payment_status", "approved")
+    .in("payment_method", ["pix", "cartao"])
+    .gte("created_at", since);
+  if (error || !data) return;
+  for (const row of data) {
+    if (!needsRefund(row) || row.payment_provider === "provisorio") continue;
+    try {
+      const { refundedTotal } = await refundWholeOrder(row, row.payment_id, CUSTOMER_CANCEL_REASON);
+      await supabaseAdmin.from("orders").update({ payment_status: "refunded", refunded_amount: refundedTotal }).eq("id", row.id);
+    } catch (e) {
+      console.error("Estorno pendente falhou de novo:", row.id, e);
+    }
+  }
 }
 
 // Pedido pago no app que ficou sem pagamento (cliente desistiu do PIX ou do
@@ -77,6 +146,7 @@ export async function expireUnpaidOrders() {
     const { error: rpcError } = await supabaseAdmin.rpc("set_order_status", { p_order_id: id, p_status: "Cancelado" });
     if (!rpcError) await supabaseAdmin.from("orders").update({ payment_status: "cancelled" }).eq("id", id);
   }
+  await retryPendingRefunds();
 }
 
 // Mesma limpeza, chamada de rotas que muitos clientes usam (cardápio, novo

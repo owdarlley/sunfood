@@ -294,6 +294,13 @@ const ana = { name: "Ana Teste", email: "ana@teste.com", password: "senha-forte-
   cpf: "529.982.247-25", birthDate: "2000-01-01", termsAccepted: true };
 let anaToken;
 
+test("JSON malformado responde 400 e origem não permitida responde 403", async () => {
+  let res = await fetch(base + "/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{quebrado" });
+  assert.equal(res.status, 400);
+  res = await fetch(base + "/health", { headers: { Origin: "https://site-qualquer.com" } });
+  assert.equal(res.status, 403);
+});
+
 test("cadastro cria conta e pede confirmação por e-mail", async () => {
   const r = await api("POST", "/auth/signup", ana);
   assert.equal(r.status, 201, JSON.stringify(r.body));
@@ -497,6 +504,12 @@ test("PIX provisório: aprovado na hora e vai para a cozinha", async () => {
   const cozinha = staff("cozinha");
   let fila = await api("GET", "/orders", null, cozinha);
   assert.ok(!fila.body.some((o) => o.id === pixOrder), "PIX não pago não aparece na cozinha");
+  // Em produção sem chave do provedor, nunca aprova de graça.
+  process.env.VERCEL_ENV = "production";
+  r = await api("POST", `/payments/pix/${pixOrder}`, {}, anaToken);
+  delete process.env.VERCEL_ENV;
+  assert.equal(r.status, 503);
+  assert.equal(db.orders.find((o) => o.id === pixOrder).payment_status, "pending");
   r = await api("POST", `/payments/pix/${pixOrder}`, {}, anaToken);
   assert.equal(r.body.provisional, true);
   fila = await api("GET", "/orders", null, cozinha);
@@ -594,6 +607,11 @@ test("login com Google: completa telefone, CPF, nascimento e termos antes de ped
   assert.equal(r.body.user.profileComplete, true);
   assert.ok(db.profiles.find((p) => p.id === "g1").terms_accepted_at);
   assert.equal(db.profiles.find((p) => p.id === "g1").cpf, "11144477735");
+  const aceite = db.profiles.find((p) => p.id === "g1").terms_accepted_at;
+  r = await api("POST", "/auth/complete-profile", { ...dados, birthDate: "1990-01-01", cpf: "529.982.247-25" }, "tok-g1");
+  assert.equal(r.status, 409, "cadastro completo não reescreve CPF, nascimento nem aceite");
+  assert.equal(db.profiles.find((p) => p.id === "g1").cpf, "11144477735");
+  assert.equal(db.profiles.find((p) => p.id === "g1").terms_accepted_at, aceite);
   r = await api("GET", "/auth/me", null, "tok-g1");
   assert.equal(r.body.user.profileComplete, true);
   r = await api("POST", "/orders", { tableNumber: 1, items: [{ productId: P2, qty: 2 }], paymentMethod: "entrega" }, "tok-g1");
@@ -956,6 +974,17 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   const recebido = await api("PATCH", `/orders/${id}/payment-received`, { receivedWith: "dinheiro" }, garcom);
   assert.equal(recebido.status, 200);
   assert.equal(recebido.body.receivedWith, "dinheiro");
+  assert.equal(recebido.body.receivedBy, criado.body.id, "grava quem anotou o recebimento");
+  // Outro garçom não desfaz o recebimento anotado por este; o admin pode.
+  db.profiles.push({ id: "garcom-2", email: "garcom2@sunfood.com", name: "Outro", role: "garcom" });
+  db.users["tok-garcom-2"] = { id: "garcom-2", email: "garcom2@sunfood.com" };
+  const outro = "tok-garcom-2";
+  assert.equal((await api("PATCH", `/orders/${id}/payment-received`, { receivedWith: null }, outro)).status, 403);
+  db.profiles = db.profiles.filter((p) => p.id !== "garcom-2");
+  // Depois do dia encerrado, o garçom não mexe mais no caixa.
+  db.kiosk_settings[0].day_closed = true;
+  assert.equal((await api("PATCH", `/orders/${id}/payment-received`, { receivedWith: "pix" }, garcom)).status, 409);
+  db.kiosk_settings[0].day_closed = false;
 
   // Métricas: só do próprio garçom.
   assert.equal((await api("GET", "/waiter/metrics", null, admin)).status, 403);
