@@ -1272,7 +1272,8 @@ select{caret-color:auto}
                       <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px" class="rise">
                         <span style="width:76px;height:76px;border-radius:50%;background:var(--brand-tint);display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg></span>
                         <h1 class="tt" style="margin:0;font-size:var(--fs-h1)">Link enviado</h1>
-                        <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:var(--ink);word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p>
+                        <sc-if value="{{ fpSentByEmail }}" hint-placeholder-val="{{ true }}"><p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Confira a caixa de entrada de <b style="color:var(--ink);word-break:break-all">{{ fpSentTo }}</b>. Se não aparecer em alguns minutos, veja o spam.</p></sc-if>
+                        <sc-if value="{{ fpSentByCpf }}" hint-placeholder-val="{{ false }}"><p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Se esse CPF tiver uma conta com senha, o link foi para o e-mail cadastrado nela. Se não aparecer em alguns minutos, veja o spam.</p></sc-if>
                         <div onClick="{{ goLogin }}" class="btn btn-dark" style="width:100%;margin-top:8px">Voltar ao login</div>
                       </div>
                     </sc-if>
@@ -4012,7 +4013,7 @@ class Component extends DCLogic {
     email:'', pass:'', loginErr:'', loginNeedsConfirm:false,
     token:null, authUser:null, busy:null,
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'', suFe:{},
-    fpEmail:'', fpCpf:'', fpMode:'email', fpSentTo:'', fpSent:false, fpErr:'',
+    fpEmail:'', fpCpf:'', fpMode:'email', fpSentTo:'', fpSent:false, fpSentByCpf:false, fpErr:'',
     cat:'Todos', menuSearch:'', products:[], catalogError:false,
     cart:[], selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
@@ -5845,8 +5846,8 @@ class Component extends DCLogic {
     if(byCpf ? !isValidCpf(this.state.fpCpf) : !/@/.test(this.state.fpEmail)) return;
     this.setState({busy:'forgot', fpErr:''});
     try {
-      // Com CPF, o servidor acha a conta e devolve o e-mail dela mascarado
-      // (d*****7@gmail.com) pra pessoa saber em qual caixa procurar.
+      // Com CPF, a resposta é sempre a mesma, exista a conta ou não (auditoria
+      // B-02): não revela quem tem conta nem o e-mail dela.
       const res = await authFetch(API_BASE + '/auth/forgot-password', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify(byCpf ? {cpf:cpfDigits(this.state.fpCpf)} : {email:this.state.fpEmail.trim()})
@@ -5858,7 +5859,7 @@ class Component extends DCLogic {
         return;
       }
       const data = await res.json().catch(() => ({}));
-      this.setState({fpSent:true, fpSentTo: byCpf ? (data.sentTo || 'e-mail da sua conta') : this.state.fpEmail.trim()});
+      this.setState({fpSent:true, fpSentByCpf:byCpf, fpSentTo: byCpf ? '' : this.state.fpEmail.trim()});
     } catch(e){
       this.setState({fpErr:'Falha de conexão com o servidor.'});
     } finally {
@@ -6681,7 +6682,7 @@ class Component extends DCLogic {
     v.completeBtnLabel = s.busy === 'complete' ? 'Salvando...' : 'Salvar e continuar';
     v.completeBusyOpacity = s.busy === 'complete' ? '.6' : '1';
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
-    v.fpSentTo = s.fpSentTo;
+    v.fpSentTo = s.fpSentTo; v.fpSentByCpf = s.fpSentByCpf; v.fpSentByEmail = !s.fpSentByCpf;
     v.fpModeEmail = s.fpMode !== 'cpf'; v.fpModeCpf = s.fpMode === 'cpf';
     v.fpEmailTabCls = v.fpModeEmail ? 'on' : ''; v.fpCpfTabCls = v.fpModeCpf ? 'on' : '';
     v.fpByEmail = () => this.setState({fpMode:'email', fpErr:''});

@@ -365,27 +365,23 @@ test("esqueci minha senha: avisa e-mail sem conta e conta só do Google", async 
   assert.equal(db.resetSent.length, 1, "não manda e-mail nos casos de erro");
 });
 
-test("esqueci minha senha pelo CPF: manda pro e-mail da conta e mostra ele mascarado", async () => {
+test("esqueci minha senha pelo CPF: manda pro e-mail da conta sem revelar se ela existe", async () => {
   const sent = db.resetSent.length;
   // IP próprio: o limite de 5 pedidos por IP já foi gasto no teste anterior.
   const forgot = (body) => api("POST", "/auth/forgot-password", body, null, "10.0.0.9");
   const ok = await forgot({ cpf: "529.982.247-25" });
   assert.equal(ok.status, 200, JSON.stringify(ok.body));
   assert.equal(db.resetSent.at(-1), "ana@teste.com", "link vai pro e-mail cadastrado");
-  assert.equal(ok.body.sentTo, "a*a@teste.com");
-  assert.ok(!JSON.stringify(ok.body).includes("ana@teste.com"), "não expõe o e-mail inteiro");
+  assert.ok(!JSON.stringify(ok.body).includes("teste.com"), "não expõe o e-mail, nem mascarado");
   const nope = await forgot({ cpf: "111.444.777-35" });
-  assert.equal(nope.status, 404);
-  assert.equal(nope.body.code, "cpf_not_found");
+  assert.deepEqual([nope.status, nope.body], [ok.status, ok.body], "CPF sem conta responde igual");
   const bad = await forgot({ cpf: "123.456.789-00" });
   assert.equal(bad.status, 400);
   const empty = await forgot({});
   assert.equal(empty.status, 400);
   db.profiles.push({ id: "g-2", email: "caio@gmail.com", cpf: "39053344705", name: "Caio", role: "cliente", providers: ["google"] });
   const google = await forgot({ cpf: "390.533.447-05" });
-  assert.equal(google.status, 400);
-  assert.equal(google.body.code, "google_account");
-  assert.equal(google.body.sentTo, "c**o@gmail.com");
+  assert.deepEqual([google.status, google.body], [ok.status, ok.body], "conta só do Google responde igual");
   db.profiles.pop();
   assert.equal(db.resetSent.length, sent + 1, "só manda e-mail no caso certo");
 });
