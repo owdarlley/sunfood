@@ -93,6 +93,31 @@ for (const [nome, vp] of TELAS) {
   }
 }
 
+// Toque do + e do − do cardápio (auditoria M14): o dedo acerta o botão em
+// qualquer ponto a 23,5 px do centro (área de 48 x 48), medido pelo que o
+// navegador encontra no ponto (elementFromPoint), já com o zoom do app.
+const toque48 = sel => {
+  const els = Array.from(document.querySelectorAll(sel)).filter(e => e.getBoundingClientRect().width > 0);
+  if (!els.length) return 'nenhum ' + sel;
+  const ruins = els.slice(0, 4).filter(el => {
+    const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    return ![[-23.5, 0], [23.5, 0], [0, -23.5], [0, 23.5]].every(([dx, dy]) => { const h = document.elementFromPoint(cx + dx, cy + dy); return h && (h === el || el.contains(h)); });
+  });
+  return ruins.length ? ruins.length + ' de ' + Math.min(4, els.length) + ' com área menor que 48 px (botão de ' + Math.round(ruins[0].getBoundingClientRect().width) + ' px)' : '';
+};
+for (const [nome, vp] of TELAS) {
+  try {
+    const p = await open(vp, 'cliente', 'module=cliente&screen=menu');
+    const r1 = await p.evaluate(toque48, '.pcard .addbtn');
+    check(`${nome} cardápio: + do cartão com toque de 48 x 48`, !r1, r1);
+    await p.locator('.pcard .addbtn').first().click();
+    await p.waitForTimeout(400);
+    const r2 = await p.evaluate(toque48, '.pcard .stepper .sb');
+    check(`${nome} cardápio: + e − do cartão com toque de 48 x 48`, !r2, r2);
+    await p.context().close();
+  } catch (e) { check(`${nome} cardápio: toque do + e −`, false, e.message.split('\n')[0]); }
+}
+
 await browser.close();
 server.close();
 const falhas = results.filter(ok => !ok).length;

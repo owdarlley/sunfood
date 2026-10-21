@@ -1,5 +1,5 @@
-import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
+import { asyncRouter } from "../async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { removeAvatarFile } from "./auth.js";
 import {
@@ -10,7 +10,7 @@ import {
   validate,
 } from "../validation/schemas.js";
 
-export const waitersRouter = Router();
+export const waitersRouter = asyncRouter();
 
 // Conta desativada = bloqueada no Supabase Auth (não entra mais), sem apagar
 // nada: os pedidos que o garçom lançou e entregou continuam nas métricas.

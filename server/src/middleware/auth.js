@@ -14,6 +14,11 @@ export async function requireAuth(req, res, next) {
   if (userError || !userData?.user) {
     return res.status(401).json({ error: "Token inválido ou expirado." });
   }
+  // Conta desativada (garçom desativado pelo admin) perde o acesso na hora,
+  // não só quando o token vencer (auditoria M4).
+  if (isBanned(userData.user)) {
+    return res.status(401).json({ error: "Esta conta foi desativada.", code: "user_banned" });
+  }
 
   const { data: profile, error: profileError } = await supabaseAdmin
     .from("profiles")
@@ -33,6 +38,10 @@ export async function requireAuth(req, res, next) {
     profile,
   };
   next();
+}
+
+export function isBanned(user, now = Date.now()) {
+  return Boolean(user?.banned_until && new Date(user.banned_until).getTime() > now);
 }
 
 // Quem entra pelo Google não passa pelo formulário de cadastro: chega sem

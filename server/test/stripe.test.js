@@ -35,7 +35,10 @@ function query(table) {
     eq: (k, v) => (filters.push([k, v]), q),
     in: (k, v) => (filters.push([k, v]), q),
     gte: (k, v) => (filters.push([k, (x) => x >= v]), q),
+    lt: (k, v) => (filters.push([k, (x) => x < v]), q),
     order: () => q,
+    limit: () => q,
+    range: () => q,
     update: (p) => ((patch = p), q),
     insert: (row) => {
       // Banco sem a coluna de itens (SQL 20261017220000 não rodado): erro do PostgREST.
@@ -80,6 +83,7 @@ const charges = {};
 const intents = {};
 const customers = [];
 const customerSessions = [];
+const cancelledIntents = [];
 class FakeStripe {
   constructor(key) { this.key = key; }
   checkout = {
@@ -105,6 +109,7 @@ class FakeStripe {
     },
     retrieve: async (id) => intents[id],
     update: async (id, body) => (Object.assign(intents[id].metadata, body.metadata), intents[id]),
+    cancel: async (id) => (cancelledIntents.push(id), { id, status: "canceled" }),
   };
   refunds = { create: async (b, opts) => {
     if (db.failNextRefund) { delete db.failNextRefund; throw new Error("Stripe fora do ar"); }
@@ -607,4 +612,61 @@ test("cozinha não cancela pedido já pago (o estorno é decisão do admin)", as
   assert.equal(r.status, 403, JSON.stringify(r.body));
   assert.equal(refunds.length, n);
   assert.equal(db.orders.find((x) => x.id === id).status, "Na Fila");
+});
+
+// Auditoria A1: o pagamento aprovado e o cancelamento do pedido ao mesmo tempo
+// nunca deixam o cliente cobrado, com o pedido cancelado e sem estorno.
+test("A1: webhook aprova depois de o cancelamento ganhar: o pagamento é estornado", async () => {
+  const { approveOrderPayment } = await import("../src/order-payments.js");
+  const id = "00000000-0000-4000-8000-0000000000a1";
+  // O cancelamento já gravou; o webhook ainda tem a leitura de antes (pendente, Na Fila).
+  db.orders.push({ id, customer_id: "ana", total: 30, refunded_amount: 0, status: "Cancelado", payment_method: "pix",
+    payment_status: "cancelled", payment_provider: "stripe", payment_id: "pi_a1", table_number: 1, created_at: new Date().toISOString() });
+  const n = refunds.length;
+  await approveOrderPayment({ id, payment_status: "pending", status: "Na Fila" }, "pi_a1", { payment_provider: "stripe" }, { paidCents: 3000 });
+  assert.equal(refunds.length, n + 1, "estornou");
+  assert.equal(refunds[n].payment_intent, "pi_a1");
+  const o = db.orders.find((x) => x.id === id);
+  assert.equal(o.payment_status, "refunded");
+  assert.equal(Number(o.refunded_amount), 30);
+});
+
+test("A1: o webhook aprova entre a leitura e o cancelamento: o cancelamento estorna em vez de apagar o aprovado", async () => {
+  const { cancelOrderWithRefund } = await import("../src/order-payments.js");
+  const id = "00000000-0000-4000-8000-0000000000a2";
+  db.orders.push({ id, customer_id: "ana", total: 20, refunded_amount: 0, status: "Na Fila", payment_method: "pix",
+    payment_status: "approved", payment_provider: "stripe", payment_id: "pi_a2", table_number: 1, created_at: new Date().toISOString() });
+  const n = refunds.length;
+  // Leitura velha: ainda pendente.
+  const r = await cancelOrderWithRefund({ ...db.orders.at(-1), payment_status: "pending" });
+  assert.equal(r.ok, true);
+  assert.equal(r.refunded, true);
+  assert.equal(refunds.length, n + 1);
+  assert.equal(db.orders.find((x) => x.id === id).payment_status, "refunded");
+});
+
+test("B4: cancelar pedido não pago fecha o PaymentIntent no Stripe", async () => {
+  const { cancelOrderWithRefund } = await import("../src/order-payments.js");
+  const id = "00000000-0000-4000-8000-0000000000b4";
+  db.orders.push({ id, customer_id: "ana", total: 20, refunded_amount: 0, status: "Na Fila", payment_method: "cartao",
+    payment_status: "pending", payment_provider: "stripe", payment_id: "pi_b4", table_number: 1, created_at: new Date().toISOString() });
+  const r = await cancelOrderWithRefund(db.orders.at(-1));
+  assert.equal(r.ok, true);
+  assert.equal(db.orders.find((x) => x.id === id).payment_status, "cancelled");
+  assert.ok(cancelledIntents.includes("pi_b4"));
+});
+
+test("M8: pedido cancelado que continua pago pode ser estornado pelo painel", async () => {
+  const id = "00000000-0000-4000-8000-0000000000c8";
+  db.orders.push({ id, customer_id: "ana", total: 25, refunded_amount: 0, status: "Cancelado", payment_method: "pix",
+    payment_status: "approved", payment_provider: "stripe", payment_id: "pi_m8", table_number: 1, created_at: new Date().toISOString(), order_items: [] });
+  const n = refunds.length;
+  const r = await adm("POST", `/orders/${id}/refund`, { cancel: true, reason: "Estorno que tinha falhado" });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(refunds.length, n + 1);
+  const o = db.orders.find((x) => x.id === id);
+  assert.equal(o.status, "Cancelado");
+  assert.equal(o.payment_status, "refunded");
+  // Sem nada a devolver, continua recusado.
+  assert.equal((await adm("POST", `/orders/${id}/refund`, { cancel: true, reason: "De novo" })).status, 409);
 });

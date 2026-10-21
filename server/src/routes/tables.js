@@ -1,10 +1,10 @@
-import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
+import { asyncRouter } from "../async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { tableToggleSchema, validate } from "../validation/schemas.js";
 import { tableCountFrom } from "../business-rules.js";
 
-export const tablesRouter = Router();
+export const tablesRouter = asyncRouter();
 
 function toApi(row) {
   return { number: row.number, active: row.active, seats: row.seats };

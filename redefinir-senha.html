@@ -199,6 +199,8 @@ const API_BASE = (window.location.hostname === 'localhost' || window.location.ho
   ? 'http://localhost:8787'
   : 'https://sunfood-api-nine.vercel.app';
 
+const RESET_KEY = 'sunfood_reset_token';
+
 class Component extends DCLogic {
   state = { accessToken:null, expired:false, newPass:'', confirmPass:'', err:'', done:false };
 
@@ -207,8 +209,14 @@ class Component extends DCLogic {
     // (#access_token=...&type=recovery), não como query string.
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
     const token = hash.get('access_token');
-    if(hash.get('type') === 'recovery' && token) this.setState({accessToken:token});
+    if(hash.get('type') === 'recovery' && token){
+      this.setState({accessToken:token});
+      // Guarda o token só nesta aba até a senha mudar (auditoria M3): se a
+      // rede falhar no envio, recarregar a página ainda funciona.
+      try { sessionStorage.setItem(RESET_KEY, token); } catch(e){}
+    }
     else if(hash.get('error_code') === 'otp_expired') this.setState({expired:true});
+    else { try { const salvo = sessionStorage.getItem(RESET_KEY); if(salvo) this.setState({accessToken:salvo}); } catch(e){} }
     // Tira o token da barra de endereço: não deve ficar no histórico do navegador.
     if(window.location.hash) history.replaceState(null, '', window.location.pathname);
   }
@@ -224,6 +232,7 @@ class Component extends DCLogic {
       });
       const data = await res.json();
       if(!res.ok) return this.setState({err: data.error || 'Não foi possível redefinir a senha.'});
+      try { sessionStorage.removeItem(RESET_KEY); } catch(e){}
       this.setState({done:true, err:''});
     } catch(e){
       this.setState({err:'Falha de conexão com o servidor.'});

@@ -321,6 +321,32 @@ await step('títulos h1', async () => {
   await page.context().close();
 });
 
+// 32. Diálogo pelo teclado (auditoria M13): o foco entra no botão que não
+// apaga nada, Tab fica dentro do diálogo, Esc fecha e o foco volta ao botão
+// que abriu.
+await step('diálogo pelo teclado', async () => {
+  const page = await open('app-cliente.dc.html?module=admin&screen=closeDay', { role: 'admin', width: 1280, height: 800 });
+  const abrir = page.locator('.btn-danger-ghost', { hasText: 'Encerrar o dia' }).last();
+  await abrir.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('[role=alertdialog]');
+  await page.waitForTimeout(200);
+  const foco = () => page.evaluate(() => ({ dentro: !!document.activeElement.closest('[aria-modal="true"]'), texto: document.activeElement.textContent.trim() }));
+  let f = await foco();
+  check('diálogo: o foco começa em "Continuar aberto"', f.dentro && f.texto === 'Continuar aberto', JSON.stringify(f));
+  let sempreDentro = true;
+  for (let i = 0; i < 6; i++) { await page.keyboard.press('Tab'); if (!(await foco()).dentro) sempreDentro = false; }
+  await page.keyboard.press('Shift+Tab');
+  if (!(await foco()).dentro) sempreDentro = false;
+  check('diálogo: Tab não sai do diálogo', sempreDentro);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+  check('diálogo: Esc fecha', !(await page.locator('[role=alertdialog]').count()));
+  f = await page.evaluate(() => document.activeElement.textContent.trim());
+  check('diálogo: o foco volta ao botão que abriu', f === 'Encerrar o dia', f);
+  await page.context().close();
+});
+
 await browser.close();
 server.close();
 const failed = results.filter(r => !r.ok);

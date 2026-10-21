@@ -168,6 +168,7 @@ create table public.orders (
   constraint orders_payment_status_check check ((payment_status = any (array['pending'::text, 'approved'::text, 'rejected'::text, 'refunded'::text, 'cancelled'::text]))),
   constraint orders_received_with_check check (((received_with is null) or (received_with = any (array['dinheiro'::text, 'cartao'::text, 'pix'::text])))),
   constraint orders_refunded_amount_check check ((refunded_amount >= (0)::numeric)),
+  constraint orders_refunded_amount_le_total check ((refunded_amount <= total)),
   constraint orders_status_check check ((status = any (array['Na Fila'::text, 'Em Preparo'::text, 'Pronto'::text, 'Entregue'::text, 'Cancelado'::text])))
 );
 
@@ -180,6 +181,8 @@ create table public.order_items (
   qty integer not null,
   note text not null default ''::text,
   constraint order_items_pkey primary key (id),
+  constraint order_items_price_check check ((price >= (0)::numeric)),
+  constraint order_items_qty_check check ((qty > 0)),
   constraint order_items_order_id_fkey foreign key (order_id) references public.orders(id) on delete cascade,
   constraint order_items_product_id_fkey foreign key (product_id) references public.products(id)
 );
@@ -260,8 +263,10 @@ create index order_items_order_id_idx on public.order_items using btree (order_i
 create index order_items_product_id_idx on public.order_items using btree (product_id);
 create index order_refunds_order_id_idx on public.order_refunds using btree (order_id);
 create index order_status_log_order_id_idx on public.order_status_log using btree (order_id);
+create index orders_created_at_idx on public.orders using btree (created_at desc);
 create index orders_customer_id_idx on public.orders using btree (customer_id);
 create index orders_delivered_by_idx on public.orders using btree (delivered_by) where (delivered_by is not null);
+create index orders_order_day_idx on public.orders using btree (order_day);
 create index orders_status_idx on public.orders using btree (status);
 create index orders_table_number_idx on public.orders using btree (table_number);
 create index orders_waiter_id_idx on public.orders using btree (waiter_id) where (waiter_id is not null);
@@ -397,6 +402,9 @@ declare
   prod_id uuid;
   current_stock int;
 begin
+  if exists (select 1 from public.kiosk_settings where id = 1 and (day_closed or paused) for share) then
+    raise exception 'kiosk_closed';
+  end if;
   insert into public.orders (customer_id, waiter_id, table_number, subtotal, fee, total, note, status, payment_status, payment_method)
   values (
     nullif(payload->>'customerId', '')::uuid,
@@ -548,10 +556,12 @@ create or replace function public.dashboard_stats()
  set search_path to 'public'
 as $function$
   with today_orders as (
-    select *, case when payment_status = 'refunded' then 0 else total - refunded_amount end as net
+    select *, total - refunded_amount as net
     from orders
-    where (created_at at time zone 'America/Sao_Paulo')::date = (now() at time zone 'America/Sao_Paulo')::date
+    where order_day = (now() at time zone 'America/Sao_Paulo')::date
       and status <> 'Cancelado'
+      and payment_status not in ('refunded', 'cancelled')
+      and (payment_status = 'approved' or payment_method = 'entrega')
   ),
   agg as (select coalesce(sum(net),0) as revenue, count(*) as orders_count from today_orders),
   top as (
@@ -582,7 +592,7 @@ declare
   report public.day_reports;
   already_closed boolean;
 begin
-  select day_closed into already_closed from public.kiosk_settings where id = 1;
+  select day_closed into already_closed from public.kiosk_settings where id = 1 for update;
   if already_closed then
     raise exception 'day_already_closed';
   end if;

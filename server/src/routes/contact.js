@@ -1,6 +1,6 @@
-import { Router } from "express";
 import { randomInt } from "node:crypto";
 import { supabaseAdmin } from "../supabase.js";
+import { asyncRouter } from "../async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { sendEmail, emailConfigured } from "../email.js";
 import { contactReplyEmail } from "../emails/resposta-contato.js";
@@ -13,7 +13,7 @@ import {
 } from "../validation/schemas.js";
 import { limiter } from "../rate-limit.js";
 
-export const contactRouter = Router();
+export const contactRouter = asyncRouter();
 
 // Formulário público: segura spam sem travar quem manda uma ou duas mensagens.
 const contactLimiter = limiter("contact", {
@@ -21,6 +21,23 @@ const contactLimiter = limiter("contact", {
   max: 5,
   message: { error: "Muitas mensagens em pouco tempo. Tente novamente mais tarde." },
 });
+
+// Retenção das mensagens do Fale conosco (LGPD, auditoria M11): depois de
+// 12 meses saem do banco. Roda na limpeza diária (/cron/limpeza).
+export const CONTACT_RETENTION_DAYS = 365;
+
+export async function purgeOldContactMessages(now = Date.now()) {
+  const before = new Date(now - CONTACT_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const { error } = await supabaseAdmin.from("contact_messages").delete().lt("created_at", before);
+  if (error) console.error("Mensagens antigas do Fale conosco não apagadas:", error.message);
+}
+
+// Conta excluída: as mensagens que a pessoa mandou com o e-mail dela também saem.
+export async function deleteContactMessagesOf(email) {
+  if (!email) return;
+  const { error } = await supabaseAdmin.from("contact_messages").delete().in("contact", [...new Set([email, email.toLowerCase()])]);
+  if (error) console.error("Mensagens do Fale conosco da conta não apagadas:", error.message);
+}
 
 function toApi(row) {
   return {

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import express, { Router } from "express";
+import express from "express";
 import { supabaseAuth, supabaseAdmin } from "../supabase.js";
+import { asyncRouter } from "../async-router.js";
 import { requireAuth, isProfileComplete } from "../middleware/auth.js";
 import { MAX_IMAGE_BYTES, imageType, publicBucketPrefix } from "../images.js";
 import {
@@ -17,19 +18,32 @@ import {
   validate,
 } from "../validation/schemas.js";
 import { limiter } from "../rate-limit.js";
+import { deleteContactMessagesOf } from "./contact.js";
+import { stripeConfigured, deleteStripeCustomer } from "../payments/stripe.js";
 
-export const authRouter = Router();
+export const authRouter = asyncRouter();
 
-// Trava força bruta: no máximo 10 tentativas por IP a cada 15 minutos nesta rota.
+// Trava força bruta (auditoria M10): só os logins que falharam contam, por
+// IP (30 a cada 15 minutos: no Wi-Fi do quiosque muitos clientes dividem o
+// mesmo IP) e por e-mail (10 a cada 15 minutos, venha de onde vier).
 const loginLimiter = limiter("login", {
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 30,
+  skipSuccessfulRequests: true,
   message: { error: "Muitas tentativas de login. Tente novamente mais tarde." },
+});
+
+const loginEmailLimiter = limiter("login-email", {
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) => "email:" + String(req.body.email || "").trim().toLowerCase(),
+  message: { error: "Muitas tentativas de login nesta conta. Tente novamente mais tarde ou redefina a senha." },
 });
 
 const signupLimiter = limiter("signup", {
   windowMs: 60 * 60 * 1000,
-  max: 8,
+  max: 20,
   message: { error: "Muitas tentativas de cadastro. Tente novamente mais tarde." },
 });
 
@@ -94,7 +108,7 @@ export async function removeAvatarFile(path) {
   if (path) await supabaseAdmin.storage.from(AVATARS_BUCKET).remove([path]);
 }
 
-authRouter.post("/login", loginLimiter, validate(loginSchema), async (req, res) => {
+authRouter.post("/login", loginLimiter, validate(loginSchema), loginEmailLimiter, async (req, res) => {
   const { email, password } = req.body;
   const { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password });
 
@@ -250,8 +264,22 @@ authRouter.post("/update-password", forgotLimiter, validate(updatePasswordSchema
   }
   const { error } = await supabaseAdmin.auth.admin.updateUserById(userData.user.id, { password: newPassword });
   if (error) return res.status(500).json({ error: "Não foi possível redefinir a senha." });
+  // Senha nova encerra todas as sessões, inclusive a do link (auditoria M3):
+  // quem tinha roubado uma sessão sai, e o mesmo link não troca a senha de novo.
+  await endSessions(accessToken, "global");
   res.json({ message: "Senha redefinida com sucesso." });
 });
+
+// Encerra sessões do dono do token: "others" (todas menos esta) ou "global".
+// Se falhar, a senha já foi trocada: só fica registrado.
+async function endSessions(token, scope) {
+  try {
+    const { error } = await supabaseAdmin.auth.admin.signOut(token, scope);
+    if (error) throw error;
+  } catch (e) {
+    console.error("Sessões não encerradas depois da troca de senha:", e.message);
+  }
+}
 
 // "Quem sou eu" — usado depois do login social (Google), que devolve o
 // access_token direto pro navegador (redirect do Supabase) sem passar pelo
@@ -344,6 +372,8 @@ authRouter.post("/change-password", changePasswordLimiter, requireAuth, validate
   }
   const { error } = await supabaseAdmin.auth.admin.updateUserById(req.user.sub, { password: newPassword });
   if (error) return res.status(500).json({ error: "Não foi possível trocar a senha." });
+  // Os outros aparelhos saem; este continua logado (auditoria M3).
+  await endSessions(req.headers.authorization.split(" ")[1], "others");
   res.json({ message: "Senha alterada." });
 });
 
@@ -406,6 +436,13 @@ const deleteAccountLimiter = limiter("delete-account", {
 });
 
 authRouter.post("/delete-account", deleteAccountLimiter, requireAuth, validate(deleteAccountSchema), async (req, res) => {
+  // O último admin não pode sair: o quiosque ficaria sem ninguém para administrar (auditoria B7).
+  if (req.user.role === "admin") {
+    const { data: admins } = await supabaseAdmin.from("profiles").select("id").eq("role", "admin");
+    if ((admins || []).length <= 1) {
+      return res.status(409).json({ error: "Você é o único admin. Crie outro admin antes de excluir sua conta.", code: "last_admin" });
+    }
+  }
   if (await hasPassword(req.user.sub)) {
     if (!req.body.password) {
       return res.status(400).json({ error: "Digite sua senha para excluir a conta.", code: "password_required" });
@@ -418,8 +455,29 @@ authRouter.post("/delete-account", deleteAccountLimiter, requireAuth, validate(d
       return res.status(400).json({ error: "Senha incorreta.", code: "wrong_password" });
     }
   }
+  // Pedido pago em andamento: excluir a conta tiraria do cliente o
+  // cancelamento com estorno pelo app (auditoria M11).
+  const { data: open } = await supabaseAdmin
+    .from("orders")
+    .select("id")
+    .eq("customer_id", req.user.sub)
+    .in("status", ["Na Fila", "Em Preparo", "Pronto"])
+    .eq("payment_status", "approved");
+  if ((open || []).length) {
+    return res.status(409).json({
+      error: "Você tem um pedido pago em andamento. Espere a entrega (ou cancele o pedido) antes de excluir a conta.",
+      code: "open_paid_order",
+    });
+  }
   const { error } = await supabaseAdmin.auth.admin.deleteUser(req.user.sub);
   if (error) return res.status(500).json({ error: "Não foi possível excluir a conta." });
   await removeAvatarFile(req.user.profile.avatar_path);
+  // LGPD (auditoria M11): o cadastro no Stripe (cartões salvos) e as
+  // mensagens do Fale conosco também saem. Falhar aqui não desfaz a exclusão.
+  await deleteContactMessagesOf(req.user.email);
+  if (stripeConfigured) {
+    await deleteStripeCustomer({ userId: req.user.sub, email: req.user.email })
+      .catch((e) => console.error("Cliente do Stripe não apagado:", req.user.sub, e.message));
+  }
   res.json({ message: "Conta excluída." });
 });

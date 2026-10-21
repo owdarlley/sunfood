@@ -1,5 +1,5 @@
-import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
+import { asyncRouter } from "../async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { cancelWindowFrom, locationFrom, minOrderCentsFrom, minOrderEnabledFrom, tableCountFrom } from "../business-rules.js";
 import {
@@ -13,7 +13,7 @@ import {
   validate,
 } from "../validation/schemas.js";
 
-export const adminRouter = Router();
+export const adminRouter = asyncRouter();
 
 function kioskToApi(row) {
   return {

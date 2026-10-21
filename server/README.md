@@ -25,7 +25,8 @@ Preencha o `.env`:
 | `EMAIL_CONFIRM_REDIRECT_URL` | Para onde o link do e-mail de confirmação de cadastro leva (a tela de login do site, ex.: `https://owdarlley.github.io/sunfood/index.html?login=1`) |
 | `PASSWORD_RESET_REDIRECT_URL` | URL pública de `redefinir-senha.html` (ex.: `https://seu-site.github.io/sunfood/redefinir-senha.html`) — precisa também estar na lista de Redirect URLs em Authentication → URL Configuration no Supabase |
 | `STRIPE_PUBLISHABLE_KEY` | Mesma página, chave publicável de teste (`pk_test_...`). Com ela, o cartão é digitado na própria tela do app (Payment Element) em vez da página do Stripe |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Dashboard do Stripe → Developers → API keys (use a **chave de teste** `sk_test_...`) e o signing secret (`whsec_...`) do webhook `<API>/payments/stripe/webhook` com os eventos `checkout.session.completed`, `payment_intent.succeeded` e `charge.refunded` (estorno feito no painel do Stripe aparece no app). Com a chave, cartão (crédito ou débito, sempre à vista) e PIX são cobrados pelo Stripe; em modo de teste nada é cobrado (cartão `4242 4242 4242 4242`). Sem ela, PIX e cartão são aprovados na hora como **provisório** (não cobra dinheiro real); em produção (`VERCEL_ENV=production`) a API recusa com 503 em vez de aprovar |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Dashboard do Stripe → Developers → API keys (use a **chave de teste** `sk_test_...`) e o signing secret (`whsec_...`) do webhook `<API>/payments/stripe/webhook` com os eventos `checkout.session.completed`, `payment_intent.succeeded` e `charge.refunded` (estorno feito no painel do Stripe aparece no app). Com a chave, cartão (crédito ou débito, sempre à vista) e PIX são cobrados pelo Stripe; em modo de teste nada é cobrado (cartão `4242 4242 4242 4242`). Sem ela, PIX e cartão só são aprovados na hora como **provisório** (não cobra dinheiro real) com `ALLOW_PROVISIONAL_PAYMENTS=1`; sem essa variável, e sempre em produção (`VERCEL_ENV=production`), a API recusa com 503 em vez de aprovar |
+| `CRON_SECRET` | Texto aleatório longo. O Cron da Vercel (`vercel.json`) chama `/cron/limpeza` uma vez por dia com ele: expira PIX/cartão vencidos, refaz estornos pendentes e apaga mensagens do Fale conosco com mais de 12 meses. Sem a variável a rota fica fechada (a lista de pedidos do admin também roda a limpeza) |
 | `RESEND_API_KEY` (+ opcionais `EMAIL_FROM`, `CONTACT_REPLY_TO`) | resend.com → API Keys (Sending access, domínio sunfood.app.br). Usada para responder o Fale conosco por e-mail. Sem ela, só as respostas por WhatsApp funcionam |
 
 ```bash
@@ -138,13 +139,13 @@ Senhas ficam só como hash dentro do Supabase Auth — o backend nunca vê nem g
 - **express-rate-limit** em login, cadastro, recuperação de senha, criação de pedido e geração de PIX.
 - **helmet** + **CORS** restrito a uma lista de origens (`CORS_ORIGIN`, separadas por vírgula).
 - Webhook do Stripe com **verificação de assinatura** sobre o corpo cru e reconsulta da sessão na API do Stripe antes de liberar qualquer pedido — o corpo da notificação nunca é confiado por si só. A chave secreta fica só na variável de ambiente do servidor.
-- Sem `STRIPE_SECRET_KEY`, PIX e cartão são aprovados como **provisório** (sem cobrança) e aparecem assim na tela de Pagamentos do admin. Configure a chave antes de usar com clientes de verdade.
+- Sem `STRIPE_SECRET_KEY` e com `ALLOW_PROVISIONAL_PAYMENTS=1`, PIX e cartão são aprovados como **provisório** (sem cobrança) e aparecem assim na tela de Pagamentos do admin. Configure a chave antes de usar com clientes de verdade.
 
 ## Deploy (Vercel)
 
 O projeto já está preparado pra rodar como função serverless (`api/index.js` + `vercel.json`). A função roda em `pdx1` (Portland, EUA), perto do banco do Supabase (`us-west-2`, Oregon): cada pedido à API faz 2 ou mais consultas ao banco em sequência, e com a função na região padrão da Vercel (Washington) cada uma atravessava os EUA. Se o banco mudar de região, mude `regions` no `vercel.json` junto. Pra publicar:
 
-1. No painel da Vercel, confirme as variáveis de ambiente do projeto (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `PASSWORD_RESET_REDIRECT_URL`, `EMAIL_CONFIRM_REDIRECT_URL`, `CORS_ORIGIN`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`).
+1. No painel da Vercel, confirme as variáveis de ambiente do projeto (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `PASSWORD_RESET_REDIRECT_URL`, `EMAIL_CONFIRM_REDIRECT_URL`, `CORS_ORIGIN`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `CRON_SECRET`).
 2. No painel do Supabase, em Authentication → URL Configuration, adicione a URL de `redefinir-senha.html` publicada na lista de Redirect URLs (senão o link do e-mail de recuperação de senha não funciona).
 3. No Dashboard do Stripe (Developers → Webhooks), aponte o webhook pra `https://<seu-domínio-vercel>/payments/stripe/webhook`.
 4. Ative "Leaked Password Protection" em Authentication → Providers → Email, no painel do Supabase (recomendado pelo próprio linter de segurança do projeto).

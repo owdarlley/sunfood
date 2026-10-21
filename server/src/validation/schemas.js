@@ -143,6 +143,9 @@ export const productSchema = z.object({
   prepTime: z.string().trim().max(40).optional().default(""),
   // null = estoque não controlado (ilimitado); ausente = não mexe no saldo.
   stockQty: z.union([z.number().int().min(0), z.null()]).optional(),
+  // Saldo que o formulário carregou: se mudou até salvar (entrou pedido), o
+  // estoque novo não é gravado por cima (auditoria M6).
+  stockQtyBase: z.union([z.number().int().min(0), z.null()]).optional(),
   // null = sem foto; ausente = não mexe na foto atual.
   imageUrl: z.union([z.string().url("Foto inválida.").max(500), z.null()]).optional(),
   // Ausente = mantém o que já está gravado (cliente antigo não apaga nada).
