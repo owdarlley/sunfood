@@ -80,12 +80,16 @@ function checkConstraints(table, op, data, hit) {
     return { code: "23503", message: "fk" };
   if (table !== "categories") return null;
   if (op === "delete") {
+    // categories_guard: a última categoria não sai.
+    if (hit.length && db.categories.length <= 1) return { code: "23514", message: "last_category" };
     const names = hit.map((c) => c.name);
     if (db.products.some((p) => names.includes(p.category) && !p.archived_at)) return { code: "23514", message: "check" };
     db.products.filter((p) => names.includes(p.category)).forEach((p) => (p.category = null));
     return null;
   }
   for (const r of [].concat(data || [])) {
+    // categories_guard: posição 0 = no fim da lista.
+    if (op === "insert" && r.position === 0) r.position = Math.max(0, ...db.categories.map((c) => c.position)) + 1;
     if (r.name === undefined) continue;
     if (db.categories.some((c) => !hit.includes(c) && c.name.toLowerCase() === r.name.toLowerCase()))
       return { code: "23505", message: "unique" };
@@ -1086,4 +1090,11 @@ test("admin cria, renomeia, reordena e exclui categorias; o cardápio acompanha"
   assert.equal((await api("DELETE", "/categories/" + encodeURIComponent("Petiscos do Mar"), null, admin)).status, 200);
   assert.ok(!(await api("GET", "/categories")).body.some((c) => c.name === "Petiscos do Mar"));
   assert.equal((await api("DELETE", "/categories/Nada", null, admin)).status, 404);
+
+  const todas = db.categories;
+  db.categories = [todas[0]];
+  const ultima = await api("DELETE", "/categories/" + encodeURIComponent(todas[0].name), null, admin);
+  db.categories = todas;
+  assert.equal(ultima.status, 409);
+  assert.match(ultima.body.error, /pelo menos uma categoria/);
 });

@@ -22,5 +22,14 @@ begin
   if (select name from categories order by position limit 1) <> (select max(name) from categories) then raise exception 'FALHA ordem'; end if;
   begin perform reorder_categories(array['Bebidas']); raise exception 'FALHA mismatch';
   exception when others then if sqlerrm not like '%category_list_mismatch%' then raise; end if; end;
+  -- posição 0 = fim da lista, calculada pelo banco
+  insert into categories(name) values ('Drinks') returning position into n;
+  if n <> (select max(position) from categories) or (select count(*) from categories where position = n) <> 1 then
+    raise exception 'FALHA posição automática %', n; end if;
+  -- a última categoria não sai
+  update products set archived_at = now() where archived_at is null;
+  delete from categories where name <> 'Bebidas';
+  begin delete from categories where name = 'Bebidas'; raise exception 'FALHA apagou a última';
+  exception when check_violation then if sqlerrm <> 'last_category' then raise; end if; end;
   raise exception 'TESTE_CATEGORIAS_PASSOU';
 end $t$;

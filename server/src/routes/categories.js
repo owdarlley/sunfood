@@ -21,17 +21,12 @@ categoriesRouter.get("/", async (req, res) => {
   res.json(data.map(toApi));
 });
 
-// Admin: nova categoria entra no fim da lista.
+// Admin: nova categoria entra no fim da lista (o banco calcula a posição sob
+// trava, então dois admins ao mesmo tempo não repetem a posição).
 categoriesRouter.post("/", requireAuth, requireRole("admin"), validate(categorySchema), async (req, res) => {
-  const { data: last } = await supabaseAdmin
-    .from("categories")
-    .select("position")
-    .order("position", { ascending: false })
-    .limit(1)
-    .maybeSingle();
   const { data, error } = await supabaseAdmin
     .from("categories")
-    .insert({ ...req.body, position: (last?.position ?? 0) + 1 })
+    .insert({ ...req.body, position: 0 })
     .select()
     .single();
   if (error) return dbError(res, error, "Não foi possível criar a categoria.");
@@ -64,14 +59,14 @@ categoriesRouter.put("/:name", requireAuth, requireRole("admin"), validate(categ
   res.json(toApi(data));
 });
 
-// Admin: excluir. Só sai se não tiver item ativo nela (o banco recusa) e se
-// não for a última (o formulário de produto precisa de pelo menos uma).
+// Admin: excluir. Só sai se não tiver item ativo nela e se não for a última
+// (o formulário de produto precisa de pelo menos uma). O banco confere as duas
+// coisas, a segunda sob trava.
 categoriesRouter.delete("/:name", requireAuth, requireRole("admin"), async (req, res) => {
-  const { data: all, error: listError } = await supabaseAdmin.from("categories").select("name");
-  if (listError) return res.status(500).json({ error: "Não foi possível excluir a categoria." });
-  if (!all.some((c) => c.name === req.params.name)) return res.status(404).json({ error: "Categoria não encontrada." });
-  if (all.length <= 1) return res.status(409).json({ error: "O cardápio precisa de pelo menos uma categoria." });
-  const { error } = await supabaseAdmin.from("categories").delete().eq("name", req.params.name);
+  const { data, error } = await supabaseAdmin.from("categories").delete().eq("name", req.params.name).select("name");
+  if (/last_category/.test(error?.message || ""))
+    return res.status(409).json({ error: "O cardápio precisa de pelo menos uma categoria." });
   if (error) return dbError(res, error, "Não foi possível excluir a categoria.");
+  if (!data.length) return res.status(404).json({ error: "Categoria não encontrada." });
   res.json({ ok: true });
 });
