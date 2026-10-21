@@ -22,15 +22,15 @@ test("loginSchema exige e-mail válido e senha", () => {
 const validSignup = {
   name: "Ana",
   email: "ana@email.com",
-  password: "123456",
+  password: "praia2026",
   phone: "11987654321",
   cpf: "529.982.247-25",
   birthDate: "2000-01-01",
   termsAccepted: true,
 };
 
-test("signupSchema exige senha com 6+ caracteres", () => {
-  assert.equal(signupSchema.safeParse({ ...validSignup, password: "12345" }).success, false);
+test("signupSchema exige senha com 8+ caracteres", () => {
+  assert.equal(signupSchema.safeParse({ ...validSignup, password: "1234567" }).success, false);
   assert.equal(signupSchema.safeParse(validSignup).success, true);
 });
 

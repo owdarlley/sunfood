@@ -1,3 +1,4 @@
+-- Aplicado em produção em 21/10/2026.
 -- Categorias sem janela de corrida (auditoria B-09). A API calculava a posição
 -- da nova categoria lendo a maior e somando 1, e conferia "não é a última"
 -- antes de apagar; dois admins ao mesmo tempo podiam repetir a posição ou

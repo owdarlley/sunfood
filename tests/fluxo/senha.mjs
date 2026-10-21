@@ -145,14 +145,14 @@ const LINK = '#access_token=tok-recuperacao&expires_in=3600&refresh_token=r&toke
 await step('trocar senha', async () => {
   const page = await open('redefinir-senha.html' + LINK);
   check('nova senha: token sai da barra de endereço', !page.url().includes('access_token'), page.url());
-  await page.getByLabel('Nova senha', { exact: true }).fill('nova123');
-  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('outra99');
+  await page.getByLabel('Nova senha', { exact: true }).fill('nova1234');
+  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('outra999');
   await page.getByText('Redefinir senha', { exact: true }).last().click(); await page.waitForTimeout(500);
   check('nova senha: senhas diferentes são recusadas', (await text(page)).includes('não conferem'));
-  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('nova123');
+  await page.getByLabel('Confirmar nova senha', { exact: true }).fill('nova1234');
   await page.getByText('Redefinir senha', { exact: true }).last().click(); await page.waitForTimeout(500);
   const call = page.calls.find(c => c.p === '/auth/update-password');
-  check('nova senha: envia token + nova senha pra API', call?.body.accessToken === 'tok-recuperacao' && call?.body.newPassword === 'nova123', JSON.stringify(call?.body));
+  check('nova senha: envia token + nova senha pra API', call?.body.accessToken === 'tok-recuperacao' && call?.body.newPassword === 'nova1234', JSON.stringify(call?.body));
   check('nova senha: mostra sucesso', (await text(page)).includes('Senha redefinida com sucesso'));
   check('nova senha: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();

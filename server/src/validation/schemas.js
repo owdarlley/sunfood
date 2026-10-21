@@ -42,7 +42,7 @@ const termsField = z.literal(true, {
 export const signupSchema = z.object({
   name: nameField,
   email: z.string().trim().email("E-mail inválido."),
-  password: z.string().min(6, "Senha deve ter ao menos 6 caracteres."),
+  password: z.string().min(8, "Senha deve ter ao menos 8 caracteres.").max(200),
   phone: phoneField,
   cpf: cpfField,
   birthDate: birthDateField,
@@ -79,7 +79,7 @@ export const deleteAccountSchema = z.object({
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Digite sua senha atual."),
-  newPassword: z.string().min(6, "Senha deve ter ao menos 6 caracteres."),
+  newPassword: z.string().min(8, "Senha deve ter ao menos 8 caracteres.").max(200),
 });
 
 // Esqueci minha senha: o cliente manda o e-mail OU o CPF (pra quem não
@@ -101,7 +101,7 @@ export const refreshSchema = z.object({
 
 export const updatePasswordSchema = z.object({
   accessToken: z.string().min(10, "Link de redefinição inválido."),
-  newPassword: z.string().min(6, "Senha deve ter ao menos 6 caracteres."),
+  newPassword: z.string().min(8, "Senha deve ter ao menos 8 caracteres.").max(200),
 });
 
 export const orderItemSchema = z.object({
@@ -247,7 +247,7 @@ export const salesReportQuerySchema = z.object({
 export const waiterCreateSchema = z.object({
   name: nameField,
   email: z.string().trim().toLowerCase().email("E-mail inválido."),
-  password: z.string().min(6, "Senha deve ter ao menos 6 caracteres."),
+  password: z.string().min(8, "Senha deve ter ao menos 8 caracteres.").max(200),
 });
 
 export const waiterActiveSchema = z.object({

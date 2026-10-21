@@ -141,7 +141,7 @@ waitersRouter.post("/waiters", requireAuth, requireRole("admin"), validate(waite
       return res.status(409).json({ error: "Já existe uma conta com esse e-mail." });
     }
     if (error?.code === "weak_password") {
-      return res.status(400).json({ error: "Senha fraca. Use pelo menos 6 caracteres, misturando letras e números." });
+      return res.status(400).json({ error: "Senha fraca. Use pelo menos 8 caracteres, misturando letras e números." });
     }
     return res.status(500).json({ error: "Não foi possível criar a conta do garçom." });
   }
