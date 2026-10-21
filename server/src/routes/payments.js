@@ -104,6 +104,11 @@ async function loadOwnUnpaidOrder(req, res, method) {
 // payment_provider "provisorio" pra aparecer assim no Admin. Sem payment_id,
 // cancelar não tenta estorno.
 async function approveProvisionally(order, res) {
+  // Em produção, falta de chave é erro de configuração, nunca pedido de graça.
+  if (process.env.VERCEL_ENV === "production") {
+    console.error("Pagamento sem provedor configurado em produção:", order.id);
+    return res.status(503).json({ error: "Pagamento online indisponível no momento. Escolha pagar na entrega." });
+  }
   const { error } = await supabaseAdmin
     .from("orders")
     .update({ payment_status: "approved", payment_provider: "provisorio" })

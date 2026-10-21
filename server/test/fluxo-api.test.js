@@ -497,6 +497,12 @@ test("PIX provisório: aprovado na hora e vai para a cozinha", async () => {
   const cozinha = staff("cozinha");
   let fila = await api("GET", "/orders", null, cozinha);
   assert.ok(!fila.body.some((o) => o.id === pixOrder), "PIX não pago não aparece na cozinha");
+  // Em produção sem chave do provedor, nunca aprova de graça.
+  process.env.VERCEL_ENV = "production";
+  r = await api("POST", `/payments/pix/${pixOrder}`, {}, anaToken);
+  delete process.env.VERCEL_ENV;
+  assert.equal(r.status, 503);
+  assert.equal(db.orders.find((o) => o.id === pixOrder).payment_status, "pending");
   r = await api("POST", `/payments/pix/${pixOrder}`, {}, anaToken);
   assert.equal(r.body.provisional, true);
   fila = await api("GET", "/orders", null, cozinha);
