@@ -1,25 +1,13 @@
 import { supabaseAdmin } from "./supabase.js";
 import { needsRefund } from "./business-rules.js";
-import { refundPayment, PAYMENT_WINDOW_MINUTES } from "./payments/mercadopago.js";
-import { isStripePaymentId, refundStripePayment } from "./payments/stripe.js";
-import { recordRefund } from "./order-refunds.js";
+import { PAYMENT_WINDOW_MINUTES } from "./payments/stripe.js";
+import { recordRefund, refundAtProvider } from "./order-refunds.js";
 
 // Motivos que o cliente vê nos detalhes do pedido.
 export const CUSTOMER_CANCEL_REASON = "Você cancelou o pedido";
 export const LATE_PAYMENT_REASON = "O pagamento chegou depois que o pedido já tinha saído da fila";
 
 const cents = (v) => Math.round(Number(v || 0) * 100);
-
-// Estorno no provedor certo: Stripe guarda o id do PaymentIntent (pi_...), o
-// resto é Mercado Pago. Sem amountCents devolve tudo o que falta. A chave de
-// idempotência faz o mesmo estorno, pedido de novo (webhook repetido, gravação
-// que falhou), não devolver duas vezes.
-function refundAtProvider(paymentId, { amountCents, key, metadata }) {
-  if (isStripePaymentId(paymentId)) {
-    return refundStripePayment(paymentId, { amountCents, metadata, idempotencyKey: key });
-  }
-  return refundPayment(paymentId, amountCents ? amountCents / 100 : undefined, { idempotencyKey: key });
-}
 
 // Devolve o que falta devolver de um pagamento e anota no histórico de
 // estornos do pedido. paidCents: quanto esse pagamento cobrou (padrão: o
@@ -35,7 +23,7 @@ export async function refundWholeOrder(row, paymentId, reason, { paidCents } = {
   await recordRefund(row.id, {
     amount: amountCents / 100,
     reason,
-    provider: isStripePaymentId(paymentId) ? "stripe" : "mercadopago",
+    provider: "stripe",
     refundId: result?.refundId,
   });
   return { ...result, refundedTotal: (already + amountCents) / 100 };

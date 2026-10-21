@@ -10,7 +10,7 @@ create table if not exists public.order_refunds (
   order_id uuid not null references public.orders(id) on delete cascade,
   amount numeric(10,2) not null check (amount > 0),
   reason text not null default '',
-  -- 'stripe' ou 'mercadopago'; o id do estorno no provedor evita registrar o
+  -- provedor do estorno ('stripe'); o id do estorno no provedor evita registrar o
   -- mesmo estorno duas vezes (painel do admin + webhook do Stripe).
   provider text not null,
   provider_refund_id text,

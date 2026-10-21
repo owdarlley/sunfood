@@ -29,9 +29,9 @@ app.use(helmet());
 app.use(
   cors({
     origin(origin, callback) {
-      // Sem header Origin (curl, apps nativos, o próprio webhook do Mercado
-      // Pago) — permite; navegadores sempre mandam Origin em requisições
-      // cross-site, então isso não abre a API pra qualquer site.
+      // Sem header Origin (curl, apps nativos, webhooks) — permite;
+      // navegadores sempre mandam Origin em requisições cross-site, então
+      // isso não abre a API pra qualquer site.
       if (!origin || CORS_ORIGINS.includes(origin)) return callback(null, true);
       callback(Object.assign(new Error("Origem não permitida por CORS."), { status: 403 }));
     },

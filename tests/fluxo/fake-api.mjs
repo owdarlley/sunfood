@@ -1,12 +1,12 @@
 // API falsa em memória: o navegador acha que está falando com o servidor,
 // mas nada sai da máquina e nada é gravado no banco de verdade.
-// Página de checkout do Mercado Pago de mentira (o teste responde ela sem rede).
-export const FAKE_CHECKOUT_URL = 'https://www.mercadopago.com.br/checkout/teste';
+// Página de checkout do Stripe de mentira (o teste responde ela sem rede).
+export const FAKE_CHECKOUT_URL = 'https://checkout.stripe.com/c/pay/teste';
 
 // Endereço das fotos enviadas (o teste serve uma imagem pequena nele).
 export const FAKE_PHOTO_BASE = 'https://teste.supabase.co/storage/v1/object/public/produtos/';
 
-export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTest = false, stripeInApp = false, stripePix = false } = {}) {
+export function fakeApi(role = 'cliente', { stripe = true, stripeTest = false, stripeInApp = false } = {}) {
   const now = () => new Date().toISOString();
   const db = {
     products: [
@@ -23,7 +23,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
     kiosk: { paused: false, dayClosed: false, cancelWindowMinutes: 0 },
     orders: [],
     contacts: [],
-    paymentsConfigured, stripeTest, stripeInApp, stripePix,
+    stripe: stripe || stripeTest, stripeTest, stripeInApp,
   };
   const user = { id: 'u1', email: role + '@teste', name: 'Teste', role, avatarUrl: null, avatarPreset: null, notifyReady: true, soundOn: true };
   // Tela Perfil (GET/PATCH /auth/profile, foto e trocar senha). A senha atual certa é "senha-atual".
@@ -144,15 +144,14 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
     }
     let r;
     if ((r = p.match(/^\/payments\/card\/([^/]+)$/))) { db.cardReturnUrl = body.returnUrl;
-      if (!db.paymentsConfigured && !db.stripeTest) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
+      if (!db.stripe) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
       return json(200, { checkoutUrl: FAKE_CHECKOUT_URL }); }
     if ((r = p.match(/^\/payments\/pix\/([^/]+)$/))) {
-      if (db.stripePix) return json(200, { qrCode: '000201STRIPEPIX', qrCodeImageUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E', testPayUrl: 'https://payments.stripe.com/pix/teste' });
-      if (!db.paymentsConfigured) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
-      return json(200, { qrCode: '000201FAKEPIX', qrCodeBase64: '' }); }
-    if (p === '/payments/status') return json(200, { configured: db.paymentsConfigured,
-      pix: db.paymentsConfigured ? 'mercadopago' : db.stripePix ? 'stripe' : 'provisorio',
-      card: db.stripeTest ? 'stripe' : db.paymentsConfigured ? 'mercadopago' : 'provisorio', cardTestMode: db.stripeTest,
+      if (!db.stripe) { Object.assign(db.orders.find(o => o.id === r[1]), { paymentStatus: 'approved', paymentProvider: 'provisorio' }); return json(200, { provisional: true, paymentStatus: 'approved' }); }
+      return json(200, { qrCode: '000201STRIPEPIX', qrCodeImageUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E',
+        testPayUrl: db.stripeTest ? 'https://payments.stripe.com/pix/teste' : null }); }
+    if (p === '/payments/status') return json(200, {
+      pix: db.stripe ? 'stripe' : 'provisorio', card: db.stripe ? 'stripe' : 'provisorio', cardTestMode: db.stripeTest,
       stripePublishableKey: db.stripeTest && db.stripeInApp ? 'pk_test_fake' : null });
     if ((r = p.match(/^\/payments\/card-holder\/([^/]+)$/))) {
       db.cardHolder = body;
@@ -258,7 +257,7 @@ export function fakeApi(role = 'cliente', { paymentsConfigured = true, stripeTes
     if (p === '/day-reports/latest') return json(404, { error: 'none' });
     return json(404, { error: 'rota falsa não implementada: ' + m + ' ' + p });
   };
-  // Faz o papel do webhook do Mercado Pago: o pagamento do pedido foi aprovado.
+  // Faz o papel do webhook do Stripe: o pagamento do pedido foi aprovado.
   handler.approvePayment = id => { db.orders.find(o => o.id === id).paymentStatus = 'approved'; };
   handler.db = db;
   handler.user = user;

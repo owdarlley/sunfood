@@ -105,7 +105,7 @@ export function withinCancelWindow(createdAt, windowMinutes, now = Date.now()) {
   return deadline === null || now <= new Date(deadline).getTime();
 }
 
-// Formas de pagamento: PIX e cartão são pagos no app (Mercado Pago) antes de
+// Formas de pagamento: PIX e cartão são pagos no app (Stripe) antes de
 // a cozinha começar; "entrega" é pago ao garçom (maquininha ou dinheiro).
 export const PAYMENT_METHODS = ["pix", "cartao", "entrega"];
 

@@ -1,6 +1,6 @@
 -- Forma de pagamento escolhida pelo cliente em cada pedido:
---   pix     -> pago no app (Mercado Pago), só vai pra cozinha depois de pago
---   cartao  -> pago no app (checkout do Mercado Pago), idem
+--   pix     -> pago no app, só vai pra cozinha depois de pago
+--   cartao  -> pago no app, idem
 --   entrega -> pago ao garçom na entrega (maquininha ou dinheiro)
 -- Pedidos antigos ficam como 'pix', que era a única forma real até aqui.
 alter table public.orders

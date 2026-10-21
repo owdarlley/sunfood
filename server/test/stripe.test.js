@@ -126,7 +126,6 @@ before(async () => {
   process.env.STRIPE_SECRET_KEY = "sk_test_123";
   process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
   process.env.STRIPE_PUBLISHABLE_KEY = "pk_test_123";
-  delete process.env.MERCADOPAGO_ACCESS_TOKEN;
   const { app } = await import("../src/app.js");
   server = app.listen(0);
   await new Promise((r) => server.on("listening", r));
@@ -154,7 +153,7 @@ const completed = (id) => ({ id: "evt_1", type: "checkout.session.completed", da
 
 test("status diz que cartão e PIX são cobrados pelo Stripe em modo teste", async () => {
   const r = await api("GET", "/payments/status");
-  assert.deepEqual(r.body, { configured: false, pix: "stripe", card: "stripe", cardTestMode: true, stripePublishableKey: "pk_test_123" });
+  assert.deepEqual(r.body, { pix: "stripe", card: "stripe", cardTestMode: true, stripePublishableKey: "pk_test_123" });
 });
 
 test("cartão abre o checkout do Stripe pelo valor do pedido, em reais", async () => {

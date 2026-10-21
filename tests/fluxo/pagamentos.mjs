@@ -29,7 +29,7 @@ const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : 
 const results = [];
 const check = (name, ok, detail = '') => { results.push({ name, ok, detail }); console.log(`${ok ? 'ok   ' : 'FALHA'} ${name}${ok || !detail ? '' : ' -> ' + detail}`); };
 
-async function open(path, { role, seed, session, paymentsConfigured = true, stripeTest = false, stripeInApp = false, stripePix = false, viewport = { width: 400, height: 860 }, setup } = {}) {
+async function open(path, { role, seed, session, stripe = true, stripeTest = false, stripeInApp = false, viewport = { width: 400, height: 860 }, setup } = {}) {
   const page = await browser.newPage({ viewport, serviceWorkers: 'block' }); // o app instalável (service worker) tem teste próprio em pwa.mjs
   page.jsErrors = [];
   page.on('pageerror', e => page.jsErrors.push(e.message));
@@ -38,7 +38,7 @@ async function open(path, { role, seed, session, paymentsConfigured = true, stri
     r.fulfill({ path: join(CDN, 'node_modules', mod), contentType: 'application/javascript' });
   });
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
-  const api = fakeApi(role || 'cliente', { paymentsConfigured, stripeTest, stripeInApp, stripePix });
+  const api = fakeApi(role || 'cliente', { stripe, stripeTest, stripeInApp });
   // Stripe.js falso: desenha um campo no lugar do quadro do Stripe e responde
   // ao confirmPayment (recusa se window.__stripeRecusa estiver ligado). Como o
   // Stripe.js de verdade, lança erro se o campo foi criado sem endereço
@@ -61,7 +61,7 @@ async function open(path, { role, seed, session, paymentsConfigured = true, stri
   if (seed) api.seed();
   if (setup) setup(api.db);
   await page.route('http://localhost:8787/**', api);
-  await page.route(FAKE_CHECKOUT_URL, r => r.fulfill({ contentType: 'text/html', body: '<h1>Checkout Mercado Pago (teste)</h1>' }));
+  await page.route(FAKE_CHECKOUT_URL, r => r.fulfill({ contentType: 'text/html', body: '<h1>Checkout Stripe (teste)</h1>' }));
   page.api = api;
   if ((role && role !== 'cliente') || session) await page.addInitScript(r => localStorage.setItem('sunfood_session',
     JSON.stringify({ token: 'tok', user: { id: 'u1', email: r + '@teste', name: 'Teste', role: r } })), role);
@@ -114,17 +114,17 @@ await step('cartão', async () => {
   check('cartão: pede checkout com volta pro próprio app', /app-cliente\.dc\.html\?module=cliente&screen=card$/.test(page.api.db.cardReturnUrl || ''), page.api.db.cardReturnUrl);
   check('cartão: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
   await page.waitForURL(FAKE_CHECKOUT_URL, { timeout: 5000 }).catch(() => {});
-  check('cartão: leva pro checkout do Mercado Pago (cartão digitado lá, não no app)', page.url() === FAKE_CHECKOUT_URL, page.url());
+  check('cartão: leva pro checkout do Stripe (cartão digitado lá, não no app)', page.url() === FAKE_CHECKOUT_URL, page.url());
   await page.close();
 });
 
-await step('volta do Mercado Pago', async () => {
+await step('volta do checkout', async () => {
   const page = await open('app-cliente.dc.html?module=cliente&screen=card&pedido=o9&status=approved', { role: 'cliente', seed: true, session: true });
   await page.waitForTimeout(1500);
   check('volta aprovada: vai para a confirmação', (await text(page)).toLowerCase().includes('pedido confirmado'), (await text(page)).slice(0, 200));
   check('volta: limpa os parâmetros da URL', !page.url().includes('pedido='));
   await page.close();
-  const p2 = await open('app-cliente.dc.html?module=cliente&screen=card&pedido=o9&status=null', { role: 'cliente', seed: true, session: true });
+  const p2 = await open('app-cliente.dc.html?module=cliente&screen=card&pedido=o9&status=failure', { role: 'cliente', seed: true, session: true });
   p2.api.db.orders[0].paymentStatus = 'pending';
   await p2.waitForTimeout(800);
   check('volta sem pagar: mostra pagamento não concluído', (await text(p2)).includes('não foi concluído'));
@@ -148,44 +148,44 @@ await step('cozinha vê se está pago', async () => {
   await page.close();
 });
 
-await step('sem Mercado Pago', async () => {
-  const page = await open('app-cliente.dc.html', { paymentsConfigured: false });
+await step('sem Stripe', async () => {
+  const page = await open('app-cliente.dc.html', { stripe: false });
   await ateOPagamento(page);
   let t = await text(page);
-  check('sem MP: mostra PIX, cartão e na entrega', t.includes('Pagar na entrega') && t.includes('Cartão de crédito ou débito') && t.includes('Pague agora pelo app do banco'), t.slice(0, 300));
+  check('sem Stripe: mostra PIX, cartão e na entrega', t.includes('Pagar na entrega') && t.includes('Cartão de crédito ou débito') && t.includes('Pague agora pelo app do banco'), t.slice(0, 300));
   await click(page, 'Cartão de crédito ou débito', true);
   await click(page, 'Pagar R$');
   await page.waitForTimeout(3500);
   const o = page.api.db.orders[0];
-  check('sem MP: cartão aprovado na hora como provisório', o && o.paymentMethod === 'cartao' && o.paymentStatus === 'approved' && o.paymentProvider === 'provisorio', JSON.stringify(o));
+  check('sem Stripe: cartão aprovado na hora como provisório', o && o.paymentMethod === 'cartao' && o.paymentStatus === 'approved' && o.paymentProvider === 'provisorio', JSON.stringify(o));
   t = await text(page);
-  check('sem MP: cliente vai direto para a confirmação', t.toLowerCase().includes('pedido confirmado'), t.slice(0, 200));
-  check('sem MP: confirmação não diz "Total pago" quando nada foi cobrado', t.includes('Total (nada foi cobrado)') && !t.includes('Total pago'), t.slice(0, 400));
+  check('sem Stripe: cliente vai direto para a confirmação', t.toLowerCase().includes('pedido confirmado'), t.slice(0, 200));
+  check('sem Stripe: confirmação não diz "Total pago" quando nada foi cobrado', t.includes('Total (nada foi cobrado)') && !t.includes('Total pago'), t.slice(0, 400));
   await click(page, 'Acompanhar pedido');
   t = await text(page);
-  check('sem MP: acompanhamento avisa que nada foi cobrado', t.includes('Pedido aceito sem cobrança') && !t.includes('Cartão confirmado'), t.slice(0, 400));
+  check('sem Stripe: acompanhamento avisa que nada foi cobrado', t.includes('Pedido aceito sem cobrança') && !t.includes('Cartão confirmado'), t.slice(0, 400));
   await click(page, 'Cancelar pedido');
-  check('sem MP: cancelar cartão provisório não promete estorno', (await text(page)).includes('Nada a estornar'));
-  check('sem MP: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
+  check('sem Stripe: cancelar cartão provisório não promete estorno', (await text(page)).includes('Nada a estornar'));
+  check('sem Stripe: sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
   await page.close();
 });
 
-await step('PIX sem Mercado Pago', async () => {
-  const page = await open('app-cliente.dc.html', { paymentsConfigured: false });
+await step('PIX sem Stripe', async () => {
+  const page = await open('app-cliente.dc.html', { stripe: false });
   await ateOPagamento(page);
   await click(page, 'PIX', true);
   await click(page, 'Pagar R$');
   await page.waitForTimeout(3500);
   const o = page.api.db.orders[0];
-  check('sem MP: PIX aprovado na hora como provisório', o && o.paymentMethod === 'pix' && o.paymentStatus === 'approved' && o.paymentProvider === 'provisorio', JSON.stringify(o));
+  check('sem Stripe: PIX aprovado na hora como provisório', o && o.paymentMethod === 'pix' && o.paymentStatus === 'approved' && o.paymentProvider === 'provisorio', JSON.stringify(o));
   const t = await text(page);
-  check('sem MP: PIX vai direto para a confirmação', t.toLowerCase().includes('pedido confirmado'), t.slice(0, 200));
-  check('sem MP (PIX): sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
+  check('sem Stripe: PIX vai direto para a confirmação', t.toLowerCase().includes('pedido confirmado'), t.slice(0, 200));
+  check('sem Stripe (PIX): sem erro de JavaScript', page.jsErrors.length === 0 && !(await renderError(page)), page.jsErrors.join(' | ') || await renderError(page));
   await page.close();
 });
 
 await step('tela de Pagamentos do admin', async () => {
-  const admin = await open('app-cliente.dc.html?module=admin&screen=payments', { role: 'admin', paymentsConfigured: false });
+  const admin = await open('app-cliente.dc.html?module=admin&screen=payments', { role: 'admin', stripe: false });
   const now = new Date().toISOString();
   const item = [{ productId: 'p2', name: 'Água de Coco', qty: 1, unitPrice: 12, note: '' }];
   admin.api.db.orders.push(
@@ -265,7 +265,7 @@ await step('cartão pelo Stripe (modo teste)', async () => {
   for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
     ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
     // O caminho até o pagamento é feito no tamanho de celular; depois a tela muda de tamanho.
-    const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true });
+    const page = await open('app-cliente.dc.html', { stripeTest: true });
     await ateOPagamento(page);
     await page.setViewportSize(viewport); await page.waitForTimeout(400);
     await click(page, 'Cartão de crédito ou débito', true);
@@ -299,8 +299,9 @@ await step('cartão pelo Stripe (modo teste)', async () => {
   check('stripe: desistiu no Stripe → pagamento não concluído', t.includes('não foi concluído') && t.includes('processados com segurança pelo Stripe'));
   await fail.close();
 
-  const admin = await open('app-cliente.dc.html?module=admin&screen=payments', { role: 'admin', paymentsConfigured: false, stripeTest: true });
-  check('stripe: admin avisa que só o PIX segue provisório', (await text(admin)).includes('Sem meio de pagamento configurado para PIX:'));
+  const admin = await open('app-cliente.dc.html?module=admin&screen=payments', { role: 'admin', stripeTest: true });
+  const ta = await text(admin);
+  check('stripe: admin vê PIX e cartão no Stripe em modo de teste', ta.includes('Pagamentos online pelo Stripe em modo de teste') && !ta.includes('Sem meio de pagamento configurado'), ta.slice(0, 400));
   await admin.close();
 });
 
@@ -308,7 +309,7 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
   const SHOTS = process.env.SHOTS_DIR;
   for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
     ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
-    const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true });
+    const page = await open('app-cliente.dc.html', { stripeTest: true, stripeInApp: true });
     await ateOPagamento(page);
     await page.setViewportSize(viewport); await page.waitForTimeout(1600);
     check(`no app ${tela}: Stripe.js já baixado antes de pagar`, await page.evaluate(() => typeof window.Stripe === 'function'));
@@ -367,7 +368,7 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
 });
 
 await step('carrinho só some depois do pagamento aprovado', async () => {
-  const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true, stripePix: true });
+  const page = await open('app-cliente.dc.html', { stripeTest: true, stripeInApp: true });
   await ateOPagamento(page);
   const total = (await text(page)).match(/R\$\s?[\d.,]+/g).pop();
   await click(page, 'PIX', true);
@@ -399,7 +400,7 @@ await step('PIX pelo Stripe (modo teste)', async () => {
   const SHOTS = process.env.SHOTS_DIR;
   for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
     ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
-    const page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true, stripePix: true });
+    const page = await open('app-cliente.dc.html', { stripeTest: true, stripeInApp: true });
     await ateOPagamento(page);
     await page.setViewportSize(viewport); await page.waitForTimeout(400);
     let t = await text(page);
@@ -427,7 +428,7 @@ await step('recarregar a tela de pagamento', async () => {
   for (const [tela, viewport] of [['celular', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1180 }],
     ['computador', { width: 1366, height: 900 }], ['tela-larga', { width: 1920, height: 1080 }]]) {
     // PIX
-    let page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true, stripePix: true });
+    let page = await open('app-cliente.dc.html', { stripeTest: true, stripeInApp: true });
     let pixCalls = 0;
     page.on('request', r => { if (/\/payments\/pix\//.test(r.url())) pixCalls++; });
     await ateOPagamento(page);
@@ -456,7 +457,7 @@ await step('recarregar a tela de pagamento', async () => {
     await page.close();
 
     // Cartão no app
-    page = await open('app-cliente.dc.html', { paymentsConfigured: false, stripeTest: true, stripeInApp: true });
+    page = await open('app-cliente.dc.html', { stripeTest: true, stripeInApp: true });
     await ateOPagamento(page);
     await page.setViewportSize(viewport); await page.waitForTimeout(300);
     await click(page, 'Cartão de crédito ou débito', true);
