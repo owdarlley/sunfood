@@ -11,7 +11,7 @@ const signer = new RealStripe("sk_test_assinatura");
 const ORDER = "00000000-0000-4000-8000-0000000000aa";
 const db = {
   profiles: [{ id: "ana", role: "cliente", name: "Ana", phone: "1", cpf: "1", birth_date: "2000-01-01", terms_accepted_at: "x" },
-    { id: "adm", role: "admin", name: "Bia Admin" }],
+    { id: "adm", role: "admin", name: "Bia Admin" }, { id: "coz", role: "cozinha", name: "Cozinha" }],
   orders: [],
   order_refunds: [],
   kiosk_settings: [{ id: 1, cancel_window_minutes: 0 }],
@@ -67,7 +67,8 @@ const fake = {
     return { error: null };
   },
   auth: { getUser: async (t) => (t === "tok-ana" ? { data: { user: { id: "ana", email: "ana@teste.com" } }, error: null }
-    : t === "tok-adm" ? { data: { user: { id: "adm", email: "bia@teste.com" } }, error: null } : { data: null, error: {} }) },
+    : t === "tok-adm" ? { data: { user: { id: "adm", email: "bia@teste.com" } }, error: null }
+    : t === "tok-coz" ? { data: { user: { id: "coz", email: "coz@teste.com" } }, error: null } : { data: null, error: {} }) },
 };
 mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: fake, supabaseAuth: fake } });
 
@@ -597,4 +598,14 @@ test("pagamento atrasado de pedido cancelado volta com chave de idempotência", 
   const o = db.orders.find((x) => x.id === id);
   assert.equal(o.payment_status, "refunded");
   assert.equal(o.refunded_amount, 40);
+});
+
+test("cozinha não cancela pedido já pago (o estorno é decisão do admin)", async () => {
+  const id = "00000000-0000-4000-8000-000000000a06";
+  novoPedido(id);
+  const n = refunds.length;
+  const r = await api("PATCH", `/orders/${id}/status`, { status: "Cancelado" }, { Authorization: "Bearer tok-coz" });
+  assert.equal(r.status, 403, JSON.stringify(r.body));
+  assert.equal(refunds.length, n);
+  assert.equal(db.orders.find((x) => x.id === id).status, "Na Fila");
 });

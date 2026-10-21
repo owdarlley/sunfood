@@ -16,6 +16,7 @@ import {
   isValidTransition,
   awaitingOnlinePayment,
   canRecordReceipt,
+  needsRefund,
   VALID_TRANSITIONS,
 } from "../business-rules.js";
 import { cancelOrderWithRefund, expireUnpaidOrdersSoon } from "../order-payments.js";
@@ -69,6 +70,7 @@ function toApi(row, cancelWindow) {
     refunds: row.refunds,
     receivedWith: row.received_with,
     receivedAt: row.received_at,
+    receivedBy: row.received_by ?? null,
     cancelDeadline: cancelWindow === undefined ? undefined : cancelDeadline(row.created_at, cancelWindow),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -330,14 +332,24 @@ ordersRouter.patch(
       return res.status(409).json({ error: "Só dá para anotar recebimento de pedido \"pagar na entrega\" que não foi cancelado." });
     }
     const { receivedWith } = req.body;
+    // Garçom só mexe no próprio recebimento e nunca depois do dia encerrado;
+    // o admin corrige qualquer um. Quem anotou fica gravado (received_by).
+    if (req.user.role === "garcom") {
+      if (row.received_with && row.received_by !== req.user.sub) {
+        return res.status(403).json({ error: "Este recebimento foi anotado por outra pessoa. Fale com o admin." });
+      }
+      const { data: settings } = await supabaseAdmin.from("kiosk_settings").select("day_closed").eq("id", 1).maybeSingle();
+      if (settings?.day_closed) return res.status(409).json({ error: "O dia já foi encerrado. Fale com o admin." });
+    }
     const { error: updError } = await supabaseAdmin
       .from("orders")
       .update(
         receivedWith
-          ? { payment_status: "approved", received_with: receivedWith, received_at: new Date().toISOString() }
-          : { payment_status: "pending", received_with: null, received_at: null }
+          ? { payment_status: "approved", received_with: receivedWith, received_at: new Date().toISOString(), received_by: req.user.sub }
+          : { payment_status: "pending", received_with: null, received_at: null, received_by: null }
       )
       .eq("id", row.id);
+    console.info("Recebimento na entrega:", { order: row.id, by: req.user.sub, receivedWith: receivedWith || null });
     if (updError) return res.status(500).json({ error: "Não foi possível salvar o recebimento." });
     const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();
     res.json(toApi(updated));
@@ -376,6 +388,10 @@ ordersRouter.patch(
     }
 
     if (next === "Cancelado") {
+      // Pedido já pago no app: cancelar estorna o dinheiro, então só o admin.
+      if (needsRefund(row) && req.user.role !== "admin") {
+        return res.status(403).json({ error: "Pedido já pago: só o admin pode cancelar (o valor é estornado)." });
+      }
       const result = await cancelOrderWithRefund(row);
       if (!result.ok) return res.status(result.httpStatus).json({ error: result.error });
     } else {
@@ -390,7 +406,7 @@ ordersRouter.patch(
       if (next === "Entregue" && req.body.receivedWith && canRecordReceipt(row) && row.payment_status !== "approved") {
         await supabaseAdmin
           .from("orders")
-          .update({ payment_status: "approved", received_with: req.body.receivedWith, received_at: new Date().toISOString() })
+          .update({ payment_status: "approved", received_with: req.body.receivedWith, received_at: new Date().toISOString(), received_by: req.user.sub })
           .eq("id", row.id);
       }
     }

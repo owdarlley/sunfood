@@ -974,6 +974,17 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   const recebido = await api("PATCH", `/orders/${id}/payment-received`, { receivedWith: "dinheiro" }, garcom);
   assert.equal(recebido.status, 200);
   assert.equal(recebido.body.receivedWith, "dinheiro");
+  assert.equal(recebido.body.receivedBy, criado.body.id, "grava quem anotou o recebimento");
+  // Outro garçom não desfaz o recebimento anotado por este; o admin pode.
+  db.profiles.push({ id: "garcom-2", email: "garcom2@sunfood.com", name: "Outro", role: "garcom" });
+  db.users["tok-garcom-2"] = { id: "garcom-2", email: "garcom2@sunfood.com" };
+  const outro = "tok-garcom-2";
+  assert.equal((await api("PATCH", `/orders/${id}/payment-received`, { receivedWith: null }, outro)).status, 403);
+  db.profiles = db.profiles.filter((p) => p.id !== "garcom-2");
+  // Depois do dia encerrado, o garçom não mexe mais no caixa.
+  db.kiosk_settings[0].day_closed = true;
+  assert.equal((await api("PATCH", `/orders/${id}/payment-received`, { receivedWith: "pix" }, garcom)).status, 409);
+  db.kiosk_settings[0].day_closed = false;
 
   // Métricas: só do próprio garçom.
   assert.equal((await api("GET", "/waiter/metrics", null, admin)).status, 403);
