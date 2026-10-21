@@ -1,9 +1,9 @@
-import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
+import { asyncRouter } from "../async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { categorySchema, categoryOrderSchema, validate } from "../validation/schemas.js";
 
-export const categoriesRouter = Router();
+export const categoriesRouter = asyncRouter();
 
 const toApi = (row) => ({ name: row.name, color: row.color, position: row.position });
 

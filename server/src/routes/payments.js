@@ -1,5 +1,5 @@
-import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
+import { asyncRouter } from "../async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import {
   PAYMENT_WINDOW_MINUTES,
@@ -17,13 +17,13 @@ import {
   isStripePaymentId,
 } from "../payments/stripe.js";
 import { syncStripeRefunds } from "../order-refunds.js";
-import { refundWholeOrder, refundDuplicatePayment, approveOrderPayment, LATE_PAYMENT_REASON } from "../order-payments.js";
+import { refundDuplicatePayment, refundLatePayment, approveOrderPayment } from "../order-payments.js";
 import { isValidCpf, onlyDigits } from "../validation/cpf.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
 import { paymentCoversOrder } from "../business-rules.js";
 import { limiter } from "../rate-limit.js";
 
-export const paymentsRouter = Router();
+export const paymentsRouter = asyncRouter();
 
 const sessionLimiter = limiter("card-session", {
   windowMs: 10 * 60 * 1000,
@@ -88,9 +88,14 @@ async function loadOwnUnpaidOrder(req, res, method) {
 // na hora, sem cobrança real (pedido do dono do quiosque). Ficam marcados com
 // payment_provider "provisorio" pra aparecer assim no Admin. Sem payment_id,
 // cancelar não tenta estorno.
+// Só com ALLOW_PROVISIONAL_PAYMENTS=1 (auditoria M12): antes bastava não ser
+// produção, e um Preview sem chave ligado ao banco de produção aprovava
+// pedido de graça.
+export const provisionalAllowed = () => process.env.ALLOW_PROVISIONAL_PAYMENTS === "1" && process.env.VERCEL_ENV !== "production";
+
 async function approveProvisionally(order, res) {
-  // Em produção, falta de chave é erro de configuração, nunca pedido de graça.
-  if (process.env.VERCEL_ENV === "production") {
+  // Falta de chave é erro de configuração, nunca pedido de graça.
+  if (!provisionalAllowed()) {
     console.error("Pagamento sem provedor configurado em produção:", order.id);
     return res.status(503).json({ error: "Pagamento online indisponível no momento. Escolha pagar na entrega." });
   }
@@ -329,18 +334,13 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
       console.error("Pagamento Stripe com valor menor que o pedido:", session.paymentIntentId, session.amount, order.total);
       return res.status(200).end();
     }
+    const paidCents = Math.round(session.amount * 100);
     // Pagou depois de o pedido já ter saído da fila: devolve o dinheiro.
     if (order.status === "Cancelado") {
-      const { refundedTotal } = await refundWholeOrder({ ...order, payment_id: session.paymentIntentId, refunded_amount: 0 },
-        session.paymentIntentId, LATE_PAYMENT_REASON, { paidCents: Math.round(session.amount * 100) });
-      await supabaseAdmin
-        .from("orders")
-        .update({ payment_status: "refunded", payment_provider: "stripe", payment_id: session.paymentIntentId,
-          refunded_amount: Math.min(refundedTotal, Number(order.total)) })
-        .eq("id", order.id);
+      await refundLatePayment(order, session.paymentIntentId, { paidCents });
       return res.status(200).end();
     }
-    await approveOrderPayment(order, session.paymentIntentId, { payment_provider: "stripe" });
+    await approveOrderPayment(order, session.paymentIntentId, { payment_provider: "stripe" }, { paidCents });
     res.status(200).end();
   } catch (e) {
     console.error("Erro ao processar webhook do Stripe:", e);

@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
-import express, { Router } from "express";
+import express from "express";
 import { supabaseAdmin } from "../supabase.js";
+import { asyncRouter } from "../async-router.js";
 import { expireUnpaidOrdersSoon } from "../order-payments.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { MAX_IMAGE_BYTES, imageType, publicBucketPrefix } from "../images.js";
 import { productSchema, soldOutToggleSchema, validate } from "../validation/schemas.js";
 
-export const productsRouter = Router();
+export const productsRouter = asyncRouter();
 
 function toApi(row) {
   return {
@@ -101,6 +102,9 @@ productsRouter.get("/", async (req, res) => {
     .order("category")
     .order("name");
   if (error) return res.status(500).json({ error: "Erro ao carregar cardápio." });
+  // O app consulta a cada 15 s: com no-cache o navegador manda o ETag e,
+  // sem mudança, recebe 304 sem o corpo (auditoria M7).
+  res.set("Cache-Control", "no-cache");
   res.json(data.map(toApi));
 });
 
@@ -144,14 +148,21 @@ productsRouter.put("/:id", requireAuth, requireRole("admin"), validate(productSc
     const { data: current } = await supabaseAdmin.from("products").select("image_url").eq("id", req.params.id).maybeSingle();
     oldImage = current?.image_url || null;
   }
-  const { data, error } = await supabaseAdmin
-    .from("products")
-    .update(fromApi(req.body))
-    .eq("id", req.params.id)
-    .is("archived_at", null)
-    .select()
-    .single();
+  let update = supabaseAdmin.from("products").update(fromApi(req.body)).eq("id", req.params.id).is("archived_at", null);
+  const base = req.body.stockQty !== undefined ? req.body.stockQtyBase : undefined;
+  if (base !== undefined) update = base === null ? update.is("stock_qty", null) : update.eq("stock_qty", base);
+  const { data, error } = await update.select().maybeSingle();
   if (error?.code === "23503") return res.status(400).json({ error: MISSING_CATEGORY });
+  if (!error && !data && base !== undefined) {
+    const { data: now } = await supabaseAdmin.from("products").select("stock_qty").eq("id", req.params.id).is("archived_at", null).maybeSingle();
+    if (now) {
+      return res.status(409).json({
+        error: `O estoque mudou enquanto você editava (agora: ${now.stock_qty ?? "ilimitado"}). Confira e salve de novo.`,
+        code: "stock_changed",
+        stockQty: now.stock_qty,
+      });
+    }
+  }
   if (error || !data) return res.status(404).json({ error: "Produto não encontrado." });
   if (oldImage && oldImage !== data.image_url) {
     // Só apaga se nenhum outro produto (nem arquivado) usa a mesma foto.

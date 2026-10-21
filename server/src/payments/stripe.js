@@ -247,3 +247,19 @@ export async function fetchChargeRefunds(chargeId) {
       .map((r) => ({ id: r.id, amount: Number(r.amount) / 100, metadata: r.metadata || {} })),
   };
 }
+
+// Pedido cancelado ou vencido sem pagamento (auditoria B4): fecha o
+// PaymentIntent, pra o cartão ou o PIX não poderem mais ser cobrados depois.
+export async function cancelStripePaymentIntent(id) {
+  await stripe().paymentIntents.cancel(id);
+}
+
+// Conta excluída (LGPD, auditoria M11): apaga o cliente no Stripe, com os
+// cartões salvos. Só o cliente criado para este usuário (metadata).
+export async function deleteStripeCustomer({ userId, email }) {
+  if (!email) return;
+  const list = await stripe().customers.list({ email, limit: 20 });
+  for (const c of list.data.filter((c) => c.metadata?.sunfood_user_id === userId)) {
+    await stripe().customers.del(c.id);
+  }
+}

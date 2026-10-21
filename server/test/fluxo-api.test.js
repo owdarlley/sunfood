@@ -33,7 +33,7 @@ const TRANSITIONS = { "Na Fila": ["Em Preparo", "Cancelado"], "Em Preparo": ["Pr
 // Query builder mínimo, com só o que as rotas usam.
 function query(table) {
   const filters = [];
-  let op = "select", patch = null, rows = null, embed = false, mode = "many", sort = null, max = Infinity;
+  let op = "select", patch = null, rows = null, embed = false, mode = "many", sort = null, max = Infinity, skip = 0;
   const q = {
     select(cols = "*") { if (op === "select") op = "select"; embed = cols.includes("order_items"); return q; },
     insert(r) { op = "insert"; rows = [].concat(r); return q; },
@@ -46,6 +46,7 @@ function query(table) {
     gte(c, v) { filters.push((r) => r[c] != null && r[c] >= v); return q; },
     order(c, { ascending = true } = {}) { sort ??= { c, dir: ascending ? 1 : -1 }; return q; },
     limit(n) { max = n; return q; },
+    range(a, b) { skip = a; max = b - a + 1; return q; },
     single() { mode = "single"; return q; },
     maybeSingle() { mode = "maybe"; return q; },
     then(ok, fail) { return Promise.resolve(run()).then(ok, fail); },
@@ -62,7 +63,7 @@ function query(table) {
       if (op === "delete") db[table] = all.filter((r) => !out.includes(r));
     }
     if (sort) out = [...out].sort((a, b) => (a[sort.c] > b[sort.c] ? 1 : a[sort.c] < b[sort.c] ? -1 : 0) * sort.dir);
-    out = out.slice(0, max);
+    out = out.slice(skip, skip + max);
     out = out.map((r) => (embed ? { ...r, order_items: db.order_items.filter((i) => i.order_id === r.id) } : { ...r }));
     if (mode === "many") return { data: out, error: null };
     if (!out.length) return { data: null, error: mode === "single" ? { message: "no rows" } : null };
@@ -122,7 +123,7 @@ const rpc = async (name, args) => {
     const id = "o" + (db.orders.length + 1);
     db.orders.push({ id, daily_number: db.orders.length + 1, customer_id: p.customerId, waiter_id: p.waiterId ?? null, table_number: p.tableNumber, status: "Na Fila", subtotal: p.subtotal,
       total: p.total, note: p.note, payment_method: p.paymentMethod || "pix", payment_status: "pending",
-      created_at: new Date().toISOString() });
+      created_at: new Date().toISOString(), order_day: new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }) });
     for (const it of p.items) {
       db.order_items.push({ order_id: id, product_id: it.productId, name: it.name, price: it.price, qty: it.qty });
       const prod = db.products.find((x) => x.id === it.productId);
@@ -184,7 +185,7 @@ const rpc = async (name, args) => {
 const auth = {
   async getUser(token) {
     const u = db.users[token];
-    return u ? { data: { user: u }, error: null } : { data: null, error: { message: "bad token" } };
+    return u ? { data: { user: { ...u, banned_until: db.banned[u.email] ? "2126-01-01T00:00:00Z" : null } }, error: null } : { data: null, error: { message: "bad token" } };
   },
   async signUp({ email, password, options }) {
     if (db.passwords[email]) return { data: {}, error: { message: "User already registered" } };
@@ -208,6 +209,7 @@ const auth = {
   async resend({ email }) { db.resent.push(email); return { error: null }; },
   async resetPasswordForEmail(email) { db.resetSent.push(email); return { error: null }; },
   admin: {
+    async signOut(token, scope) { (db.signOuts ||= []).push([token, scope]); return { error: null }; },
     async getUserById(id) {
       const p = db.profiles.find((x) => x.id === id);
       return { data: { user: p && { id, email: p.email, app_metadata: { providers: p.providers || ["email"] },
@@ -392,6 +394,22 @@ test("esqueci minha senha: limite de pedidos por IP vale pro CPF também", async
   assert.equal(last.status, 429);
 });
 
+test("login: só as tentativas erradas contam, e também por e-mail (auditoria M10)", async () => {
+  db.passwords["limite@teste.com"] = "Certa@123";
+  db.profiles.push({ id: "lim-1", email: "limite@teste.com", name: "Lim", role: "cliente" });
+  // Logins certos no mesmo IP não gastam o limite.
+  for (let i = 0; i < 12; i++) {
+    assert.equal((await api("POST", "/auth/login", { email: "limite@teste.com", password: "Certa@123" }, null, "10.7.0.1")).status, 200);
+  }
+  // Erros espalhados por IPs diferentes na mesma conta param no 11º.
+  let last;
+  for (let i = 0; i < 11; i++) last = await api("POST", "/auth/login", { email: "limite@teste.com", password: "errada" }, null, "10.7.1." + i);
+  assert.equal(last.status, 429);
+  // Outra conta no mesmo IP continua entrando.
+  assert.equal((await api("POST", "/auth/login", { email: "outra@teste.com", password: "Errada@123" }, null, "10.7.1.3")).status, 401);
+  db.profiles.pop();
+});
+
 test("cardápio mostra estoque e esgotado", async () => {
   const r = await api("GET", "/products");
   const byName = Object.fromEntries(r.body.map((p) => [p.name, p]));
@@ -504,7 +522,11 @@ test("PIX provisório: aprovado na hora e vai para a cozinha", async () => {
   const cozinha = staff("cozinha");
   let fila = await api("GET", "/orders", null, cozinha);
   assert.ok(!fila.body.some((o) => o.id === pixOrder), "PIX não pago não aparece na cozinha");
-  // Em produção sem chave do provedor, nunca aprova de graça.
+  // Sem chave do provedor, só aprova de graça com ALLOW_PROVISIONAL_PAYMENTS=1
+  // (auditoria M12), e nunca em produção.
+  r = await api("POST", `/payments/pix/${pixOrder}`, {}, anaToken);
+  assert.equal(r.status, 503, "sem a variável, não aprova");
+  process.env.ALLOW_PROVISIONAL_PAYMENTS = "1";
   process.env.VERCEL_ENV = "production";
   r = await api("POST", `/payments/pix/${pixOrder}`, {}, anaToken);
   delete process.env.VERCEL_ENV;
@@ -791,6 +813,7 @@ test("trocar senha: confere a senha atual e recusa conta só do Google", async (
   assert.equal((await api("POST", "/auth/change-password", { currentPassword: ana.password, newPassword: "123" }, anaToken, "10.9.0.1")).status, 400);
   const ok = await api("POST", "/auth/change-password", { currentPassword: ana.password, newPassword: "nova-senha-1" }, anaToken, "10.9.0.1");
   assert.equal(ok.status, 200);
+  assert.deepEqual(db.signOuts.at(-1), [anaToken, "others"], "os outros aparelhos saem (auditoria M3)");
   assert.equal((await api("POST", "/auth/login", { email: ana.email, password: ana.password })).status, 401, "senha velha não entra mais");
   const login = await api("POST", "/auth/login", { email: ana.email, password: "nova-senha-1" });
   assert.equal(login.status, 200);
@@ -824,6 +847,17 @@ test("redefinir senha só aceita o token do link do e-mail", async () => {
   const ok = await api("POST", "/auth/update-password", { accessToken: recovery, newPassword: "senha-nova-1" }, null, "10.9.2.1");
   assert.equal(ok.status, 200);
   assert.equal(db.passwords["rec@teste.com"], "senha-nova-1");
+  assert.deepEqual(db.signOuts.at(-1), [recovery, "global"], "todas as sessões saem, inclusive a do link");
+});
+
+test("o único admin não exclui a própria conta (auditoria B7)", async () => {
+  const token = staff("admin");
+  const outros = db.profiles.filter((p) => p.role === "admin").slice(0, -1);
+  db.profiles = db.profiles.filter((p) => !outros.includes(p));
+  const r = await api("POST", "/auth/delete-account", { password: "x" }, token, "10.9.1.9");
+  db.profiles.push(...outros);
+  assert.equal(r.status, 409);
+  assert.equal(r.body.code, "last_admin");
 });
 
 test("excluir conta apaga o acesso e mantém os pedidos sem dono", async () => {
@@ -834,8 +868,18 @@ test("excluir conta apaga o acesso e mantém os pedidos sem dono", async () => {
   const errada = await api("POST", "/auth/delete-account", { password: "chute" }, anaToken, "10.9.1.1");
   assert.equal(errada.body.code, "wrong_password");
   assert.equal((await api("GET", "/auth/me", null, anaToken)).status, 200, "senha errada não apaga nada");
+  // Pedido pago em andamento segura a exclusão (auditoria M11).
+  const ana = db.users[anaToken];
+  const abertos = db.orders.filter((o) => o.customer_id === ana.id && ["Na Fila", "Em Preparo", "Pronto"].includes(o.status) && o.payment_status === "approved");
+  assert.ok(abertos.length > 0);
+  const presa = await api("POST", "/auth/delete-account", { password: "nova-senha-1" }, anaToken, "10.9.1.1");
+  assert.equal(presa.status, 409);
+  assert.equal(presa.body.code, "open_paid_order");
+  abertos.forEach((o) => (o.status = "Entregue"));
+  db.contact_messages.push({ id: "cm-ana", contact: ana.email, name: "Ana", message: "oi", created_at: new Date().toISOString() });
   const r = await api("POST", "/auth/delete-account", { password: "nova-senha-1" }, anaToken, "10.9.1.1");
   assert.equal(r.status, 200);
+  assert.ok(!db.contact_messages.some((m) => m.id === "cm-ana"), "mensagens do Fale conosco saem junto");
   const me = await api("GET", "/auth/me", null, anaToken);
   assert.equal(me.status, 401);
   assert.ok(db.orders.length >= antes, "pedidos continuam no histórico");
@@ -864,6 +908,13 @@ test("admin envia foto do produto e ela aparece no cardápio", async () => {
   assert.ok(uploads.at(-1).body.equals(jpg));
 
   const produto = { name: "Batata Frita", category: "Lanches", price: 25 };
+  // Auditoria M6: entrou pedido enquanto o admin editava: o estoque não volta ao valor velho.
+  const saldo = db.products.find((p) => p.id === P1).stock_qty;
+  const velho = await api("PUT", "/products/" + P1, { ...produto, stockQty: 50, stockQtyBase: saldo + 2 }, admin);
+  assert.equal(velho.status, 409);
+  assert.equal(velho.body.code, "stock_changed");
+  assert.equal(db.products.find((p) => p.id === P1).stock_qty, saldo);
+  assert.equal((await api("PUT", "/products/" + P1, { ...produto, stockQty: saldo, stockQtyBase: saldo }, admin)).status, 200);
   const fora = await api("PUT", "/products/" + P1, { ...produto, imageUrl: "https://site-qualquer.com/x.jpg" }, admin);
   assert.equal(fora.status, 400, "só aceita foto do nosso bucket");
   for (const truque of ["../avatares/x.jpg", "a/../../x.jpg", "x.html", "x.jpg?x=1", ""]) {
@@ -1015,6 +1066,10 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   const bloqueado = await api("POST", "/auth/login", { email: "garcom@sunfood.com", password: "Sunfood@123" });
   assert.equal(bloqueado.status, 403);
   assert.match(bloqueado.body.error, /desativada/);
+  // O token que ele já tinha também para de valer na hora (auditoria M4).
+  const aberto = await api("GET", "/waiter/metrics?period=hoje", null, garcom);
+  assert.equal(aberto.status, 401);
+  assert.equal(aberto.body.code, "user_banned");
   assert.equal((await api("GET", "/waiters", null, admin)).body[0].active, false);
   assert.equal((await api("PATCH", "/waiters/" + criado.body.id, { active: true }, admin)).status, 200);
   assert.equal((await api("POST", "/auth/login", { email: "garcom@sunfood.com", password: "Sunfood@123" })).status, 200);

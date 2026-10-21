@@ -1,4 +1,3 @@
-import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
 import { requireAuth, requireRole, requireCompleteProfile } from "../middleware/auth.js";
 import { createOrderSchema, manualOrderSchema, orderStatusUpdateSchema, paymentReceivedSchema, orderRefundSchema, validate } from "../validation/schemas.js";
@@ -18,22 +17,57 @@ import {
   needsRefund,
   VALID_TRANSITIONS,
 } from "../business-rules.js";
-import { cancelOrderWithRefund, expireUnpaidOrdersSoon } from "../order-payments.js";
+import { cancelOrderWithRefund, expireUnpaidOrdersSoon, runMaintenanceSoon } from "../order-payments.js";
 import { refundOrderByAdmin, customerRefunds } from "../order-refunds.js";
 import { limiter } from "../rate-limit.js";
+import { asyncRouter } from "../async-router.js";
 
-export const ordersRouter = Router();
+export const ordersRouter = asyncRouter();
 
 // Status que o garçom acompanha: o que ainda vai sair da cozinha e o que está pronto para levar.
 const WAITER_STATUSES = ["Na Fila", "Em Preparo", "Pronto"];
 
 // Trava contra spam de pedidos (bug de cliente ou tentativa de abuso) — bem
 // mais generoso que o limite de login, já que é uso normal repetir pedidos.
+// Conta por pessoa logada (auditoria M9): no Wi-Fi do quiosque muitos
+// clientes dividem o mesmo IP.
 const createOrderLimiter = limiter("create-order", {
   windowMs: 10 * 60 * 1000,
   max: 30,
+  keyGenerator: (req) => "user:" + req.user.sub,
   message: { error: "Muitos pedidos em pouco tempo. Aguarde um instante." },
 });
+
+// PIX/cartão não pago segura o estoque até vencer (~40 min). Sem limite, um
+// cliente esgotava um item com pedidos que nunca pagava (auditoria M9).
+export const MAX_UNPAID_ONLINE_ORDERS = 3;
+
+// Dia de hoje no fuso do quiosque (AAAA-MM-DD), igual ao order_day do banco.
+export function spToday(now = new Date()) {
+  return now.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+}
+
+export function daysBefore(day, n) {
+  const d = new Date(day + "T12:00:00Z");
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+// Status de pedido em andamento: aparecem na lista da equipe seja de que dia forem.
+const ACTIVE_STATUSES = ["Na Fila", "Em Preparo", "Pronto"];
+
+// O Supabase devolve no máximo 1000 linhas por consulta e corta o resto sem
+// avisar: busca em páginas até acabar.
+const PAGE = 1000;
+async function fetchAll(build) {
+  const rows = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await build().range(from, from + PAGE - 1);
+    if (error) return { data: null, error };
+    rows.push(...data);
+    if (data.length < PAGE) return { data: rows, error: null };
+  }
+}
 
 // Prazo de cancelamento configurado pelo quiosque (0 = sem prazo).
 async function loadCancelWindow() {
@@ -92,7 +126,22 @@ const hasRefund = (row) => Number(row.refunded_amount || 0) > 0 || row.payment_s
 async function placeOrder(res, { tableNumber, items, note, paymentMethod, customerId = null, waiterId = null }) {
   // Libera o estoque de PIX/cartão abandonados antes de conferir o deste pedido.
   await expireUnpaidOrdersSoon();
-  const { data: settings } = await supabaseAdmin.from("kiosk_settings").select("*").eq("id", 1).single();
+  const productIds = items.map((i) => i.productId);
+  // Configuração, mesa, produtos e pedidos em aberto do cliente de uma vez (auditoria B12).
+  const [{ data: settings }, { data: table }, { data: products, error: productsError }, unpaid] = await Promise.all([
+    supabaseAdmin.from("kiosk_settings").select("*").eq("id", 1).single(),
+    supabaseAdmin.from("kiosk_tables").select("*").eq("number", tableNumber).maybeSingle(),
+    supabaseAdmin.from("products").select("*").in("id", productIds),
+    customerId && paymentMethod !== "entrega"
+      ? supabaseAdmin
+          .from("orders")
+          .select("id")
+          .eq("customer_id", customerId)
+          .eq("status", "Na Fila")
+          .in("payment_method", ["pix", "cartao"])
+          .eq("payment_status", "pending")
+      : { data: [] },
+  ]);
   if (settings?.paused) {
     return res.status(409).json({ error: "Quiosque pausado no momento — não é possível fechar o pedido." });
   }
@@ -105,21 +154,17 @@ async function placeOrder(res, { tableNumber, items, note, paymentMethod, custom
     return res.status(404).json({ error: `Mesa ${tableNumber} não existe. O quiosque tem mesas de 1 a ${tableCount}.` });
   }
 
-  const { data: table } = await supabaseAdmin
-    .from("kiosk_tables")
-    .select("*")
-    .eq("number", tableNumber)
-    .maybeSingle();
   if (!table) return res.status(404).json({ error: `Mesa ${tableNumber} não existe.` });
   if (!table.active) {
     return res.status(409).json({ error: `Mesa ${tableNumber} está inativa. Procure um atendente.` });
   }
+  if ((unpaid.data || []).length >= MAX_UNPAID_ONLINE_ORDERS) {
+    return res.status(409).json({
+      error: "Você já tem pedidos esperando pagamento. Pague ou cancele um deles antes de fazer outro.",
+      code: "too_many_unpaid",
+    });
+  }
 
-  const productIds = items.map((i) => i.productId);
-  const { data: products, error: productsError } = await supabaseAdmin
-    .from("products")
-    .select("*")
-    .in("id", productIds);
   if (productsError) return res.status(500).json({ error: "Erro ao validar itens do pedido." });
 
   const byId = new Map(products.map((p) => [p.id, p]));
@@ -164,10 +209,18 @@ async function placeOrder(res, { tableNumber, items, note, paymentMethod, custom
     if (createError.message?.startsWith("out_of_stock:")) {
       return res.status(409).json({ error: `Estoque insuficiente: ${createError.message.slice("out_of_stock:".length)}.` });
     }
+    // O dia foi encerrado (ou o quiosque pausado) entre a checagem acima e a
+    // gravação: o banco confere de novo dentro de create_order (auditoria B2).
+    if (createError.message?.includes("kiosk_closed")) {
+      return res.status(409).json({ error: "O quiosque não está recebendo pedidos agora." });
+    }
     return res.status(500).json({ error: "Não foi possível registrar o pedido." });
   }
 
-  const { data: row } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", created.id).single();
+  const { data: row } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", created.id).maybeSingle();
+  // O pedido já foi gravado: mesmo se a releitura falhar, responde com o id
+  // (auditoria M5). Um erro aqui faria o cliente pedir de novo e duplicar.
+  if (!row) return res.status(201).json({ id: created.id, status: "Na Fila", items: [] });
   res.status(201).json(toApi(row, customerId ? cancelWindowFrom(settings) : undefined));
 }
 
@@ -185,37 +238,60 @@ ordersRouter.post("/manual", requireAuth, requireRole("garcom", "admin"), create
   return placeOrder(res, { tableNumber, items, note, paymentMethod: "entrega", waiterId: req.user.sub });
 });
 
-// Cliente: histórico dos próprios pedidos.
+// Cliente: histórico dos próprios pedidos (os 50 mais recentes).
+export const HISTORY_LIMIT = 50;
 ordersRouter.get("/mine", requireAuth, requireRole("cliente"), async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from("orders")
     .select(ORDER_SELECT)
     .eq("customer_id", req.user.sub)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(HISTORY_LIMIT);
   if (error) return res.status(500).json({ error: "Erro ao carregar histórico." });
   const refunds = await customerRefunds(data.filter(hasRefund).map((row) => row.id));
   res.json(data.map((row) => toApi({ ...row, refunds: refunds.get(row.id) || [] })));
 });
 
-// Admin/cozinha/garçom: lista de pedidos (opcionalmente filtrada por status), para o kanban/painel.
-// Cozinha e garçom não veem pedido de PIX/cartão ainda não pago; o admin vê tudo.
-// O garçom só recebe os pedidos em andamento (fila, preparo e prontos).
+// Admin/cozinha/garçom: lista de pedidos para o kanban/painel, consultada a
+// cada poucos segundos. Antes vinha o histórico inteiro (auditoria A2); agora:
+//   - pedidos em andamento (fila, preparo e prontos), de qualquer dia;
+//   - mais os de hoje (cozinha) ou dos últimos ?days= dias (admin: padrão 2,
+//     até 31, usado na exportação do relatório).
+// O garçom só recebe os pedidos em andamento. Cozinha e garçom não veem
+// pedido de PIX/cartão ainda não pago; o admin vê tudo.
+export const ADMIN_DEFAULT_DAYS = 2;
+export const ADMIN_MAX_DAYS = 31;
+
 ordersRouter.get("/", requireAuth, requireRole("admin", "cozinha", "garcom"), async (req, res) => {
   // A equipe consulta a cada poucos segundos: a limpeza roda no máximo uma vez por minuto.
   await expireUnpaidOrdersSoon();
+  if (req.user.role === "admin") await runMaintenanceSoon();
   const { status } = req.query;
-  let query = supabaseAdmin.from("orders").select(ORDER_SELECT).order("created_at", { ascending: false });
-  if (status) query = query.eq("status", status);
-  else if (req.user.role === "garcom") query = query.in("status", WAITER_STATUSES);
-  const { data, error } = await query;
-  if (error) return res.status(500).json({ error: "Erro ao carregar pedidos." });
+  const requested = Number.parseInt(req.query.days, 10);
+  const days = req.user.role === "admin"
+    ? Math.min(ADMIN_MAX_DAYS, Math.max(1, Number.isInteger(requested) ? requested : ADMIN_DEFAULT_DAYS))
+    : 1;
+  const since = daysBefore(spToday(), days - 1);
+  const pick = (list) => list.filter((s) => !status || s === status);
+  const activeStatuses = pick(ACTIVE_STATUSES);
+  const recentStatuses = req.user.role === "garcom" ? pick(WAITER_STATUSES) : status ? [status] : null;
+  const base = () => supabaseAdmin.from("orders").select(ORDER_SELECT).order("created_at", { ascending: false });
+  const [older, recent] = await Promise.all([
+    activeStatuses.length ? fetchAll(() => base().in("status", activeStatuses).lt("order_day", since)) : { data: [] },
+    recentStatuses && !recentStatuses.length
+      ? { data: [] }
+      : fetchAll(() => (recentStatuses ? base().in("status", recentStatuses) : base()).gte("order_day", since)),
+  ]);
+  if (older.error || recent.error) return res.status(500).json({ error: "Erro ao carregar pedidos." });
+  const data = [...recent.data, ...older.data];
   const visible = req.user.role === "admin" ? data : data.filter((row) => !awaitingOnlinePayment(row));
   // Nome de quem fez o pedido, para a cozinha e o garçom chamarem o cliente
   // pelo nome. Conta apagada fica sem nome (customer_id vira nulo).
   const ids = [...new Set(visible.map((row) => row.customer_id).filter(Boolean))];
   const names = new Map();
   if (ids.length) {
-    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, name").in("id", ids);
+    const { data: profiles, error: namesError } = await supabaseAdmin.from("profiles").select("id, name").in("id", ids);
+    if (namesError) console.error("Nomes dos clientes não carregados:", namesError.message);
     for (const p of profiles || []) names.set(p.id, p.name);
   }
   // Estornos parciais: a cozinha e o garçom veem quais itens foram devolvidos.
@@ -399,7 +475,13 @@ ordersRouter.patch(
         p_status: next,
         p_actor: req.user.sub,
       });
-      if (rpcError) return res.status(500).json({ error: "Não foi possível atualizar o pedido." });
+      if (rpcError) {
+        // Dois toques no mesmo avanço (ou outra tela já avançou): não é erro do servidor (auditoria B3).
+        const msg = String(rpcError.message || "");
+        if (msg.includes("invalid_transition")) return res.status(409).json({ error: "Este pedido já foi atualizado. A lista vai se atualizar." });
+        if (msg.includes("order_not_found")) return res.status(404).json({ error: "Pedido não encontrado." });
+        return res.status(500).json({ error: "Não foi possível atualizar o pedido." });
+      }
       // Entregou e já recebeu na mesa: o recebimento fica anotado junto, sem
       // depender de alguém lembrar de abrir a tela de Pagamentos depois.
       if (next === "Entregue" && req.body.receivedWith && canRecordReceipt(row) && row.payment_status !== "approved") {

@@ -11,6 +11,8 @@ import { adminRouter } from "./routes/admin.js";
 import { paymentsRouter } from "./routes/payments.js";
 import { contactRouter } from "./routes/contact.js";
 import { waitersRouter } from "./routes/waiters.js";
+import { runMaintenance } from "./order-payments.js";
+import { purgeOldContactMessages } from "./routes/contact.js";
 
 // Aceita uma lista separada por vírgula (ex.: GitHub Pages + localhost ao
 // mesmo tempo), não só uma origem única.
@@ -44,6 +46,22 @@ app.use(express.json({ limit: "100kb" }));
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
+// Limpeza de fundo (auditoria M7): pedidos PIX/cartão vencidos, estornos
+// pendentes e mensagens antigas do Fale conosco. O Cron da Vercel chama com
+// "Authorization: Bearer <CRON_SECRET>" (ver vercel.json); sem a variável, a
+// rota fica fechada. A lista de pedidos do admin também roda a limpeza.
+app.get("/cron/limpeza", async (req, res, next) => {
+  const secret = process.env.CRON_SECRET;
+  if (!secret || req.headers.authorization !== `Bearer ${secret}`) return res.status(401).json({ error: "Não autorizado." });
+  try {
+    await runMaintenance();
+    await purgeOldContactMessages();
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
 app.use("/auth", authRouter);
 app.use("/products", productsRouter);
 app.use("/categories", categoriesRouter);
@@ -56,6 +74,7 @@ app.use("/", adminRouter);
 
 // Handler de erro genérico — nunca vaza stack trace/detalhe interno pro cliente.
 app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
   if (err.type === "entity.too.large")
     return res.status(413).json({ error: "Arquivo grande demais. Use uma foto menor." });
   if (err.type === "entity.parse.failed") return res.status(400).json({ error: "Corpo da requisição inválido." });

@@ -112,8 +112,11 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
   const { error: tableError } = await supabaseAdmin.from("order_refunds").select("id").eq("order_id", row.id);
   if (tableError) return fail(503, "Estorno pelo painel ainda não liberado: falta rodar o SQL do estorno no Supabase.");
 
-  if (row.status === "Cancelado") return fail(409, "Este pedido já foi cancelado.");
-  if (cancel && !ADMIN_CANCELLABLE.includes(row.status)) {
+  // Cancelado e ainda pago (o estorno automático falhou): o admin consegue
+  // devolver pelo painel (auditoria M8). Cancelado sem nada a devolver, não.
+  const alreadyCancelled = row.status === "Cancelado";
+  if (alreadyCancelled && !refundableCents(row)) return fail(409, "Este pedido já foi cancelado.");
+  if (cancel && !alreadyCancelled && !ADMIN_CANCELLABLE.includes(row.status)) {
     return fail(409, "Pedido já entregue: use o estorno parcial ou total sem cancelar.");
   }
   const remaining = refundableCents(row);
@@ -157,7 +160,7 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
     await addRefunded(row, amount);
   }
 
-  if (cancel) {
+  if (cancel && !alreadyCancelled) {
     const { error: rpcError } = await supabaseAdmin.rpc("set_order_status", {
       p_order_id: row.id,
       p_status: "Cancelado",

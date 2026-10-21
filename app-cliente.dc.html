@@ -916,6 +916,10 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .pcard .addbtn{position:relative}
 .pcard .stepper{padding:0;gap:6px}
 .pcard .stepper .sb{width:40px;height:40px;font-size:18px}.pcard .stepper .sb::after{inset:-4px}.pcard .stepper .sq{min-width:20px;font-size:16px}
+/* Área de toque do + e do − (auditoria M14): sempre pelo menos 48 x 48 em
+   volta do centro do botão, em qualquer tamanho de tela, mesmo quando o
+   botão desenhado é menor. */
+.stepper .sb::after,.pcard .addbtn::after{content:'';position:absolute;inset:auto !important;left:50% !important;top:50% !important;width:max(48px,100%);height:max(48px,100%);transform:translate(-50%,-50%)}
 .pcard .pbody > div:nth-child(3) > .chip{min-height:40px;display:inline-flex;align-items:center}
 /* Cartão mais enxuto (2026-10-20, pedido do Dárlley): nada em cima da foto.
    O botão + e o "Esgotado" ficam na linha do preço, à direita, sem linha
@@ -2004,7 +2008,7 @@ select{caret-color:auto}
                     </sc-if>
                     <sc-if value="{{ hasDelErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err" style="width:100%">{{ delErr }}</div></sc-if>
                     <div onClick="{{ confirmDelete }}" class="btn btn-danger" style="width:100%">{{ deleteLabel }}</div>
-                    <div onClick="{{ goProfile }}" class="btn btn-ghost" style="width:100%">Manter minha conta</div>
+                    <div onClick="{{ goProfile }}" class="btn btn-ghost" style="width:100%" data-sf-close="">Manter minha conta</div>
                   </div>
                 </div>
               </sc-if>
@@ -2266,7 +2270,7 @@ select{caret-color:auto}
               <div class="rise sf-dialog pf-dialog rf-dialog" role="dialog" aria-modal="true" aria-label="{{ rfTitle }}">
                 <div class="pf-head">
                   <div style="font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif">{{ rfTitle }}</div>
-                  <div onClick="{{ closeRefund }}" class="iconbtn" role="button" aria-label="Fechar" title="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
+                  <div onClick="{{ closeRefund }}" class="iconbtn" role="button" aria-label="Fechar" data-sf-close="" title="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
                 </div>
                 <div class="rf-body">
                   <sc-if value="{{ rfPaid }}" hint-placeholder-val="{{ false }}">
@@ -2454,7 +2458,7 @@ select{caret-color:auto}
                   <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">A conta é apagada. Os pedidos dele continuam nos relatórios. Esta ação não pode ser desfeita.</p>
                   <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:0">Para tirar o acesso só por um tempo, use Desativar.</p>
                   <div onClick="{{ confirmWaiterDelete }}" class="btn btn-danger" style="width:100%">{{ wDelLabel }}</div>
-                  <div onClick="{{ cancelWaiterDelete }}" class="btn btn-ghost" style="width:100%">Manter garçom</div>
+                  <div onClick="{{ cancelWaiterDelete }}" class="btn btn-ghost" style="width:100%" data-sf-close="">Manter garçom</div>
                 </div>
               </div>
             </sc-if>
@@ -2514,7 +2518,7 @@ select{caret-color:auto}
                     <h2 style="margin:0;font-size:var(--fs-h3)">Categorias</h2>
                     <div class="muted" style="font-size:var(--fs-cap);margin-top:2px;line-height:1.4">A ordem daqui é a ordem das abas no cardápio. Renomear leva os itens junto.</div>
                   </div>
-                  <div onClick="{{ toggleCats }}" class="iconbtn" style="flex:none" role="button" aria-label="Fechar" title="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
+                  <div onClick="{{ toggleCats }}" class="iconbtn" style="flex:none" role="button" aria-label="Fechar" data-sf-close="" title="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
                 </div>
                 <div class="pf-body catbody">
                 <div class="catlist">
@@ -2624,7 +2628,7 @@ select{caret-color:auto}
                   <div class="tt" style="font-size:var(--fs-h2)">Excluir {{ pfDelName }}?</div>
                   <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">Ele sai do cardápio. Pedidos antigos e relatórios continuam como estão.</p>
                   <div onClick="{{ confirmPfDelete }}" class="btn btn-danger" style="width:100%">{{ pfDelLabel }}</div>
-                  <div onClick="{{ cancelPfDelete }}" class="btn btn-ghost" style="width:100%">Cancelar</div>
+                  <div onClick="{{ cancelPfDelete }}" class="btn btn-ghost" style="width:100%" data-sf-close="">Cancelar</div>
                 </div>
               </div>
             </sc-if>
@@ -2633,7 +2637,7 @@ select{caret-color:auto}
                 <div class="rise sf-dialog pf-dialog" role="dialog" aria-modal="true" aria-label="{{ pfFormTitle }}">
                   <div class="pf-head">
                     <div style="font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif">{{ pfFormTitle }}</div>
-                    <div onClick="{{ closePf }}" class="iconbtn" role="button" aria-label="Fechar" title="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
+                    <div onClick="{{ closePf }}" class="iconbtn" role="button" aria-label="Fechar" data-sf-close="" title="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
                   </div>
                   <div class="pf-body">
                     <div class="pf-col">
@@ -2869,7 +2873,7 @@ select{caret-color:auto}
                       <p style="font-size:var(--fs-sm);line-height:1.5;margin:0;color:#7A1A12"><b>{{ closeAskOpenText }}</b> Eles continuam na cozinha, mas novos pedidos ficam bloqueados até reabrir.</p>
                     </sc-if>
                     <div onClick="{{ closeDay }}" class="btn btn-danger" style="width:100%">Encerrar o dia</div>
-                    <div onClick="{{ cancelCloseDay }}" class="btn btn-ghost" style="width:100%">Continuar aberto</div>
+                    <div onClick="{{ cancelCloseDay }}" class="btn btn-ghost" style="width:100%" data-sf-close="">Continuar aberto</div>
                   </div>
                 </div>
               </sc-if>
@@ -3831,7 +3835,8 @@ function paymentBadge(o){
 const ADMIN_CANCELLABLE = ['Na Fila', 'Em Preparo', 'Pronto'];
 const refundableOf = r => r.paymentMethod !== 'entrega' && r.paymentStatus === 'approved' && r.paymentProvider !== 'provisorio'
   ? Math.max(0, Math.round(r.total * 100) - Math.round((r.refunded || 0) * 100)) / 100 : 0;
-const canManageOrder = r => r.status !== 'Cancelado' && (refundableOf(r) > 0 || ADMIN_CANCELLABLE.indexOf(r.status) >= 0);
+// Cancelado e ainda pago (o estorno automático falhou) também: o admin devolve pelo painel.
+const canManageOrder = r => refundableOf(r) > 0 || (r.status !== 'Cancelado' && ADMIN_CANCELLABLE.indexOf(r.status) >= 0);
 const REFUND_REASONS = ['Item em falta', 'Pedido errado', 'Demora no preparo', 'Cliente desistiu'];
 
 // Cores que o admin escolhe para cada categoria: fundo do cartão quando o
@@ -4248,23 +4253,80 @@ class Component extends DCLogic {
     // (ex.: o texto dos termos) fica de fora para não duplicar o foco.
     const NATIVO = 'a[href],button,input,select,textarea,summary,label';
     let propsKey = null;
-    const marcar = () => {
-      const els = document.body.getElementsByTagName('*');
-      for(let i = 0; i < els.length; i++){
-        const el = els[i];
-        if(el.hasAttribute('data-sf-click') || el.hasAttribute('data-sf-skip') || el.matches(NATIVO)) continue;
-        if(!propsKey) propsKey = Object.keys(el).find(k => k.indexOf('__reactProps$') === 0) || null;
-        const props = propsKey && el[propsKey];
-        if(!props || typeof props.onClick !== 'function' || el.querySelector(NATIVO)) continue;
-        el.setAttribute('data-sf-click', '');
-        if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
-        if(!el.hasAttribute('role')) el.setAttribute('role', 'button');
-      }
+    const marcarEl = el => {
+      if(el.hasAttribute('data-sf-click') || el.hasAttribute('data-sf-skip') || el.matches(NATIVO)) return;
+      if(!propsKey) propsKey = Object.keys(el).find(k => k.indexOf('__reactProps$') === 0) || null;
+      const props = propsKey && el[propsKey];
+      if(!props || typeof props.onClick !== 'function' || el.querySelector(NATIVO)) return;
+      el.setAttribute('data-sf-click', '');
+      if(!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+      if(!el.hasAttribute('role')) el.setAttribute('role', 'button');
     };
-    let a11yRaf = 0;
-    this._a11yObs = new MutationObserver(() => { if(!a11yRaf) a11yRaf = requestAnimationFrame(() => { a11yRaf = 0; marcar(); }); });
+    const marcarEm = root => {
+      marcarEl(root);
+      const els = root.getElementsByTagName('*');
+      for(let i = 0; i < els.length; i++) marcarEl(els[i]);
+    };
+    const marcar = () => marcarEm(document.body);
+    // Só os nós que entraram na tela são conferidos a cada quadro (auditoria
+    // M15): a varredura da página inteira, que travava a cozinha com listas
+    // grandes, roda no máximo a cada 2 s, para pegar o que já estava na tela
+    // e ganhou um clique depois.
+    let novos = new Set(), a11yRaf = 0;
+    this._a11yObs = new MutationObserver(muts => {
+      for(const m of muts) m.addedNodes.forEach(n => { if(n.nodeType === 1) novos.add(n); });
+      if(!a11yRaf) a11yRaf = requestAnimationFrame(() => {
+        a11yRaf = 0;
+        const lista = novos; novos = new Set();
+        lista.forEach(n => { if(n.isConnected) marcarEm(n); });
+        conferirDialogo();
+      });
+      if(!this._a11yFull) this._a11yFull = setTimeout(() => { this._a11yFull = 0; marcar(); }, 2000);
+    });
     this._a11yObs.observe(document.body, {childList:true, subtree:true});
     requestAnimationFrame(marcar);
+    // Diálogos (auditoria M13): ao abrir, o foco entra no diálogo; Tab fica
+    // preso nele; Esc fecha pelo botão marcado com data-sf-close (o mesmo
+    // Cancelar/Fechar da tela); ao fechar, o foco volta para onde estava.
+    // Diálogo de confirmação (alertdialog) começa no botão que não apaga nada.
+    const FOCAVEL = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    const dialogoAberto = () => { const ds = document.querySelectorAll('[aria-modal="true"]'); return ds[ds.length - 1] || null; };
+    const focaveis = d => Array.from(d.querySelectorAll(FOCAVEL)).filter(el => el.getClientRects().length > 0);
+    let dialogoAtual = null, voltarPara = null;
+    function conferirDialogo(){
+      const d = dialogoAberto();
+      if(d === dialogoAtual) return;
+      if(d && !dialogoAtual) voltarPara = document.activeElement;
+      dialogoAtual = d;
+      if(d){
+        if(d.contains(document.activeElement)) return;
+        marcarEm(d);
+        const seguro = d.getAttribute('role') === 'alertdialog' && d.querySelector('[data-sf-close]');
+        const alvo = seguro || focaveis(d)[0] || d;
+        if(alvo === d && !d.hasAttribute('tabindex')) d.setAttribute('tabindex', '-1');
+        alvo.focus({preventScroll:true});
+      } else if(voltarPara && voltarPara.isConnected && voltarPara !== document.body){
+        voltarPara.focus({preventScroll:true});
+        voltarPara = null;
+      } else voltarPara = null;
+    }
+    this._dlgKey = e => {
+      const d = dialogoAberto();
+      if(!d) return;
+      if(e.key === 'Escape'){
+        const fechar = d.querySelector('[data-sf-close]');
+        if(fechar){ e.preventDefault(); e.stopPropagation(); fechar.click(); }
+        return;
+      }
+      if(e.key !== 'Tab') return;
+      const fs = focaveis(d);
+      if(!fs.length){ e.preventDefault(); return; }
+      const primeiro = fs[0], ultimo = fs[fs.length - 1], at = document.activeElement;
+      if(!d.contains(at)){ e.preventDefault(); primeiro.focus(); }
+      else if(e.shiftKey && (at === primeiro || at === d)){ e.preventDefault(); ultimo.focus(); }
+      else if(!e.shiftKey && at === ultimo){ e.preventDefault(); primeiro.focus(); }
+    };
+    document.addEventListener('keydown', this._dlgKey);
     this._a11yKey = e => {
       if(e.key !== 'Enter' && e.key !== ' ') return;
       const t = e.target;
@@ -4332,8 +4394,13 @@ class Component extends DCLogic {
       // Sem conexão: depois da segunda falha, espera cada vez mais entre as
       // tentativas (3, 6, 12, 24 e no máximo 30 s), sem gastar bateria e dados à toa.
       if(Date.now() < (this._netNextAt || 0)) return;
+      // Com a aba escondida, o pedido é consultado a cada 30 s em vez de 3 s
+      // (auditoria M15: bateria e dados do cliente); ao voltar, na hora.
       const o = this.state.order;
-      if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue') this.pollOrder(o._apiId);
+      if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue' && (!document.hidden || Date.now() - (this._orderAt || 0) > 30000)){
+        this._orderAt = Date.now();
+        this.pollOrder(o._apiId);
+      }
       // Equipe com a aba em segundo plano: atualiza a cada 30 s em vez de 3 s
       // (o som de pedido novo continua chegando); ao voltar, atualiza na hora.
       if(STAFF_MODULES.indexOf(this.state.module) >= 0 && this.state.token && (!document.hidden || Date.now() - (this._adminAt || 0) > 30000)) this.loadAdminData();
@@ -4347,6 +4414,8 @@ class Component extends DCLogic {
     }, 15000);
     this.onVisible = () => {
       if(document.hidden) return;
+      const o = this.state.order;
+      if(o && o._apiId && o.status !== 'Cancelado' && o.status !== 'Entregue' && this.state.token){ this._orderAt = Date.now(); this.pollOrder(o._apiId); }
       if(this.state.module === 'cliente') this.refreshProducts();
       else if(STAFF_MODULES.indexOf(this.state.module) >= 0 && this.state.token) this.loadAdminData();
     };
@@ -5140,26 +5209,40 @@ class Component extends DCLogic {
 
   // Exportar relatório: o período escolhido na tela (hoje, 7 ou 30 dias),
   // com resumo, vendas por dia, horários, mais vendidos e a lista de pedidos.
-  reportExportData(){
+  async reportExportData(){
     const s = this.state;
     const rep = s.report && s.report.period === s.reportPeriod ? s.report : null;
     if(!rep){ this.setState({reportExportMsg:'Espere o relatório carregar para exportar.'}); return null; }
     this.setState({reportExportMsg:''});
-    return buildReportExport(rep, s.adminOrders);
+    // A lista do painel só traz os pedidos recentes (auditoria A2): os do
+    // período inteiro vêm agora. Sem resposta, usa o que já está na tela.
+    let orders = s.adminOrders;
+    const days = {hoje:1, '7d':7, '30d':30}[rep.period];
+    if(days){
+      try {
+        const res = await authFetch(API_BASE + '/orders?days=' + days, {headers:{Authorization:'Bearer ' + this.state.token}});
+        if(res.ok) orders = (await res.json()).map(adminOrderFromApi);
+      } catch(e){}
+    }
+    return buildReportExport(rep, orders);
   }
 
-  exportReportCsv(){
-    const data = this.reportExportData();
+  async exportReportCsv(){
+    const data = await this.reportExportData();
     if(!data) return;
     downloadFile(data.fileBase + '.csv', reportCsv(data), 'text/csv;charset=utf-8');
   }
 
-  exportReportPdf(){
-    const data = this.reportExportData();
-    if(!data) return;
+  async exportReportPdf(){
+    // A aba abre já no clique (senão o navegador bloqueia) e recebe o
+    // relatório quando os pedidos chegarem.
+    const s = this.state;
+    if(!(s.report && s.report.period === s.reportPeriod)) return this.reportExportData();
+    const win = window.open('', '_blank');
+    const data = await this.reportExportData();
+    if(!data){ if(win) win.close(); return; }
     // Abre numa aba nova (o próprio navegador oferece "Salvar como PDF" na
     // impressão). Se o navegador bloquear a aba, imprime por um quadro oculto.
-    const win = window.open('', '_blank');
     if(win){ win.document.open(); win.document.write(reportPrintHtml(data, true)); win.document.close(); return; }
     const frame = document.createElement('iframe');
     frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
@@ -5313,7 +5396,12 @@ class Component extends DCLogic {
       ingredients:(pf.ingredients || '').trim(), tags:(pf.tags || []).map(normTag)};
     // Na edição, só manda o estoque se o admin mexeu no campo: senão o saldo
     // carregado no formulário sobrescreveria as baixas dos pedidos feitos nesse meio-tempo.
-    if(!pf.id || stockTrim !== String(pf.stockOrig || '').trim()) body.stockQty = stockTrim ? Number(stockTrim) : null;
+    if(!pf.id || stockTrim !== String(pf.stockOrig || '').trim()){
+      body.stockQty = stockTrim ? Number(stockTrim) : null;
+      // Saldo de quando o formulário abriu: se entrou pedido nesse meio-tempo,
+      // a API recusa (409) em vez de gravar por cima (auditoria M6).
+      if(pf.id){ const orig = String(pf.stockOrig || '').trim(); body.stockQtyBase = orig ? Number(orig) : null; }
+    }
     // Mesma ideia para a foto: só manda quando mudou (null = tirou a foto).
     if((pf.photo || '') !== (pf.photoOrig || '')) body.imageUrl = pf.photo || null;
     if(this.state.pfPhotoBusy) return this.setState({pfMsg:'Espere a foto terminar de enviar.'});
@@ -5324,6 +5412,9 @@ class Component extends DCLogic {
         body:JSON.stringify(body)
       });
       const data = await res.json();
+      // Estoque mudou enquanto editava: guarda o saldo novo como base, e o próximo "Salvar" vale.
+      if(res.status === 409 && data.code === 'stock_changed')
+        return this.setState(x => ({pfMsg:data.error, pf:Object.assign({}, x.pf, {stockOrig:data.stockQty != null ? String(data.stockQty) : ''})}));
       if(!res.ok) return this.setState({pfMsg: data.error || 'Não foi possível salvar.'});
       const saved = apiProductToState(data);
       this.setState(x => {
@@ -5879,7 +5970,7 @@ class Component extends DCLogic {
     this.setState({module:mod, screen});
   }
 
-  componentWillUnmount(){ window.removeEventListener('popstate', this._onPop); window.removeEventListener('pageshow', this._onShow); document.removeEventListener('keydown', this._a11yKey); if(this._a11yObs) this._a11yObs.disconnect(); clearInterval(this.timer); clearInterval(this.menuTimer); clearInterval(this.pixTimer); window.removeEventListener('offline', this._onOffline); window.removeEventListener('online', this._onOnline); window.removeEventListener('resize', this._onNetResize); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('popstate', this._onPop); window.removeEventListener('pageshow', this._onShow); document.removeEventListener('keydown', this._a11yKey); document.removeEventListener('keydown', this._dlgKey); if(this._a11yObs) this._a11yObs.disconnect(); clearTimeout(this._a11yFull); clearInterval(this.timer); clearInterval(this.menuTimer); clearInterval(this.pixTimer); window.removeEventListener('offline', this._onOffline); window.removeEventListener('online', this._onOnline); window.removeEventListener('resize', this._onNetResize); document.removeEventListener('visibilitychange', this.onVisible); document.removeEventListener('touchstart', this._kzStart); document.removeEventListener('touchend', this._kzEnd); document.removeEventListener('scroll', this._fxScroll, true); ['pointerdown','touchend','keydown'].forEach(ev => document.removeEventListener(ev, this._unlockAudio, true)); if(this._fxObs) this._fxObs.disconnect(); }
 
   fmt(n){ return brMoney(n); }
   go(screen, module){
@@ -5944,11 +6035,30 @@ class Component extends DCLogic {
     // pago) antes de criar o novo, para o estoque dele voltar na hora (D-05).
     // Se o servidor respondeu (cancelou, ou o pedido já não pode ser
     // cancelado e vence sozinho), segue; sem resposta, avisa e não cria outro.
+    // Só segue se o cancelamento deu certo (auditoria M2). Em 409 (o pedido
+    // não pode mais ser cancelado), confere se ele acabou de ser pago: aí vai
+    // para a confirmação em vez de criar outro e cobrar de novo. Não pago, ele
+    // vence sozinho e o novo pode ser criado.
     if(prevOpen){
       let answered = false;
       try {
-        const cr = await authFetch(API_BASE + '/orders/' + prev.id + '/cancel', {method:'POST', headers:{Authorization:'Bearer ' + this.state.token}});
-        answered = cr.status < 500;
+        const auth = {Authorization:'Bearer ' + this.state.token};
+        const cr = await authFetch(API_BASE + '/orders/' + prev.id + '/cancel', {method:'POST', headers:auth});
+        if(cr.ok) answered = true;
+        else if(cr.status === 409){
+          const gr = await authFetch(API_BASE + '/orders/' + prev.id, {headers:auth});
+          if(gr.ok){
+            const od = await gr.json();
+            if(od.paymentStatus === 'approved'){
+              this.pendingOnline = null;
+              try { localStorage.removeItem(PIX_KEY); } catch(e){}
+              this.setState({order:orderFromApi(od), cart:[], orderNote:''});
+              this.go('confirm');
+              return null;
+            }
+            answered = true;
+          }
+        }
       } catch(e){ this.netFail(); }
       if(!answered){
         this.payError('Não conseguimos trocar o pedido anterior agora. Confira a internet e toque em Pagar de novo.');
