@@ -22,6 +22,7 @@ function query(table) {
   const filters = [];
   let patch = null;
   let inserted = null;
+  let removing = false;
   // Tabela que ainda não existe no banco (SQL não rodado): erro como o do Supabase.
   if (!db[table]) {
     const missing = { select: () => missing, eq: () => missing, insert: () => missing, order: () => missing,
@@ -40,6 +41,14 @@ function query(table) {
     limit: () => q,
     range: () => q,
     update: (p) => ((patch = p), q),
+    delete: () => ((removing = true), q),
+    upsert: (row) => {
+      const i = db[table].findIndex((r) => r.id === row.id);
+      if (i >= 0) db[table][i] = row;
+      else db[table].push(row);
+      inserted = { error: null };
+      return q;
+    },
     insert: (row) => {
       // Banco sem a coluna de itens (SQL 20261017220000 não rodado): erro do PostgREST.
       if (db.noItemsColumn && "items" in row) { inserted = { error: { code: "PGRST204", message: "Could not find the 'items' column" } }; return q; }
@@ -54,6 +63,7 @@ function query(table) {
       if (inserted) return Promise.resolve({ data: null, ...inserted }).then(ok, fail);
       // Como o PostgREST: devolve as linhas que o filtro achou antes da mudança.
       const hit = rows();
+      if (removing) db[table] = db[table].filter((r) => !hit.includes(r));
       if (patch) hit.forEach((r) => Object.assign(r, patch));
       return Promise.resolve({ data: hit, error: null }).then(ok, fail);
     },
@@ -84,8 +94,19 @@ const intents = {};
 const customers = [];
 const customerSessions = [];
 const cancelledIntents = [];
+const webhookEndpoints = [];
+const stripeKeys = [];
 class FakeStripe {
-  constructor(key) { this.key = key; }
+  constructor(key) { this.key = key; stripeKeys.push(key); }
+  accounts = { retrieve: async () => {
+    if (/recusada/.test(this.key)) throw Object.assign(new Error("Invalid API Key"), { type: "StripeAuthenticationError" });
+    return { id: "acct_" + this.key.slice(-4), settings: { dashboard: { display_name: "Quiosque " + this.key.slice(-4) } } };
+  } };
+  webhookEndpoints = {
+    list: async () => ({ data: webhookEndpoints.filter((e) => e.key === this.key) }),
+    create: async (b) => { const e = { id: "we_" + (webhookEndpoints.length + 1), secret: "whsec_painel_" + (webhookEndpoints.length + 1), key: this.key, ...b }; webhookEndpoints.push(e); return e; },
+    del: async (id) => { const i = webhookEndpoints.findIndex((e) => e.id === id); if (i >= 0) webhookEndpoints.splice(i, 1); return { id, deleted: true }; },
+  };
   checkout = {
     sessions: {
       create: async (body) => {
@@ -131,6 +152,7 @@ before(async () => {
   process.env.STRIPE_SECRET_KEY = "sk_test_123";
   process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
   process.env.STRIPE_PUBLISHABLE_KEY = "pk_test_123";
+  process.env.STRIPE_CONFIG_SECRET = "segredo-de-teste";
   const { app } = await import("../src/app.js");
   server = app.listen(0);
   await new Promise((r) => server.on("listening", r));
@@ -669,4 +691,86 @@ test("M8: pedido cancelado que continua pago pode ser estornado pelo painel", as
   assert.equal(o.payment_status, "refunded");
   // Sem nada a devolver, continua recusado.
   assert.equal((await adm("POST", `/orders/${id}/refund`, { cancel: true, reason: "De novo" })).status, 409);
+});
+
+test("aba Stripe: só o admin vê, e a chave secreta nunca volta para o navegador", async () => {
+  assert.equal((await api("GET", "/admin/stripe")).status, 403);
+  const r = await adm("GET", "/admin/stripe");
+  assert.equal(r.status, 200);
+  assert.equal(r.body.source, "ambiente");
+  assert.equal(r.body.mode, "test");
+  assert.equal(r.body.secretKeyHint, "sk_test_…_123");
+  assert.equal(r.body.account.id, "acct__123");
+  assert.ok(!JSON.stringify(r.body).includes("sk_test_123"));
+  assert.ok(!JSON.stringify(r.body).includes(WEBHOOK_SECRET));
+});
+
+test("aba Stripe: confere as chaves antes de salvar", async () => {
+  const put = (secretKey, publishableKey) => api("PUT", "/admin/stripe", { secretKey, publishableKey }, { Authorization: "Bearer tok-adm" });
+  assert.equal((await put("chave", "pk_test_abcdefghijkl")).status, 400);
+  assert.equal((await put("sk_test_abcdefghijkl", "pk_live_abcdefghijkl")).status, 400);
+  const r = await put("sk_test_recusadaABCDEF", "pk_test_abcdefghijkl");
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /recusou a chave secreta/);
+  // Cliente não configura nada.
+  assert.equal((await api("PUT", "/admin/stripe", { secretKey: "sk_test_abcdefghijkl", publishableKey: "pk_test_abcdefghijkl" })).status, 403);
+});
+
+test("aba Stripe: salva criptografado, cria o webhook e passa a cobrar com a conta nova", async () => {
+  db.stripe_settings = [];
+  const pending = db.orders.filter((o) => o.payment_provider === "stripe" && o.payment_status === "pending" && o.status === "Na Fila");
+  pending.forEach((o) => (o.status = "Cancelado"));
+  const r = await api("PUT", "/admin/stripe", { secretKey: "sk_test_painelABCDEFGH", publishableKey: "pk_test_painelABCDEFGH" }, { Authorization: "Bearer tok-adm" });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.account.id, "acct_EFGH");
+  const row = db.stripe_settings[0];
+  assert.ok(row.secret_key_enc.startsWith("v1:") && !row.secret_key_enc.includes("painel"));
+  assert.ok(row.webhook_secret_enc.startsWith("v1:"));
+  assert.equal(row.updated_by, "adm");
+  const ep = webhookEndpoints.find((e) => e.id === row.webhook_endpoint_id);
+  assert.ok(ep.url.endsWith("/payments/stripe/webhook"));
+  assert.ok(ep.enabled_events.includes("payment_intent.succeeded") && ep.enabled_events.includes("charge.refunded"));
+
+  const st = await api("GET", "/payments/status");
+  assert.equal(st.body.stripePublishableKey, "pk_test_painelABCDEFGH");
+  const g = await adm("GET", "/admin/stripe");
+  assert.equal(g.body.source, "painel");
+  assert.equal(g.body.secretKeyHint, "sk_test_…EFGH");
+  assert.equal(g.body.updatedBy, "Bia Admin");
+  assert.ok(!JSON.stringify(g.body).includes("sk_test_painelABCDEFGH"));
+
+  // Cobrança nova sai com a chave do painel.
+  const n = stripeKeys.length;
+  await api("POST", "/payments/card-session");
+  assert.ok(stripeKeys.slice(n).includes("sk_test_painelABCDEFGH"));
+
+  // Webhook assinado com o segredo do webhook criado pelo painel é aceito;
+  // o da Vercel continua valendo durante a troca; outro qualquer não.
+  const ev = { id: "evt_p", type: "customer.created", data: { object: { id: "x" } } };
+  assert.equal((await webhook(ev, ep.secret)).status, 200);
+  assert.equal((await webhook(ev, WEBHOOK_SECRET)).status, 200);
+  assert.equal((await webhook(ev, "whsec_outro")).status, 400);
+
+  // Salvar de novo na mesma conta troca o webhook em vez de acumular.
+  await api("PUT", "/admin/stripe", { secretKey: "sk_test_painelABCDEFGH", publishableKey: "pk_test_painelABCDEFGH" }, { Authorization: "Bearer tok-adm" });
+  assert.equal(webhookEndpoints.filter((e) => e.key === "sk_test_painelABCDEFGH").length, 1);
+  pending.forEach((o) => (o.status = "Na Fila"));
+});
+
+test("aba Stripe: não troca de conta nem desconecta com pagamento em aberto", async () => {
+  const id = "00000000-0000-4000-8000-0000000000d1";
+  db.orders.push({ id, customer_id: "ana", total: 20, refunded_amount: 0, status: "Na Fila", payment_method: "pix",
+    payment_status: "pending", payment_provider: "stripe", payment_id: "pi_d1", table_number: 1, created_at: new Date().toISOString() });
+  const r = await api("PUT", "/admin/stripe", { secretKey: "sk_test_outraContaWXYZ", publishableKey: "pk_test_outraContaWXYZ" }, { Authorization: "Bearer tok-adm" });
+  assert.equal(r.status, 409);
+  assert.equal((await adm("DELETE", "/admin/stripe")).status, 409);
+  db.orders = db.orders.filter((o) => !(o.payment_provider === "stripe" && o.payment_status === "pending" && o.status === "Na Fila"));
+
+  // Sem pedido em aberto, desconectar apaga o webhook e volta para a Vercel.
+  const d = await adm("DELETE", "/admin/stripe");
+  assert.equal(d.status, 200);
+  assert.equal(db.stripe_settings.length, 0);
+  assert.equal(webhookEndpoints.filter((e) => e.key === "sk_test_painelABCDEFGH").length, 0);
+  assert.equal((await adm("GET", "/admin/stripe")).body.source, "ambiente");
+  delete db.stripe_settings;
 });

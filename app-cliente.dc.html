@@ -708,6 +708,12 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .msg-reply-actions{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
 .msg-reply-actions .btn{min-width:180px}
 @media (max-width:767px){.msg-reply-actions{flex-direction:column-reverse}.msg-reply-actions .btn{width:100%;min-width:0}}
+.sx-page{width:100%}
+.pgrid.sx-grid{grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr));align-items:start}
+.sx-rows{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r-ctl)}
+.sx-row{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;font-size:var(--fs-sm);line-height:1.5}
+.sx-row + .sx-row{border-top:1px solid var(--line)}
+.sx-row b{text-align:right;min-width:0;overflow-wrap:anywhere}
 .locform{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px}
 .locform .wide{grid-column:auto}
 @media (max-width:767px){.locform .wide{grid-column:auto}}
@@ -2740,6 +2746,7 @@ select{caret-color:auto}
                   <div class="muted" style="font-size:var(--fs-sm);margin-bottom:12px">{{ payProvidersText }}</div>
                   <div class="alert {{ payAlertCls }}" style="flex-direction:column;gap:2px"><b>{{ payTitle }}</b><span style="font-weight:500">{{ payText }}</span></div>
                   <div class="muted" style="font-size:var(--fs-sm);margin-top:12px;line-height:1.5">Pagar na entrega: o garçom marca o recebimento em <span onClick="{{ goPayments }}" class="link" style="font-size:var(--fs-sm)">Pagamentos</span>.</div>
+                  <div class="muted" style="font-size:var(--fs-sm);margin-top:8px;line-height:1.5">Conta que recebe PIX e cartão: <span onClick="{{ goStripe }}" class="link" style="font-size:var(--fs-sm)">configurar na aba Stripe</span>.</div>
                 </div>
               </div>
               <div class="panel" style="display:flex;flex-direction:column;gap:12px">
@@ -2780,6 +2787,56 @@ select{caret-color:auto}
                 </div>
               </div>
             </div>
+          </sc-if>
+
+          <sc-if value="{{ is_stripe }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:var(--gap)" class="rise sx-page">
+              <sc-if value="{{ sxLoading }}" hint-placeholder-val="{{ false }}">
+                <div class="card muted" style="padding:40px var(--cpad);text-align:center">Carregando…</div>
+              </sc-if>
+              <sc-if value="{{ hasSxErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err" role="alert">{{ sxErr }}</div></sc-if>
+              <sc-if value="{{ sxLoaded }}" hint-placeholder-val="{{ true }}">
+              <div class="pgrid sx-grid">
+                <div class="panel" style="display:flex;flex-direction:column;gap:16px">
+                  <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
+                    <div style="min-width:0"><h2 style="margin:0">Conta conectada</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">{{ sxSourceText }}</div></div>
+                    <span class="chip" style="{{ sxModeStyle }}">{{ sxModeLabel }}</span>
+                  </div>
+                  <div class="sx-rows">
+                    <sc-for list="{{ sxRows }}" as="r" hint-placeholder-count="5">
+                      <div class="sx-row"><span class="muted">{{ r.k }}</span><b>{{ r.v }}</b></div>
+                    </sc-for>
+                  </div>
+                  <div class="alert {{ sxConnCls }}" role="status" style="flex-direction:column;gap:2px"><b>{{ sxConnTitle }}</b><span style="font-weight:500">{{ sxConnText }}</span></div>
+                  <div style="display:flex;gap:12px;flex-wrap:wrap">
+                    <div onClick="{{ sxReload }}" class="btn btn-ghost btn-sm" role="button" style="min-height:var(--ctl)">Testar conexão</div>
+                    <sc-if value="{{ sxCanDisconnect }}" hint-placeholder-val="{{ false }}">
+                      <div onClick="{{ sxAskDisconnect }}" class="btn btn-danger-ghost btn-sm" role="button" style="min-height:var(--ctl)">Desconectar</div>
+                    </sc-if>
+                  </div>
+                </div>
+                <div class="panel" style="display:flex;flex-direction:column;gap:16px">
+                  <div><h2 style="margin:0">{{ sxFormTitle }}</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Copie as duas chaves em <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener" class="link" style="font-size:var(--fs-sm)">Stripe → Desenvolvedores → Chaves de API</a>. Use as de teste (pk_test_ e sk_test_) para experimentar sem cobrar.</div></div>
+                  <div><label for="sxPkInp" class="lbl">Chave publicável</label><input placeholder="pk_test_… ou pk_live_…" id="sxPkInp" class="inp" value="{{ sxPk }}" onChange="{{ setSxPk }}" autocomplete="off" spellcheck="false" /></div>
+                  <div><label for="sxSkInp" class="lbl">Chave secreta</label><input placeholder="sk_test_… ou sk_live_…" id="sxSkInp" class="inp" type="password" value="{{ sxSk }}" onChange="{{ setSxSk }}" autocomplete="off" spellcheck="false" /></div>
+                  <sc-if value="{{ sxLiveWarn }}" hint-placeholder-val="{{ false }}"><div class="alert alert-warn">Chaves de produção: depois de salvar, os clientes pagam de verdade.</div></sc-if>
+                  <div onClick="{{ sxSave }}" class="btn btn-dark" role="button" aria-disabled="{{ sxBusyAria }}">{{ sxSaveLabel }}</div>
+                  <sc-if value="{{ hasSxMsg }}" hint-placeholder-val="{{ false }}"><div class="alert {{ sxMsgCls }}" role="status">{{ sxMsg }}</div></sc-if>
+                  <div class="muted" style="font-size:var(--fs-cap);line-height:1.5">A chave secreta é conferida no Stripe e guardada criptografada no servidor: ela não aparece de novo aqui nem vai para o app dos clientes. O aviso que confirma PIX, cartão e estornos (webhook) é criado sozinho na sua conta.</div>
+                </div>
+              </div>
+              </sc-if>
+            </div>
+            <sc-if value="{{ sxDiscOpen }}" hint-placeholder-val="{{ false }}">
+              <div class="sf-overlay">
+                <div class="rise sf-dialog" role="alertdialog" aria-modal="true" aria-label="Desconectar o Stripe" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+                  <div class="tt" style="font-size:var(--fs-h2)">Desconectar esta conta?</div>
+                  <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ sxDiscText }}</p>
+                  <div onClick="{{ sxConfirmDisconnect }}" class="btn btn-danger" style="width:100%">{{ sxDiscLabel }}</div>
+                  <div onClick="{{ sxCancelDisconnect }}" class="btn btn-ghost" style="width:100%" data-sf-close="">Manter conectada</div>
+                </div>
+              </div>
+            </sc-if>
           </sc-if>
 
           <sc-if value="{{ is_reports }}" hint-placeholder-val="{{ false }}">
@@ -3880,7 +3937,8 @@ const ADM_IC = {
   reports:'M4 20h16 M7 16v-5 M11 16V8 M15 16v-3 M19 16V6',
   perfOps:'M12 13V9 M9 2h6 M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16z',
   waiters:'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M2 21c0-4 3-7 7-7s7 3 7 7 M16 3.5a4 4 0 0 1 0 7 M18 14c2.5.8 4 3.5 4 7',
-  tables:'M3 11l9-7 9 7 M5 10v10h14V10'
+  tables:'M3 11l9-7 9 7 M5 10v10h14V10',
+  stripe:'M9 15l6-6 M10 6l1-1a4 4 0 0 1 6 6l-1 1 M14 18l-1 1a4 4 0 0 1-6-6l1-1'
 };
 
 const UI = {
@@ -3908,7 +3966,7 @@ const SCREENS = {
   admin:[
     ['adminLogin','Login Admin / Cozinha'],['adminForgot','Recuperar Senha (Admin)'],['dashboard','Painel'],
     ['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio e estoque'],['tables','Quiosque e mesas'],
-    ['pause','Quiosque e mesas'],['reports','Relatórios'],['perfOps','Desempenho'],['waiters','Garçons'],
+    ['pause','Quiosque e mesas'],['reports','Relatórios'],['perfOps','Desempenho'],['waiters','Garçons'],['stripe','Stripe'],
     ['closeDay','Encerrar o dia']
   ],
   cozinha:[
@@ -3963,7 +4021,7 @@ const TAB_TITLES = {
   location:'Como chegar', offline:'Sem conexão',
   adminLogin:'Entrar', adminForgot:'Recuperar senha', dashboard:'Painel', orders:'Pedidos', payments:'Pagamentos',
   messages:'Mensagens', productForm:'Cardápio e estoque', tables:'Quiosque e mesas', pause:'Quiosque e mesas',
-  reports:'Relatórios', perfOps:'Desempenho', waiters:'Garçons', closeDay:'Encerrar o dia',
+  reports:'Relatórios', perfOps:'Desempenho', waiters:'Garçons', stripe:'Stripe', closeDay:'Encerrar o dia',
   kanban:'Cozinha', unavailable:'Cozinha', queueEmpty:'Cozinha',
   entregar:'Para entregar', novoPedido:'Lançar pedido', desempenho:'Meu desempenho'
 };
@@ -4085,6 +4143,8 @@ class Component extends DCLogic {
     gTable:null, gCart:{}, gNote:'', gSearch:'', gCat:'Todos', gErr:'', gBusy:false,
     gPeriod:'hoje', gMetrics:null, gMetricsErr:'', gMetricsAt:0,
     // Admin > Garçons: lista e o formulário de cadastro.
+    // Admin > Stripe (GET /admin/stripe): conta conectada; a chave secreta nunca vem.
+    sxCfg:null, sxErr:'', sxPk:'', sxSk:'', sxMsg:'', sxBusy:false, sxDisc:false,
     waiters:null, wName:'', wEmail:'', wPass:'', wErr:'', wMsg:'', wBusy:false, wToggling:null,
     // Página de um garçom (métricas e pedidos) e a janela de excluir.
     wSel:null, wRepPeriod:'hoje', wRep:null, wRepErr:'', wDel:null, wDeleting:false,
@@ -4542,6 +4602,7 @@ class Component extends DCLogic {
       const tela = rota.get('screen');
       if(mod === 'garcom' && tela === 'desempenho') setTimeout(() => this.loadWaiterMetrics(), 0);
       if(mod === 'admin' && tela === 'waiters') setTimeout(() => this.loadWaiters(), 0);
+      if(mod === 'admin' && tela === 'stripe') setTimeout(() => this.loadStripeConfig(), 0);
     }
   }
 
@@ -5615,6 +5676,50 @@ class Component extends DCLogic {
     } catch(e){ this.setState({gMetricsErr:'Falha de conexão com o servidor.'}); }
   }
 
+  // ---- Admin > Stripe ----
+  async loadStripeConfig(){
+    this.setState({sxErr:''});
+    try {
+      const res = await authFetch(API_BASE + '/admin/stripe', {headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setState({sxErr:data.error || 'Não foi possível carregar a conta do Stripe.'});
+      this.setState({sxCfg:data});
+    } catch(e){ this.setState({sxErr:'Falha de conexão com o servidor.'}); }
+  }
+
+  async saveStripeConfig(){
+    const s = this.state;
+    if(s.sxBusy) return;
+    const publishableKey = s.sxPk.trim(), secretKey = s.sxSk.trim();
+    if(!/^pk_(test|live)_/.test(publishableKey)) return this.setState({sxMsg:'A chave publicável começa com pk_test_ ou pk_live_.'});
+    if(!/^(sk|rk)_(test|live)_/.test(secretKey)) return this.setState({sxMsg:'A chave secreta começa com sk_test_ ou sk_live_.'});
+    this.setState({sxBusy:true, sxMsg:''});
+    try {
+      const res = await authFetch(API_BASE + '/admin/stripe', {
+        method:'PUT', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + s.token},
+        body:JSON.stringify({publishableKey, secretKey})
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setState({sxBusy:false, sxMsg:data.error || 'Não foi possível salvar.'});
+      this.setState({sxBusy:false, sxPk:'', sxSk:'', sxMsg:'Conta ' + data.account.name + ' conectada e atualizada.'});
+      this.loadStripeConfig();
+      this.loadPaymentsStatus();
+    } catch(e){ this.setState({sxBusy:false, sxMsg:'Falha de conexão com o servidor.'}); }
+  }
+
+  async disconnectStripe(){
+    if(this.state.sxBusy) return;
+    this.setState({sxBusy:true});
+    try {
+      const res = await authFetch(API_BASE + '/admin/stripe', {method:'DELETE', headers:{Authorization:'Bearer ' + this.state.token}});
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) return this.setState({sxBusy:false, sxDisc:false, sxMsg:data.error || 'Não foi possível desconectar.'});
+      this.setState({sxBusy:false, sxDisc:false, sxMsg:''});
+      this.loadStripeConfig();
+      this.loadPaymentsStatus();
+    } catch(e){ this.setState({sxBusy:false, sxDisc:false, sxMsg:'Falha de conexão com o servidor.'}); }
+  }
+
   // ---- Admin > Garçons ----
   async loadWaiters(){
     try {
@@ -5980,6 +6085,7 @@ class Component extends DCLogic {
     if(screen === 'desempenho' && this.state.token) this.loadWaiterMetrics();
     if(screen === 'waiters') this.setState({wSel:null, wRep:null, wDel:null});
     if(screen === 'waiters' && this.state.token) this.loadWaiters();
+    if(screen === 'stripe' && this.state.token) this.loadStripeConfig();
     if(screen === 'novoPedido') this.setState({gErr:''});
     if((screen === 'profile' || screen === 'editProfile') && this.state.token) this.loadProfile(screen === 'editProfile');
     if(screen === 'changePassword') this.setState({pwCur:'', pwNew:'', pwNew2:'', pwErr:''});
@@ -6808,13 +6914,14 @@ class Component extends DCLogic {
     // de verdade por loadAdminData() (nada é mock; adminLogin/adminForgot saíram
     // do menu porque a autenticação agora é só pelo modal do index.html).
     const sideOn = s.screen === 'pause' ? 'tables' : s.screen === 'closeDay' ? 'dashboard' : s.screen;
-    v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio e estoque'],['reports','Relatórios'],['perfOps','Desempenho'],['tables','Quiosque e mesas'],['waiters','Garçons']]
+    v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio e estoque'],['reports','Relatórios'],['perfOps','Desempenho'],['tables','Quiosque e mesas'],['waiters','Garçons'],['stripe','Stripe']]
       .map(([k, label]) => ({label, ic:ADM_IC[k], cls:sideOn === k ? 'on' : '', cur:sideOn === k ? 'page' : 'false', go:() => this.go(k, 'admin')}));
     v.admMenuCls = s.admMenu ? 'open' : '';
     v.admMenuLabel = s.admMenu ? 'Fechar' : 'Menu';
     v.admMenuIc = s.admMenu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16';
     v.toggleAdmMenu = () => this.setState({admMenu:!s.admMenu});
     v.goPayments = () => this.go('payments', 'admin');
+    v.goStripe = () => this.go('stripe', 'admin');
     v.goCloseDay = () => this.go('closeDay', 'admin');
     v.is_kioskPage = s.screen === 'tables' || s.screen === 'pause';
     const nowDate = new Date();
@@ -6830,6 +6937,7 @@ class Component extends DCLogic {
       reports:'Vendas, mais vendidos e horários de pico',
       perfOps:'Hoje, atualizado sozinho',
       waiters:'Contas da equipe que entrega os pedidos',
+      stripe:'Conta que recebe os pagamentos por PIX e cartão',
       closeDay:'Fechamento do caixa'
     }[s.screen] || '';
 
@@ -7071,6 +7179,52 @@ class Component extends DCLogic {
     v.pauseDotStyle = 'width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;background:' + (s.paused ? '#B42318' : '#2E9C6A');
     v.pauseBtnLabel = s.paused ? 'Retomar pedidos' : 'Pausar pedidos';
     v.pausePanelStyle = s.paused ? 'background:#FDECEA;border-color:#F0C2BC' : 'background:#F0FAF3;border-color:#BFE3CB';
+    // Admin > Stripe.
+    const sx = s.sxCfg;
+    v.sxLoading = !sx && !s.sxErr; v.sxLoaded = !!sx;
+    v.sxErr = s.sxErr; v.hasSxErr = !!s.sxErr;
+    const sxLive = sx && sx.mode === 'live';
+    v.sxModeLabel = !sx || !sx.configured ? 'Não conectado' : sxLive ? 'Produção' : 'Modo teste';
+    v.sxModeStyle = !sx || !sx.configured ? 'background:#EEF0F1;color:#4A5358' : sxLive ? 'background:#E6F4EC;color:#1E7A50' : 'background:#FFF4DE;color:#8A5A00';
+    v.sxSourceText = !sx ? '' : sx.source === 'painel' ? 'Configurada aqui no painel' + (sx.updatedAt ? ' em ' + new Date(sx.updatedAt).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}) + (sx.updatedBy ? ' por ' + sx.updatedBy : '') : '') + '.'
+      : sx.source === 'ambiente' ? 'Vem das variáveis do servidor (Vercel). Salvar chaves aqui passa a valer no lugar delas.'
+      : 'Nenhuma conta do Stripe ligada ao quiosque.';
+    v.sxRows = !sx || !sx.configured ? [] : [
+      {k:'Conta', v:sx.account ? sx.account.name : '—'},
+      {k:'ID da conta', v:sx.account ? sx.account.id : '—'},
+      {k:'Chave secreta', v:sx.secretKeyHint || '—'},
+      {k:'Chave publicável', v:sx.publishableKey ? sx.publishableKey.slice(0, 8) + '…' + sx.publishableKey.slice(-4) : 'faltando'},
+      {k:'Webhook', v:sx.webhook && sx.webhook.configured ? 'Ativo' : 'Faltando'}
+    ];
+    const sxOk = sx && sx.configured && sx.connection && sx.connection.ok && sx.webhook.configured && sx.publishableKey;
+    v.sxConnCls = sxOk ? 'alert-ok' : sx && sx.connection && !sx.connection.ok ? 'alert-err' : 'alert-warn';
+    v.sxConnTitle = !sx ? '' : !sx.configured ? 'PIX e cartão sem cobrança de verdade.'
+      : sx.connection && !sx.connection.ok ? 'O Stripe não aceitou a conexão.'
+      : sxOk ? (sxLive ? 'Recebendo pagamentos de verdade.' : 'Conectado em modo teste.') : 'Configuração incompleta.';
+    v.sxConnText = !sx ? '' : !sx.configured ? 'Conecte uma conta ao lado para cobrar PIX e cartão pelo Stripe.'
+      : sx.connection && !sx.connection.ok ? sx.connection.error
+      : !sx.webhook.configured ? 'Falta o webhook que confirma os pagamentos. Salve as chaves de novo para criar.'
+      : !sx.publishableKey ? 'Falta a chave publicável: o cartão abre na página do Stripe em vez do app.'
+      : sxLive ? 'PIX e cartão caem na conta acima.' : 'Nada é cobrado. Cartão de teste: 4242 4242 4242 4242.';
+    if(sx && sx.unreadable) { v.sxConnCls = 'alert-err'; v.sxConnTitle = 'As chaves salvas no painel não abrem mais.'; v.sxConnText = 'O segredo do servidor mudou. Cole as chaves de novo.'; }
+    v.sxCanDisconnect = !!sx && sx.source === 'painel';
+    v.sxReload = () => { this.setState({sxCfg:null, sxMsg:''}); this.loadStripeConfig(); };
+    v.sxFormTitle = sx && sx.configured ? 'Trocar as chaves' : 'Conectar conta';
+    v.sxPk = s.sxPk; v.sxSk = s.sxSk;
+    v.setSxPk = e => this.setState({sxPk:e.target.value, sxMsg:''});
+    v.setSxSk = e => this.setState({sxSk:e.target.value, sxMsg:''});
+    v.sxLiveWarn = /^pk_live_/.test(s.sxPk.trim()) || /^(sk|rk)_live_/.test(s.sxSk.trim());
+    v.sxSave = () => this.saveStripeConfig();
+    v.sxSaveLabel = s.sxBusy ? 'Conferindo no Stripe…' : 'Salvar e conectar';
+    v.sxBusyAria = s.sxBusy ? 'true' : 'false';
+    v.sxMsg = s.sxMsg; v.hasSxMsg = !!s.sxMsg; v.sxMsgCls = SAVED_OK.test(s.sxMsg || '') ? 'alert-ok' : 'alert-err';
+    v.sxDiscOpen = s.sxDisc;
+    v.sxDiscText = 'PIX e cartão voltam a usar as variáveis do servidor (Vercel), se houver; sem elas, ficam sem cobrança de verdade. O webhook criado na sua conta do Stripe é apagado.';
+    v.sxDiscLabel = s.sxBusy ? 'Desconectando…' : 'Desconectar';
+    v.sxAskDisconnect = () => this.setState({sxDisc:true});
+    v.sxCancelDisconnect = () => this.setState({sxDisc:false});
+    v.sxConfirmDisconnect = () => this.disconnectStripe();
+
     // Quem cobra cada forma de pagamento (GET /payments/status).
     const NOME = {stripe:'Stripe', provisorio:'provisório (sem cobrança)'};
     const pixP = s.pixProvider, cardP = s.cardProvider;

@@ -1,27 +1,34 @@
 import Stripe from "stripe";
+import { stripeSettings } from "./stripe-config.js";
 
-const SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-// Chave publicável (pk_test_...): pode ir pro app, é ela que desenha os
-// campos do cartão (Payment Element) dentro da tela de pagamento.
-export const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || null;
-
-// Com STRIPE_SECRET_KEY configurada, PIX e cartão são cobrados pelo Stripe
-// (cartão com campos no app se houver STRIPE_PUBLISHABLE_KEY, senão Checkout
-// hospedado). A chave fica só na variável de ambiente do servidor, nunca no
-// repositório nem no front.
-export const stripeConfigured = !!SECRET_KEY;
-// Chave sk_test_/rk_test_: nada é cobrado de verdade (cartão 4242 4242 4242 4242).
-export const stripeTestMode = /^(sk|rk)_test_/.test(SECRET_KEY || "");
+// As chaves vêm da aba Stripe do painel (criptografadas no banco) ou, sem
+// nada salvo lá, das variáveis STRIPE_* da Vercel (ver stripe-config.js).
+// A chave secreta nunca vai para o repositório nem para o front.
+//
+// configured: com a chave secreta, PIX e cartão são cobrados pelo Stripe
+// (cartão com campos no app se houver a chave publicável, senão Checkout
+// hospedado). testMode: chave sk_test_/rk_test_, nada é cobrado de verdade
+// (cartão 4242 4242 4242 4242). publishableKey (pk_...) pode ir pro app: é
+// ela que desenha os campos do cartão (Payment Element).
+export async function stripeStatus() {
+  const cfg = await stripeSettings();
+  return {
+    configured: !!cfg.secretKey,
+    testMode: /^(sk|rk)_test_/.test(cfg.secretKey || ""),
+    publishableKey: cfg.publishableKey || null,
+  };
+}
 
 // Por quanto tempo uma cobrança online fica aberta. Depois disso o pedido não
 // pago sai da fila (ver order-payments.js).
 export const PAYMENT_WINDOW_MINUTES = 30;
 
+// Um cliente por chave: trocar a chave no painel passa a valer sem reiniciar.
 let client = null;
-function stripe() {
-  if (!client) client = new Stripe(SECRET_KEY);
-  return client;
+async function stripe() {
+  const { secretKey } = await stripeSettings();
+  if (!client || client.key !== secretKey) client = { key: secretKey, api: new Stripe(secretKey) };
+  return client.api;
 }
 
 // Pagamentos do Stripe são guardados no pedido pelo id do PaymentIntent.
@@ -31,7 +38,7 @@ export const isStripePaymentId = (id) => String(id || "").startsWith("pi_");
 // Os dados do cartão são digitados lá — nunca passam pelo app nem por aqui.
 // O pedido vai em client_reference_id e metadata pra casar com o webhook.
 export async function createStripeCheckout({ orderId, amount, payerEmail, successUrl, cancelUrl, description, expiresInMinutes }) {
-  const session = await stripe().checkout.sessions.create({
+  const session = await (await stripe()).checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
     line_items: [
@@ -76,12 +83,12 @@ export async function createOrReuseCardIntent({ orderId, amount, payerEmail, pay
   // campos do cartão aparecerem mais rápido.
   const [customer, old] = await Promise.all([
     userId ? findOrCreateCustomer({ userId, email: payerEmail, name: payerName }) : null,
-    existingId ? stripe().paymentIntents.retrieve(existingId) : null,
+    existingId ? (await stripe()).paymentIntents.retrieve(existingId) : null,
   ]);
   const reusable = old && old.amount === cents && (old.customer || null) === customer
     && ["requires_payment_method", "requires_confirmation", "requires_action"].includes(old.status);
   const [pi, customerSessionClientSecret] = await Promise.all([
-    reusable ? old : stripe().paymentIntents.create({
+    reusable ? old : (await stripe()).paymentIntents.create({
       amount: cents,
       currency: "brl",
       payment_method_types: ["card"],
@@ -105,11 +112,11 @@ export async function createCardSession({ userId, email, name }) {
 
 async function findOrCreateCustomer({ userId, email, name }) {
   if (email) {
-    const list = await stripe().customers.list({ email, limit: 20 });
+    const list = await (await stripe()).customers.list({ email, limit: 20 });
     const found = list.data.find((c) => c.metadata?.sunfood_user_id === userId);
     if (found) return found.id;
   }
-  const c = await stripe().customers.create({
+  const c = await (await stripe()).customers.create({
     email: email || undefined,
     name: name || undefined,
     metadata: { sunfood_user_id: userId },
@@ -120,7 +127,7 @@ async function findOrCreateCustomer({ userId, email, name }) {
 // Cartão salvo só pra compras com o cliente presente (on_session): o Sunfood
 // nunca cobra sozinho depois.
 async function createCustomerSession(customer) {
-  const cs = await stripe().customerSessions.create({
+  const cs = await (await stripe()).customerSessions.create({
     customer,
     components: {
       payment_element: {
@@ -145,7 +152,7 @@ async function createCustomerSession(customer) {
 export const maskHolderCpf = (cpf) => `${cpf.slice(0, 3)}.***.***-${cpf.slice(9)}`;
 
 export async function setCardHolder(paymentIntentId, { name, cpf }) {
-  await stripe().paymentIntents.update(paymentIntentId, {
+  await (await stripe()).paymentIntents.update(paymentIntentId, {
     metadata: { holder_name: name, holder_cpf: maskHolderCpf(cpf) },
   });
 }
@@ -158,14 +165,14 @@ export async function createStripePix({ orderId, amount, payerEmail, description
   // PIX do pedido ainda em aberto (ex.: o cliente recarregou a página): mostra
   // o mesmo QR em vez de gerar outra cobrança.
   if (existingId) {
-    const old = await stripe().paymentIntents.retrieve(existingId).catch(() => null);
+    const old = await (await stripe()).paymentIntents.retrieve(existingId).catch(() => null);
     const qr = old?.next_action?.pix_display_qr_code;
     const valid = !qr?.expires_at || qr.expires_at * 1000 > Date.now() + 60 * 1000;
     if (old && old.status === "requires_action" && old.amount === cents && qr?.data && valid) return pixResult(old);
   }
   // Mesma chave para dois pedidos simultâneos (clique duplo): uma cobrança só.
   const idempotencyKey = `sunfood-pix-${orderId}-${existingId || "1"}`;
-  const pi = await stripe().paymentIntents.create({
+  const pi = await (await stripe()).paymentIntents.create({
     amount: cents,
     currency: "brl",
     payment_method_types: ["pix"],
@@ -193,7 +200,7 @@ function pixResult(pi) {
 
 // Rebusca o PaymentIntent na API (o webhook só avisa que algo mudou).
 export async function fetchPaymentIntent(id) {
-  const pi = await stripe().paymentIntents.retrieve(id);
+  const pi = await (await stripe()).paymentIntents.retrieve(id);
   return {
     orderId: pi.metadata?.order_id || null,
     paid: pi.status === "succeeded",
@@ -204,15 +211,28 @@ export async function fetchPaymentIntent(id) {
 
 // Confere a assinatura do webhook (cabeçalho Stripe-Signature) sobre o corpo
 // cru da requisição. Lança erro se não bater.
-export function constructStripeEvent(rawBody, signatureHeader) {
-  if (!WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET não configurado.");
-  return stripe().webhooks.constructEvent(rawBody, signatureHeader, WEBHOOK_SECRET);
+// Vale o segredo do webhook criado pelo painel e, durante a troca, também o
+// da variável STRIPE_WEBHOOK_SECRET.
+export async function constructStripeEvent(rawBody, signatureHeader) {
+  const cfg = await stripeSettings();
+  const secrets = [cfg.webhookSecret, cfg.fallbackWebhookSecret].filter(Boolean);
+  if (!secrets.length) throw new Error("Segredo do webhook do Stripe não configurado.");
+  const api = await stripe();
+  let last;
+  for (const secret of secrets) {
+    try {
+      return api.webhooks.constructEvent(rawBody, signatureHeader, secret);
+    } catch (e) {
+      last = e;
+    }
+  }
+  throw last;
 }
 
 // Nunca confiar só no corpo do webhook: a sessão é rebuscada na API do
 // Stripe com a nossa chave antes de liberar o pedido.
 export async function fetchCheckoutSession(sessionId) {
-  const s = await stripe().checkout.sessions.retrieve(sessionId);
+  const s = await (await stripe()).checkout.sessions.retrieve(sessionId);
   return {
     orderId: s.client_reference_id || s.metadata?.order_id || null,
     paid: s.payment_status === "paid",
@@ -230,14 +250,14 @@ export async function refundStripePayment(paymentIntentId, { amountCents, metada
   const body = { payment_intent: paymentIntentId };
   if (amountCents) body.amount = amountCents;
   if (metadata) body.metadata = metadata;
-  const r = await stripe().refunds.create(body, idempotencyKey ? { idempotencyKey } : undefined);
+  const r = await (await stripe()).refunds.create(body, idempotencyKey ? { idempotencyKey } : undefined);
   return { simulated: false, refundId: r.id, status: r.status, amountCents: r.amount };
 }
 
 // Rebusca a cobrança e os estornos dela na API (o webhook charge.refunded só
 // avisa que algo mudou). Pega estornos feitos direto no painel do Stripe.
 export async function fetchChargeRefunds(chargeId) {
-  const c = await stripe().charges.retrieve(chargeId, { expand: ["refunds"] });
+  const c = await (await stripe()).charges.retrieve(chargeId, { expand: ["refunds"] });
   return {
     paymentIntentId: typeof c.payment_intent === "string" ? c.payment_intent : c.payment_intent?.id || null,
     amountRefunded: Number(c.amount_refunded) / 100,
@@ -251,15 +271,15 @@ export async function fetchChargeRefunds(chargeId) {
 // Pedido cancelado ou vencido sem pagamento (auditoria B4): fecha o
 // PaymentIntent, pra o cartão ou o PIX não poderem mais ser cobrados depois.
 export async function cancelStripePaymentIntent(id) {
-  await stripe().paymentIntents.cancel(id);
+  await (await stripe()).paymentIntents.cancel(id);
 }
 
 // Conta excluída (LGPD, auditoria M11): apaga o cliente no Stripe, com os
 // cartões salvos. Só o cliente criado para este usuário (metadata).
 export async function deleteStripeCustomer({ userId, email }) {
   if (!email) return;
-  const list = await stripe().customers.list({ email, limit: 20 });
+  const list = await (await stripe()).customers.list({ email, limit: 20 });
   for (const c of list.data.filter((c) => c.metadata?.sunfood_user_id === userId)) {
-    await stripe().customers.del(c.id);
+    await (await stripe()).customers.del(c.id);
   }
 }

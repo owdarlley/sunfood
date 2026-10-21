@@ -11,6 +11,7 @@ import { adminRouter } from "./routes/admin.js";
 import { paymentsRouter } from "./routes/payments.js";
 import { contactRouter } from "./routes/contact.js";
 import { waitersRouter } from "./routes/waiters.js";
+import { stripeAdminRouter } from "./routes/stripe-admin.js";
 import { runMaintenance } from "./order-payments.js";
 import { purgeOldContactMessages } from "./routes/contact.js";
 
@@ -69,6 +70,7 @@ app.use("/tables", tablesRouter);
 app.use("/orders", ordersRouter);
 app.use("/payments", paymentsRouter);
 app.use("/contact", contactRouter);
+app.use("/admin/stripe", stripeAdminRouter);
 app.use("/", waitersRouter);
 app.use("/", adminRouter);
 
