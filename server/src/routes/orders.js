@@ -18,7 +18,7 @@ import {
   canRecordReceipt,
   VALID_TRANSITIONS,
 } from "../business-rules.js";
-import { cancelOrderWithRefund, expireUnpaidOrders, expireUnpaidOrdersSoon } from "../order-payments.js";
+import { cancelOrderWithRefund, expireUnpaidOrdersSoon } from "../order-payments.js";
 import { refundOrderByAdmin, customerRefunds } from "../order-refunds.js";
 
 export const ordersRouter = Router();
@@ -201,7 +201,8 @@ ordersRouter.get("/mine", requireAuth, requireRole("cliente"), async (req, res) 
 // Cozinha e garçom não veem pedido de PIX/cartão ainda não pago; o admin vê tudo.
 // O garçom só recebe os pedidos em andamento (fila, preparo e prontos).
 ordersRouter.get("/", requireAuth, requireRole("admin", "cozinha", "garcom"), async (req, res) => {
-  await expireUnpaidOrders();
+  // A equipe consulta a cada poucos segundos: a limpeza roda no máximo uma vez por minuto.
+  await expireUnpaidOrdersSoon();
   const { status } = req.query;
   let query = supabaseAdmin.from("orders").select(ORDER_SELECT).order("created_at", { ascending: false });
   if (status) query = query.eq("status", status);
