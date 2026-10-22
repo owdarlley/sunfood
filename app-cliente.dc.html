@@ -4437,8 +4437,12 @@ class Component extends DCLogic {
 
   // ===== Conexão (D-01/D-04) =====
   // Uma falha solta (sinal oscilando) não mostra nada; a partir da segunda
-  // seguida, ou com o aparelho sem rede, aparece a faixa "Sem conexão".
+  // seguida, ou com o aparelho sem rede, aparece a faixa "Sem conexão" (só
+  // para a equipe; o cliente não vê faixa, só a nova tentativa silenciosa).
+  // Com o app em segundo plano o Android corta as consultas no meio: isso
+  // não é falta de internet e não conta.
   netFail(){
+    if(document.hidden) return;
     this._netFails = (this._netFails || 0) + 1;
     this._netNextAt = this._netFails < 2 ? 0 : Date.now() + Math.min(30000, 3000 * Math.pow(2, this._netFails - 2));
     if(this._netFails >= 2 || navigator.onLine === false) this.netDownNow();
@@ -4453,7 +4457,7 @@ class Component extends DCLogic {
   // Altura da faixa (muda quando o texto quebra em duas linhas).
   netMeasure(){
     try {
-      const bar = this.state.netDown && document.querySelector('.netbar');
+      const bar = this.state.netDown && STAFF_MODULES.indexOf(this.state.module) >= 0 && document.querySelector('.netbar');
       document.documentElement.style.setProperty('--net-h', (bar ? bar.offsetHeight : 0) + 'px');
     } catch(e){}
   }
@@ -4463,7 +4467,7 @@ class Component extends DCLogic {
     if(!this.state.netDown) return;
     this.setState({netDown:false}, () => this.netMeasure());
     this.netTone(true);
-    this.flash('Conexão de volta.');
+    if(STAFF_MODULES.indexOf(this.state.module) >= 0) this.flash('Conexão de volta.');
   }
 
   // "Tentar agora" (e a volta da internet): consulta já, sem esperar.
@@ -7571,9 +7575,10 @@ class Component extends DCLogic {
 
     // chrome
     v.toast = s.toast; v.hasToast = !!s.toast;
-    // Faixa de conexão: a equipe vê a hora da última atualização boa.
-    v.netDown = !!s.netDown;
+    // Faixa de conexão: só a equipe vê (com a hora da última atualização boa).
+    // O cliente não vê faixa: o app tenta de novo sozinho e o carrinho fica guardado.
     const staffNet = STAFF_MODULES.indexOf(s.module) >= 0;
+    v.netDown = !!s.netDown && staffNet;
     const lastOk = s.netLastOk ? new Date(s.netLastOk).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
     v.netMsg = staffNet
       ? 'Sem conexão' + (lastOk ? ' · última atualização às ' + lastOk : '') + '. Tentando de novo sozinho.'
