@@ -1083,6 +1083,26 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
   .adm-side.open > .adm-item{flex:1 1 calc(50% - 4px);min-width:0;min-height:56px;align-self:stretch;white-space:normal;line-height:1.2;overflow-wrap:anywhere}
 }
 @media (max-width:400px){.adm-side.open > .adm-item{gap:8px;padding:8px 10px;font-size:14px}}
+/* Menu lateral no computador (2026-10-22, pedido do Dárlley): tudo cabe na
+   altura da tela, sem rolar, e nenhum nome é cortado. A largura é dividida
+   pelo zoom (248 px reais; antes 240 viravam 199 e cortavam "Cardápio e
+   estoque" e "Quiosque e mesas"). Os itens têm 44 px reais e encolhem juntos
+   em tela baixa (mínimo 32 px); em tela bem baixa o texto fica em 15 px e o
+   e-mail some do rodapé. Nome que mesmo assim não couber quebra em duas
+   linhas em vez de ser cortado. */
+@media (min-width:901px){
+  .adm-side{width:calc(248px / var(--z));gap:calc(2px / var(--z));padding-bottom:calc(12px / var(--z))}
+  .adm-brand{flex:none;padding-bottom:clamp(4px,calc(2vh / var(--z)),16px)}
+  .adm-side > .adm-item{flex:0 1 var(--tap);min-height:calc(32px / var(--z));padding-top:0;padding-bottom:0;white-space:normal;line-height:1.2}
+  .adm-sep{flex:none;margin:clamp(2px,calc(1vh / var(--z)),8px) 8px}
+  .adm-foot{flex:none;padding-top:clamp(4px,calc(2vh / var(--z)),16px)}
+}
+@media (min-width:901px) and (max-height:600px){
+  .adm-side{padding-top:calc(16px + var(--sat));padding-bottom:calc(8px / var(--z))}
+  .adm-side > .adm-item{min-height:calc(28px / var(--z));font-size:calc(15px / var(--z))}
+  .adm-foot .em{display:none}
+  .adm-foot .kz-btn{min-height:calc(40px / var(--z))}
+}
 
 
 /* Mais vendidos (Relatórios): no celular as unidades vão para baixo do nome,
