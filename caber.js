@@ -12,7 +12,7 @@
 // ainda passar da janela (vários erros abertos), só ela diminui mais um pouco.
 (function () {
   var MIN = 0.75, ESCALA = 0.83, raiz = document.documentElement;
-  function altura(w) { return w < 1024 ? 968 : w < 1040 ? 776 : 758; }
+  function altura(w) { return w < 1024 ? 1014 : w < 1040 ? 776 : 758; }
   function base() {
     if (innerWidth < 768) return ESCALA;
     return Math.max(MIN, Math.min(ESCALA, Math.floor(innerHeight / altura(innerWidth) * 1000) / 1000));
