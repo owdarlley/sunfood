@@ -410,9 +410,11 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .lp .foot a:hover,.lp .foot a:focus-visible{color:var(--lg-pri);text-decoration:underline;text-underline-offset:3px}
 .lp .foot a:focus-visible{outline:none;box-shadow:var(--lg-ring)}
 /* Celular e tablet: os cinco links numa linha só, com nomes curtos (Sobre,
-   Contato, Termos); do computador para cima, os nomes completos. */
+   Contato, Termos); do computador para cima, os nomes completos. Com o texto
+   do aparelho aumentado (acessibilidade), a linha quebra em vez de passar da
+   largura da tela, para nunca criar rolagem lateral. */
 .lp .foot .fs{display:none}
-@media (max-width:1023px){.lp .foot{flex-wrap:nowrap;gap:0 var(--lg-s8)}.lp .foot a{white-space:nowrap}.lp .foot .fl{display:none}.lp .foot .fs{display:inline}}
+@media (max-width:1023px){.lp .foot{gap:0 var(--lg-s8)}.lp .foot a{white-space:nowrap}.lp .foot .fl{display:none}.lp .foot .fs{display:inline}}
 
 /* ---- Entrada cabe na altura da tela (2026-10-19) ----
    No celular os espaços verticais encolhem com a altura visível (--lp-h = 1%
