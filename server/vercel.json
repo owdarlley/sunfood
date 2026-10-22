@@ -1,6 +1,6 @@
 {
   "regions": ["pdx1"],
-  "ignoreCommand": "[ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- .",
+  "ignoreCommand": "sh vercel-ignore.sh",
   "crons": [{ "path": "/cron/limpeza", "schedule": "0 9 * * *" }],
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
 }

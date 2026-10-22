@@ -59,6 +59,11 @@ const renderError = page => page.evaluate(() => document.querySelector('.sc-logi
 const catRow = (page, nome) => page.locator('.catrow').filter({ has: page.locator('.catname b', { hasText: new RegExp('^' + nome + '$') }) });
 const catOrder = page => page.locator('.catrow .catname b').allInnerTexts();
 const tabs = page => page.locator('.cats .fpill').allInnerTexts();
+// Depois do login o cardápio monta quando os produtos chegam; espera as abas saírem do molde.
+const menuPronto = page => page.waitForFunction(() => {
+  const t = [...document.querySelectorAll('.cats .fpill')].map(e => e.innerText);
+  return t.length > 1 && !t.some(x => x.includes('{{')) && document.querySelector('.pcard .pimg');
+}, null, { timeout: 8000 }).catch(() => {});
 const calls = (page, re) => page.api.db.log.filter(l => re.test(l));
 const SIZES = [['celular', 390, 844], ['tablet', 820, 1180], ['computador', 1280, 800], ['tela-larga', 1920, 1080]];
 
@@ -68,9 +73,7 @@ await step('cardápio sem fotos', async () => {
   await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
   await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
-  // No CI o cardápio às vezes ainda não terminou de montar logo após entrar.
-  await page.locator('.cats .fpill', { hasText: 'Petiscos' }).first().waitFor({ timeout: 10000 });
-  await page.locator('.pcard .pimg svg').nth(3).waitFor({ timeout: 10000 });
+  await menuPronto(page);
   const imgs = await page.evaluate(() => [...document.querySelectorAll('.pcard .pimg span')].filter(s => /background-image:\s*url\("?[^")]/.test(s.getAttribute('style') || '')).length);
   const icons = await page.locator('.pcard .pimg svg').count();
   check('cliente: nenhum prato com foto padrão', imgs === 0, String(imgs));
@@ -159,6 +162,7 @@ await step('cliente vê categorias novas', async () => {
   await page.getByLabel('E-mail', { exact: true }).fill('ana@email.com');
   await page.getByLabel('Senha', { exact: true }).fill('senha');
   await click(page, 'Entrar', true);
+  await menuPronto(page);
   check('cliente: abas seguem a ordem e escondem categoria vazia', JSON.stringify(await tabs(page)) === JSON.stringify(['Todos', 'Bebidas', 'Porções', 'Petiscos', 'Sobremesas']), JSON.stringify(await tabs(page)));
   await click(page, 'Porções', true);
   const t = await page.locator('.grid').innerText();
