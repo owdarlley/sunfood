@@ -410,6 +410,8 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .lp .foot a:hover,.lp .foot a:focus-visible{color:var(--lg-pri);text-decoration:underline;text-underline-offset:3px}
 .lp .foot a:focus-visible{outline:none;box-shadow:var(--lg-ring)}
 @media (max-width:479px){.lp .foot{display:grid;grid-template-columns:auto auto;justify-content:center}}
+/* Tablet: os cinco links (com "Baixe o app") cabem numa linha só. */
+@media (min-width:768px) and (max-width:1023px){.lp .foot{column-gap:var(--lg-s8)}}
 
 /* ---- Entrada cabe na altura da tela (2026-10-19) ----
    No celular os espaços verticais encolhem com a altura visível (--lp-h = 1%
