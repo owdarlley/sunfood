@@ -409,13 +409,10 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 .lp .foot a{display:inline-flex;align-items:center;min-height:var(--lg-h2);padding:0 var(--lg-s4);color:var(--lg-ink-3);border-radius:var(--r-ctl);transition:color var(--lg-ease)}
 .lp .foot a:hover,.lp .foot a:focus-visible{color:var(--lg-pri);text-decoration:underline;text-underline-offset:3px}
 .lp .foot a:focus-visible{outline:none;box-shadow:var(--lg-ring)}
-/* Celular: duas colunas iguais com os links centralizados; o quinto ("Baixe
-   o app") fica sozinho no meio da última linha. */
-@media (max-width:479px){.lp .foot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;max-width:340px;margin-inline:auto}.lp .foot a{justify-self:center;white-space:nowrap}.lp .foot a:last-child{grid-column:1/-1}}
-/* Tablet: os cinco links (com "Baixe o app") em duas linhas fixas (3 + 2,
-   a de baixo centralizada), para a altura da tela não depender da largura
-   da fonte (caber.js: 1014). */
-@media (min-width:768px) and (max-width:1023px){.lp .foot{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));width:100%;max-width:504px;margin-inline:auto}.lp .foot a{grid-column:span 2;justify-self:center;white-space:nowrap}.lp .foot a:nth-child(4){grid-column:2/span 2}}
+/* Celular e tablet: os cinco links numa linha só, com nomes curtos (Sobre,
+   Contato, Termos); do computador para cima, os nomes completos. */
+.lp .foot .fs{display:none}
+@media (max-width:1023px){.lp .foot{flex-wrap:nowrap;gap:0 var(--lg-s8)}.lp .foot a{white-space:nowrap}.lp .foot .fl{display:none}.lp .foot .fs{display:inline}}
 
 /* ---- Entrada cabe na altura da tela (2026-10-19) ----
    No celular os espaços verticais encolhem com a altura visível (--lp-h = 1%
@@ -575,9 +572,9 @@ select{caret-color:auto}
     </div>
   </main>
   <nav class="foot" aria-label="Sobre o Sunfood">
-    <a href="#conheca">Conheça o Sunfood</a>
-    <a href="#fale-conosco">Fale conosco</a>
-    <a href="#termos">Termos de uso</a>
+    <a href="#conheca" aria-label="Conheça o Sunfood"><span class="fl">Conheça o Sunfood</span><span class="fs" aria-hidden="true">Sobre</span></a>
+    <a href="#fale-conosco" aria-label="Fale conosco"><span class="fl">Fale conosco</span><span class="fs" aria-hidden="true">Contato</span></a>
+    <a href="#termos" aria-label="Termos de uso"><span class="fl">Termos de uso</span><span class="fs" aria-hidden="true">Termos</span></a>
     <a href="#privacidade">Privacidade</a>
     <a href="#baixar-app">Baixe o app</a>
   </nav>

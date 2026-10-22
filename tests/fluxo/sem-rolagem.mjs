@@ -83,7 +83,7 @@ for (const [nome, vw] of TELAS) {
     check(`login (${nome}): "Conheça o Sunfood" na tela`, await naTela(p, '.foot a[href="#conheca"]'));
     check(`login (${nome}): escala entre 75% e 83% (83% no celular)`, await escalaOk(p, '.lp', cel), await escala(p, '.lp'));
     escalas[nome] = { login: await escala(p, '.lp'), loginInicial: await escalaInicial(p) };
-    if (vw.width >= 768 && vw.width < 1024) { const a = await alturaNatural(p, '.lp'); check(`login (${nome}): altura de referência certa no tablet (${a} de 1014 px)`, a <= 1014 && 1014 - a <= 12, `${a} px`); }
+    if (vw.width >= 768 && vw.width < 1024) { const a = await alturaNatural(p, '.lp'); check(`login (${nome}): altura de referência certa no tablet (${a} de 968 px)`, a <= 968 && 968 - a <= 12, `${a} px`); }
     check(`login (${nome}): já abre na escala certa`, escalas[nome].loginInicial === escalas[nome].login, `${escalas[nome].loginInicial} -> ${escalas[nome].login}`);
     check(`login (${nome}): cartões do cardápio sem achatar`, await p.locator('.lp-cat').first().evaluate((e, cel) => e.getBoundingClientRect().height / e.currentCSSZoom >= (cel ? 140 : 150), cel));
     if (cel) {
