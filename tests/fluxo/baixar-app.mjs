@@ -104,7 +104,8 @@ for (const [tela, width, height] of TELAS) {
 }
 
 // Texto do aparelho aumentado (acessibilidade do Android): o rodapé do login
-// quebra a linha em vez de passar da largura e criar rolagem.
+// quebra a linha em vez de passar da largura e criar rolagem. E ao recarregar
+// a tela continua do tamanho da janela.
 await step('texto grande: login sem rolagem', async () => {
   for (const [w, h] of [[360, 640], [390, 844]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
@@ -114,6 +115,11 @@ await step('texto grande: login sem rolagem', async () => {
     await p.addStyleTag({ content: 'html{-webkit-text-size-adjust:130%}' }); await p.waitForTimeout(300);
     const r = await p.evaluate(() => ({ sw: document.documentElement.scrollWidth, sh: document.documentElement.scrollHeight }));
     check(`texto grande ${w}x${h}: login sem rolagem`, r.sw <= w && r.sh <= h, JSON.stringify(r));
+    // A altura da tela vem da janela medida (--janela do caber.js), não do dvh,
+    // que no app Android da Samsung chegava maior que a janela ao recarregar.
+    await p.reload(); await p.waitForTimeout(1000);
+    const j = await p.evaluate(() => ({ janela: getComputedStyle(document.documentElement).getPropertyValue('--janela'), ih: innerHeight, sh: document.documentElement.scrollHeight }));
+    check(`${w}x${h}: depois de recarregar, altura da janela medida e sem rolagem`, j.janela === j.ih + 'px' && j.sh <= h, JSON.stringify(j));
     await ctx.close();
   }
 });
