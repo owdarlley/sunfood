@@ -1919,7 +1919,7 @@ select{caret-color:auto}
                       <div class="sumtotal"><span>Valor final</span><span>{{ hdNetTotal }}</span></div>
                     </div>
                   </sc-if>
-                  <div onClick="{{ goMenu }}" class="btn btn-sun">Pedir novamente</div>
+                  <div onClick="{{ reorder }}" class="btn btn-sun">Pedir novamente</div>
                 </div>
               </sc-if>
 
@@ -3629,7 +3629,7 @@ function formatWhen(isoDatetime){
 function historyEntryFromApi(o){
   return {id:orderCode(o), when:formatWhen(o.createdAt), table:o.tableNumber, total:o.total, status:o.status,
     refunds:refundsFromApi(o),
-    items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty}))};
+    items:o.items.map(it => ({n:it.qty + 'x ' + it.name, v:it.unitPrice * it.qty, productId:it.productId, qty:it.qty, note:it.note || ''}))};
 }
 
 // Estornos que o cliente vê no pedido: valor, motivo, itens e quando. Pedido
@@ -6136,6 +6136,23 @@ class Component extends DCLogic {
     });
   }
 
+  // "Pedir novamente": põe no carrinho os itens do pedido que ainda estão no
+  // cardápio, com o preço de hoje, e avisa o que ficou de fora.
+  reorder(h){
+    const s = this.state;
+    if(!h) return;
+    const ok = [], out = [];
+    h.items.forEach(it => {
+      const p = s.products.find(x => x.id === it.productId);
+      if(p && !p.soldOut) ok.push({p, qty:it.qty, note:it.note || ''});
+      else out.push(it.n.replace(/^\d+x /, ''));
+    });
+    if(!ok.length) return this.flash(s.catalogPending ? 'Carregando o cardápio. Tente de novo em instantes.' : 'Os itens desse pedido não estão disponíveis agora.');
+    ok.forEach(o => this.addToCart(o.p, o.qty, o.note));
+    this.go('cart');
+    if(out.length) this.flash('Fora do cardápio agora: ' + out.join(', ') + '.');
+  }
+
   // Cria o pedido no servidor. Retorna o pedido criado (formato da API) ou
   // null se falhou — quem chama decide pra onde navegar a partir disso.
   // PIX e cartão: o carrinho só é esvaziado quando o pagamento é aprovado
@@ -6866,6 +6883,7 @@ class Component extends DCLogic {
     v.hdItems = hd ? hd.items.map(it => ({n:it.n, v:f(it.v)})) : [];
     v.hdTotal = hd ? f(hd.total) : f(0); v.hdWhen = hd ? hd.when : ''; v.hdTable = hd ? String(hd.table) : '';
     v.hdStatus = hd ? hd.status : '';
+    v.reorder = () => this.reorder(hd);
     const hrf = refundCard(hd ? hd.refunds : [], hd ? hd.total : 0);
     v.hdHasRefunds = hrf.has; v.hdRefunds = hrf.rows; v.hdRefundTotal = hrf.total; v.hdNetTotal = hrf.net;
 
