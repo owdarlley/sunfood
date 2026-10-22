@@ -742,6 +742,11 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 @media (min-width:1600px){.kpis.wd-kpis{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @media (max-width:767px){.wd-top > .btn{width:100%}.wd-acts{width:100%}.wd-acts .btn{flex:1 1 0}}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:var(--gap)}
+/* Cards do Cardápio e estoque (admin): no mínimo 272 px reais na tela (o
+   zoom de 83% deixava 216) e o preço vai para baixo do nome, para o nome
+   não quebrar palavra por palavra ao lado do preço. Dá 1 coluna no celular,
+   2 no tablet, 3 no computador e 4 na tela larga. */
+.pgrid.adm-pgrid{grid-template-columns:repeat(auto-fill,minmax(min(calc(272px / var(--z)),100%),1fr))}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
 .tile{border-radius:var(--r-card);padding:16px 8px;text-align:center;cursor:pointer;transition:transform .15s}
 .tile:hover{transform:translateY(-2px)}
@@ -2632,7 +2637,7 @@ select{caret-color:auto}
                     <div onClick="{{ c.pick }}" class="fpill {{ c.cls }}">{{ c.c }}</div>
                   </sc-for>
                 </div>
-                <div class="pgrid">
+                <div class="pgrid adm-pgrid">
                   <sc-for list="{{ productRows }}" as="p" hint-placeholder-count="6">
                     <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:12px;{{ p.cardStyle }}">
                       <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
@@ -2640,8 +2645,7 @@ select{caret-color:auto}
                           <sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ false }}"><span style="{{ p.photoStyle }}"></span></sc-if>
                           <sc-if value="{{ p.noPhoto }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 48 48" width="28" height="28" fill="none" stroke="{{ p.iconColor }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path sc-camel-d="{{ p.markPath }}"></path></svg></sc-if>
                         </span>
-                        <div style="min-width:0;flex:1"><div class="eyebrow" style="font-size:var(--fs-cap)">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif;margin-top:2px">{{ p.name }}</div></div>
-                        <span style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap">{{ p.priceStr }}</span>
+                        <div style="min-width:0;flex:1"><div class="eyebrow" style="font-size:var(--fs-cap)">{{ p.cat }}</div><div style="font:700 var(--fs-body)/1.25 'Manrope',system-ui,sans-serif;margin-top:2px;overflow-wrap:anywhere">{{ p.name }}</div><div style="font:800 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap;margin-top:4px">{{ p.priceStr }}</div></div>
                       </div>
                       <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;flex-grow:1">{{ p.desc }}</div>
                       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="{{ p.pillStyle }}">{{ p.pill }}</span><span class="muted" style="font-size:var(--fs-sm)">{{ p.meta }}</span></div>
