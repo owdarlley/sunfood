@@ -162,6 +162,9 @@ await step('pedido mínimo desligado', async () => {
 await step('dia encerrado', async () => {
   const page = await open('app-cliente.dc.html', { kiosk: { dayClosed: true } });
   await login(page);
+  // O aviso depende do status do quiosque, que chega depois do login: espera
+  // até 5 s em vez de ler a tela na hora (no CI às vezes ainda não tinha chegado).
+  await page.getByText('encerrou o dia').first().waitFor({ timeout: 5000 }).catch(() => {});
   let t = await text(page);
   check('dia encerrado: cardápio mostra o aviso', t.includes('encerrou o dia'));
   await click(page, '+', true); await click(page, '+', true);
