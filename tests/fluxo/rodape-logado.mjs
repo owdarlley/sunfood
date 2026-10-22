@@ -1,4 +1,4 @@
-// Links do rodapé do app: "Termos", "Privacidade", "Conheça o Sunfood" e "Fale
+// Links do rodapé do app: "Termos", "Privacidade", "Conheça o SunFood" e "Fale
 // conosco" abrem numa janela por cima da tela atual, sem sair dela; fechar só
 // tira a janela. Os endereços antigos (termos.html...) continuam funcionando.
 // Uso: node fluxo/rodape-logado.mjs (de dentro de tests)

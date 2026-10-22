@@ -470,15 +470,15 @@ let pixOrder;
 test("admin muda a localização do quiosque e o cliente vê", async () => {
   const admin = "tok-admin-1";
   let r = await api("GET", "/kiosk-settings");
-  assert.equal(r.body.location.name, "Quiosque Sunfood · Praia do Forte", "sem coluna no banco: texto padrão");
-  const novo = { name: "Sunfood na Faculdade", address: "Av. Brasil, 100 - Centro, Santos - SP", hours: "Seg. a sex., 8h às 22h." };
+  assert.equal(r.body.location.name, "Quiosque SunFood · Praia do Forte", "sem coluna no banco: texto padrão");
+  const novo = { name: "SunFood na Faculdade", address: "Av. Brasil, 100 - Centro, Santos - SP", hours: "Seg. a sex., 8h às 22h." };
   r = await api("PATCH", "/kiosk-settings/location", novo, anaToken);
   assert.equal(r.status, 403, "cliente não muda a localização");
   r = await api("PATCH", "/kiosk-settings/location", { ...novo, address: "  " }, admin);
   assert.equal(r.status, 400);
   r = await api("PATCH", "/kiosk-settings/location", { ...novo, name: "x".repeat(81) }, admin);
   assert.equal(r.status, 400);
-  r = await api("PATCH", "/kiosk-settings/location", { ...novo, name: "  Sunfood na Faculdade  " }, admin);
+  r = await api("PATCH", "/kiosk-settings/location", { ...novo, name: "  SunFood na Faculdade  " }, admin);
   assert.equal(r.status, 200, JSON.stringify(r.body));
   assert.deepEqual(r.body.location, novo);
   r = await api("GET", "/kiosk-settings");
@@ -983,7 +983,7 @@ test("garçom: admin cadastra, garçom lança pedido na mesa, entrega e vê as m
   db.products.push({ id: P4, name: "Caipirinha", category: "Bebidas", price: 15, stock_qty: null, sold_out: false });
 
   // Só o admin cadastra garçom.
-  const novo = { name: "Carlos Garçom", email: "Garcom@Sunfood.com", password: "Sunfood@123" };
+  const novo = { name: "Carlos Garçom", email: "Garcom@SunFood.com", password: "Sunfood@123" };
   assert.equal((await api("POST", "/waiters", novo, cozinha)).status, 403);
   const criado = await api("POST", "/waiters", novo, admin);
   assert.equal(criado.status, 201, JSON.stringify(criado.body));

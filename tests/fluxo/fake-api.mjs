@@ -64,7 +64,7 @@ export function fakeApi(role = 'cliente', { stripe = true, stripeTest = false, s
     }
     if (p === '/auth/avatar' && m === 'DELETE') { Object.assign(user, { avatarUrl: null, avatarPreset: null }); return json(200, { user }); }
     if (p === '/auth/change-password') {
-      if (!db.profile.hasPassword) return json(400, { error: 'Sua conta entra pelo Google e não tem senha no Sunfood.', code: 'google_account' });
+      if (!db.profile.hasPassword) return json(400, { error: 'Sua conta entra pelo Google e não tem senha no SunFood.', code: 'google_account' });
       if (body.currentPassword !== 'senha-atual') return json(400, { error: 'Senha atual incorreta.', code: 'wrong_password' });
       db.newPassword = body.newPassword; return json(200, { message: 'Senha alterada.' });
     }

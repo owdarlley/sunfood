@@ -45,7 +45,7 @@ async function open(path, { role, viewport, stripeCfg } = {}) {
     await page.route('http://localhost:8787/**', route => api(route));
   // Aba Stripe (GET/PUT/DELETE /admin/stripe), como a API de verdade.
   const cfg = stripeCfg || { source: 'ambiente', configured: true, mode: 'test', secretKeyHint: 'sk_test_…a1b2', publishableKey: 'pk_test_51Abcdefghijklmn',
-    webhook: { configured: true, url: 'https://api.teste/payments/stripe/webhook' }, account: { id: 'acct_1Teste', name: 'Quiosque Sunfood' }, connection: { ok: true }, updatedAt: null, updatedBy: null };
+    webhook: { configured: true, url: 'https://api.teste/payments/stripe/webhook' }, account: { id: 'acct_1Teste', name: 'Quiosque SunFood' }, connection: { ok: true }, updatedAt: null, updatedBy: null };
   await page.route('http://localhost:8787/admin/stripe', route => {
     const req = route.request();
     const body = req.postData() ? JSON.parse(req.postData()) : {};
@@ -56,7 +56,7 @@ async function open(path, { role, viewport, stripeCfg } = {}) {
       if (body.secretKey.includes('recusada')) return json(400, { error: 'O Stripe recusou a chave secreta. Confira se copiou a chave inteira.' });
       const live = body.secretKey.startsWith('sk_live_');
       Object.assign(cfg, { source: 'painel', configured: true, mode: live ? 'live' : 'test', secretKeyHint: body.secretKey.slice(0, 8) + '…' + body.secretKey.slice(-4),
-        publishableKey: body.publishableKey, account: { id: 'acct_2Novo', name: 'Sunfood Ltda' }, updatedAt: new Date().toISOString(), updatedBy: 'Teste' });
+        publishableKey: body.publishableKey, account: { id: 'acct_2Novo', name: 'SunFood Ltda' }, updatedAt: new Date().toISOString(), updatedBy: 'Teste' });
       return json(200, { ok: true, account: cfg.account, mode: cfg.mode });
     }
     if (req.method() === 'DELETE') { Object.assign(cfg, { source: 'nenhum', configured: false, mode: null, secretKeyHint: null, publishableKey: null, account: null, connection: null, webhook: { configured: false } }); return json(200, { ok: true }); }
@@ -80,7 +80,7 @@ await step('aba stripe', async () => {
   const page = await open('app-cliente.dc.html?module=admin&screen=stripe', { role: 'admin' });
   const t = await text(page);
   check('menu do admin tem a aba Stripe', await page.locator('.adm-item', { hasText: 'Stripe' }).count() > 0);
-  check('mostra a conta, o modo teste e a chave mascarada', t.includes('Quiosque Sunfood') && t.includes('Modo teste') && t.includes('sk_test_…a1b2'), t.slice(0, 600));
+  check('mostra a conta, o modo teste e a chave mascarada', t.includes('Quiosque SunFood') && t.includes('Modo teste') && t.includes('sk_test_…a1b2'), t.slice(0, 600));
   check('diz que a configuração vem da Vercel', t.includes('variáveis do servidor'));
   check('sem botão Desconectar quando vem da Vercel', !(await page.getByText('Desconectar', { exact: true }).count()));
   check('campo da chave secreta é de senha', await page.locator('#sxSkInp').getAttribute('type') === 'password');
@@ -111,7 +111,7 @@ await step('aba stripe', async () => {
   const put = calls(page, 'PUT').at(-1);
   check('envia as duas chaves com o token', put && put.body.secretKey === 'sk_live_51NovaChave1234' && put.body.publishableKey === 'pk_live_51NovaChave1234' && put.auth === 'Bearer tok', JSON.stringify(put));
   const t2 = await text(page);
-  check('confirma a conta conectada e mostra Produção', t2.includes('Sunfood Ltda conectada') && t2.includes('Produção') && t2.includes('Recebendo pagamentos de verdade'), t2.slice(0, 800));
+  check('confirma a conta conectada e mostra Produção', t2.includes('SunFood Ltda conectada') && t2.includes('Produção') && t2.includes('Recebendo pagamentos de verdade'), t2.slice(0, 800));
   check('campos são limpos depois de salvar', await page.locator('#sxSkInp').inputValue() === '');
   if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/admin-stripe-producao.png`, fullPage: true });
 

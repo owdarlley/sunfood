@@ -5,7 +5,7 @@
 // para cima login e cadastro usam a mesma escala, já definida antes da tela
 // aparecer (caber.js, mínimo 75%), inclusive com o teclado do tablet aberto, e
 // os cartões do cardápio não achatam; no celular a escala fica em 100%. O
-// rodapé (Conheça o Sunfood etc.) continua na tela. Celular bem baixo com
+// rodapé (Conheça o SunFood etc.) continua na tela. Celular bem baixo com
 // aviso aberto e cadastro com vários erros podem rolar (último recurso).
 // Uso: node fluxo/sem-rolagem.mjs (de dentro de tests)
 import { chromium } from 'playwright';
@@ -80,7 +80,7 @@ for (const [nome, vw] of TELAS) {
   await step(`login (${nome})`, async () => {
     const p = await open(vw, 'index.html');
     check(`login (${nome}): cabe sem rolar`, await sobra(p) <= 1, `${await sobra(p)} px a mais`);
-    check(`login (${nome}): "Conheça o Sunfood" na tela`, await naTela(p, '.foot a[href="#conheca"]'));
+    check(`login (${nome}): "Conheça o SunFood" na tela`, await naTela(p, '.foot a[href="#conheca"]'));
     check(`login (${nome}): escala entre 75% e 83% (83% no celular)`, await escalaOk(p, '.lp', cel), await escala(p, '.lp'));
     escalas[nome] = { login: await escala(p, '.lp'), loginInicial: await escalaInicial(p) };
     if (vw.width >= 768 && vw.width < 1024) { const a = await alturaNatural(p, '.lp'); check(`login (${nome}): altura de referência certa no tablet (${a} de 968 px)`, a <= 968 && 968 - a <= 12, `${a} px`); }
@@ -94,7 +94,7 @@ for (const [nome, vw] of TELAS) {
     check(`login (${nome}): erro dos campos cabe sem rolar`, await sobra(p) <= 1, `${await sobra(p)} px a mais`);
     check(`login (${nome}): botão Entrar e rodapé na tela`, await naTela(p, '#entrar') && await naTela(p, '.foot a[href="#privacidade"]'));
     // E-mail não confirmado: aviso e botão de reenviar. No celular de 640 px pode rolar.
-    await p.route('http://localhost:8787/auth/login', r => r.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Confirme seu e-mail antes de entrar. Procure o e-mail do Sunfood na caixa de entrada ou no spam.', code: 'email_not_confirmed' }) }));
+    await p.route('http://localhost:8787/auth/login', r => r.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Confirme seu e-mail antes de entrar. Procure o e-mail do SunFood na caixa de entrada ou no spam.', code: 'email_not_confirmed' }) }));
     await p.fill('#email', 'ana@email.com'); await p.fill('#pass', '123456');
     await p.evaluate(() => document.getElementById('entrar').click()); await p.waitForTimeout(600);
     check(`login (${nome}): aviso de e-mail não confirmado aparece`, await p.locator('#resend').isVisible());

@@ -65,7 +65,7 @@ export function tableCountFrom(settings) {
 // no texto antigo se a coluna ainda não existir (API publicada antes da
 // migration) ou vier vazia.
 export const DEFAULT_LOCATION = {
-  name: "Quiosque Sunfood · Praia do Forte",
+  name: "Quiosque SunFood · Praia do Forte",
   address: "Av. Beira-Mar, s/n, em frente ao posto 4",
   hours: "Aberto todos os dias, 9h às 18h.",
 };

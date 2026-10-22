@@ -1,4 +1,4 @@
-// Registra o service worker (sw.js) que deixa o Sunfood instalável como app
+// Registra o service worker (sw.js) que deixa o SunFood instalável como app
 // ("Instalar" no Chrome/Edge, "Adicionar à Tela de Início" no iPhone).
 // Caminho relativo: funciona tanto em localhost quanto em /sunfood/ no GitHub Pages.
 if ('serviceWorker' in navigator) {

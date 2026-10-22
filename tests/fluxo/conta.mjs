@@ -1,4 +1,4 @@
-// Teste das telas de conta do Sunfood num navegador de verdade (Chromium):
+// Teste das telas de conta do SunFood num navegador de verdade (Chromium):
 // cadastro, login com e-mail não confirmado, pedido mínimo, dia encerrado e
 // excluir conta. API falsa em memória: nada sai da máquina, nada vai pro banco.
 // Uso: node tests/fluxo/conta.mjs   (a partir da raiz do repositório)

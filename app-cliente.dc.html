@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="./caber.js"></script>
-<title>Sunfood</title>
+<title>SunFood</title>
 <script>
 // Sem isto o support.js baixa esta página (1 MB) de novo logo depois de abrir
 // e remonta a tela inteira: gastava internet e travava os primeiros toques.
@@ -46,7 +46,7 @@ html.sf-espera #dc-root{opacity:0}
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Sunfood">
+<meta name="apple-mobile-web-app-title" content="SunFood">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script src="./pwa.js" defer></script>
 </head>
@@ -163,7 +163,7 @@ html.sf-espera #dc-root{opacity:0}
 .pf-photo{flex-basis:calc(160px / var(--z)) !important;width:calc(160px / var(--z)) !important}
 @media (max-width:767px),(pointer:coarse){:where(.sf-app,.adm) :is(input,select,textarea){font-size:calc(16px / var(--z)) !important}}
 
-/* ===== Sunfood · componentes =====
+/* ===== SunFood · componentes =====
    Botões, campos, cartões e cabeçalhos são os mesmos em todas as telas
    (cliente, administração e cozinha). Tudo aqui é só aparência: a lógica
    fica no script lá embaixo. */
@@ -1205,11 +1205,11 @@ select{caret-color:auto}
         <sc-if value="{{ showAuth }}" hint-placeholder-val="{{ false }}">
           <div class="auth">
             <div class="auth-top">
-              <a class="auth-logo" href="./" aria-label="Sunfood: ir para o início"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#F5B83D"></circle><g stroke="#F5B83D" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path></g></svg><b>Sunfood</b></a>
+              <a class="auth-logo" href="./" aria-label="SunFood: ir para o início"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#F5B83D"></circle><g stroke="#F5B83D" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path></g></svg><b>SunFood</b></a>
               <a class="auth-menu" href="./">Ver cardápio</a>
             </div>
             <div class="auth-mobile" style="background:var(--brand);color:#fff;padding:var(--cpad);flex-direction:column;gap:12px;position:relative;overflow:hidden">
-              <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">Sunfood</b></div>
+              <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">SunFood</b></div>
               <div style="font:500 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;color:#E1EEEF;max-width:320px">{{ authArtTitle }}</div>
             </div>
             <div class="auth-main">
@@ -1278,7 +1278,7 @@ select{caret-color:auto}
                     </div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
                       <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" aria-label="Li e aceito os Termos de Uso e a Política de Privacidade" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:var(--brand);cursor:pointer">
-                      <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
+                      <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do SunFood.</span>
                     </div>
                     <sc-if value="{{ suHasFeTerms }}" hint-placeholder-val="{{ false }}"><span class="ferr" style="margin-top:-8px">{{ suFeTerms }}</span></sc-if>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
@@ -1346,7 +1346,7 @@ select{caret-color:auto}
                     <div><span class="lbl">Data de nascimento</span><input placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" autocomplete="bday" value="{{ suBirth }}" onChange="{{ setSuBirth }}" aria-label="Data de nascimento" class="inp {{ suClsBirth }}" aria-invalid="{{ suInvBirth }}"><sc-if value="{{ suHasFeBirth }}" hint-placeholder-val="{{ false }}"><span class="ferr">{{ suFeBirth }}</span></sc-if></div>
                     <div style="display:flex;align-items:flex-start;gap:12px">
                       <input type="checkbox" checked="{{ suTerms }}" onChange="{{ toggleSuTerms }}" aria-label="Li e aceito os Termos de Uso e a Política de Privacidade" style="margin-top:4px;width:18px;height:18px;flex-shrink:0;accent-color:var(--brand);cursor:pointer">
-                      <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do Sunfood.</span>
+                      <span onClick="{{ toggleSuTerms }}" style="display:block;min-height:44px;font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;color:#3D4A53;cursor:pointer">Li e aceito os <a href="./#termos" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Termos de Uso</a> e a <a href="./#privacidade" target="_blank" onClick="{{ stopProp }}" style="font-weight:700">Política de Privacidade</a> do SunFood.</span>
                     </div>
                     <sc-if value="{{ suHasFeTerms }}" hint-placeholder-val="{{ false }}"><span class="ferr" style="margin-top:-8px">{{ suFeTerms }}</span></sc-if>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
@@ -1358,7 +1358,7 @@ select{caret-color:auto}
               </div>
             </div>
             <div class="auth-foot">
-              <a href="./#conheca">Conheça o Sunfood</a>
+              <a href="./#conheca">Conheça o SunFood</a>
               <a href="./#fale-conosco">Fale conosco</a>
               <a href="./#termos">Termos de uso</a>
               <a href="./#privacidade">Privacidade</a>
@@ -1371,7 +1371,7 @@ select{caret-color:auto}
           <div class="sf-app" style="flex:1;display:flex;flex-direction:column;min-height:calc(100vh / var(--z))">
             <div class="topbar">
               <div class="topbar-in">
-                <div onClick="{{ goHome }}" class="brand"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b></div>
+                <div onClick="{{ goHome }}" class="brand"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>SunFood</b></div>
                 <div class="toplinks">
                   <sc-if value="{{ hasTable }}" hint-placeholder-val="{{ false }}">
                     <span class="mesachip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F5A63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18M5 10v10M19 10v10M8 6h8l2 4H6z"></path></svg><span class="mesa-lbl">Mesa </span>{{ tableStr }}</span>
@@ -1757,10 +1757,10 @@ select{caret-color:auto}
                     <div onClick="{{ confirmCardInApp }}" class="btn btn-sun" style="opacity:{{ cardPayOpacity }}">{{ cardPayLabel }}</div>
                   </sc-if>
                   <sc-if value="{{ cardInApp }}" hint-placeholder-val="{{ false }}">
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Seus dados do cartão ficam protegidos e não passam pelo Sunfood.</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Seus dados do cartão ficam protegidos e não passam pelo SunFood.</div>
                   </sc-if>
                   <sc-if value="{{ cardRedirect }}" hint-placeholder-val="{{ true }}">
-                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para uma página segura para digitar os dados do cartão. Eles não passam pelo Sunfood.</div>
+                    <div class="muted" style="font-size:var(--fs-sm);line-height:1.5;text-align:center">Você vai para uma página segura para digitar os dados do cartão. Eles não passam pelo SunFood.</div>
                     <sc-if value="{{ cardWaiting }}" hint-placeholder-val="{{ false }}">
                       <div onClick="{{ openCardCheckout }}" class="btn btn-ghost">Abrir o pagamento de novo</div>
                     </sc-if>
@@ -2093,7 +2093,7 @@ select{caret-color:auto}
 
             <div class="footer">
               <div class="footer-in">
-                <span>Sunfood · quiosque pé na areia</span>
+                <span>SunFood · quiosque pé na areia</span>
                 <span style="display:flex;gap:20px;flex-wrap:wrap"><span onClick="{{ goLocation }}" class="link" style="font-weight:600">Onde estamos</span><a href="./#termos" class="link" style="font-weight:600">Termos</a><a href="./#privacidade" class="link" style="font-weight:600">Privacidade</a></span>
               </div>
             </div>
@@ -2113,7 +2113,7 @@ select{caret-color:auto}
       <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
       <div class="adm">
         <div class="adm-side {{ admMenuCls }}">
-          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>admin</small></div>
+          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>SunFood</b><small>admin</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ adminSide }}" as="it" hint-placeholder-count="7">
             <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
@@ -2542,7 +2542,7 @@ select{caret-color:auto}
               </div>
               <div class="col-side">
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-                  <div><h2 style="margin:0;font-size:var(--fs-h3)">Cadastrar garçom</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Ele entra pela mesma tela de login do Sunfood e vai direto para os pedidos prontos.</div></div>
+                  <div><h2 style="margin:0;font-size:var(--fs-h3)">Cadastrar garçom</h2><div class="muted" style="font-size:var(--fs-sm);margin-top:4px;line-height:1.5">Ele entra pela mesma tela de login do SunFood e vai direto para os pedidos prontos.</div></div>
                   <div><span class="lbl">Nome</span><input placeholder="Nome completo do garçom" class="inp" value="{{ wName }}" onChange="{{ setWName }}" aria-label="Nome" autocomplete="off" /></div>
                   <div><span class="lbl">E-mail</span><input placeholder="E-mail de acesso" class="inp" type="email" value="{{ wEmail }}" onChange="{{ setWEmail }}" aria-label="E-mail" autocomplete="off" /></div>
                   <div><span class="lbl">Senha inicial</span><input placeholder="Mínimo de 8 caracteres" class="inp" type="password" value="{{ wPass }}" onChange="{{ setWPass }}" aria-label="Senha inicial" autocomplete="new-password" /></div>
@@ -3002,7 +3002,7 @@ select{caret-color:auto}
       <sc-if value="{{ isCozinha }}" hint-placeholder-val="{{ false }}">
       <div class="adm kz">
         <div class="adm-side {{ admMenuCls }}">
-          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>cozinha</small></div>
+          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>SunFood</b><small>cozinha</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ cozinhaSide }}" as="it" hint-placeholder-count="2">
             <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
@@ -3110,7 +3110,7 @@ select{caret-color:auto}
       <sc-if value="{{ isGarcom }}" hint-placeholder-val="{{ false }}">
       <div class="adm kz gc">
         <div class="adm-side {{ admMenuCls }}">
-          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>Sunfood</b><small>garçom</small></div>
+          <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#FFB21E" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#FFB21E"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>SunFood</b><small>garçom</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
           <sc-for list="{{ garcomSide }}" as="it" hint-placeholder-count="3">
             <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
@@ -3814,7 +3814,7 @@ function reportCsv(d){
   const num = n => Number(n || 0).toFixed(2).replace('.', ',');
   const cell = v => { const t = String(v == null ? '' : v); return /[";\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
   const rows = [
-    ['Relatório de vendas Sunfood'],
+    ['Relatório de vendas SunFood'],
     ['Período', d.periodName + ' (' + d.range + ')'],
     ['Gerado em', d.generatedAt],
     ['Regra', 'Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.'],
@@ -3868,7 +3868,7 @@ function reportPrintHtml(d, autoPrint){
     '@media (max-width:640px){.sheet{padding:16px;border-radius:16px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:20px}.orders table{min-width:760px}}' +
     '@media print{@page{size:A4;margin:12mm}body{background:#fff;font-size:12px}.bar{display:none}.page{padding:0;max-width:none}.sheet{padding:0;border-radius:0}.tw{overflow:visible}.orders table{min-width:0}table{font-size:10.5px}tr{break-inside:avoid}h2{break-after:avoid}.story{-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}.story p{font-size:12.5px}.kpi{break-inside:avoid}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
     '</style></head><body><div class="page"><div class="bar"><button onclick="window.print()">Imprimir ou salvar como PDF</button><button class="g" onclick="window.close()">Fechar</button></div><div class="sheet">' +
-    '<h1>Relatório de vendas · Sunfood</h1><p class="muted">' + escHtml(d.periodName + ' (' + d.range + ') · gerado em ' + d.generatedAt) + '</p>' +
+    '<h1>Relatório de vendas · SunFood</h1><p class="muted">' + escHtml(d.periodName + ' (' + d.range + ') · gerado em ' + d.generatedAt) + '</p>' +
     '<p class="muted">Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.</p>' +
     '<h2>Resumo por escrito</h2><div class="story">' + reportNarrative(d).map(t => '<p>' + escHtml(t) + '</p>').join('') + '</div>' +
     '<h2>Números</h2><div class="kpis">' + kpis.map(([k, v]) => '<div class="kpi"><div class="k">' + escHtml(k) + '</div><div class="v">' + escHtml(v) + '</div></div>').join('') + '</div>' +
@@ -4047,7 +4047,7 @@ const PIX_KEY = 'sunfood_pix';
 // (o mesmo PAYMENT_WINDOW_MINUTES do servidor).
 const PIX_WINDOW = 30 * 60 * 1000;
 
-// Nome que aparece na guia do navegador: "Sunfood · <tela>". Sem isto a guia
+// Nome que aparece na guia do navegador: "SunFood · <tela>". Sem isto a guia
 // mostrava o endereço (app-cliente.dc.html?module=...).
 const TAB_TITLES = {
   login:'Entrar', signup:'Criar conta', forgot:'Recuperar senha', completeProfile:'Completar cadastro',
@@ -4148,7 +4148,7 @@ class Component extends DCLogic {
     tableCountInput:'', tableCountMsg:'',
     // Onde fica o quiosque — vem de GET /kiosk-settings (o admin muda em
     // "Quiosque e mesas"). locInput: null = campo ainda não mexido.
-    location:{name:'Quiosque Sunfood · Praia do Forte', address:'Av. Beira-Mar, s/n, em frente ao posto 4', hours:'Aberto todos os dias, 9h às 18h.'},
+    location:{name:'Quiosque SunFood · Praia do Forte', address:'Av. Beira-Mar, s/n, em frente ao posto 4', hours:'Aberto todos os dias, 9h às 18h.'},
     locInput:{name:null, address:null, hours:null}, locMsg:'',
     // Pedido mínimo (R$) — vem de GET /kiosk-settings; 10 é só o padrão até carregar.
     minOrder:10, minOrderEnabled:true, minOrderInput:'', minOrderMsg:'',
@@ -4793,8 +4793,8 @@ class Component extends DCLogic {
         if(window.Notification && Notification.permission === 'granted' && document.hidden){
           const opts = {body:msg, icon:'icons/icon-192.png', tag:'pedido-pronto'};
           if(navigator.serviceWorker && navigator.serviceWorker.controller)
-            navigator.serviceWorker.ready.then(r => r.showNotification('Sunfood', opts)).catch(() => {});
-          else new Notification('Sunfood', opts);
+            navigator.serviceWorker.ready.then(r => r.showNotification('SunFood', opts)).catch(() => {});
+          else new Notification('SunFood', opts);
         }
       } catch(e){}
     }
@@ -6449,7 +6449,7 @@ class Component extends DCLogic {
       if(this.cardIntent === intent) setAmount(Math.max(50, Math.round(this.subtotal() * 100)));
       this.ensureCardMounted();
     }).catch(e => {
-      console.error('[Sunfood] Stripe', e);
+      console.error('[SunFood] Stripe', e);
       this.setState({cardFormLoading:false, cardErr:'Falha de conexão com o pagamento. Verifique a internet e tente de novo.'});
     });
   }
@@ -6516,7 +6516,7 @@ class Component extends DCLogic {
       this.setState({cardWaiting:true});
       this.pollOrder(intent.orderId);
     } catch(e){
-      console.error('[Sunfood] Stripe confirmPayment', e);
+      console.error('[SunFood] Stripe confirmPayment', e);
       this.setState({cardErr:'Não foi possível concluir o pagamento. Tente de novo.'});
     } finally {
       this.setState({busy:null});
@@ -6601,7 +6601,7 @@ class Component extends DCLogic {
     const meta = META[s.screen] || {};
     const sel0 = s.screen === 'product' && s.products.find(p => p.id === s.selId);
     const aba = sel0 ? sel0.name : TAB_TITLES[s.screen];
-    const tituloAba = aba ? 'Sunfood · ' + aba : 'Sunfood';
+    const tituloAba = aba ? 'SunFood · ' + aba : 'SunFood';
     if(document.title !== tituloAba) document.title = tituloAba;
     const authScreens = ['login','signup','forgot','completeProfile'];
     v.showAuth = authScreens.indexOf(s.screen) >= 0;
@@ -7813,7 +7813,7 @@ class Component extends DCLogic {
     v.goSignup = () => this.go('signup');
     v.goForgot = () => this.go('forgot');
     v.goMenu = () => this.go('menu');
-    // Logo do Sunfood: cliente logado volta ao cardápio; os demais vão para o
+    // Logo do SunFood: cliente logado volta ao cardápio; os demais vão para o
     // endereço principal, que mostra o login ou leva admin/cozinha ao seu início.
     v.goHome = () => (s.token && s.module === 'cliente' && !v.showAuth) ? this.go('menu') : (window.location.href = './');
     v.goStatus = () => this.go('status');
@@ -7897,7 +7897,7 @@ class Component extends DCLogic {
 }
 </script>
 <script>
-// Links do rodapé (Conheça o Sunfood, Fale conosco, Termos, Privacidade): o
+// Links do rodapé (Conheça o SunFood, Fale conosco, Termos, Privacidade): o
 // conteúdo abre numa janela por cima da tela atual, sem sair dela. A janela é
 // o próprio painel da tela de login (index.html?painel=1#secao) num iframe
 // transparente; fechar (X, véu, Esc ou "Voltar") só tira a janela.
@@ -7909,7 +7909,7 @@ class Component extends DCLogic {
     voltarFoco = document.activeElement;
     janela = document.createElement('iframe');
     janela.className = 'sf-painel';
-    janela.title = 'Sobre o Sunfood';
+    janela.title = 'Sobre o SunFood';
     janela.src = 'index.html?painel=1#' + sec;
     janela.addEventListener('load', function () { try { janela.contentWindow.focus(); } catch (e) {} });
     document.body.appendChild(janela);

@@ -119,7 +119,7 @@ authRouter.post("/login", loginLimiter, validate(loginSchema), loginEmailLimiter
   // evita que o cliente ache que errou a senha quando só falta confirmar.
   if (error?.code === "email_not_confirmed") {
     return res.status(403).json({
-      error: "Confirme seu e-mail antes de entrar. Procure o e-mail do Sunfood na caixa de entrada ou no spam.",
+      error: "Confirme seu e-mail antes de entrar. Procure o e-mail do SunFood na caixa de entrada ou no spam.",
       code: "email_not_confirmed",
     });
   }
@@ -359,7 +359,7 @@ authRouter.post("/change-password", changePasswordLimiter, requireAuth, validate
   const { currentPassword, newPassword } = req.body;
   if (!(await hasPassword(req.user.sub))) {
     return res.status(400).json({
-      error: "Sua conta entra pelo Google e não tem senha no Sunfood.",
+      error: "Sua conta entra pelo Google e não tem senha no SunFood.",
       code: "google_account",
     });
   }

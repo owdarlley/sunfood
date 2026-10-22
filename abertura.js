@@ -1,4 +1,4 @@
-// Abertura "Sol na areia" do Sunfood: o sol nasce atrás do mar no fundo
+// Abertura "Sol na areia" do SunFood: o sol nasce atrás do mar no fundo
 // areia, os raios se abrem, o nome aparece ao lado e a abertura some
 // sozinha (ou no primeiro toque/tecla). Carregada logo no começo do <body>
 // do login (index.html) e do app (app-cliente.dc.html), para cobrir a tela
@@ -43,7 +43,7 @@
       '<span class="sfb-hz"><svg class="sfb-sun" viewBox="0 0 48 48"><g class="sfb-rot">' +
         raios.map(function (r) { return '<path class="sfb-ray" d="M' + r[2] + ' ' + r[3] + 'L' + r[0] + ' ' + r[1] + '"/>'; }).join('') +
         '<circle cx="24" cy="24" r="9" fill="#F5B83D"/></g></svg></span>' +
-      '<b class="sfb-name">Sunfood</b></div>' +
+      '<b class="sfb-name">SunFood</b></div>' +
       '<svg class="sfb-sea" viewBox="0 0 200 24"><path class="sfb-w1" d="M2 8c12-6 22-6 33 0s22 6 33 0 22-6 33 0 22 6 33 0 22-6 33 0 22 6 31 0"/>' +
       '<path class="sfb-w2" d="M22 18c12-6 22-6 33 0s22 6 33 0 22-6 33 0 22 6 33 0 22-6 22-3"/></svg></div>';
   document.body.appendChild(el);
@@ -82,12 +82,12 @@
     $('.sfb-sea').animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px)' }], { duration: 260, fill: 'forwards' });
     $('.sfb-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, delay: 80, easing: 'ease-out', fill: 'forwards' });
   }
-  // Marca (sol + "Sunfood") visível no topo do app, onde o logo pousa.
+  // Marca (sol + "SunFood") visível no topo do app, onde o logo pousa.
   function marcaDoApp() {
     var marcas = document.querySelectorAll('#dc-root .brand, #dc-root .adm-brand');
     for (var i = 0; i < marcas.length; i++) {
       var b = marcas[i].getBoundingClientRect();
-      if (b.width && b.height && b.bottom > 0 && b.top < innerHeight && b.right > 0 && b.left < innerWidth && /Sunfood/.test(marcas[i].textContent)) return marcas[i];
+      if (b.width && b.height && b.bottom > 0 && b.top < innerHeight && b.right > 0 && b.left < innerWidth && /SunFood/.test(marcas[i].textContent)) return marcas[i];
     }
     return null;
   }

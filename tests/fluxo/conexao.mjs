@@ -1,4 +1,4 @@
-// Teste de fluxo das telas do Sunfood num navegador de verdade (Chromium),
+// Teste de fluxo das telas do SunFood num navegador de verdade (Chromium),
 // com uma API falsa em memória: nada sai da máquina, nada vai pro banco.
 // Uso: node tests/fluxo/conexao.mjs   (a partir da raiz do repositório)
 import { chromium } from 'playwright';
