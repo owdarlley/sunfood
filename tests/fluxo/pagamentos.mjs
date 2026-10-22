@@ -283,7 +283,8 @@ await step('cartão pelo Stripe (modo teste)', async () => {
 
     const back = await open('app-cliente.dc.html?module=cliente&screen=card&pedido=o9', { role: 'cliente', seed: true, session: true, stripeTest: true, viewport,
       setup: db => { db.orders[0].paymentStatus = 'pending'; } });
-    await back.waitForTimeout(800);
+    // No CI a primeira tela às vezes demora mais que 800 ms para montar.
+    await back.getByText('Aguardando confirmação do pagamento').first().waitFor({ timeout: 8000 }).catch(() => {});
     t = await text(back);
     check(`stripe ${tela}: na volta, espera a confirmação sem aviso de teste`, t.includes('Aguardando confirmação do pagamento') && t.includes('página segura para digitar') && !t.includes('4242'), t.slice(0, 300));
     if (SHOTS) await back.screenshot({ path: `${SHOTS}/cartao-stripe-${tela}.png`, fullPage: true });
