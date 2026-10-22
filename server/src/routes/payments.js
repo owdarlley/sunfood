@@ -3,12 +3,10 @@ import { asyncRouter } from "../async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import {
   PAYMENT_WINDOW_MINUTES,
-  stripeConfigured,
-  stripeTestMode,
+  stripeStatus,
   createStripeCheckout,
   constructStripeEvent,
   fetchCheckoutSession,
-  stripePublishableKey,
   createOrReuseCardIntent,
   createCardSession,
   fetchPaymentIntent,
@@ -41,16 +39,18 @@ const pixLimiter = limiter("pix", {
 // testes" — nunca finge que está cobrando de verdade sem chave configurada.
 // PIX e cartão são cobrados pelo Stripe. Sem STRIPE_SECRET_KEY, os dois são
 // aprovados na hora como "provisório" (fora de produção).
-const provider = () => (stripeConfigured ? "stripe" : "provisorio");
-paymentsRouter.get("/status", (req, res) =>
+const provider = async () => ((await stripeStatus()).configured ? "stripe" : "provisorio");
+paymentsRouter.get("/status", async (req, res) => {
+  const st = await stripeStatus();
+  const p = st.configured ? "stripe" : "provisorio";
   res.json({
-    pix: provider(),
-    card: provider(),
-    cardTestMode: stripeConfigured && stripeTestMode,
+    pix: p,
+    card: p,
+    cardTestMode: st.configured && st.testMode,
     // Com a chave publicável, o app mostra os campos do cartão na própria tela.
-    stripePublishableKey: stripeConfigured ? stripePublishableKey : null,
-  })
-);
+    stripePublishableKey: st.configured ? st.publishableKey : null,
+  });
+});
 
 // Mesma lista de origens do CORS (app.js): o Stripe só pode mandar o
 // cliente de volta pro próprio app, nunca pra um site qualquer.
@@ -111,7 +111,7 @@ async function approveProvisionally(order, res) {
 paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLimiter, async (req, res) => {
   const order = await loadOwnUnpaidOrder(req, res, "pix");
   if (!order) return;
-  if (provider() === "provisorio") return approveProvisionally(order, res);
+  if ((await provider()) === "provisorio") return approveProvisionally(order, res);
 
   try {
     const pix = await createStripePix({
@@ -129,7 +129,7 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
     res.json({
       qrCode: pix.qrCode,
       qrCodeImageUrl: pix.qrCodeImageUrl,
-      testPayUrl: stripeTestMode ? pix.instructionsUrl : null,
+      testPayUrl: (await stripeStatus()).testMode ? pix.instructionsUrl : null,
       status: "pending",
       expiresAt: pix.expiresAt,
     });
@@ -153,7 +153,7 @@ paymentsRouter.post(
     const order = await loadOwnUnpaidOrder(req, res, "cartao");
     if (!order) return;
 
-    if (provider() === "provisorio") return approveProvisionally(order, res);
+    if ((await provider()) === "provisorio") return approveProvisionally(order, res);
 
     const returnUrl = new URL(req.body.returnUrl);
     if (!APP_ORIGINS.includes(returnUrl.origin)) {
@@ -188,7 +188,8 @@ paymentsRouter.post(
 // pedida pelo app assim que o cliente chega no carrinho. Com ela e a chave
 // publicável, os campos do cartão aparecem antes de o pedido existir.
 paymentsRouter.post("/card-session", requireAuth, requireRole("cliente"), sessionLimiter, async (req, res) => {
-  if (!stripeConfigured || !stripePublishableKey) {
+  const { configured, publishableKey: stripePublishableKey } = await stripeStatus();
+  if (!configured || !stripePublishableKey) {
     return res.status(409).json({ error: "Pagamento com cartão no app indisponível." });
   }
   try {
@@ -204,7 +205,8 @@ paymentsRouter.post("/card-session", requireAuth, requireRole("cliente"), sessio
 // client_secret do PaymentIntent do pedido; quem aprova o pedido continua
 // sendo o webhook (payment_intent.succeeded), nunca o navegador.
 paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente"), pixLimiter, async (req, res) => {
-  if (!stripeConfigured || !stripePublishableKey) {
+  const { configured, publishableKey: stripePublishableKey } = await stripeStatus();
+  if (!configured || !stripePublishableKey) {
     return res.status(409).json({ error: "Pagamento com cartão no app indisponível." });
   }
   const order = await loadOwnUnpaidOrder(req, res, "cartao");
@@ -282,13 +284,13 @@ paymentsRouter.get("/pix/:orderId/status", requireAuth, requireRole("cliente"), 
 // o corpo cru (ver app.js) e a sessão ou o PaymentIntent é rebuscado na API
 // do Stripe antes de liberar o pedido.
 paymentsRouter.post("/stripe/webhook", async (req, res) => {
-  if (!stripeConfigured) return res.status(200).end();
+  if (!(await stripeStatus()).configured) return res.status(200).end();
 
   let event;
   try {
     const raw = Buffer.isBuffer(req.body) ? req.body : typeof req.body === "string" ? req.body : null;
     if (!raw) throw new Error("Corpo cru indisponível.");
-    event = constructStripeEvent(raw, req.headers["stripe-signature"]);
+    event = await constructStripeEvent(raw, req.headers["stripe-signature"]);
   } catch (e) {
     console.error("Webhook do Stripe recusado:", e.message);
     return res.status(400).json({ error: "Assinatura inválida." });

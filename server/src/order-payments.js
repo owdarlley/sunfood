@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "./supabase.js";
 import { needsRefund } from "./business-rules.js";
-import { PAYMENT_WINDOW_MINUTES, stripeConfigured, isStripePaymentId, cancelStripePaymentIntent } from "./payments/stripe.js";
+import { PAYMENT_WINDOW_MINUTES, stripeStatus, isStripePaymentId, cancelStripePaymentIntent } from "./payments/stripe.js";
 import { recordRefund, refundAtProvider } from "./order-refunds.js";
 
 // Motivos que o cliente vê nos detalhes do pedido.
@@ -93,7 +93,7 @@ async function closeUnpaidPayment(id) {
     .select("id, payment_id");
   if (closed?.length) {
     const paymentId = closed[0].payment_id;
-    if (stripeConfigured && isStripePaymentId(paymentId)) {
+    if (isStripePaymentId(paymentId) && (await stripeStatus()).configured) {
       // Se o pagamento já estiver em andamento, o Stripe recusa e o webhook
       // que chegar depois estorna (approveOrderPayment).
       await cancelStripePaymentIntent(paymentId).catch((e) => console.warn("PaymentIntent não cancelado:", paymentId, e.message));

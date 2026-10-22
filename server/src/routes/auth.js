@@ -19,7 +19,7 @@ import {
 } from "../validation/schemas.js";
 import { limiter } from "../rate-limit.js";
 import { deleteContactMessagesOf } from "./contact.js";
-import { stripeConfigured, deleteStripeCustomer } from "../payments/stripe.js";
+import { stripeStatus, deleteStripeCustomer } from "../payments/stripe.js";
 
 export const authRouter = asyncRouter();
 
@@ -475,7 +475,7 @@ authRouter.post("/delete-account", deleteAccountLimiter, requireAuth, validate(d
   // LGPD (auditoria M11): o cadastro no Stripe (cartões salvos) e as
   // mensagens do Fale conosco também saem. Falhar aqui não desfaz a exclusão.
   await deleteContactMessagesOf(req.user.email);
-  if (stripeConfigured) {
+  if ((await stripeStatus()).configured) {
     await deleteStripeCustomer({ userId: req.user.sub, email: req.user.email })
       .catch((e) => console.error("Cliente do Stripe não apagado:", req.user.sub, e.message));
   }

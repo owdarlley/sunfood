@@ -252,6 +252,21 @@ create table public.rate_limits (
   reset_at timestamptz not null
 );
 
+-- Conta do quiosque no Stripe (aba Stripe do painel). Chaves secretas
+-- criptografadas pelo servidor; só o service role lê e grava.
+create table public.stripe_settings (
+  id smallint primary key default 1 check (id = 1),
+  secret_key_enc text not null,
+  publishable_key text not null,
+  webhook_secret_enc text,
+  webhook_endpoint_id text,
+  account_id text,
+  account_name text,
+  livemode boolean not null default false,
+  updated_at timestamptz not null default now(),
+  updated_by uuid references public.profiles(id) on delete set null
+);
+
 insert into public.kiosk_settings (id) values (1) on conflict do nothing;
 
 -- ---------------------------------------------------------------------------
@@ -899,6 +914,7 @@ alter table public.orders enable row level security;
 alter table public.products enable row level security;
 alter table public.profiles enable row level security;
 alter table public.rate_limits enable row level security;
+alter table public.stripe_settings enable row level security;
 
 create policy "day_reports: admin reads" on public.day_reports as permissive for select to public using (public.is_admin());
 create policy "kiosk_settings: readable by everyone" on public.kiosk_settings as permissive for select to public using (true);
@@ -953,3 +969,4 @@ grant execute on function public."current_role"() to authenticated;
 grant execute on function public.is_admin() to authenticated;
 grant execute on function public.is_staff() to authenticated;
 revoke all on public.rate_limits from public, anon, authenticated;
+revoke all on public.stripe_settings from public, anon, authenticated;
