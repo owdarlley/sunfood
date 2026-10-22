@@ -439,6 +439,9 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 :root{--z:.83}
 .lp{zoom:var(--fit,1);min-height:calc(100vh / var(--fit,1));min-height:calc(100dvh / var(--fit,1))}
 @media (max-width:767px){.lp{--lp-h:calc(1vh / var(--fit,1))}@supports (height:1dvh){.lp{--lp-h:calc(1dvh / var(--fit,1))}}}
+/* Com a altura medida pelo caber.js (--janela), ela vale no lugar do dvh. */
+.lp{min-height:calc(var(--janela,100dvh) / var(--fit,1))}
+@media (max-width:767px){.lp{--lp-h:calc(var(--janela,100dvh) / 100 / var(--fit,1))}}
 @media (max-width:767px){.lp{--lg-h:calc(48px / var(--fit,1));--lg-h2:calc(48px / var(--fit,1));--ctl:calc(48px / var(--fit,1))}}
 @media (max-width:767px),(pointer:coarse){.lp{--lg-fs-input:calc(16px / var(--fit,1))}.info :is(input,select,textarea){font-size:calc(16px / var(--z)) !important}}
 .info{zoom:var(--z)}

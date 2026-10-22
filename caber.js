@@ -21,6 +21,24 @@
     if (z === 1) raiz.style.removeProperty('--fit'); else raiz.style.setProperty('--fit', z);
   }
   aplicar(base());
+  // Altura da janela em px (--janela), no lugar de 100dvh na tela de entrada
+  // e no cadastro: no app Android (Samsung), ao recarregar, o dvh chegava
+  // maior que a janela de verdade e a tela passava da altura (rolagem, tudo
+  // maior). A altura do <html> (clientHeight) é a da janela visível.
+  // Teclado aberto (campo em foco e só a altura diminuiu) não conta: a tela
+  // não encolhe enquanto a pessoa digita, como já acontecia com o dvh.
+  var jl = 0, jh = 0;
+  function janela() {
+    var w = raiz.clientWidth, h = raiz.clientHeight || innerHeight;
+    var foco = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+    if (!h || (foco && w === jl && h < jh)) return;
+    jl = w; jh = h;
+    raiz.style.setProperty('--janela', h + 'px');
+  }
+  janela();
+  addEventListener('resize', janela);
+  addEventListener('pageshow', janela);
+  addEventListener('load', janela);
   window.sunfoodCaber = function (sel) {
     var agendado = false, teclado = false;
     function caber() {

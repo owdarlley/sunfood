@@ -128,6 +128,9 @@ html.sf-espera #dc-root{opacity:0}
   .sf-z .su > * + *{margin-top:auto}
 }
 @supports (height:1dvh){@media (max-width:767px){.sf-z .auth{--au-h:calc(1dvh / var(--fit,1))}}}
+/* Com a altura medida pelo caber.js (--janela), ela vale no lugar do dvh. */
+.sf-z .auth{min-height:calc(var(--janela,100dvh) / var(--fit,1))}
+@media (max-width:767px){.sf-z .auth{--au-h:calc(var(--janela,100dvh) / 100 / var(--fit,1))}}
 @media (max-width:767px),(pointer:coarse){.sf-z .auth :is(input,select,textarea){font-size:calc(16px / var(--fit,1)) !important}}
 /* Botões e campos mantêm a altura de toque real (48 px no tablet e 44 no
    computador; --tap = 44 px para os botões menores), mesmo com o zoom. */
