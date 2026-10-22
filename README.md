@@ -28,6 +28,7 @@ O endereço principal (`index.html`, ou seja, https://sunfood.app.br/) é a **te
 | Fale conosco | `/#fale-conosco` | Formulário de contato (grava pela API, `POST /contact`) |
 | Termos de uso | `/#termos` | Termos de uso do sistema |
 | Privacidade | `/#privacidade` | Política de privacidade, conforme a LGPD |
+| Baixe o app | `/#baixar-app` | Download do app Android (APK assinado em `download/sunfood.apk`), passo a passo da instalação e QR Code para abrir no celular. Some dentro do próprio app |
 
 Os endereços antigos (`inicio.html`, `sobre.html`, `funcionalidades.html`, `como-funciona.html`, `perfis.html`, `mapa.html`, `contato.html`, `termos.html`, `privacidade.html`) continuam funcionando e redirecionam para o painel certo. Outras páginas:
 

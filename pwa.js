@@ -8,3 +8,9 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// Dentro do app (Android ou instalado pelo navegador) o link "Baixe o app"
+// some; o index.html marca o app Android no sessionStorage ao abrir.
+try {
+  if (sessionStorage.getItem('sunfood_apk') || matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.documentElement.classList.add('sf-instalado');
+} catch (e) {}

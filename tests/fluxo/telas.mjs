@@ -122,7 +122,7 @@ await step('login no endereço principal', async () => {
 await step('rodapé do login', async () => {
   const page = await open('');
   for (const [link, trecho, hash] of [['Conheça o Sunfood', 'O que o quiosque ganha', '#conheca'], ['Termos de uso', 'Cancelamento de pedidos', '#termos'], ['Privacidade', 'Seus direitos como titular', '#privacidade'], ['Fale conosco', 'Dúvida, reserva ou suporte?', '#fale-conosco']]) {
-    await page.locator('nav.foot').getByText(link, { exact: true }).click();
+    await page.locator('nav.foot').getByRole('link', { name: link, exact: true }).click();
     await page.waitForTimeout(300);
     const t = await page.locator('#info').innerText();
     check(`rodapé: ${link} abre no login`, page.url() === BASE + hash && t.includes(trecho), page.url());
