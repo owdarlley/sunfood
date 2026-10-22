@@ -103,6 +103,21 @@ for (const [tela, width, height] of TELAS) {
   });
 }
 
+// Texto do aparelho aumentado (acessibilidade do Android): o rodapé do login
+// quebra a linha em vez de passar da largura e criar rolagem.
+await step('texto grande: login sem rolagem', async () => {
+  for (const [w, h] of [[360, 640], [390, 844]]) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+    const p = await ctx.newPage();
+    await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+    await p.goto(BASE); await p.waitForTimeout(1000);
+    await p.addStyleTag({ content: 'html{-webkit-text-size-adjust:130%}' }); await p.waitForTimeout(300);
+    const r = await p.evaluate(() => ({ sw: document.documentElement.scrollWidth, sh: document.documentElement.scrollHeight }));
+    check(`texto grande ${w}x${h}: login sem rolagem`, r.sw <= w && r.sh <= h, JSON.stringify(r));
+    await ctx.close();
+  }
+});
+
 await browser.close(); server.close();
 const falhas = results.filter(r => !r.ok);
 console.log(`\n${results.length - falhas.length}/${results.length} ok`);
