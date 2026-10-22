@@ -23,6 +23,14 @@
 // Esta é a página do endereço principal (sunfood.app.br): a tela de login.
 // Link de "esqueci minha senha" que caiu aqui: manda pra tela de nova senha.
 if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) { window.SUNFOOD_SAINDO = true; location.replace('redefinir-senha.html' + location.hash); }
+// Dentro do app Android (Trusted Web Activity, que abre com referrer
+// android-app://br.app.sunfood) ou do app instalado pelo navegador, a aba
+// "Baixe o app" some. Vai no sessionStorage: o app divide o armazenamento
+// com o Chrome, e o aviso não pode esconder a aba no navegador comum.
+try {
+  if (/^android-app:\/\/br\.app\.sunfood/.test(document.referrer)) sessionStorage.setItem('sunfood_apk', '1');
+  if (sessionStorage.getItem('sunfood_apk') || matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.documentElement.classList.add('sf-instalado');
+} catch (e) {}
 // Quem já entrou neste aparelho vai direto para o seu módulo do app.
 (function () {
   var DEST = {
@@ -38,7 +46,7 @@ if (/(^|[#&])type=recovery(&|$)/.test(location.hash)) { window.SUNFOOD_SAINDO = 
   try {
     var s = JSON.parse(localStorage.getItem('sunfood_session') || 'null');
     if (window.SUNFOOD_EMBED) { document.documentElement.classList.add('sf-embed'); if (s && s.token && s.user) window.SUNFOOD_PAPEL = s.user.role; }
-    else if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash) && !/^#(conheca|fale-conosco|termos|privacidade)$/.test(location.hash)) { window.SUNFOOD_SAINDO = true; location.replace(DEST[s.user.role] || DEST.cliente); }
+    else if (s && s.token && s.user && !/(^|[#&])type=recovery/.test(location.hash) && !/^#(conheca|fale-conosco|termos|privacidade|baixar-app)$/.test(location.hash)) { window.SUNFOOD_SAINDO = true; location.replace(DEST[s.user.role] || DEST.cliente); }
     // Quem já entrou e veio de um link do rodapé do app (#termos etc.) vê só o
     // painel, sem a tela de login por trás; fechar o painel volta para o app.
     else if (s && s.token && s.user) { window.SUNFOOD_APP = DEST[s.user.role] || DEST.cliente; window.SUNFOOD_PAPEL = s.user.role; document.documentElement.classList.add('sf-logado'); }
@@ -208,6 +216,26 @@ textarea{resize:none;overflow-y:auto}
   .stats{grid-template-columns:1fr 1fr}
   .tab{padding:12px}
 }
+/* Baixe o app (#baixar-app): cartão do APK com o botão de download e, do
+   tablet para cima, o QR Code para abrir a página no celular. */
+.dl{display:grid;grid-template-columns:1fr;gap:var(--gap);margin-top:var(--sec)}
+.dl-app{display:flex;align-items:center;gap:16px}
+.dl-app img{width:64px;height:64px;border-radius:16px;flex:none;box-shadow:0 1px 2px rgba(20,35,42,.08)}
+.dl-app b{font-size:var(--fs-h2) !important}
+.dl-meta{font:500 var(--fs-cap)/1.5 'Manrope',system-ui,sans-serif;color:#55626A;margin-top:4px}
+.dl .btn{margin-top:var(--cpad);min-height:calc(48px / var(--z,1));text-decoration:none}
+@media (min-width:1025px){.dl .btn{min-height:calc(44px / var(--z,1))}}
+.dl .btn svg{width:20px;height:20px;flex:none}
+.dl .hint{margin-top:12px}
+.dl-qr{display:none}
+@media (min-width:768px){
+  .dl{grid-template-columns:1fr 200px}
+  .dl-qr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}
+  .dl-qr img{width:136px;height:136px;padding:8px;background:#fff;border-radius:12px;border:1px solid #E5E0D5}
+  .dl-qr p{margin:0 !important;font-size:var(--fs-cap) !important;line-height:1.5}
+}
+.steps .card b{margin-top:0}
+.sf-instalado a[href$="#baixar-app"]{display:none !important}
 [hidden]{display:none !important}
 /* Ícones: o mesmo traço fino (1,75 px) do resto do app. */
 svg[stroke]{stroke-width:1.75px;stroke-linecap:round;stroke-linejoin:round}
@@ -545,12 +573,13 @@ select{caret-color:auto}
     <a href="#fale-conosco">Fale conosco</a>
     <a href="#termos">Termos de uso</a>
     <a href="#privacidade">Privacidade</a>
+    <a href="#baixar-app">Baixe o app</a>
   </nav>
 </div>
 <!-- Conteúdo institucional (antes em inicio.html, sobre.html, contato.html,
      termos.html, privacidade.html...): abre por cima do login pelos links do
      rodapé. Cada aba tem endereço próprio (#conheca, #fale-conosco, #termos,
-     #privacidade), então os endereços antigos redirecionam para cá. -->
+     #privacidade, #baixar-app), então os endereços antigos redirecionam para cá. -->
 <div id="info" class="info" role="dialog" aria-modal="true" aria-labelledby="info-title" hidden>
   <div class="info-bg" data-close></div>
   <div class="info-sheet">
@@ -565,6 +594,7 @@ select{caret-color:auto}
         <a class="tab" href="#fale-conosco">Fale conosco</a>
         <a class="tab" href="#termos">Termos de uso</a>
         <a class="tab" href="#privacidade">Privacidade</a>
+        <a class="tab" href="#baixar-app">Baixe o app</a>
       </nav>
     </div>
     <div class="info-body" id="info-body" tabindex="-1">
@@ -742,6 +772,37 @@ select{caret-color:auto}
         <p>Para exercer qualquer um desses direitos, envie uma solicitação para <a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a>, informando o nome e o e-mail usados no cadastro. O pedido será respondido em prazo razoável, conforme previsto na LGPD.</p>
         <div class="note"><p><strong>Aviso importante:</strong> este texto é um modelo de referência, escrito para descrever de forma honesta como o Sunfood trata dados pessoais hoje. Antes do lançamento comercial real, esta Política de Privacidade e os Termos de Uso devem ser revisados por um advogado especializado em proteção de dados.</p></div>
         <p>Dúvidas podem ser enviadas para <a href="mailto:darlley1997@gmail.com">darlley1997@gmail.com</a> ou pelo <a href="#fale-conosco">Fale conosco</a>. Veja também os <a href="#termos">Termos de uso</a>.</p>
+      </section>
+      <section data-sec="baixar-app">
+        <p class="eyebrow">App para Android</p>
+        <h2>Leve o Sunfood no celular.</h2>
+        <p class="lead">Instale o app e abra o cardápio direto da tela inicial, sem digitar endereço. É o mesmo Sunfood do site, com a mesma conta.</p>
+        <div class="dl">
+          <div class="card">
+            <div class="dl-app">
+              <img src="icons/icon-192.png" alt="" width="64" height="64">
+              <div><b>Sunfood</b><div class="dl-meta">Versão 1.0.0 · 512 KB · Android 5.0 ou mais novo</div></div>
+            </div>
+            <a class="btn btn-dark" href="download/sunfood.apk" download="sunfood-1.0.0.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>Baixar o app (APK)</a>
+            <p class="hint">O app ainda não está na Play Store: o arquivo vem direto do sunfood.app.br. Veja abaixo como instalar.</p>
+          </div>
+          <div class="card dl-qr">
+            <img src="icons/qr-baixar-app.svg" alt="QR Code que abre esta página no celular" width="136" height="136">
+            <p>Não está no celular? Aponte a câmera dele para baixar por lá.</p>
+          </div>
+        </div>
+        <h3>Como instalar</h3>
+        <div class="grid g2 steps">
+          <div class="card"><span class="num">1</span><b>Baixe o arquivo</b><p>Toque em <strong>Baixar o app</strong>. Se o Chrome avisar que o arquivo pode ser perigoso, toque em <strong>Baixar mesmo assim</strong>: o aviso aparece para todo app de fora da Play Store.</p></div>
+          <div class="card"><span class="num">2</span><b>Abra o download</b><p>Toque na notificação de download concluído, ou abra <strong>Arquivos › Downloads</strong> e toque em sunfood-1.0.0.apk.</p></div>
+          <div class="card"><span class="num">3</span><b>Libere a instalação</b><p>Na primeira vez, o Android pede para permitir <strong>Instalar apps desconhecidos</strong> pelo Chrome. Toque em Configurações, ative a opção e volte.</p></div>
+          <div class="card"><span class="num">4</span><b>Instale e entre</b><p>Toque em <strong>Instalar</strong> e depois em <strong>Abrir</strong>. Entre com o mesmo e-mail e senha que você usa no site.</p></div>
+        </div>
+        <div class="note"><p><strong>Tem iPhone?</strong> O app é só para Android. No iPhone, abra sunfood.app.br no Safari, toque em Compartilhar e depois em <strong>Adicionar à Tela de Início</strong>: o Sunfood fica na tela como um app.</p></div>
+        <div class="facts f2" style="margin-top:20px">
+          <div><b>É seguro?</b>O app é assinado pelo Sunfood e só abre o sunfood.app.br. Para tirar, é só desinstalar como qualquer app.</div>
+          <div><b>Dúvidas na instalação?</b>Escreva pelo <a href="#fale-conosco">Fale conosco</a> que a equipe ajuda.</div>
+        </div>
       </section>
 
     </div>
@@ -923,8 +984,9 @@ $('resend').addEventListener('click', async function () {
 });
 
 // ---- Painéis do rodapé: Conheça o Sunfood, Fale conosco, Termos, Privacidade ----
-var SECOES = ['conheca', 'fale-conosco', 'termos', 'privacidade'];
-var TITULOS = { conheca: 'Conheça o Sunfood', 'fale-conosco': 'Fale conosco', termos: 'Termos de uso', privacidade: 'Privacidade' };
+var SECOES = ['conheca', 'fale-conosco', 'termos', 'privacidade', 'baixar-app'];
+if (document.documentElement.classList.contains('sf-instalado')) SECOES.pop();
+var TITULOS = { conheca: 'Conheça o Sunfood', 'fale-conosco': 'Fale conosco', termos: 'Termos de uso', privacidade: 'Privacidade', 'baixar-app': 'Baixe o app' };
 var info = $('info'), voltarFoco = null;
 
 var EMBED = window.SUNFOOD_EMBED;

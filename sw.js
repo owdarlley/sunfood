@@ -12,7 +12,7 @@
 //
 // Ao mudar a lista abaixo ou a lógica deste arquivo, aumente a VERSAO para
 // o navegador trocar o cache antigo.
-const VERSAO = 'v14';
+const VERSAO = 'v15';
 const CACHE = 'sunfood-' + VERSAO;
 
 const PRECACHE = [
@@ -60,6 +60,8 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
 
   if (url.origin === self.location.origin) {
+    // O APK do app Android (download/) vai direto pela rede, sem ocupar o cache.
+    if (url.pathname.endsWith('.apk')) return;
     if (req.mode === 'navigate') return event.respondWith(paginaRedePrimeiro(req));
     if (req.destination === 'image') return event.respondWith(cachePrimeiroAtualizando(req));
     return event.respondWith(redePrimeiro(req));
