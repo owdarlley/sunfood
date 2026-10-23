@@ -33,7 +33,9 @@ jobs:
         run: |
           BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
           OUT=android/app/build/outputs/apk/release
-          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/sunfood.jks"
+          # Tira espaços e quebras de linha que vêm junto quando o segredo é colado.
+          export KS_PW="$(printf %s "$KS_PW" | tr -d '\r\n' | sed 's/^ *//; s/ *$//')"
+          printf %s "$KS_B64" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/sunfood.jks"
           "$BT/zipalign" -P 16 -f 4 "$OUT/app-release-unsigned.apk" "$RUNNER_TEMP/alinhado.apk"
           "$BT/apksigner" sign --ks "$RUNNER_TEMP/sunfood.jks" --ks-key-alias sunfood \
             --ks-pass env:KS_PW --key-pass env:KS_PW --out "$OUT/sunfood-assinado.apk" "$RUNNER_TEMP/alinhado.apk"
