@@ -12,10 +12,10 @@ const paragraphs = (s) => esc(s).replace(/\r?\n/g, "<br>");
 
 export function contactReplyEmail({ name, protocol, reason, message, reply }) {
   const firstName = String(name).trim().split(/\s+/)[0];
-  const subject = `Resposta à sua mensagem (${protocol}) · Sunfood`;
+  const subject = `Resposta à sua mensagem (${protocol}) · SunFood`;
   const text =
     `Olá, ${firstName}!\n\n${reply}\n\n` +
-    `Equipe Sunfood\n\n---\nSua mensagem (${protocol} · ${reason}):\n${message}\n\n` +
+    `Equipe SunFood\n\n---\nSua mensagem (${protocol} · ${reason}):\n${message}\n\n` +
     `Precisa de mais alguma coisa? Escreva de novo pelo Fale conosco em https://sunfood.app.br`;
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -45,13 +45,13 @@ export function contactReplyEmail({ name, protocol, reason, message, reply }) {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background:#FFFFFF;border:1px solid #E3DDD0;border-radius:24px;overflow:hidden">
         <tr><td align="center" bgcolor="#0B6670" class="sf-pad" style="background:#0B6670;padding:28px 32px 24px">
           <img src="https://sunfood.app.br/icons/icon-192.png" width="56" height="56" alt="☀" style="display:block;width:56px;height:56px;border-radius:14px;margin:0 auto;color:#FFB21E;font-size:40px;line-height:56px">
-          <div style="margin-top:12px;font-family:'Bricolage Grotesque',Arial,Helvetica,sans-serif;font-size:28px;line-height:32px;font-weight:800;color:#FFFFFF;letter-spacing:-0.5px">Sunfood</div>
+          <div style="margin-top:12px;font-family:'Bricolage Grotesque',Arial,Helvetica,sans-serif;font-size:28px;line-height:32px;font-weight:800;color:#FFFFFF;letter-spacing:-0.5px">SunFood</div>
           <div style="margin-top:4px;font-size:14px;line-height:20px;color:#FFE3A3">Resposta ao seu Fale conosco</div>
         </td></tr>
         <tr><td class="sf-pad" style="padding:32px 32px 8px">
           <h1 class="sf-h1" style="margin:0 0 14px;font-family:'Bricolage Grotesque',Arial,Helvetica,sans-serif;font-size:26px;line-height:32px;font-weight:800;color:#12232E;letter-spacing:-0.5px">Olá, ${esc(firstName)}! 👋</h1>
           <p style="margin:0 0 16px;font-size:16px;line-height:25px;color:#12232E">${paragraphs(reply)}</p>
-          <p style="margin:0;font-size:16px;line-height:25px;color:#5A6670">Equipe Sunfood</p>
+          <p style="margin:0;font-size:16px;line-height:25px;color:#5A6670">Equipe SunFood</p>
         </td></tr>
         <tr><td class="sf-pad" style="padding:20px 32px 28px">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#E7F1F1;border-radius:14px">
@@ -62,7 +62,7 @@ export function contactReplyEmail({ name, protocol, reason, message, reply }) {
           </table>
         </td></tr>
         <tr><td align="center" class="sf-pad" style="background:#F6F3EC;border-top:1px solid #E3DDD0;padding:20px 32px;font-size:12px;line-height:19px;color:#5A6670">
-          Você recebeu este e-mail porque escreveu para o Sunfood pelo Fale conosco.<br>Precisa de mais alguma coisa? Escreva de novo pelo site.<br>
+          Você recebeu este e-mail porque escreveu para o SunFood pelo Fale conosco.<br>Precisa de mais alguma coisa? Escreva de novo pelo site.<br>
           <a href="https://sunfood.app.br" style="color:#0B6670;text-decoration:none;font-weight:700">sunfood.app.br</a>
         </td></tr>
       </table>

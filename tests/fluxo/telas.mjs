@@ -1,4 +1,4 @@
-// Teste de fluxo das telas do Sunfood num navegador de verdade (Chromium),
+// Teste de fluxo das telas do SunFood num navegador de verdade (Chromium),
 // com uma API falsa em memória: nada sai da máquina, nada vai pro banco.
 // Uso: node tests/fluxo/telas.mjs   (a partir da raiz do repositório)
 import { chromium } from 'playwright';
@@ -84,7 +84,7 @@ await step('login no endereço principal', async () => {
   check('raiz: sem aviso verde de boas-vindas ao entrar', !(await text(page)).includes('Bem-vindo(a)'));
   await page.waitForTimeout(1200);
   check('raiz: cliente cai no cardápio', page.url().includes('module=cliente&screen=menu') && (await text(page)).includes('Batata Frita'), page.url());
-  check('guia do navegador: cardápio mostra "Sunfood · Cardápio"', await page.title() === 'Sunfood · Cardápio', await page.title());
+  check('guia do navegador: cardápio mostra "SunFood · Cardápio"', await page.title() === 'SunFood · Cardápio', await page.title());
   check('raiz: sem erro de JavaScript', page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();
 
@@ -104,9 +104,9 @@ await step('login no endereço principal', async () => {
   await salvo.close();
 
   const inicio = await open('inicio.html');
-  check('inicio.html: endereço antigo abre Conheça o Sunfood no login', inicio.url() === BASE + '#conheca' && (await text(inicio)).includes('Um sistema, quatro telas de trabalho'), inicio.url());
+  check('inicio.html: endereço antigo abre Conheça o SunFood no login', inicio.url() === BASE + '#conheca' && (await text(inicio)).includes('Um sistema, quatro telas de trabalho'), inicio.url());
   await inicio.locator('#info').getByText('Entrar', { exact: true }).click(); await inicio.waitForTimeout(300);
-  check('Conheça o Sunfood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Fome na praia?'), inicio.url());
+  check('Conheça o SunFood: Entrar fecha o painel e volta ao login', inicio.url() === BASE && await inicio.locator('#info').isHidden() && (await text(inicio)).includes('Fome na praia?'), inicio.url());
   await inicio.close();
 
   const app = await open('app-cliente.dc.html', { role: 'admin', session: false });
@@ -121,7 +121,7 @@ await step('login no endereço principal', async () => {
 // 1c. Links do rodapé do login abrem o conteúdo no próprio login
 await step('rodapé do login', async () => {
   const page = await open('');
-  for (const [link, trecho, hash] of [['Conheça o Sunfood', 'O que o quiosque ganha', '#conheca'], ['Termos de uso', 'Cancelamento de pedidos', '#termos'], ['Privacidade', 'Seus direitos como titular', '#privacidade'], ['Fale conosco', 'Dúvida, reserva ou suporte?', '#fale-conosco']]) {
+  for (const [link, trecho, hash] of [['Conheça o SunFood', 'O que o quiosque ganha', '#conheca'], ['Termos de uso', 'Cancelamento de pedidos', '#termos'], ['Privacidade', 'Seus direitos como titular', '#privacidade'], ['Fale conosco', 'Dúvida, reserva ou suporte?', '#fale-conosco']]) {
     await page.locator('nav.foot').getByRole('link', { name: link, exact: true }).click();
     await page.waitForTimeout(300);
     const t = await page.locator('#info').innerText();
@@ -164,8 +164,8 @@ await step('rodapé do login', async () => {
   await logado.close();
 });
 
-// 1c. Logo do Sunfood: sem login leva à tela de login; logado, ao início de cada perfil
-await step('logo do Sunfood', async () => {
+// 1c. Logo do SunFood: sem login leva à tela de login; logado, ao início de cada perfil
+await step('logo do SunFood', async () => {
   const logo = page => page.locator('.brand:visible, .adm-brand:visible, .auth-logo:visible').first();
   const anon = await open('app-cliente.dc.html?module=cliente&screen=signup');
   await logo(anon).click(); await anon.waitForTimeout(800);
@@ -237,7 +237,7 @@ await step('fluxo do cliente', async () => {
 await step('fluxo da cozinha', async () => {
   const page = await open('app-cliente.dc.html?module=cozinha&screen=kanban', { role: 'cozinha', seed: true });
   check('cozinha: pedido aparece na fila com observação', (await text(page)).includes('Obs: sem sal'));
-  check('guia do navegador: cozinha mostra "Sunfood · Cozinha"', await page.title() === 'Sunfood · Cozinha', await page.title());
+  check('guia do navegador: cozinha mostra "SunFood · Cozinha"', await page.title() === 'SunFood · Cozinha', await page.title());
   check('cozinha: cartão mostra o nome de quem pediu', (await text(page)).includes('Ana Teste'));
   // No celular a cozinha mostra uma coluna por vez, em abas (Na fila / Em preparo / Prontos).
   const aba = async t => { if (await page.locator('.kz-tabs').isVisible()) { await page.locator('.kz-tab', { hasText: t }).click(); await page.waitForTimeout(300); } };
@@ -256,7 +256,7 @@ for (const sc of ['dashboard', 'orders', 'payments', 'messages', 'productForm', 
     const err = page.jsErrors.join(' | ') || await renderError(page);
     check(`admin: tela ${sc} abre sem erro`, !err, err);
     const aba = await page.title();
-    check(`admin: guia do navegador da tela ${sc} começa com "Sunfood · "`, aba.startsWith('Sunfood · ') && aba.length > 10, aba);
+    check(`admin: guia do navegador da tela ${sc} começa com "SunFood · "`, aba.startsWith('SunFood · ') && aba.length > 10, aba);
     await page.close();
   });
 }

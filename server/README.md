@@ -1,10 +1,10 @@
-# Sunfood API
+# SunFood API
 
-> Esta pasta (`server/`) é a **API e o banco** do Sunfood: servidor, Supabase (migrações e modelos de e-mail) e testes do banco. O **site** fica na raiz deste mesmo repositório. A Vercel publica só esta pasta (Root Directory = `server`) e só refaz o deploy quando algo aqui dentro muda (`ignoreCommand` no `vercel.json`).
+> Esta pasta (`server/`) é a **API e o banco** do SunFood: servidor, Supabase (migrações e modelos de e-mail) e testes do banco. O **site** fica na raiz deste mesmo repositório. A Vercel publica só esta pasta (Root Directory = `server`) e só refaz o deploy quando algo aqui dentro muda (`ignoreCommand` no `vercel.json`).
 >
 > Todos os comandos abaixo rodam de dentro da pasta: `cd server`.
 
-Backend real do Sunfood — Node.js + Express, com **Supabase** (Postgres + Auth) como banco de dados e autenticação, **Stripe** para pagamento por PIX e cartão (hoje em modo de teste). Todas as regras de negócio (pedido mínimo, cancelamento, disponibilidade de item, permissão por papel) são validadas aqui no servidor, nunca só no front-end.
+Backend real do SunFood — Node.js + Express, com **Supabase** (Postgres + Auth) como banco de dados e autenticação, **Stripe** para pagamento por PIX e cartão (hoje em modo de teste). Todas as regras de negócio (pedido mínimo, cancelamento, disponibilidade de item, permissão por papel) são validadas aqui no servidor, nunca só no front-end.
 
 Requer **Node.js 22.5 ou mais recente**.
 

@@ -134,7 +134,7 @@ for (const [nome, viewport] of [['celular', { width: 375, height: 800 }], ['tabl
     await click(page, 'Últimos 7 dias');
     const win = await openPdf(page);
     const w = await win.locator('body').innerText();
-    check(`pdf ${nome}: título, período e resumo`, w.includes('Relatório de vendas · Sunfood') && w.includes('Últimos 7 dias (29/09/2026 a 05/10/2026)') && w.includes('R$ 360,00'), w.slice(0, 300));
+    check(`pdf ${nome}: título, período e resumo`, w.includes('Relatório de vendas · SunFood') && w.includes('Últimos 7 dias (29/09/2026 a 05/10/2026)') && w.includes('R$ 360,00'), w.slice(0, 300));
     check(`pdf ${nome}: resumo por escrito com melhor dia e média`, w.includes('Resumo por escrito') && w.includes('Nos últimos 7 dias (29/09/2026 a 05/10/2026), o quiosque fez 9 vendas, com faturamento de R$ 360,00.') &&
       w.includes('O melhor dia foi 05/10/2026, com R$ 120,00 em 3 pedidos. Houve venda em 7 de 7 dias, uma média de R$ 51,43 por dia.'), w.slice(0, 900));
     check(`pdf ${nome}: vendas por dia, horários e mais vendidos`, w.includes('Vendas por dia') && w.includes('12h às 13h') && w.includes('Batata Frita'));

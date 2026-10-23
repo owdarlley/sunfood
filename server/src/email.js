@@ -3,7 +3,7 @@
 // redefinir senha. Os e-mails do Supabase continuam saindo pelo Supabase;
 // aqui só passam os que a API manda por conta própria.
 const RESEND_URL = "https://api.resend.com/emails";
-const DEFAULT_FROM = "Sunfood <nao-responda@sunfood.app.br>";
+const DEFAULT_FROM = "SunFood <nao-responda@sunfood.app.br>";
 
 export function emailConfigured() {
   return !!process.env.RESEND_API_KEY;

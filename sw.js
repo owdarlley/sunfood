@@ -1,4 +1,4 @@
-// Service worker do Sunfood: deixa o site instalável como app e guarda uma
+// Service worker do SunFood: deixa o site instalável como app e guarda uma
 // cópia das páginas e arquivos estáticos para abrir mesmo sem internet.
 //
 // Regras:

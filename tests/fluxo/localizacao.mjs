@@ -77,13 +77,13 @@ async function step(name, fn) { try { await fn(); } catch (e) { check(name, fals
 const called = (page, p) => page.api.db.calls.filter(c => c.p === p);
 
 
-const FACUL = { name: 'Sunfood na Faculdade', address: 'Av. Brasil, 100 - Centro, Santos - SP', hours: 'Seg. a sex., 8h às 22h.' };
+const FACUL = { name: 'SunFood na Faculdade', address: 'Av. Brasil, 100 - Centro, Santos - SP', hours: 'Seg. a sex., 8h às 22h.' };
 const VIEWS = [['celular', { width: 375, height: 800 }], ['tablet', { width: 768, height: 1000 }], ['computador', { width: 1366, height: 900 }]];
 const noScroll = page => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
 
 // 1. Admin muda a localização
 await step('admin localização', async () => {
-  const page = await open('app-cliente.dc.html?module=admin&screen=tables', { role: 'admin', kiosk: { location: { name: 'Quiosque Sunfood · Praia do Forte', address: 'Av. Beira-Mar, s/n, em frente ao posto 4', hours: '' } } });
+  const page = await open('app-cliente.dc.html?module=admin&screen=tables', { role: 'admin', kiosk: { location: { name: 'Quiosque SunFood · Praia do Forte', address: 'Av. Beira-Mar, s/n, em frente ao posto 4', hours: '' } } });
   check('admin: painel "Localização do quiosque" aparece', (await text(page)).includes('Localização do quiosque'));
   check('admin: campos vêm preenchidos com a localização atual', await page.locator('#locAddressInp').inputValue() === 'Av. Beira-Mar, s/n, em frente ao posto 4', await page.locator('#locAddressInp').inputValue());
   const salvar = async () => { await click(page, 'Salvar localização', true); await page.waitForTimeout(400); };

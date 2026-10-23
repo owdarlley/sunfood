@@ -118,7 +118,7 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
       orderId: order.id,
       amount: Number(order.total),
       payerEmail: req.user.email,
-      description: `Pedido Sunfood — mesa ${order.table_number}`,
+      description: `Pedido SunFood — mesa ${order.table_number}`,
       expiresInMinutes: PAYMENT_WINDOW_MINUTES,
       existingId: order.payment_provider === "stripe" && isStripePaymentId(order.payment_id) ? order.payment_id : null,
     });
@@ -172,7 +172,7 @@ paymentsRouter.post(
         payerEmail: req.user.email,
         successUrl: returnUrl.toString(),
         cancelUrl: cancelUrl.toString(),
-        description: `Pedido Sunfood — mesa ${order.table_number}`,
+        description: `Pedido SunFood — mesa ${order.table_number}`,
         expiresInMinutes: PAYMENT_WINDOW_MINUTES,
       });
       await supabaseAdmin.from("orders").update({ payment_provider: "stripe" }).eq("id", order.id);
@@ -218,7 +218,7 @@ paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente")
       payerEmail: req.user.email,
       payerName: req.user.name,
       userId: req.user.sub,
-      description: `Pedido Sunfood — mesa ${order.table_number}`,
+      description: `Pedido SunFood — mesa ${order.table_number}`,
       existingId: String(order.payment_id || "").startsWith("pi_") ? order.payment_id : null,
       // ?session=0: o app já pegou a sessão do cliente em /card-session.
       withSession: req.query.session !== "0",

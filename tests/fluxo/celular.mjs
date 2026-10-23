@@ -110,7 +110,7 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
   }
 }
 
-// Painel do rodapé (Conheça o Sunfood, Fale conosco...): arrastar para o lado troca de aba,
+// Painel do rodapé (Conheça o SunFood, Fale conosco...): arrastar para o lado troca de aba,
 // com o conteúdo acompanhando o dedo e a aba vizinha entrando junto.
 // Fonte grande no celular (~130%) equivale a uma tela de uns 300 px: nada pode empurrar a página para os lados.
 await step('fonte grande (300 px)', async () => {

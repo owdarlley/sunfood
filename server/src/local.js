@@ -5,5 +5,5 @@ import { app } from "./app.js";
 
 const PORT = process.env.PORT || 8787;
 app.listen(PORT, () => {
-  console.log(`Sunfood API rodando em http://localhost:${PORT}`);
+  console.log(`SunFood API rodando em http://localhost:${PORT}`);
 });

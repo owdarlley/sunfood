@@ -47,7 +47,7 @@ export async function createStripeCheckout({ orderId, amount, payerEmail, succes
         price_data: {
           currency: "brl",
           unit_amount: Math.round(Number(amount) * 100),
-          product_data: { name: description || `Pedido Sunfood #${orderId}` },
+          product_data: { name: description || `Pedido SunFood #${orderId}` },
         },
       },
     ],
@@ -73,7 +73,7 @@ export async function createStripeCheckout({ orderId, amount, payerEmail, succes
 // client_secret que o app usa pra confirmar. O cartão é digitado nos campos
 // do próprio Stripe (iframes), nunca passa pelo app nem por aqui.
 //
-// Cartão salvo: cada cliente do Sunfood tem um Customer no Stripe (achado
+// Cartão salvo: cada cliente do SunFood tem um Customer no Stripe (achado
 // pelo e-mail + metadata sunfood_user_id, sem coluna nova no banco). O
 // CustomerSession deixa o Payment Element mostrar a caixa "salvar cartão" e
 // os cartões já salvos. O número do cartão fica só no Stripe.
@@ -93,7 +93,7 @@ export async function createOrReuseCardIntent({ orderId, amount, payerEmail, pay
       currency: "brl",
       payment_method_types: ["card"],
       customer: customer || undefined,
-      description: description || `Pedido Sunfood #${orderId}`,
+      description: description || `Pedido SunFood #${orderId}`,
       receipt_email: payerEmail || undefined,
       metadata: { order_id: orderId },
     }),
@@ -124,7 +124,7 @@ async function findOrCreateCustomer({ userId, email, name }) {
   return c.id;
 }
 
-// Cartão salvo só pra compras com o cliente presente (on_session): o Sunfood
+// Cartão salvo só pra compras com o cliente presente (on_session): o SunFood
 // nunca cobra sozinho depois.
 async function createCustomerSession(customer) {
   const cs = await (await stripe()).customerSessions.create({
@@ -179,7 +179,7 @@ export async function createStripePix({ orderId, amount, payerEmail, description
     payment_method_data: { type: "pix" },
     payment_method_options: { pix: { expires_after_seconds: expiresInMinutes * 60 } },
     confirm: true,
-    description: description || `Pedido Sunfood #${orderId}`,
+    description: description || `Pedido SunFood #${orderId}`,
     receipt_email: payerEmail || undefined,
     metadata: { order_id: orderId },
   }, { idempotencyKey });

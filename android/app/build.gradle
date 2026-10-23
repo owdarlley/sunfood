@@ -1,4 +1,4 @@
-// App Android do Sunfood: uma Trusted Web Activity que abre https://sunfood.app.br
+// App Android do SunFood: uma Trusted Web Activity que abre https://sunfood.app.br
 // em tela cheia pelo Chrome. O site continua sendo o app; aqui só vão ícone,
 // tela de abertura e o vínculo com o domínio (.well-known/assetlinks.json).
 plugins {
@@ -8,7 +8,7 @@ plugins {
 def twa = [
     host           : 'sunfood.app.br',
     launchUrl      : '/',
-    name           : 'Sunfood',
+    name           : 'SunFood',
     themeColor     : '#1F5A63',
     navigationColor: '#F7F5F0',
     backgroundColor: '#F7F5F0',

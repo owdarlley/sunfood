@@ -1,4 +1,4 @@
-# Gera o APK Android do Sunfood (pasta android/) a cada mudança nela.
+# Gera o APK Android do SunFood (pasta android/) a cada mudança nela.
 # O APK sai sem assinatura: a chave fica fora do repositório e a assinatura é
 # feita à parte, com apksigner, antes de distribuir.
 name: Android

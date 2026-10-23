@@ -147,7 +147,7 @@ stripeAdminRouter.put("/", saveLimiter, async (req, res) => {
     endpoint = await api.webhookEndpoints.create({
       url,
       enabled_events: WEBHOOK_EVENTS,
-      description: "Sunfood: confirma PIX, cartão e estornos (criado pelo painel)",
+      description: "SunFood: confirma PIX, cartão e estornos (criado pelo painel)",
       metadata: { sunfood: "1" },
     });
   } catch (e) {

@@ -1,4 +1,4 @@
-// Teste de fluxo das telas do Sunfood num navegador de verdade (Chromium),
+// Teste de fluxo das telas do SunFood num navegador de verdade (Chromium),
 // com uma API falsa em memória: nada sai da máquina, nada vai pro banco.
 // Uso: node tests/fluxo/pagamentos.mjs   (a partir da raiz do repositório)
 import { chromium } from 'playwright';
@@ -326,7 +326,7 @@ await step('cartão dentro do app (Stripe Payment Element)', async () => {
     await page.waitForTimeout(1700);
     let t = await text(page);
     check(`no app ${tela}: não sai do app (campos do cartão na tela)`, page.url().startsWith(BASE) && t.includes('Dados do cartão'), page.url());
-    check(`no app ${tela}: Stripe com a chave publicável e as cores do Sunfood`, await page.evaluate(() => window.__stripePk === 'pk_test_fake'
+    check(`no app ${tela}: Stripe com a chave publicável e as cores do SunFood`, await page.evaluate(() => window.__stripePk === 'pk_test_fake'
       && window.__stripeOpts.mode === 'payment' && window.__stripeOpts.currency === 'brl' && window.__stripeOpts.paymentMethodTypes.join() === 'card'
       && !window.__stripeOpts.clientSecret && window.__stripeOpts.appearance.variables.colorPrimary.toUpperCase() === '#1F5A63'
       && window.__stripeOpts.appearance.variables.fontFamily.startsWith('Manrope')));

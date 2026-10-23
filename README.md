@@ -1,10 +1,10 @@
-# Sunfood
+# SunFood
 
 Sistema de pedidos online para quiosques de praia.
 
-O site resolve a dor de quiosques com alta rotatividade de clientes e atendimento disperso entre mesas e guarda-sóis: hoje o processo é quase todo em papel. O Sunfood propõe cardápio digital, pedido pelo celular, pagamento por PIX, cartão ou na entrega, e acompanhamento em tempo real para cozinha e administração.
+O site resolve a dor de quiosques com alta rotatividade de clientes e atendimento disperso entre mesas e guarda-sóis: hoje o processo é quase todo em papel. O SunFood propõe cardápio digital, pedido pelo celular, pagamento por PIX, cartão ou na entrega, e acompanhamento em tempo real para cozinha e administração.
 
-> **Tudo do Sunfood fica neste repositório.** Na raiz está o **site** (as páginas e o app que o cliente, a cozinha e o admin usam, publicado pelo GitHub Pages). A **API e o banco** (servidor, Supabase, migrações, modelos de e-mail) ficam na pasta [`server/`](server/README.md), publicada pela Vercel.
+> **Tudo do SunFood fica neste repositório.** Na raiz está o **site** (as páginas e o app que o cliente, a cozinha e o admin usam, publicado pelo GitHub Pages). A **API e o banco** (servidor, Supabase, migrações, modelos de e-mail) ficam na pasta [`server/`](server/README.md), publicada pela Vercel.
 
 ## 🔗 Acesse pelo GitHub Pages
 
@@ -24,7 +24,7 @@ O endereço principal (`index.html`, ou seja, https://sunfood.app.br/) é a **te
 
 | Link do rodapé | Endereço | Conteúdo |
 | --- | --- | --- |
-| Conheça o Sunfood | `/#conheca` | Proposta, benefícios, como funciona, os quatro perfis e sobre o projeto |
+| Conheça o SunFood | `/#conheca` | Proposta, benefícios, como funciona, os quatro perfis e sobre o projeto |
 | Fale conosco | `/#fale-conosco` | Formulário de contato (grava pela API, `POST /contact`) |
 | Termos de uso | `/#termos` | Termos de uso do sistema |
 | Privacidade | `/#privacidade` | Política de privacidade, conforme a LGPD |
