@@ -27,9 +27,12 @@
   // maior). A altura do <html> (clientHeight) é a da janela visível.
   // Teclado aberto (campo em foco e só a altura diminuiu) não conta: a tela
   // não encolhe enquanto a pessoa digita, como já acontecia com o dvh.
+  // No app com "Site para computador" (celular.js) a página tem zoom: a
+  // altura medida volta para a escala da página.
   var jl = 0, jh = 0;
   function janela() {
-    var w = raiz.clientWidth, h = raiz.clientHeight || innerHeight;
+    var pc = window.sunfoodEscalaPc || 1;
+    var w = raiz.clientWidth / pc, h = raiz.clientHeight / pc || innerHeight;
     var foco = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
     if (!h || (foco && w === jl && h < jh)) return;
     jl = w; jh = h;
