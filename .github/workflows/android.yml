@@ -1,6 +1,8 @@
 # Gera o APK Android do SunFood (pasta android/) a cada mudança nela.
-# O APK sai sem assinatura: a chave fica fora do repositório e a assinatura é
-# feita à parte, com apksigner, antes de distribuir.
+# A chave fica fora do repositório: com os segredos ANDROID_KEYSTORE_BASE64
+# (sunfood-release.jks em base64) e ANDROID_KEYSTORE_PASSWORD cadastrados, o
+# APK também sai alinhado e assinado (sunfood-assinado.apk); sem eles, só o
+# APK sem assinatura.
 name: Android
 
 on:
@@ -23,9 +25,23 @@ jobs:
         with:
           gradle-version: '8.14.3'
       - run: gradle -p android assembleRelease
+      - name: Alinhar e assinar o APK
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PW: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        if: env.KS_B64 != ''
+        run: |
+          BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          OUT=android/app/build/outputs/apk/release
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/sunfood.jks"
+          "$BT/zipalign" -P 16 -f 4 "$OUT/app-release-unsigned.apk" "$RUNNER_TEMP/alinhado.apk"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/sunfood.jks" --ks-key-alias sunfood \
+            --ks-pass env:KS_PW --key-pass env:KS_PW --out "$OUT/sunfood-assinado.apk" "$RUNNER_TEMP/alinhado.apk"
+          rm -f "$RUNNER_TEMP/sunfood.jks" "$OUT"/*.idsig
+          "$BT/apksigner" verify --print-certs "$OUT/sunfood-assinado.apk" | grep -i sha-256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: sunfood-apk-sem-assinatura
+          name: sunfood-apk
           path: android/app/build/outputs/apk/release/*.apk
       # Guarda o APK num ref fora das branches (refs/apk/<branch>), para baixar
       # com git onde o download de artifacts não está disponível.
