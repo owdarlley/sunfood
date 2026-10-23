@@ -302,7 +302,7 @@ await step('cartão pelo Stripe (modo teste)', async () => {
 
   const admin = await open('app-cliente.dc.html?module=admin&screen=payments', { role: 'admin', stripeTest: true });
   const ta = await text(admin);
-  check('stripe: admin vê PIX e cartão no Stripe em modo de teste', ta.includes('Pagamentos online pelo Stripe em modo de teste') && !ta.includes('Sem meio de pagamento configurado'), ta.slice(0, 400));
+  check('stripe: admin não vê aviso de modo de teste nem de pagamento provisório', !ta.includes('modo de teste') && !ta.includes('4242') && !ta.includes('Sem meio de pagamento configurado'), ta.slice(0, 400));
   await admin.close();
 });
 

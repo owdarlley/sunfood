@@ -404,7 +404,6 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 
 .login-foot{margin-top:var(--lg-s32);text-align:center}
 .login-foot p{margin:0;font:var(--lg-w-regular) var(--lg-fs-link)/20px 'Manrope',system-ui,sans-serif;color:var(--lg-ink-2)}
-.login-foot .login-note{margin-top:var(--lg-s8);font-size:var(--lg-fs-foot);line-height:18px;color:var(--lg-ink-3)}
 
 .lp .foot{margin-top:var(--lg-s24);gap:0 var(--lg-s16);font:var(--lg-w-regular) var(--lg-fs-foot)/18px 'Manrope',system-ui,sans-serif}
 .lp .foot a{display:inline-flex;align-items:center;min-height:var(--lg-h2);padding:0 var(--lg-s4);color:var(--lg-ink-3);border-radius:var(--r-ctl);transition:color var(--lg-ease)}
@@ -472,12 +471,11 @@ svg[stroke] *{vector-effect:non-scaling-stroke}
 }
 /* Celular bem baixo (até 660 px de altura): o aviso da cozinha/administração
    sai do formulário para os campos e o rodapé caberem. */
-@media (max-width:767px) and (max-height:660px){.lp[data-step="form"] .login-note{display:none}}
 /* Com um aviso aberto (e-mail não confirmado, senha errada), o espaço
    reservado dos erros de campo vazios, a frase "Entre para continuar" e o aviso
    da cozinha/administração saem, para o aviso caber sem empurrar o rodapé. */
 .login:has(#msg:not([hidden])) .field-msg:empty{min-height:0;margin:0}
-.login:has(#msg:not([hidden])) .login-sub,.login:has(#msg:not([hidden])) .login-note{display:none}
+.login:has(#msg:not([hidden])) .login-sub{display:none}
 .login:has(#msg:not([hidden])) .field + .field{margin-top:var(--lg-s12)}
 .login:has(#msg:not([hidden])) .alert{margin-top:var(--lg-s12)}
 .login:has(#msg:not([hidden])) .alert + #entrar,.login:has(#msg:not([hidden])) .btn-ghost + #entrar{margin-top:var(--lg-s12)}
@@ -573,7 +571,6 @@ select{caret-color:auto}
       </button>
       <footer class="login-foot">
         <p>Novo por aqui? <a class="link" href="app-cliente.dc.html?module=cliente&amp;screen=signup">Criar conta</a></p>
-        <p class="login-note">Cozinha e administração usam o mesmo acesso.</p>
       </footer>
     </div>
   </main>

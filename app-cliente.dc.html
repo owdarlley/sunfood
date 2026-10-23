@@ -2094,7 +2094,6 @@ select{caret-color:auto}
 
             <div class="footer">
               <div class="footer-in">
-                <span>SunFood · quiosque pé na areia</span>
                 <span style="display:flex;gap:20px;flex-wrap:wrap"><span onClick="{{ goLocation }}" class="link" style="font-weight:600">Onde estamos</span><a href="./#termos" class="link" style="font-weight:600">Termos</a><a href="./#privacidade" class="link" style="font-weight:600">Privacidade</a></span>
               </div>
             </div>
@@ -2780,13 +2779,6 @@ select{caret-color:auto}
                     <div onClick="{{ saveCancelWindow }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Salvar</div>
                   </div>
                   <sc-if value="{{ hasCancelWindowMsg }}" hint-placeholder-val="{{ false }}"><div class="alert {{ cancelWindowMsgCls }}" role="status">{{ cancelWindowMsg }}</div></sc-if>
-                </div>
-                <div class="panel">
-                  <h2 style="margin:0 0 4px">Pagamentos online</h2>
-                  <div class="muted" style="font-size:var(--fs-sm);margin-bottom:12px">{{ payProvidersText }}</div>
-                  <div class="alert {{ payAlertCls }}" style="flex-direction:column;gap:2px"><b>{{ payTitle }}</b><span style="font-weight:500">{{ payText }}</span></div>
-                  <div class="muted" style="font-size:var(--fs-sm);margin-top:12px;line-height:1.5">Pagar na entrega: o garçom marca o recebimento em <span onClick="{{ goPayments }}" class="link" style="font-size:var(--fs-sm)">Pagamentos</span>.</div>
-                  <div class="muted" style="font-size:var(--fs-sm);margin-top:8px;line-height:1.5">Conta que recebe PIX e cartão: <span onClick="{{ goStripe }}" class="link" style="font-size:var(--fs-sm)">configurar na aba Stripe</span>.</div>
                 </div>
               </div>
               <div class="panel" style="display:flex;flex-direction:column;gap:12px">
@@ -6982,8 +6974,6 @@ class Component extends DCLogic {
     v.admMenuLabel = s.admMenu ? 'Fechar' : 'Menu';
     v.admMenuIc = s.admMenu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16';
     v.toggleAdmMenu = () => this.setState({admMenu:!s.admMenu});
-    v.goPayments = () => this.go('payments', 'admin');
-    v.goStripe = () => this.go('stripe', 'admin');
     v.goCloseDay = () => this.go('closeDay', 'admin');
     v.is_kioskPage = s.screen === 'tables' || s.screen === 'pause';
     const nowDate = new Date();
@@ -7099,12 +7089,10 @@ class Component extends DCLogic {
       {lbl:'Estornado', val:refundedSum, sub:plural(refunded.length, 'pedido', 'pedidos')}
     ];
     if(s.pixProvider === 'provisorio' || s.cardProvider === 'provisorio') v.payKpis.splice(1, 0, {lbl:'Provisório hoje (PIX/cartão)', val:sum(provisional), sub:plural(provisional.length, 'pedido', 'pedidos') + ', sem cobrança'});
-    // Aviso no topo de Pagamentos: provisório (aprovado sem cobrança) ou Stripe em modo de teste.
+    // Aviso no topo de Pagamentos: PIX ou cartão provisório (aprovado sem cobrança).
     const provisorios = [s.pixProvider === 'provisorio' ? 'PIX' : null, s.cardProvider === 'provisorio' ? 'cartão' : null].filter(Boolean);
-    v.payOnlineOff = provisorios.length > 0 || (s.cardProvider === 'stripe' && s.cardTestMode);
-    v.payOnlineOffText = (provisorios.length
-      ? 'Sem meio de pagamento configurado para ' + provisorios.join(' e ') + ': é aprovado na hora, sem cobrança de verdade (aparece como "provisório").'
-      : 'Pagamentos online pelo Stripe em modo de teste: nada é cobrado de verdade.') + ' Nos pedidos "na entrega", anote aqui como o garçom recebeu.';
+    v.payOnlineOff = provisorios.length > 0;
+    v.payOnlineOffText = 'Sem meio de pagamento configurado para ' + provisorios.join(' e ') + ': é aprovado na hora, sem cobrança de verdade (aparece como "provisório"). Nos pedidos "na entrega", anote aqui como o garçom recebeu.';
     // Filtros de Pagamentos: o que falta receber, online sem pagar, pagos e estornos/cancelados.
     const payGroups = [
       ['Todos', () => true],
@@ -7286,16 +7274,6 @@ class Component extends DCLogic {
     v.sxAskDisconnect = () => this.setState({sxDisc:true});
     v.sxCancelDisconnect = () => this.setState({sxDisc:false});
     v.sxConfirmDisconnect = () => this.disconnectStripe();
-
-    // Quem cobra cada forma de pagamento (GET /payments/status).
-    const NOME = {stripe:'Stripe', provisorio:'provisório (sem cobrança)'};
-    const pixP = s.pixProvider, cardP = s.cardProvider;
-    v.payProvidersText = !pixP ? '' : pixP === cardP ? 'PIX e cartão: ' + NOME[pixP] + '.' : 'PIX: ' + NOME[pixP] + '. Cartão: ' + NOME[cardP] + '.';
-    const algumProvisorio = pixP === 'provisorio' || cardP === 'provisorio';
-    v.payAlertCls = pixP && !algumProvisorio ? 'alert-ok' : 'alert-warn';
-    v.payTitle = !pixP ? 'Verificando…' : algumProvisorio ? 'Pagamento online ainda não configurado.' : 'Pagamentos online configurados.';
-    v.payText = !pixP ? '' : algumProvisorio ? 'O que estiver como provisório é aprovado na hora, sem cobrança de verdade.'
-      : (s.cardTestMode && (pixP === 'stripe' || cardP === 'stripe')) ? 'Stripe em modo de teste: nada é cobrado (cartão 4242 4242 4242 4242).' : 'Cobranças reais, confirmadas automaticamente.';
 
     const HOURS_WINDOW = [10,11,12,13,14,15,16,17,18,19,20,21];
     const hourRevenue = dash ? new Map(dash.salesByHour.map(h => [h.hour, h.revenue])) : new Map();
