@@ -12,10 +12,13 @@
 // ainda passar da janela (vários erros abertos), só ela diminui mais um pouco.
 (function () {
   var MIN = 0.75, ESCALA = 0.83, raiz = document.documentElement;
-  function altura(w) { return w < 1024 ? 940 : w < 1040 ? 776 : 758; }
+  // Janela de 800 px ou mais no tablet (2026-10-24): login e cadastro usam
+  // as medidas do design system (o CSS só as compacta abaixo de 800 px) e o
+  // cadastro, com a chamada em cima do cartão, passa a ser a tela mais alta.
+  function altura(w, h) { return w < 1024 ? (h >= 800 ? 1170 : 940) : w < 1040 ? 776 : 758; }
   function base() {
     if (innerWidth < 768) return ESCALA;
-    return Math.max(MIN, Math.min(ESCALA, Math.floor(innerHeight / altura(innerWidth) * 1000) / 1000));
+    return Math.max(MIN, Math.min(ESCALA, Math.floor(innerHeight / altura(innerWidth, innerHeight) * 1000) / 1000));
   }
   function aplicar(z) {
     if (z === 1) raiz.style.removeProperty('--fit'); else raiz.style.setProperty('--fit', z);
