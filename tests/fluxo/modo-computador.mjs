@@ -61,6 +61,7 @@ const perto = (a, b) => a && b && ['x', 'y', 'w', 'h'].every(k => Math.abs(a[k] 
 
 const TELAS = [
   ['login', 'index.html', null, ['.lp h1', '.lp .btn, .lp button']],
+  ['cadastro', 'app-cliente.dc.html?module=cliente&screen=signup', null, ['.su h1', '.su .btn-sun']],
   ['cardápio', 'app-cliente.dc.html?module=cliente&screen=menu', 'cliente', ['.pcard', '.bottomnav', 'input']],
   ['carrinho', 'app-cliente.dc.html?module=cliente&screen=cart', 'cliente', ['h1', '.brand']],
   ['pedido', 'app-cliente.dc.html?module=cliente&screen=status', 'cliente', ['h1', '.bottomnav']],
@@ -77,6 +78,12 @@ for (const [nome, path, role, sel] of TELAS) await step(nome, async () => {
   check(`${nome}: no modo computador o app enxerga a largura do celular`, Number(info.zoom) > 2 && info.iw === 412 && info.cel, JSON.stringify(info));
   check(`${nome}: mesmo tamanho e lugar do celular normal`, sel.every((_, i) => perto(b[i], a[i])), JSON.stringify([a, b]));
   check(`${nome}: sem rolagem para os lados e sem erro`, info.lado && pc.jsErrors.length === 0, pc.jsErrors.join(' | '));
+  // Cadastro: a página termina no botão, sem faixa em branco embaixo (as
+  // caixas de fora tinham 100vh, que o zoom do modo computador aumentava).
+  if (nome === 'cadastro') for (const [onde, p] of [['celular', cel], ['modo computador', pc]]) {
+    const r = await p.evaluate(() => ({ alto: document.documentElement.scrollHeight, janela: document.documentElement.clientHeight }));
+    check(`cadastro (${onde}): sem espaço em branco no fim da tela`, r.alto <= r.janela + 1, JSON.stringify(r));
+  }
   if (SHOTS) { await cel.screenshot({ path: `${SHOTS}/${nome}-celular.png` }); await pc.screenshot({ path: `${SHOTS}/${nome}-modo-computador.png` }); }
   await cel.context().close(); await pc.context().close();
 });
