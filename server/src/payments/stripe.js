@@ -23,13 +23,49 @@ export async function stripeStatus() {
 // pago sai da fila (ver order-payments.js).
 export const PAYMENT_WINDOW_MINUTES = 30;
 
+// Versão da API do Stripe fixada (auditoria R3-M12): atualizar o SDK não
+// muda sozinho o formato das respostas. O webhook criado pelo painel usa a mesma.
+export const STRIPE_API_VERSION = "2025-10-29.clover";
+export const newStripe = (key) => new Stripe(key, { apiVersion: STRIPE_API_VERSION });
+
 // Um cliente por chave: trocar a chave no painel passa a valer sem reiniciar.
-let client = null;
-async function stripe() {
-  const { secretKey } = await stripeSettings();
-  if (!client || client.key !== secretKey) client = { key: secretKey, api: new Stripe(secretKey) };
-  return client.api;
+// key: uma chave específica (conta anterior); sem ela, a conta atual.
+const clients = new Map();
+async function stripe(key) {
+  const k = key || (await stripeSettings()).secretKey;
+  if (!k) throw new Error("Stripe não configurado.");
+  if (!clients.has(k)) clients.set(k, newStripe(k));
+  return clients.get(k);
 }
+
+// Pagamento feito numa conta anterior (troca de conta no painel, auditoria
+// R4-A2): procura primeiro na conta atual e, se o Stripe não achar
+// (resource_missing), nas anteriores. Assim estorno e cancelamento continuam
+// funcionando para pedidos pagos antes da troca.
+async function onPaymentAccount(fn) {
+  const cfg = await stripeSettings();
+  const keys = [...new Set([cfg.secretKey, ...(cfg.previous || []).map((p) => p.secretKey)].filter(Boolean))];
+  if (!keys.length) throw new Error("Stripe não configurado.");
+  let last;
+  for (const k of keys) {
+    try {
+      return await fn(await stripe(k));
+    } catch (e) {
+      if (e?.code !== "resource_missing") throw e;
+      last = e;
+    }
+  }
+  throw last;
+}
+
+// Pedido já pago no Stripe (o webhook ainda não chegou): não gera outra cobrança.
+export class AlreadyPaidError extends Error {
+  constructor(id) {
+    super("Pagamento já recebido: " + id);
+    this.code = "already_paid";
+  }
+}
+const PAID_OR_PAYING = ["succeeded", "processing"];
 
 // Pagamentos do Stripe são guardados no pedido pelo id do PaymentIntent.
 export const isStripePaymentId = (id) => String(id || "").startsWith("pi_");
@@ -83,8 +119,10 @@ export async function createOrReuseCardIntent({ orderId, amount, payerEmail, pay
   // campos do cartão aparecerem mais rápido.
   const [customer, old] = await Promise.all([
     userId ? findOrCreateCustomer({ userId, email: payerEmail, name: payerName }) : null,
-    existingId ? (await stripe()).paymentIntents.retrieve(existingId) : null,
+    // PaymentIntent de outra conta (troca no painel) não é achado: cria outro.
+    existingId ? (await stripe()).paymentIntents.retrieve(existingId).catch(() => null) : null,
   ]);
+  if (old && PAID_OR_PAYING.includes(old.status)) throw new AlreadyPaidError(old.id);
   const reusable = old && old.amount === cents && (old.customer || null) === customer
     && ["requires_payment_method", "requires_confirmation", "requires_action"].includes(old.status);
   const [pi, customerSessionClientSecret] = await Promise.all([
@@ -99,7 +137,21 @@ export async function createOrReuseCardIntent({ orderId, amount, payerEmail, pay
     }),
     customer && withSession ? createCustomerSession(customer) : null,
   ]);
+  // O PaymentIntent anterior não serve mais (valor mudou): fecha, pra não
+  // poder ser pago junto com o novo.
+  if (old && !reusable && old.id !== pi.id) await closeStaleIntent(old);
   return { paymentIntentId: pi.id, clientSecret: pi.client_secret, amount: pi.amount, customerSessionClientSecret };
+}
+
+async function closeStaleIntent(old) {
+  if (!["requires_payment_method", "requires_confirmation", "requires_action"].includes(old.status)) return;
+  await (await stripe()).paymentIntents.cancel(old.id).catch((e) => console.warn("PaymentIntent antigo não cancelado:", old.id, e.message));
+}
+
+// Cobrança nova que perdeu a corrida para um pagamento (auditoria R3-A1):
+// fecha, pra não ficar um QR ou um cartão pagável sem pedido.
+export async function cancelUnusedIntent(id) {
+  await (await stripe()).paymentIntents.cancel(id).catch((e) => console.warn("PaymentIntent sem uso não cancelado:", id, e.message));
 }
 
 // Sessão do cliente pedida antes de existir o pedido: o app desenha os campos
@@ -168,7 +220,11 @@ export async function createStripePix({ orderId, amount, payerEmail, description
     const old = await (await stripe()).paymentIntents.retrieve(existingId).catch(() => null);
     const qr = old?.next_action?.pix_display_qr_code;
     const valid = !qr?.expires_at || qr.expires_at * 1000 > Date.now() + 60 * 1000;
+    if (old && PAID_OR_PAYING.includes(old.status)) throw new AlreadyPaidError(old.id);
     if (old && old.status === "requires_action" && old.amount === cents && qr?.data && valid) return pixResult(old);
+    // QR vencido ou valor diferente: o antigo é fechado antes de gerar outro,
+    // pra o cliente não conseguir pagar os dois (auditoria R3-A1).
+    if (old) await closeStaleIntent(old);
   }
   // Mesma chave para dois pedidos simultâneos (clique duplo): uma cobrança só.
   const idempotencyKey = `sunfood-pix-${orderId}-${existingId || "1"}`;
@@ -199,11 +255,13 @@ function pixResult(pi) {
 }
 
 // Rebusca o PaymentIntent na API (o webhook só avisa que algo mudou).
-export async function fetchPaymentIntent(id) {
-  const pi = await (await stripe()).paymentIntents.retrieve(id);
+// key: a conta de onde veio o webhook (pode ser uma conta anterior).
+export async function fetchPaymentIntent(id, key) {
+  const pi = await (key ? stripe(key) : stripe()).then((api) => api.paymentIntents.retrieve(id));
   return {
     orderId: pi.metadata?.order_id || null,
     paid: pi.status === "succeeded",
+    status: pi.status,
     amount: Number(pi.amount_received) / 100,
     paymentIntentId: pi.id,
   };
@@ -211,17 +269,20 @@ export async function fetchPaymentIntent(id) {
 
 // Confere a assinatura do webhook (cabeçalho Stripe-Signature) sobre o corpo
 // cru da requisição. Lança erro se não bater.
-// Vale o segredo do webhook criado pelo painel e, durante a troca, também o
-// da variável STRIPE_WEBHOOK_SECRET.
+// Vale o segredo do webhook criado pelo painel, os das contas anteriores e o
+// da variável STRIPE_WEBHOOK_SECRET. Devolve também a chave da conta dona do
+// segredo que bateu: o evento é rebuscado nela, não na conta atual.
 export async function constructStripeEvent(rawBody, signatureHeader) {
   const cfg = await stripeSettings();
-  const secrets = [cfg.webhookSecret, cfg.fallbackWebhookSecret].filter(Boolean);
-  if (!secrets.length) throw new Error("Segredo do webhook do Stripe não configurado.");
-  const api = await stripe();
+  const accounts = [
+    { secretKey: cfg.secretKey, webhookSecret: cfg.webhookSecret },
+    ...(cfg.previous || []),
+  ].filter((a) => a.secretKey && a.webhookSecret);
+  if (!accounts.length) throw new Error("Segredo do webhook do Stripe não configurado.");
   let last;
-  for (const secret of secrets) {
+  for (const a of accounts) {
     try {
-      return api.webhooks.constructEvent(rawBody, signatureHeader, secret);
+      return { event: (await stripe(a.secretKey)).webhooks.constructEvent(rawBody, signatureHeader, a.webhookSecret), key: a.secretKey };
     } catch (e) {
       last = e;
     }
@@ -231,8 +292,8 @@ export async function constructStripeEvent(rawBody, signatureHeader) {
 
 // Nunca confiar só no corpo do webhook: a sessão é rebuscada na API do
 // Stripe com a nossa chave antes de liberar o pedido.
-export async function fetchCheckoutSession(sessionId) {
-  const s = await (await stripe()).checkout.sessions.retrieve(sessionId);
+export async function fetchCheckoutSession(sessionId, key) {
+  const s = await (key ? stripe(key) : stripe()).then((api) => api.checkout.sessions.retrieve(sessionId));
   return {
     orderId: s.client_reference_id || s.metadata?.order_id || null,
     paid: s.payment_status === "paid",
@@ -250,14 +311,14 @@ export async function refundStripePayment(paymentIntentId, { amountCents, metada
   const body = { payment_intent: paymentIntentId };
   if (amountCents) body.amount = amountCents;
   if (metadata) body.metadata = metadata;
-  const r = await (await stripe()).refunds.create(body, idempotencyKey ? { idempotencyKey } : undefined);
+  const r = await onPaymentAccount((api) => api.refunds.create(body, idempotencyKey ? { idempotencyKey } : undefined));
   return { simulated: false, refundId: r.id, status: r.status, amountCents: r.amount };
 }
 
 // Rebusca a cobrança e os estornos dela na API (o webhook charge.refunded só
 // avisa que algo mudou). Pega estornos feitos direto no painel do Stripe.
-export async function fetchChargeRefunds(chargeId) {
-  const c = await (await stripe()).charges.retrieve(chargeId, { expand: ["refunds"] });
+export async function fetchChargeRefunds(chargeId, key) {
+  const c = await (key ? stripe(key) : stripe()).then((api) => api.charges.retrieve(chargeId, { expand: ["refunds"] }));
   return {
     paymentIntentId: typeof c.payment_intent === "string" ? c.payment_intent : c.payment_intent?.id || null,
     amountRefunded: Number(c.amount_refunded) / 100,
@@ -271,15 +332,31 @@ export async function fetchChargeRefunds(chargeId) {
 // Pedido cancelado ou vencido sem pagamento (auditoria B4): fecha o
 // PaymentIntent, pra o cartão ou o PIX não poderem mais ser cobrados depois.
 export async function cancelStripePaymentIntent(id) {
-  await (await stripe()).paymentIntents.cancel(id);
+  await onPaymentAccount((api) => api.paymentIntents.cancel(id));
+}
+
+// Rebusca um PaymentIntent em qualquer conta (atual ou anterior).
+export async function findPaymentIntent(id) {
+  const pi = await onPaymentAccount((api) => api.paymentIntents.retrieve(id));
+  return { paid: pi.status === "succeeded", status: pi.status, amount: Number(pi.amount_received) / 100 };
 }
 
 // Conta excluída (LGPD, auditoria M11): apaga o cliente no Stripe, com os
 // cartões salvos. Só o cliente criado para este usuário (metadata).
+// Também nas contas anteriores, onde os cartões salvos antes da troca ficaram.
 export async function deleteStripeCustomer({ userId, email }) {
   if (!email) return;
-  const list = await (await stripe()).customers.list({ email, limit: 20 });
-  for (const c of list.data.filter((c) => c.metadata?.sunfood_user_id === userId)) {
-    await (await stripe()).customers.del(c.id);
+  const cfg = await stripeSettings();
+  const keys = [...new Set([cfg.secretKey, ...(cfg.previous || []).map((p) => p.secretKey)].filter(Boolean))];
+  for (const [i, k] of keys.entries()) {
+    try {
+      const api = await stripe(k);
+      const list = await api.customers.list({ email, limit: 20 });
+      for (const c of list.data.filter((c) => c.metadata?.sunfood_user_id === userId)) await api.customers.del(c.id);
+    } catch (e) {
+      // A conta atual precisa dar certo; as anteriores são o melhor possível.
+      if (i === 0) throw e;
+      console.warn("Cliente não apagado numa conta anterior do Stripe:", e.message);
+    }
   }
 }

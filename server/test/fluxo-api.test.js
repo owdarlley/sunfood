@@ -20,6 +20,7 @@ const db = {
   orders: [],
   order_items: [],
   day_reports: [],
+  stripe_settings: [],
   contact_messages: [],
   pending: {}, // e-mails cadastrados que ainda não confirmaram
   passwords: {},

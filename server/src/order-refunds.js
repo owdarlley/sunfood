@@ -171,9 +171,13 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
       if (refundedNow) return fail(500, "O valor foi estornado, mas o pedido não saiu da fila. Tente cancelar de novo.");
       return fail(500, "Não foi possível cancelar o pedido.");
     }
-    // Não pago no app (ou "pagar na entrega"): não há o que devolver.
-    if (!refundedNow && row.payment_method !== "entrega" && row.payment_status === "pending") {
-      await supabaseAdmin.from("orders").update({ payment_status: "cancelled" }).eq("id", row.id);
+    // Não pago no app: fecha o pagamento só se ele continuar pendente e fecha
+    // o PaymentIntent (auditoria R3-A2). Se o webhook aprovou enquanto o admin
+    // olhava a tela, o dinheiro volta em vez de o "aprovado" ser apagado.
+    if (!refundedNow && row.payment_method !== "entrega" && ["pending", "rejected"].includes(row.payment_status)) {
+      const { closeUnpaidPayment } = await import("./order-payments.js");
+      const closed = await closeUnpaidPayment(row.id, { reason: reason.slice(0, 200), actor });
+      return { ok: true, refunded: 0, refundPending: !!closed.refundPending };
     }
   }
   return { ok: true, refunded: refundedNow / 100 };
@@ -182,8 +186,8 @@ export async function refundOrderByAdmin(row, { cancel, amountCents, reason, act
 // Webhook charge.refunded: registra estornos feitos fora do app (painel do
 // Stripe) e acerta o total estornado do pedido. Os dados vêm da API, não do
 // corpo do webhook.
-export async function syncStripeRefunds(chargeId) {
-  const charge = await fetchChargeRefunds(chargeId);
+export async function syncStripeRefunds(chargeId, key) {
+  const charge = await fetchChargeRefunds(chargeId, key);
   if (!charge.paymentIntentId) return;
   const { data: order } = await supabaseAdmin
     .from("orders")

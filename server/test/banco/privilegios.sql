@@ -25,6 +25,12 @@ begin
   if abertas is not null then raise exception 'FALHA escrita aberta: %', abertas; end if;
   log := log || 'tabelas OK; ';
 
+  -- 2b. chaves do Stripe (criptografadas): nem leitura para anon/authenticated
+  if has_table_privilege('anon', 'public.stripe_settings', 'select')
+     or has_table_privilege('authenticated', 'public.stripe_settings', 'select') then
+    raise exception 'FALHA stripe_settings legível pelo público'; end if;
+  log := log || 'stripe_settings fechada; ';
+
   -- 3. trigger que impede trocar o próprio papel existe
   if not exists (select 1 from pg_trigger
                  where tgfoid = 'public.prevent_role_self_escalation'::regproc
