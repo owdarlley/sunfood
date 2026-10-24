@@ -123,10 +123,10 @@ await step('aba stripe', async () => {
   await page.close();
 });
 
-await step('atalho em quiosque e mesas', async () => {
+await step('quiosque e mesas sem o card de pagamentos online', async () => {
   const page = await open('app-cliente.dc.html?module=admin&screen=tables', { role: 'admin' });
-  await click(page, 'configurar na aba Stripe', true);
-  check('"Quiosque e mesas" leva para a aba Stripe', (await text(page)).includes('Conta conectada'));
+  const t = await text(page);
+  check('"Quiosque e mesas" não mostra mais o card de pagamentos online', t.includes('Recebendo pedidos') && !t.includes('Pagamentos online') && !t.includes('configurar na aba Stripe') && !t.includes('4242'), t.slice(0, 300));
   await page.close();
 });
 
