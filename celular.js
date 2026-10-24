@@ -1,3 +1,18 @@
+// Zoom de pinça e de toque duplo desligado dentro do app (Android ou
+// instalado), a pedido do Dárlley (2026-10-24): o app abre como tela de app,
+// sem ampliar. No navegador o zoom continua, para quem precisa ampliar.
+(function () {
+  var app = /^android-app:\/\/br\.app\.sunfood/.test(document.referrer);
+  try { app = app || !!sessionStorage.getItem('sunfood_apk'); } catch (e) {}
+  app = app || matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (!app) return;
+  var vp = document.querySelector('meta[name="viewport"]');
+  if (vp && !/user-scalable/.test(vp.content)) vp.content += ', maximum-scale=1, user-scalable=no';
+  document.documentElement.style.touchAction = 'pan-x pan-y';
+  // Safari do iPhone ignora user-scalable=no: o gesto de pinça é barrado aqui.
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
+})();
+
 // "Site para computador" do Chrome no app Android (2026-10-22). O APK é uma
 // Trusted Web Activity: quem desenha a tela é o próprio Chrome do celular,
 // com as configurações dele. Se a pessoa liga "Site para computador" no
