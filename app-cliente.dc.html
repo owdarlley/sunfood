@@ -274,6 +274,17 @@ select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:ima
 .sumrow{display:flex;justify-content:space-between;gap:12px;font:500 var(--fs-body) 'Manrope',system-ui,sans-serif;color:var(--ink-2);padding:4px 0}
 .sumrow b{color:var(--ink);font-weight:700}
 .sumtotal{display:flex;justify-content:space-between;gap:12px;font:800 var(--fs-h2) 'Manrope',system-ui,sans-serif;border-top:1px dashed var(--line-dash);margin-top:8px;padding-top:12px}
+/* Total a pagar do carrinho: rótulo no tamanho do corpo e valor grande, sem quebrar. */
+.sum-pay{align-items:baseline;flex-wrap:wrap;gap:4px 12px}
+.sum-pay>span:first-child{font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap}
+.sum-pay>span:last-child{white-space:nowrap;margin-left:auto}
+/* Na coluna lateral do computador o valor usa o tamanho de H3 (22px) para caber ao lado do rótulo. */
+@media (min-width:1025px){.sum-pay{column-gap:8px}.sum-pay>span:last-child{font-size:var(--fs-h3)}}
+/* Ações abaixo da lista do carrinho: adicionar à esquerda, limpar à direita. */
+.cart-acts{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.link.cart-clear{display:inline-flex;align-items:center;gap:6px;color:var(--danger)}
+.cart-clear:hover{color:var(--danger)}
+.cart-clear svg{flex-shrink:0}
 /* +/− com área de toque de 48 px (o círculo desenhado é menor) */
 .stepper{display:flex;align-items:center;gap:4px;background:var(--bg);border-radius:999px;padding:4px}
 .stepper .sb{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 20px 'Manrope',system-ui,sans-serif;cursor:pointer;user-select:none;background:#fff;color:var(--ink);border:1px solid var(--line-2);position:relative}
@@ -1605,13 +1616,16 @@ select{caret-color:auto}
                         </div>
                       </sc-for>
                     </div>
-                    <div onClick="{{ goMenu }}" class="link" style="align-self:flex-start">+ Adicionar mais itens</div>
+                    <div class="cart-acts">
+                      <div onClick="{{ goMenu }}" class="link">+ Adicionar mais itens</div>
+                      <div onClick="{{ askClearCart }}" class="link cart-clear"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16 M10 11v6 M14 11v6 M6 7l1 13h10l1-13 M9 7V4h6v3"></path></svg>Limpar carrinho</div>
+                    </div>
                   </div>
                   <div class="col-side">
                     <div class="card" style="padding:var(--cpad)">
                       <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;margin-bottom:8px">Resumo</div>
                       <div class="sumrow"><span>Subtotal</span><span>{{ subtotalStr }}</span></div>
-                      <div class="sumtotal"><span>Total a pagar</span><span>{{ totalStr }}</span></div>
+                      <div class="sumtotal sum-pay"><span>Total a pagar</span><span>{{ totalStr }}</span></div>
                     </div>
                     <sc-if value="{{ minWarn }}" hint-placeholder-val="{{ false }}">
                       <div class="alert alert-warn">{{ minWarnText }}</div>
@@ -1619,6 +1633,17 @@ select{caret-color:auto}
                     <div onClick="{{ goTable }}" class="btn btn-sun">Escolher a mesa</div>
                   </div>
                 </div>
+                <sc-if value="{{ clearCartOpen }}" hint-placeholder-val="{{ false }}">
+                  <div class="sf-overlay">
+                    <div class="rise sf-dialog" role="alertdialog" aria-modal="true" aria-label="Limpar o carrinho" style="padding:var(--cpad);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+                      <span style="width:72px;height:72px;border-radius:50%;background:var(--danger-tint);display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16 M10 11v6 M14 11v6 M6 7l1 13h10l1-13 M9 7V4h6v3"></path></svg></span>
+                      <div class="tt" style="font-size:var(--fs-h2)">Limpar o carrinho?</div>
+                      <p class="muted" style="font-size:var(--fs-body);line-height:1.5;margin:0">{{ clearCartText }}</p>
+                      <div onClick="{{ confirmClearCart }}" class="btn btn-danger" style="width:100%">Sim, limpar</div>
+                      <div onClick="{{ cancelClearCart }}" class="btn btn-ghost" style="width:100%" data-sf-close="">Manter os itens</div>
+                    </div>
+                  </div>
+                </sc-if>
               </sc-if>
 
               <sc-if value="{{ is_cartEmpty }}" hint-placeholder-val="{{ false }}">
@@ -4110,7 +4135,7 @@ class Component extends DCLogic {
     suName:'', suEmail:'', suPass:'', suPass2:'', suPhone:'', suCpf:'', suBirth:'', suTerms:false, suErr:'', suFe:{},
     fpEmail:'', fpCpf:'', fpMode:'email', fpSentTo:'', fpSent:false, fpSentByCpf:false, fpErr:'',
     cat:'Todos', menuSearch:'', products:[], catalogError:false,
-    cart:[], selId:'p4', qty:1, note:'',
+    cart:[], clearCartAsk:false, selId:'p4', qty:1, note:'',
     tableInput:'', table:null, tableErr:'', orderNote:'',
     payMethod:'pix', cardWaiting:false,
     // Quem cobra PIX e cartão (GET /payments/status): 'stripe' ou 'provisorio'
@@ -6115,7 +6140,7 @@ class Component extends DCLogic {
 
   fmt(n){ return brMoney(n); }
   go(screen, module){
-    this.setState(s => ({screen, module: module || s.module, toast:'', payAlert:'', payAlertAction:'', admMenu:false}));
+    this.setState(s => ({screen, module: module || s.module, toast:'', payAlert:'', payAlertAction:'', admMenu:false, clearCartAsk:false}));
     if(screen === 'reports' && this.state.token){ this.loadReport(); this.loadLatestDayReport(); }
     if(screen === 'messages' && this.state.token) this.loadMessages();
     if(screen === 'desempenho' && this.state.token) this.loadWaiterMetrics();
@@ -6717,6 +6742,12 @@ class Component extends DCLogic {
       inc:() => this.setState(x => { const cart = x.cart.slice(); cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty + 1}); return {cart}; }),
       dec:() => this.setState(x => { const cart = x.cart.slice(); if(cart[i].qty === 1) cart.splice(i, 1); else cart[i] = Object.assign({}, cart[i], {qty:cart[i].qty - 1}); return {cart, screen:cart.length || x.screen !== 'cart' ? x.screen : 'cartEmpty'}; })
     }));
+    const nItens = s.cart.reduce((a, c) => a + c.qty, 0);
+    v.clearCartOpen = !!s.clearCartAsk && s.screen === 'cart';
+    v.clearCartText = (nItens === 1 ? 'O item escolhido sai' : 'Os ' + nItens + ' itens escolhidos saem') + ' do carrinho. Você pode adicionar de novo pelo cardápio.';
+    v.askClearCart = () => this.setState({clearCartAsk:true});
+    v.cancelClearCart = () => this.setState({clearCartAsk:false});
+    v.confirmClearCart = () => this.setState({cart:[], clearCartAsk:false, screen:'cartEmpty'});
     v.minOk = this.subtotal() >= minEff;
     v.minWarnText = 'Pedido mínimo de ' + f(minEff) + '.';
     v.minWarn = !v.minOk && v.hasCart;
