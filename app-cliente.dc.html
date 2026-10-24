@@ -2009,6 +2009,7 @@ select{caret-color:auto}
                       <div style="flex:1;min-width:0">
                         <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ orderId }} · Mesa {{ orderTable }}</div>
                         <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">Estimativa: {{ etaStr }}</div>
+                        <div style="{{ liveRefStyle }}">{{ liveRefundStr }}</div>
                       </div>
                       <span style="{{ liveStStyle }}">{{ orderStatusLbl }}</span>
                       <svg class="orow-go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
@@ -7063,13 +7064,17 @@ class Component extends DCLogic {
     v.histMore = () => this.setState({histShown:histShown + 20});
     v.hasLiveOrder = !!s.order;
     v.liveStStyle = v.statusPillStyle.replace(';font-size:14px;padding:7px 14px', '');
-    v.historyRows = s.history.slice(0, histShown).map((h, i) => { const hr = refundCard(h.refunds, h.total); return {
+    const allHistRows = s.history.slice(0, histShown).map((h, i) => { const hr = refundCard(h.refunds, h.total); return {
       id:h.id, table:h.table, when:h.when + ' · ' + h.items.length + (h.items.length === 1 ? ' item' : ' itens'), totalStr:f(h.total), status:h.status, stLbl:statusLabel(h.status),
       refundStr:hr.has ? 'Estornado ' + hr.total : '',
       refStyle:hr.has ? 'font:700 var(--fs-sm)/1.4 \'Manrope\',system-ui,sans-serif;color:#1F5A63;margin-top:2px' : 'display:none',
       stStyle:pillStyle(statusTone(h.status)),
       open:() => { this.setState({histSel:i}); this.go('orderDetail'); }
-    }; }).filter(r => !s.order || r.id !== s.order.id);
+    }; });
+    // O pedido em andamento aparece só no cartão de cima, com o estorno se houver.
+    const liveRow = s.order ? allHistRows.find(r => r.id === s.order.id) : null;
+    v.liveRefundStr = liveRow ? liveRow.refundStr : ''; v.liveRefStyle = liveRow ? liveRow.refStyle : 'display:none';
+    v.historyRows = allHistRows.filter(r => r !== liveRow);
     v.hasPrevRows = v.historyRows.length > 0;
     v.showPrevHead = v.hasLiveOrder && v.hasPrevRows;
     v.hasHistory = s.history.length > 0;
