@@ -88,7 +88,8 @@ for (const [modulo, q, role] of MODULOS) {
 for (const [nome, vw] of [['celular', { width: 360, height: 640 }], ['tablet', { width: 768, height: 1000 }]]) {
   await step(`menu aberto (${nome})`, async () => {
     const p = await open('app-cliente.dc.html?module=admin&screen=dashboard', 'admin', vw);
-    await p.locator('.adm-menubtn').click(); await p.waitForTimeout(400);
+    // No celular e no tablet o menu completo abre pelo "Mais" da barra inferior.
+    await p.locator('.adm-bnav .adm-bn').last().click(); await p.waitForTimeout(400);
     const m = await medir(p);
     check(`menu aberto (${nome}): nenhum nome cortado`, !m.cortados.length, m.cortados.join(', '));
     check(`menu aberto (${nome}): sem rolagem lateral`, await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth));

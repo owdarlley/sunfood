@@ -156,7 +156,8 @@ await step('navegação', async () => {
   await pc.context().close();
   const adm = await open('app-cliente.dc.html?module=admin&screen=reports', { role: 'admin', seed: true, width: 1280, height: 800 });
   const side = await adm.locator('.adm-side').first().innerText();
-  check('navegação admin: menu com os mesmos nomes dos títulos', side.includes('Relatórios') && side.includes('Desempenho') && side.includes('Cardápio e estoque') && !side.includes('Vendas') && !side.includes('Operação'), side);
+  // Menu em grupos (2026-10-24): Desempenho entrou no Painel, Pagamentos virou aba de Pedidos e o resto foi para Configurações.
+  check('navegação admin: menu com os mesmos nomes dos títulos', side.includes('Relatórios') && side.includes('Configurações') && side.includes('Cardápio e estoque') && !side.includes('Vendas') && !side.includes('Desempenho') && !side.includes('Pagamentos'), side);
   await adm.context().close();
 });
 

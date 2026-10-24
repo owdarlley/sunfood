@@ -79,7 +79,7 @@ const noScroll = page => page.evaluate(() => document.documentElement.scrollWidt
 await step('aba stripe', async () => {
   const page = await open('app-cliente.dc.html?module=admin&screen=stripe', { role: 'admin' });
   const t = await text(page);
-  check('menu do admin tem a aba Stripe', await page.locator('.adm-item', { hasText: 'Stripe' }).count() > 0);
+  check('Configurações do admin têm a aba Stripe', await page.locator('.adm-tab', { hasText: 'Stripe' }).count() > 0);
   check('mostra a conta, o modo teste e a chave mascarada', t.includes('Quiosque SunFood') && t.includes('Modo teste') && t.includes('sk_test_…a1b2'), t.slice(0, 600));
   check('diz que a configuração vem da Vercel', t.includes('variáveis do servidor'));
   check('sem botão Desconectar quando vem da Vercel', !(await page.getByText('Desconectar', { exact: true }).count()));

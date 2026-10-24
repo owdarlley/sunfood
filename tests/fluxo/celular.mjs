@@ -88,11 +88,12 @@ for (const [w, h] of [[360, 740], [390, 844]]) {
       if (q !== p) await q.context().close();
     }
     check(`admin ${w}px: menu cabe sem arrastar para os lados`, await semRolagemLateral(p) && await p.locator('.adm-side').evaluate(e => e.scrollWidth <= e.clientWidth + 1));
-    await tap(p, 'Menu');
-    const sobrepoe = () => p.evaluate(() => { const b = document.querySelector('.adm-brand').getBoundingClientRect(), m = document.querySelector('.adm-menubtn').getBoundingClientRect(); return b.width < 100 || b.right > m.left || b.top !== m.top; });
-    check(`admin ${w}px: menu aberto, marca e botão Fechar lado a lado sem se sobrepor`, !(await sobrepoe()));
+    // Celular: barra inferior com Painel, Pedidos, Cardápio, Mensagens e Mais (abre o menu completo).
+    const barra = await p.locator('.adm-bnav .adm-bn').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return r.bottom <= innerHeight + 1 && r.height >= 48; }));
+    check(`admin ${w}px: barra inferior com 5 botões fáceis de tocar`, barra.length === 5 && barra.every(Boolean), JSON.stringify(barra));
+    await tap(p, 'Mais');
     const itens = await p.locator('.adm-item').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return r.right <= innerWidth + 1 && r.height >= 40; }));
-    check(`admin ${w}px: todos os itens do menu aparecem e são fáceis de tocar`, itens.length >= 9 && itens.every(Boolean), JSON.stringify(itens));
+    check(`admin ${w}px: todos os itens do menu aparecem e são fáceis de tocar`, itens.length >= 7 && itens.every(Boolean), JSON.stringify(itens));
     // Menu aberto sempre de 2 em 2 e todos do mesmo tamanho (antes Quiosque e mesas ia sozinho e deixava os vizinhos em linha inteira).
     // Com número ímpar de itens, o último fica com meia largura, como os outros.
     const grade = await p.locator('.adm-item:visible').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }));
@@ -120,11 +121,11 @@ await step('fonte grande (300 px)', async () => {
     check(`300px: ${path.split('screen=')[1]} sem rolagem para os lados`, await semRolagemLateral(p), String(await p.evaluate(() => document.documentElement.scrollWidth)));
     await p.context().close();
   }
-  // Menu do admin aberto com fonte grande: a marca não pode ficar por baixo do botão Fechar.
+  // Menu do admin aberto (pelo "Mais" da barra inferior) com fonte grande: marca inteira e nada passa da tela.
   const adm = await open('app-cliente.dc.html?module=admin&screen=payments', 'admin');
-  await adm.locator('.adm-menubtn').first().tap(); await adm.waitForTimeout(400);
-  const lado = await adm.evaluate(() => { const b = document.querySelector('.adm-brand').getBoundingClientRect(), m = document.querySelector('.adm-menubtn').getBoundingClientRect(); return [Math.round(b.width), Math.round(b.right), Math.round(m.left)]; });
-  check('300px: menu do admin aberto sem a marca por baixo do botão Fechar', lado[0] >= 100 && lado[1] <= lado[2], JSON.stringify(lado));
+  await adm.locator('.adm-bnav .adm-bn').last().tap(); await adm.waitForTimeout(400);
+  const lado = await adm.evaluate(() => { const b = document.querySelector('.adm-brand').getBoundingClientRect(); return [Math.round(b.width), Math.round(b.right), innerWidth]; });
+  check('300px: menu do admin aberto com a marca inteira', lado[0] >= 100 && lado[1] <= lado[2] && await semRolagemLateral(adm), JSON.stringify(lado));
   await adm.context().close();
   // Topo cheio: marca + mesa + carrinho (revisão do pedido, depois de informar a mesa).
   const c = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
