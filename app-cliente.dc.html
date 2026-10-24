@@ -278,6 +278,8 @@ select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:ima
 .sum-pay{align-items:baseline;flex-wrap:wrap;gap:4px 12px}
 .sum-pay>span:first-child{font:700 var(--fs-body) 'Manrope',system-ui,sans-serif;white-space:nowrap}
 .sum-pay>span:last-child{white-space:nowrap;margin-left:auto}
+/* Na coluna lateral do computador o valor usa o tamanho de H3 (22px) para caber ao lado do rótulo. */
+@media (min-width:1025px){.sum-pay{column-gap:8px}.sum-pay>span:last-child{font-size:var(--fs-h3)}}
 /* Ações abaixo da lista do carrinho: adicionar à esquerda, limpar à direita. */
 .cart-acts{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .link.cart-clear{display:inline-flex;align-items:center;gap:6px;color:var(--danger)}

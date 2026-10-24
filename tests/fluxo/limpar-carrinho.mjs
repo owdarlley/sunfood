@@ -33,7 +33,7 @@ for (const [nome, vp] of TELAS) {
     const mobile = vp.width < 700;
     const ctx = await browser.newContext({ viewport: vp, isMobile: mobile, hasTouch: mobile, serviceWorkers: 'block' });
     if (CDN) await ctx.route('https://unpkg.com/**', r => { const mod = new URL(r.request().url()).pathname.replace(/^\/(@?[^@]+)@[^/]+/, '$1'); r.fulfill({ path: join(CDN, 'node_modules', mod), contentType: 'application/javascript' }); });
-    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+    // A fonte Manrope carrega de verdade: a largura do "Total a pagar" depende dela.
     await ctx.route(/accounts\.google|supabase/, r => r.abort());
     const api = fakeApi('cliente');
     await ctx.route('http://localhost:8787/**', api);
@@ -53,6 +53,7 @@ for (const [nome, vp] of TELAS) {
     p.on('pageerror', e => erros.push(e.message));
     await p.goto(BASE + 'app-cliente.dc.html?module=cliente&screen=cart');
     await p.waitForTimeout(1500);
+    await p.evaluate(() => document.fonts.ready);
     if (SHOTS) await p.screenshot({ path: join(SHOTS, `carrinho-${nome.replace(' ', '-')}.png`), fullPage: true });
     // Total a pagar: rótulo e valor sem quebrar dentro de si.
     const alturas = await p.locator('.sum-pay > span').evaluateAll(els => els.map(e => e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).fontSize)));
