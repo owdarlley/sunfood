@@ -105,7 +105,8 @@ export const updatePasswordSchema = z.object({
 });
 
 export const orderItemSchema = z.object({
-  productId: z.string().uuid("Produto inválido."),
+  // z.guid aceita qualquer UUID no formato 8-4-4-4-12, como o z.string().uuid() do zod 3.
+  productId: z.guid("Produto inválido."),
   qty: z.number().int().positive().max(50),
   note: z.string().trim().max(280).optional().default(""),
 });
