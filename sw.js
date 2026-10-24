@@ -6,13 +6,16 @@
 //   Stripe) passam direto pela rede, nunca pelo cache.
 // - Páginas e scripts do site: rede primeiro (atualização aparece na hora);
 //   o cache só é usado quando a rede falha.
+// - Scripts da abertura (celular.js, caber.js, abertura.js): cache primeiro,
+//   atualizando por trás, para a abertura não esperar a rede (a versão nova
+//   vale a partir da próxima vez que o app abrir).
 // - Imagens do site e fontes do Google: cache primeiro, atualizando por trás.
 // - Bibliotecas do unpkg com versão fixa (React, Babel): cache primeiro,
 //   porque o arquivo daquela versão nunca muda.
 //
 // Ao mudar a lista abaixo ou a lógica deste arquivo, aumente a VERSAO para
 // o navegador trocar o cache antigo.
-const VERSAO = 'v16';
+const VERSAO = 'v17';
 const CACHE = 'sunfood-' + VERSAO;
 
 const PRECACHE = [
@@ -36,6 +39,8 @@ const LIBS = [
   'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js'
 ];
+
+const ABERTURA = /\/(celular|caber|abertura)\.js$/;
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
@@ -64,7 +69,7 @@ self.addEventListener('fetch', event => {
     // O APK do app Android (download/) vai direto pela rede, sem ocupar o cache.
     if (url.pathname.endsWith('.apk')) return;
     if (req.mode === 'navigate') return event.respondWith(paginaRedePrimeiro(req));
-    if (req.destination === 'image') return event.respondWith(cachePrimeiroAtualizando(req));
+    if (req.destination === 'image' || ABERTURA.test(url.pathname)) return event.respondWith(cachePrimeiroAtualizando(req));
     return event.respondWith(redePrimeiro(req));
   }
   if (url.origin === 'https://unpkg.com' && /@\d+\.\d+\.\d+\//.test(url.pathname)) {
