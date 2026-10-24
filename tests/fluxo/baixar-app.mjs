@@ -62,7 +62,7 @@ for (const [tela, width, height] of TELAS) {
     check(`${tela}: rodapé do login abre a aba Baixe o app`, p.url() === BASE + '#baixar-app' && await sec.isVisible(), p.url());
     check(`${tela}: aba marcada e título da página`, await p.locator('.tab[aria-current="page"]').innerText() === 'Baixe o app' && await p.title() === 'SunFood · Baixe o app');
     const btn = sec.locator('a.btn', { hasText: 'Baixar o app' });
-    check(`${tela}: botão baixa o APK`, await btn.getAttribute('href') === 'download/sunfood.apk' && await btn.getAttribute('download') === 'sunfood-1.0.1.apk');
+    check(`${tela}: botão baixa o APK`, await btn.getAttribute('href') === 'download/sunfood.apk' && await btn.getAttribute('download') === 'sunfood-1.0.2.apk');
     // Altura final na tela (já com o zoom do painel): 48 px no celular e no tablet, 44 px no computador.
     const alt = await btn.evaluate(e => e.getBoundingClientRect().height);
     const min = width > 1024 ? 44 : 48;
