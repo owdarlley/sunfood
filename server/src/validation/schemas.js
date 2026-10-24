@@ -194,7 +194,7 @@ export const kioskMinOrderSchema = z
 // Quantas mesas (guarda-sóis) o quiosque tem; numeradas de 1 até esse número.
 export const kioskTableCountSchema = z.object({
   count: z
-    .number({ invalid_type_error: "Digite a quantidade de mesas." })
+    .number({ error: "Digite a quantidade de mesas." })
     .int("Use um número inteiro de mesas.")
     .min(1, "O quiosque precisa ter pelo menos 1 mesa.")
     .max(MAX_TABLE_COUNT, `O máximo é ${MAX_TABLE_COUNT} mesas.`),
@@ -203,8 +203,8 @@ export const kioskTableCountSchema = z.object({
 // Onde fica o quiosque: nome, endereço (vira o mapa e o link do Google Maps)
 // e horário (opcional).
 export const kioskLocationSchema = z.object({
-  name: z.string({ required_error: "Digite o nome do local." }).trim().min(1, "Digite o nome do local.").max(80, "Nome com no máximo 80 letras."),
-  address: z.string({ required_error: "Digite o endereço." }).trim().min(5, "Digite o endereço completo.").max(200, "Endereço com no máximo 200 letras."),
+  name: z.string({ error: "Digite o nome do local." }).trim().min(1, "Digite o nome do local.").max(80, "Nome com no máximo 80 letras."),
+  address: z.string({ error: "Digite o endereço." }).trim().min(5, "Digite o endereço completo.").max(200, "Endereço com no máximo 200 letras."),
   hours: z.string().trim().max(120, "Horário com no máximo 120 letras.").optional().default(""),
 });
 
