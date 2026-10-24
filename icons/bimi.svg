@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 512 512">
+<title>SunFood</title>
+<rect width="512" height="512" fill="#F7F5F0"/>
+<circle cx="256" cy="222" r="79" fill="#F5B83D"/>
+<path d="M364 222L397 222M148 222L115 222M180 146L157 123M256 114L256 81M332 146L355 123" fill="none" stroke="#F5B83D" stroke-width="23" stroke-linecap="round"/>
+<path d="M131 343q21-17 42 0q21 17 42 0q20-17 41 0q21 17 42 0q21-17 42 0q20 17 41 0" fill="none" stroke="#1F5A63" stroke-width="23" stroke-linecap="round"/>
+<path d="M173 393q21-15 42 0q20 15 41 0q21-15 42 0q21 15 42 0" fill="none" stroke="#5BA9AE" stroke-width="21" stroke-linecap="round"/>
+</svg>
