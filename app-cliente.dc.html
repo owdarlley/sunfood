@@ -2888,6 +2888,7 @@ select{caret-color:auto}
                   <sc-if value="{{ sxLiveWarn }}" hint-placeholder-val="{{ false }}"><div class="alert alert-warn">Chaves de produção: depois de salvar, os clientes pagam de verdade.</div></sc-if>
                   <div onClick="{{ sxSave }}" class="btn btn-dark" role="button" aria-disabled="{{ sxBusyAria }}">{{ sxSaveLabel }}</div>
                   <sc-if value="{{ hasSxMsg }}" hint-placeholder-val="{{ false }}"><div class="alert {{ sxMsgCls }}" role="status">{{ sxMsg }}</div></sc-if>
+                  <sc-if value="{{ sxNeedTest }}" hint-placeholder-val="{{ false }}"><div onClick="{{ sxSaveTest }}" class="btn btn-ghost" role="button">Salvar mesmo assim, em modo de teste</div></sc-if>
                   <div class="muted" style="font-size:var(--fs-cap);line-height:1.5">A chave secreta é conferida no Stripe e guardada criptografada no servidor: ela não aparece de novo aqui nem vai para o app dos clientes. O aviso que confirma PIX, cartão e estornos (webhook) é criado sozinho na sua conta.</div>
                 </div>
               </div>
@@ -4210,7 +4211,7 @@ class Component extends DCLogic {
     gPeriod:'hoje', gMetrics:null, gMetricsErr:'', gMetricsAt:0,
     // Admin > Garçons: lista e o formulário de cadastro.
     // Admin > Stripe (GET /admin/stripe): conta conectada; a chave secreta nunca vem.
-    sxCfg:null, sxErr:'', sxPk:'', sxSk:'', sxMsg:'', sxBusy:false, sxDisc:false,
+    sxCfg:null, sxErr:'', sxPk:'', sxSk:'', sxMsg:'', sxBusy:false, sxDisc:false, sxNeedTest:false,
     waiters:null, wName:'', wEmail:'', wPass:'', wErr:'', wMsg:'', wBusy:false, wToggling:null,
     // Página de um garçom (métricas e pedidos) e a janela de excluir.
     wSel:null, wRepPeriod:'hoje', wRep:null, wRepErr:'', wDel:null, wDeleting:false,
@@ -5062,7 +5063,7 @@ class Component extends DCLogic {
       this.setState({rf:null});
       this.flash(data.refundedNow > 0
         ? 'Estorno de ' + brMoney(data.refundedNow) + ' feito.' + (body.cancel ? ' O pedido saiu da cozinha.' : '')
-        : 'Pedido cancelado.');
+        : data.refundPending ? 'Pedido cancelado. O pagamento tinha acabado de entrar: o estorno está em processamento.' : 'Pedido cancelado.');
       this.loadAdminData();
     } catch(e){
       this.setRf({busy:false, err:'Falha de conexão com o servidor.'});
@@ -5757,20 +5758,22 @@ class Component extends DCLogic {
     } catch(e){ this.setState({sxErr:'Falha de conexão com o servidor.'}); }
   }
 
-  async saveStripeConfig(){
+  // confirmTestMode: em produção, chave de teste só com confirmação (o
+  // servidor responde 409 needsTestConfirm na primeira tentativa).
+  async saveStripeConfig(confirmTestMode){
     const s = this.state;
     if(s.sxBusy) return;
     const publishableKey = s.sxPk.trim(), secretKey = s.sxSk.trim();
     if(!/^pk_(test|live)_/.test(publishableKey)) return this.setState({sxMsg:'A chave publicável começa com pk_test_ ou pk_live_.'});
     if(!/^(sk|rk)_(test|live)_/.test(secretKey)) return this.setState({sxMsg:'A chave secreta começa com sk_test_ ou sk_live_.'});
-    this.setState({sxBusy:true, sxMsg:''});
+    this.setState({sxBusy:true, sxMsg:'', sxNeedTest:false});
     try {
       const res = await authFetch(API_BASE + '/admin/stripe', {
         method:'PUT', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + s.token},
-        body:JSON.stringify({publishableKey, secretKey})
+        body:JSON.stringify({publishableKey, secretKey, ...(confirmTestMode ? {confirmTestMode:true} : {})})
       });
       const data = await res.json().catch(() => ({}));
-      if(!res.ok) return this.setState({sxBusy:false, sxMsg:data.error || 'Não foi possível salvar.'});
+      if(!res.ok) return this.setState({sxBusy:false, sxNeedTest:!!data.needsTestConfirm, sxMsg:data.error || 'Não foi possível salvar.'});
       this.setState({sxBusy:false, sxPk:'', sxSk:'', sxMsg:'Conta ' + data.account.name + ' conectada e atualizada.'});
       this.loadStripeConfig();
       this.loadPaymentsStatus();
@@ -6037,7 +6040,7 @@ class Component extends DCLogic {
       const data = await res.json();
       // Ordem importa: go() zera o toast, então só chamamos flash() depois de navegar.
       if(!res.ok){ this.go('status'); this.flash(data.error || 'Não foi possível cancelar o pedido.'); return; }
-      this.setState({order: orderFromApi(data), screen:'cancelDone'});
+      this.setState({order: {...orderFromApi(data), refundPending:!!data.refundPending}, screen:'cancelDone'});
     } catch(e){
       this.flash('Falha de conexão com o servidor.');
     } finally {
@@ -6388,12 +6391,13 @@ class Component extends DCLogic {
   // Campos do cartão sem PaymentIntent (modo "deferred" do Stripe): dá pra
   // desenhar antes de o pedido existir. O valor é o do carrinho e é acertado
   // com o do servidor quando o pagamento do pedido chega.
-  buildCardElement(){
-    if(this.stripeElements && Date.now() - this.stripeElementsAt < CARD_SESSION_TTL) return Promise.resolve();
+  // pkOverride: chave publicável nova que veio com o pagamento do pedido.
+  buildCardElement(pkOverride){
+    if(!pkOverride && this.stripeElements && Date.now() - this.stripeElementsAt < CARD_SESSION_TTL) return Promise.resolve();
     if(this.cardBuild) return this.cardBuild;
     this.cardBuild = (async () => {
       const [StripeJs, cuss] = await Promise.all([this.loadStripeJs(), this.loadCardSession()]);
-      const pk = this.state.stripePk;
+      const pk = pkOverride || this.state.stripePk;
       if(!this.stripe || this.stripeKey !== pk){ this.stripe = StripeJs(pk, {locale:'pt-BR'}); this.stripeKey = pk; }
       const css = getComputedStyle(document.documentElement);
       const token = (name, fb) => (css.getPropertyValue(name) || '').trim() || fb;
@@ -6469,7 +6473,23 @@ class Component extends DCLogic {
     });
     this.cardIntent = intent;
     const setAmount = cents => { if(this.stripeElements && cents && cents !== this.cardAmountSent){ this.stripeElements.update({amount:cents}); this.cardAmountSent = cents; } };
-    intent.then(d => { if(d && this.cardIntent === intent) setAmount(d.amount); })
+    intent.then(async d => {
+      if(!d || this.cardIntent !== intent) return;
+      // Conta do Stripe trocada no painel com o app aberto (auditoria R4-M7):
+      // o pagamento é da conta nova, então os campos são refeitos com a chave
+      // que veio com ele, em vez de falharem a cada tentativa.
+      if(d.publishableKey && d.publishableKey !== this.stripeKey){
+        if(this.cardBuild) await this.cardBuild.catch(() => {});
+        this.cardSession = null;
+        this.setState({stripePk:d.publishableKey});
+        try { if(this.stripeCardMountedOn) this.stripeCard.unmount(); } catch(e){}
+        this.stripeCardMountedOn = null;
+        await this.buildCardElement(d.publishableKey);
+        if(this.cardIntent !== intent) return;
+        this.ensureCardMounted();
+      }
+      setAmount(d.amount);
+    })
       .catch(e => { if(this.cardIntent === intent) this.setState({cardErr:e.message === 'Failed to fetch' ? 'Falha de conexão com o pagamento. Verifique a internet e tente de novo.' : e.message}); });
     this.buildCardElement().then(() => {
       // O carrinho pode ter mudado desde que os campos foram preparados.
@@ -6889,9 +6909,12 @@ class Component extends DCLogic {
     v.cancelAskMsg = paidInApp
       ? 'Ao confirmar, o pedido é cancelado e o valor é estornado no mesmo meio de pagamento.'
       : 'Ao confirmar, o pedido é cancelado. Nada foi cobrado, então não há estorno.';
+    // Estorno que falhou na hora é refeito sozinho pelo servidor (auditoria R3-B3).
     v.cancelDoneMsg = !o ? '' : o.paymentStatus === 'refunded'
       ? 'Seu pedido ' + o.id + ' foi cancelado. O estorno de ' + v.orderTotalStr + ' já foi solicitado.'
-      : 'Seu pedido ' + o.id + ' foi cancelado.';
+      : o.refundPending || o.paymentStatus === 'approved'
+        ? 'Seu pedido ' + o.id + ' foi cancelado. O estorno de ' + v.orderTotalStr + ' está em processamento e será feito automaticamente.'
+        : 'Seu pedido ' + o.id + ' foi cancelado.';
     // Estimativa pelo maior tempo de preparo cadastrado entre os itens (10 min
     // quando não há), com mais 5 min enquanto o pedido espera na fila.
     const prepMin = o ? Math.max(0, ...(o.items || []).map(it => {
@@ -7301,8 +7324,10 @@ class Component extends DCLogic {
     v.sxReload = () => { this.setState({sxCfg:null, sxMsg:''}); this.loadStripeConfig(); };
     v.sxFormTitle = sx && sx.configured ? 'Trocar as chaves' : 'Conectar conta';
     v.sxPk = s.sxPk; v.sxSk = s.sxSk;
-    v.setSxPk = e => this.setState({sxPk:e.target.value, sxMsg:''});
-    v.setSxSk = e => this.setState({sxSk:e.target.value, sxMsg:''});
+    v.setSxPk = e => this.setState({sxPk:e.target.value, sxMsg:'', sxNeedTest:false});
+    v.setSxSk = e => this.setState({sxSk:e.target.value, sxMsg:'', sxNeedTest:false});
+    v.sxNeedTest = s.sxNeedTest && !s.sxBusy;
+    v.sxSaveTest = () => this.saveStripeConfig(true);
     v.sxLiveWarn = /^pk_live_/.test(s.sxPk.trim()) || /^(sk|rk)_live_/.test(s.sxSk.trim());
     v.sxSave = () => this.saveStripeConfig();
     v.sxSaveLabel = s.sxBusy ? 'Conferindo no Stripe…' : 'Salvar e conectar';

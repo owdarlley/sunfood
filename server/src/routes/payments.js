@@ -13,7 +13,9 @@ import {
   createStripePix,
   setCardHolder,
   isStripePaymentId,
+  cancelUnusedIntent,
 } from "../payments/stripe.js";
+import { stripeSettings } from "../payments/stripe-config.js";
 import { syncStripeRefunds } from "../order-refunds.js";
 import { refundDuplicatePayment, refundLatePayment, approveOrderPayment } from "../order-payments.js";
 import { isValidCpf, onlyDigits } from "../validation/cpf.js";
@@ -107,6 +109,25 @@ async function approveProvisionally(order, res) {
   res.json({ provisional: true, paymentStatus: "approved" });
 }
 
+// Grava a cobrança nova no pedido só se ele continuar sem pagamento
+// (auditoria R3-A1). Se o webhook aprovou no meio do caminho (0,5 a 2 s
+// falando com o Stripe), a cobrança nova é fechada e o pedido fica com o
+// pagamento que valeu.
+async function savePaymentIntent(order, paymentIntentId) {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .update({ payment_provider: "stripe", payment_id: paymentIntentId })
+    .eq("id", order.id)
+    .in("payment_status", ["pending", "rejected"])
+    .eq("status", "Na Fila")
+    .select("id");
+  if (!error && data?.length) return true;
+  if (paymentIntentId !== order.payment_id) await cancelUnusedIntent(paymentIntentId);
+  return false;
+}
+
+const ALREADY_PAID = "O pagamento deste pedido já foi recebido. Aguarde a confirmação.";
+
 // Cliente: gera a cobrança PIX do próprio pedido.
 paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLimiter, async (req, res) => {
   const order = await loadOwnUnpaidOrder(req, res, "pix");
@@ -122,10 +143,7 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
       expiresInMinutes: PAYMENT_WINDOW_MINUTES,
       existingId: order.payment_provider === "stripe" && isStripePaymentId(order.payment_id) ? order.payment_id : null,
     });
-    await supabaseAdmin
-      .from("orders")
-      .update({ payment_provider: "stripe", payment_id: pix.paymentIntentId })
-      .eq("id", order.id);
+    if (!(await savePaymentIntent(order, pix.paymentIntentId))) return res.status(409).json({ error: ALREADY_PAID });
     res.json({
       qrCode: pix.qrCode,
       qrCodeImageUrl: pix.qrCodeImageUrl,
@@ -134,6 +152,7 @@ paymentsRouter.post("/pix/:orderId", requireAuth, requireRole("cliente"), pixLim
       expiresAt: pix.expiresAt,
     });
   } catch (e) {
+    if (e?.code === "already_paid") return res.status(409).json({ error: ALREADY_PAID });
     console.error("Erro ao criar PIX no Stripe:", e);
     res.status(502).json({ error: "O PIX está indisponível no momento. Escolha cartão ou pagar na entrega." });
   }
@@ -225,10 +244,7 @@ paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente")
     });
     // payment_id guarda o PaymentIntent desde já: é por ele que o webhook e
     // o estorno acham o pagamento. needsRefund só estorna se estiver aprovado.
-    await supabaseAdmin
-      .from("orders")
-      .update({ payment_provider: "stripe", payment_id: intent.paymentIntentId })
-      .eq("id", order.id);
+    if (!(await savePaymentIntent(order, intent.paymentIntentId))) return res.status(409).json({ error: ALREADY_PAID });
     res.json({
       clientSecret: intent.clientSecret,
       amount: intent.amount,
@@ -236,6 +252,7 @@ paymentsRouter.post("/card-intent/:orderId", requireAuth, requireRole("cliente")
       customerSessionClientSecret: intent.customerSessionClientSecret,
     });
   } catch (e) {
+    if (e?.code === "already_paid") return res.status(409).json({ error: ALREADY_PAID });
     console.error("Erro ao criar PaymentIntent do Stripe:", e);
     res.status(502).json({ error: "Falha ao abrir o pagamento com cartão. Tente novamente." });
   }
@@ -283,15 +300,29 @@ paymentsRouter.get("/pix/:orderId/status", requireAuth, requireRole("cliente"), 
 // ou campos dentro do app). A assinatura (Stripe-Signature) é conferida sobre
 // o corpo cru (ver app.js) e a sessão ou o PaymentIntent é rebuscado na API
 // do Stripe antes de liberar o pedido.
+// Se a configuração não puder ser lida (banco fora do ar, chaves que não
+// abrem), responde 503: o Stripe reenvia o evento depois, em vez de ele ser
+// dado como entregue e o pedido pago vencer sem confirmação (auditoria R4-A1).
 paymentsRouter.post("/stripe/webhook", async (req, res) => {
-  if (!(await stripeStatus()).configured) return res.status(200).end();
+  let cfg;
+  try {
+    cfg = await stripeSettings();
+  } catch (e) {
+    console.error("Webhook do Stripe adiado, configuração não lida:", e.message);
+    return res.status(503).end();
+  }
+  // Sem Stripe nenhum (desenvolvimento, modo provisório): nada a confirmar.
+  if (cfg.source === "nenhum") return res.status(200).end();
 
-  let event;
+  let event, key;
   try {
     const raw = Buffer.isBuffer(req.body) ? req.body : typeof req.body === "string" ? req.body : null;
     if (!raw) throw new Error("Corpo cru indisponível.");
-    event = await constructStripeEvent(raw, req.headers["stripe-signature"]);
+    ({ event, key } = await constructStripeEvent(raw, req.headers["stripe-signature"]));
   } catch (e) {
+    // Chaves do painel que não abrem: o evento pode ser da conta atual, que
+    // não dá pra conferir agora. 503 para o Stripe tentar de novo.
+    if (cfg.unreadable) return res.status(503).end();
     console.error("Webhook do Stripe recusado:", e.message);
     return res.status(400).json({ error: "Assinatura inválida." });
   }
@@ -299,7 +330,7 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
   // Estorno feito no painel do Stripe (ou pelo app): acerta o pedido.
   if (event.type === "charge.refunded") {
     try {
-      await syncStripeRefunds(event.data.object.id);
+      await syncStripeRefunds(event.data.object.id, key);
       return res.status(200).end();
     } catch (e) {
       console.error("Erro ao registrar estorno do Stripe:", e);
@@ -313,8 +344,8 @@ paymentsRouter.post("/stripe/webhook", async (req, res) => {
 
   try {
     const session = isIntent
-      ? await fetchPaymentIntent(event.data.object.id)
-      : await fetchCheckoutSession(event.data.object.id);
+      ? await fetchPaymentIntent(event.data.object.id, key)
+      : await fetchCheckoutSession(event.data.object.id, key);
     if (!session.orderId || !session.paid || !session.paymentIntentId) return res.status(200).end();
 
     const { data: order } = await supabaseAdmin

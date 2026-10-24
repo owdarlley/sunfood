@@ -264,7 +264,10 @@ create table public.stripe_settings (
   account_name text,
   livemode boolean not null default false,
   updated_at timestamptz not null default now(),
-  updated_by uuid references public.profiles(id) on delete set null
+  updated_by uuid references public.profiles(id) on delete set null,
+  -- Contas usadas antes da atual (troca no painel), com as chaves também
+  -- criptografadas: os pagamentos feitos nelas continuam estornáveis por 30 dias.
+  previous_accounts jsonb not null default '[]'::jsonb
 );
 
 insert into public.kiosk_settings (id) values (1) on conflict do nothing;

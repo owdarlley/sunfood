@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "./supabase.js";
 import { needsRefund } from "./business-rules.js";
-import { PAYMENT_WINDOW_MINUTES, stripeStatus, isStripePaymentId, cancelStripePaymentIntent } from "./payments/stripe.js";
+import { PAYMENT_WINDOW_MINUTES, stripeStatus, isStripePaymentId, cancelStripePaymentIntent, findPaymentIntent } from "./payments/stripe.js";
 import { recordRefund, refundAtProvider } from "./order-refunds.js";
 
 // Motivos que o cliente vê nos detalhes do pedido.
@@ -12,19 +12,20 @@ const cents = (v) => Math.round(Number(v || 0) * 100);
 // Devolve o que falta devolver de um pagamento e anota no histórico de
 // estornos do pedido. paidCents: quanto esse pagamento cobrou (padrão: o
 // total do pedido). Se já houve estorno parcial, devolve só o saldo.
-export async function refundWholeOrder(row, paymentId, reason, { paidCents } = {}) {
+export async function refundWholeOrder(row, paymentId, reason, { paidCents, actor } = {}) {
   const already = String(row.payment_id || "") === String(paymentId) ? cents(row.refunded_amount) : 0;
   const amountCents = Math.max(0, (paidCents ?? cents(row.total)) - already);
   const result = await refundAtProvider(paymentId, {
     amountCents: already ? amountCents : undefined,
     key: `sunfood-full-${paymentId}-${already}`,
-    metadata: { order_id: row.id, sunfood_reason: reason },
+    metadata: { order_id: row.id, sunfood_reason: reason, ...(actor ? { sunfood_actor: actor } : {}) },
   });
   await recordRefund(row.id, {
     amount: amountCents / 100,
     reason,
     provider: "stripe",
     refundId: result?.refundId,
+    actor,
   });
   return { ...result, refundedTotal: (already + amountCents) / 100 };
 }
@@ -84,7 +85,8 @@ export async function approveOrderPayment(order, paymentId, extra = {}, { paidCe
 // só vale se o pagamento ainda estiver pendente (auditoria A1): se o webhook
 // aprovou no meio do caminho, o dinheiro volta em vez de o "aprovado" ser
 // apagado. Também fecha o PaymentIntent no Stripe (auditoria B4).
-async function closeUnpaidPayment(id) {
+// reason e actor: motivo e quem cancelou, quando é o admin (auditoria R3-A2).
+export async function closeUnpaidPayment(id, { reason = CUSTOMER_CANCEL_REASON, actor } = {}) {
   const { data: closed } = await supabaseAdmin
     .from("orders")
     .update({ payment_status: "cancelled" })
@@ -94,20 +96,51 @@ async function closeUnpaidPayment(id) {
   if (closed?.length) {
     const paymentId = closed[0].payment_id;
     if (isStripePaymentId(paymentId) && (await stripeStatus()).configured) {
-      // Se o pagamento já estiver em andamento, o Stripe recusa e o webhook
-      // que chegar depois estorna (approveOrderPayment).
-      await cancelStripePaymentIntent(paymentId).catch((e) => console.warn("PaymentIntent não cancelado:", paymentId, e.message));
+      try {
+        await cancelStripePaymentIntent(paymentId);
+      } catch (e) {
+        console.warn("PaymentIntent não cancelado:", paymentId, e.message);
+        return reconcileLostPayment(id, paymentId);
+      }
     }
     return { refunded: false };
   }
   const { data: now } = await supabaseAdmin.from("orders").select("*").eq("id", id).maybeSingle();
   if (!now || !needsRefund(now) || now.payment_provider === "provisorio") return { refunded: false };
   try {
-    const { refundedTotal } = await refundWholeOrder(now, now.payment_id, CUSTOMER_CANCEL_REASON);
+    const { refundedTotal } = await refundWholeOrder(now, now.payment_id, reason, { actor });
     await supabaseAdmin.from("orders").update({ payment_status: "refunded", refunded_amount: refundedTotal }).eq("id", id);
     return { refunded: true };
   } catch (e) {
     console.error("Pedido cancelado, estorno pendente:", id, e);
+    return { refunded: false, refundPending: true };
+  }
+}
+
+// O Stripe não deixou cancelar: o PaymentIntent já foi pago (o webhook se
+// perdeu ou ainda não chegou). Confere direto no Stripe e, se o dinheiro
+// entrou, devolve agora (auditoria R4-M4): antes, o pedido terminava
+// Cancelado com o cliente cobrado e sem estorno. Se o webhook chegar depois,
+// ele vê o pedido estornado com o mesmo pagamento e não faz nada.
+async function reconcileLostPayment(id, paymentId) {
+  let pi;
+  try {
+    pi = await findPaymentIntent(paymentId);
+  } catch (e) {
+    console.warn("PaymentIntent não conferido:", paymentId, e.message);
+    return { refunded: false };
+  }
+  if (!pi.paid) return { refunded: false };
+  const { data: now } = await supabaseAdmin.from("orders").select("*").eq("id", id).maybeSingle();
+  if (!now || String(now.payment_id) !== String(paymentId)) return { refunded: false };
+  try {
+    await refundLatePayment(now, paymentId, { paidCents: Math.round(pi.amount * 100) });
+    return { refunded: true };
+  } catch (e) {
+    // Fica Cancelado e pago, como um estorno que falhou: retryPendingRefunds
+    // tenta de novo e o admin consegue estornar pelo painel.
+    console.error("Pagamento perdido não estornado:", id, paymentId, e);
+    await supabaseAdmin.from("orders").update({ payment_status: "approved" }).eq("id", id).eq("payment_status", "cancelled");
     return { refunded: false, refundPending: true };
   }
 }

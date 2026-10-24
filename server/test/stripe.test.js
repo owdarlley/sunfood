@@ -24,8 +24,14 @@ function query(table) {
   let inserted = null;
   let removing = false;
   // Tabela que ainda não existe no banco (SQL não rodado): erro como o do Supabase.
+  // Banco fora do ar só na configuração do Stripe (auditoria R4-A1).
+  if (table === "stripe_settings" && db.stripeSettingsDown) {
+    const down = { select: () => down, eq: () => down, maybeSingle: () => down,
+      then: (ok, fail) => Promise.resolve({ data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } }).then(ok, fail) };
+    return down;
+  }
   if (!db[table]) {
-    const missing = { select: () => missing, eq: () => missing, insert: () => missing, order: () => missing,
+    const missing = { select: () => missing, eq: () => missing, insert: () => missing, order: () => missing, maybeSingle: () => missing,
       then: (ok, fail) => Promise.resolve({ data: null, error: { code: "42P01", message: "relation does not exist" } }).then(ok, fail) };
     return missing;
   }
@@ -43,6 +49,7 @@ function query(table) {
     update: (p) => ((patch = p), q),
     delete: () => ((removing = true), q),
     upsert: (row) => {
+      if (db.failUpsert) { delete db.failUpsert; inserted = { error: { code: "XX000", message: "banco fora do ar" } }; return q; }
       const i = db[table].findIndex((r) => r.id === row.id);
       if (i >= 0) db[table][i] = row;
       else db[table].push(row);
@@ -89,6 +96,7 @@ mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: fake, supabas
 const sessions = {};
 const refunds = [];
 const refundOpts = [];
+const refundKeys = [];
 const charges = {};
 const intents = {};
 const customers = [];
@@ -96,8 +104,12 @@ const customerSessions = [];
 const cancelledIntents = [];
 const webhookEndpoints = [];
 const stripeKeys = [];
+const stripeOpts = [];
+// PaymentIntent de outra conta: o Stripe responde resource_missing.
+const missingIn = (key, id) => intents[id]?.key && intents[id].key !== key;
+const resourceMissing = (id) => Object.assign(new Error("No such payment_intent: " + id), { code: "resource_missing" });
 class FakeStripe {
-  constructor(key) { this.key = key; stripeKeys.push(key); }
+  constructor(key, opts) { this.key = key; stripeKeys.push(key); if (key !== "sk_test_assinatura") stripeOpts.push(opts); }
   accounts = { retrieve: async () => {
     if (/recusada/.test(this.key)) throw Object.assign(new Error("Invalid API Key"), { type: "StripeAuthenticationError" });
     return { id: "acct_" + this.key.slice(-4), settings: { dashboard: { display_name: "Quiosque " + this.key.slice(-4) } } };
@@ -123,17 +135,26 @@ class FakeStripe {
     create: async (body) => {
       const id = "pi_teste_" + (Object.keys(intents).length + 2);
       const pix = body.payment_method_types[0] === "pix";
-      intents[id] = { id, client_secret: id + "_secret_x", amount: body.amount, amount_received: 0, metadata: body.metadata, body, customer: body.customer || null,
+      if (db.onIntentCreate) { const f = db.onIntentCreate; delete db.onIntentCreate; f(); }
+      intents[id] = { key: this.key, id, client_secret: id + "_secret_x", amount: body.amount, amount_received: 0, metadata: body.metadata, body, customer: body.customer || null,
         status: pix ? "requires_action" : "requires_payment_method",
         next_action: pix ? { pix_display_qr_code: { data: "000201PIXSTRIPE", image_url_png: "https://qr.stripe.com/x.png", hosted_instructions_url: "https://payments.stripe.com/pix/x" } } : null };
       return intents[id];
     },
-    retrieve: async (id) => intents[id],
+    retrieve: async (id) => { if (missingIn(this.key, id)) throw resourceMissing(id); return intents[id]; },
     update: async (id, body) => (Object.assign(intents[id].metadata, body.metadata), intents[id]),
-    cancel: async (id) => (cancelledIntents.push(id), { id, status: "canceled" }),
+    cancel: async (id) => {
+      if (missingIn(this.key, id)) throw resourceMissing(id);
+      if (intents[id]?.status === "succeeded") throw Object.assign(new Error("already succeeded"), { code: "payment_intent_unexpected_state" });
+      cancelledIntents.push(id);
+      if (intents[id]) intents[id].status = "canceled";
+      return { id, status: "canceled" };
+    },
   };
   refunds = { create: async (b, opts) => {
     if (db.failNextRefund) { delete db.failNextRefund; throw new Error("Stripe fora do ar"); }
+    if (missingIn(this.key, b.payment_intent)) throw resourceMissing(b.payment_intent);
+    refundKeys.push(this.key);
     return (refunds.push(b), refundOpts.push(opts), { id: "re_" + refunds.length, status: "succeeded", amount: b.amount }); } };
   charges = { retrieve: async (id) => charges[id] };
   customers = {
@@ -766,11 +787,258 @@ test("aba Stripe: não troca de conta nem desconecta com pagamento em aberto", a
   assert.equal((await adm("DELETE", "/admin/stripe")).status, 409);
   db.orders = db.orders.filter((o) => !(o.payment_provider === "stripe" && o.payment_status === "pending" && o.status === "Na Fila"));
 
+  // Pedidos pagos nos últimos 30 dias ainda podem ser estornados: desconectar
+  // apagaria as chaves da conta onde foram pagos (auditoria R4-A2).
+  const blocked = await adm("DELETE", "/admin/stripe");
+  assert.equal(blocked.status, 409);
+  assert.match(blocked.body.error, /podem ser estornados/);
+  const old = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString();
+  const paid = db.orders.filter((o) => o.payment_provider === "stripe" && o.payment_status === "approved");
+  const dates = paid.map((o) => o.created_at);
+  paid.forEach((o) => (o.created_at = old));
+
   // Sem pedido em aberto, desconectar apaga o webhook e volta para a Vercel.
   const d = await adm("DELETE", "/admin/stripe");
+  paid.forEach((o, i) => (o.created_at = dates[i]));
   assert.equal(d.status, 200);
   assert.equal(db.stripe_settings.length, 0);
   assert.equal(webhookEndpoints.filter((e) => e.key === "sk_test_painelABCDEFGH").length, 0);
   assert.equal((await adm("GET", "/admin/stripe")).body.source, "ambiente");
   delete db.stripe_settings;
+});
+
+const { forgetStripeSettings, encryptSecret } = await import("../src/payments/stripe-config.js");
+const { expireUnpaidOrders } = await import("../src/order-payments.js");
+const { refundOrderByAdmin } = await import("../src/order-refunds.js");
+// Cada chamada com um IP próprio: os limites por IP das rotas de pagamento e
+// da aba Stripe não somam com os testes de cima.
+let ipSeq = 0;
+const apiN = (method, path, body, headers = {}) => api(method, path, body, { "X-Forwarded-For": `10.77.${Math.floor(++ipSeq / 250)}.${ipSeq % 250}`, ...headers });
+const admN = (method, path, body) => apiN(method, path, body, { Authorization: "Bearer tok-adm" });
+const newOrder = (id, extra = {}) => {
+  const o = { id, customer_id: "ana", total: 20, refunded_amount: 0, status: "Na Fila", payment_method: "pix", payment_status: "pending",
+    table_number: 1, created_at: new Date().toISOString(), order_items: [], ...extra };
+  db.orders.push(o);
+  return o;
+};
+
+test("R3-A1: o webhook aprova enquanto o PIX novo é criado: 409 e a cobrança nova é fechada", async () => {
+  const o = newOrder("00000000-0000-4000-8000-0000000000e1");
+  db.onIntentCreate = () => Object.assign(o, { payment_status: "approved", payment_provider: "stripe", payment_id: "pi_pago_antes" });
+  const r = await apiN("POST", `/payments/pix/${o.id}`);
+  assert.equal(r.status, 409, JSON.stringify(r.body));
+  assert.equal(o.payment_id, "pi_pago_antes");
+  const created = Object.values(intents).find((x) => x.metadata.order_id === o.id);
+  assert.ok(cancelledIntents.includes(created.id));
+});
+
+test("R3-A1: PIX anterior já pago não gera outro QR", async () => {
+  const o = newOrder("00000000-0000-4000-8000-0000000000e2");
+  assert.equal((await apiN("POST", `/payments/pix/${o.id}`)).status, 200);
+  Object.assign(intents[o.payment_id], { status: "succeeded", amount_received: 2000 });
+  const before = Object.keys(intents).length;
+  const r = await apiN("POST", `/payments/pix/${o.id}`);
+  assert.equal(r.status, 409);
+  assert.match(r.body.error, /já foi recebido/);
+  assert.equal(Object.keys(intents).length, before);
+});
+
+test("R3-A1: QR vencido fecha o PaymentIntent antigo antes de gerar outro", async () => {
+  const o = newOrder("00000000-0000-4000-8000-0000000000e3");
+  await apiN("POST", `/payments/pix/${o.id}`);
+  const first = o.payment_id;
+  intents[first].next_action.pix_display_qr_code.expires_at = Math.floor(Date.now() / 1000) - 10;
+  assert.equal((await apiN("POST", `/payments/pix/${o.id}`)).status, 200);
+  assert.notEqual(o.payment_id, first);
+  assert.ok(cancelledIntents.includes(first));
+});
+
+test("R3-A2: admin cancela PIX pendente: fecha o PaymentIntent", async () => {
+  const o = newOrder("00000000-0000-4000-8000-0000000000e4");
+  await apiN("POST", `/payments/pix/${o.id}`);
+  const r = await admN("POST", `/orders/${o.id}/refund`, { cancel: true, reason: "Cliente desistiu" });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(o.status, "Cancelado");
+  assert.equal(o.payment_status, "cancelled");
+  assert.ok(cancelledIntents.includes(o.payment_id));
+});
+
+test("R3-A2: o webhook aprova enquanto o admin cancela: o dinheiro volta em vez de virar \"cancelado\"", async () => {
+  const o = newOrder("00000000-0000-4000-8000-0000000000e5", { payment_provider: "stripe", payment_id: "pi_e5" });
+  const stale = { ...o };
+  Object.assign(o, { payment_status: "approved" });
+  const n = refunds.length;
+  const r = await refundOrderByAdmin(stale, { cancel: true, reason: "Cliente desistiu", actor: "adm" });
+  assert.equal(r.ok, true);
+  assert.equal(refunds.length, n + 1);
+  assert.equal(refunds.at(-1).payment_intent, "pi_e5");
+  assert.equal(refunds.at(-1).metadata.sunfood_actor, "adm");
+  assert.equal(o.payment_status, "refunded");
+});
+
+test("R4-M4: pedido vencido com o PIX já pago (webhook perdido) é estornado na expiração", async () => {
+  const o = newOrder("00000000-0000-4000-8000-0000000000e6", { created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString() });
+  await apiN("POST", `/payments/pix/${o.id}`);
+  Object.assign(intents[o.payment_id], { status: "succeeded", amount_received: 2000 });
+  const n = refunds.length;
+  await expireUnpaidOrders();
+  assert.equal(o.status, "Cancelado");
+  assert.equal(o.payment_status, "refunded");
+  assert.equal(refunds.length, n + 1);
+  assert.equal(refunds.at(-1).payment_intent, o.payment_id);
+});
+
+test("R3-M7: PIX não pago pode ser cancelado depois do prazo; pago, não", async () => {
+  db.kiosk_settings[0].cancel_window_minutes = 2;
+  const old = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const unpaid = newOrder("00000000-0000-4000-8000-0000000000e7", { created_at: old });
+  assert.equal((await apiN("POST", `/orders/${unpaid.id}/cancel`)).status, 200);
+  const paid = newOrder("00000000-0000-4000-8000-0000000000e8", { created_at: old, payment_status: "approved", payment_provider: "stripe", payment_id: "pi_e8" });
+  assert.equal((await apiN("POST", `/orders/${paid.id}/cancel`)).status, 409);
+  db.kiosk_settings[0].cancel_window_minutes = 0;
+});
+
+test("R3-B3: estorno que falha no cancelamento avisa o app (refundPending)", async () => {
+  const o = newOrder("00000000-0000-4000-8000-0000000000e9", { payment_status: "approved", payment_provider: "stripe", payment_id: "pi_e9" });
+  db.failNextRefund = true;
+  const r = await apiN("POST", `/orders/${o.id}/cancel`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.refundPending, true);
+  assert.equal(o.status, "Cancelado");
+  assert.equal(o.payment_status, "approved");
+});
+
+test("R4-A1: banco fora do ar na configuração do Stripe não cai para as chaves da Vercel", async () => {
+  db.stripe_settings = [];
+  forgetStripeSettings();
+  db.stripeSettingsDown = true;
+  try {
+    const st = await apiN("GET", "/payments/status");
+    assert.equal(st.status, 500);
+    const o = newOrder("00000000-0000-4000-8000-0000000000ea");
+    const before = Object.keys(intents).length;
+    assert.equal((await apiN("POST", `/payments/pix/${o.id}`)).status, 500);
+    assert.equal(Object.keys(intents).length, before);
+    // O Stripe recebe 503 e reenvia o evento depois, em vez de ele se perder.
+    const r = await webhook({ id: "evt_down", type: "payment_intent.succeeded", data: { object: { id: "pi_x" } } });
+    assert.equal(r.status, 503);
+  } finally {
+    delete db.stripeSettingsDown;
+    forgetStripeSettings();
+  }
+});
+
+test("R4-M2: chaves salvas que não abrem param o pagamento online em vez de usar as da Vercel", async () => {
+  db.stripe_settings = [{ id: 1, secret_key_enc: "v1:" + Buffer.from("lixo-que-nao-abre-nunca-1234567890").toString("base64"),
+    publishable_key: "pk_live_xxxxxxxxxxxx", account_id: "acct_x", livemode: true, previous_accounts: [] }];
+  forgetStripeSettings();
+  try {
+    const st = await apiN("GET", "/payments/status");
+    assert.equal(st.body.pix, "provisorio");
+    assert.equal(st.body.stripePublishableKey, null);
+    const o = newOrder("00000000-0000-4000-8000-0000000000eb");
+    assert.equal((await apiN("POST", `/payments/pix/${o.id}`)).status, 503);
+    const r = await webhook({ id: "evt_u", type: "payment_intent.succeeded", data: { object: { id: "pi_x" } } }, "whsec_outro");
+    assert.equal(r.status, 503);
+  } finally {
+    db.stripe_settings = [];
+    forgetStripeSettings();
+  }
+});
+
+test("R4-M1/M3: em produção, chave de teste pede confirmação e salvar exige STRIPE_CONFIG_SECRET e API_PUBLIC_URL", async () => {
+  db.stripe_settings = [];
+  forgetStripeSettings();
+  // Pagamentos em aberto dos testes de cima travariam a troca de conta.
+  db.orders.filter((o) => o.payment_provider === "stripe" && o.payment_status === "pending" && o.status === "Na Fila").forEach((o) => (o.status = "Cancelado"));
+  const put = (body) => admN("PUT", "/admin/stripe", { secretKey: "sk_test_prodABCDEFGH", publishableKey: "pk_test_prodABCDEFGH", ...body });
+  const saved = { secret: process.env.STRIPE_CONFIG_SECRET, url: process.env.API_PUBLIC_URL };
+  process.env.VERCEL_ENV = "production";
+  try {
+    delete process.env.STRIPE_CONFIG_SECRET;
+    assert.match((await put()).body.error, /STRIPE_CONFIG_SECRET/);
+    process.env.STRIPE_CONFIG_SECRET = saved.secret;
+    delete process.env.API_PUBLIC_URL;
+    assert.match((await put()).body.error, /API_PUBLIC_URL/);
+    process.env.API_PUBLIC_URL = "https://api.sunfood.teste";
+    const ask = await put();
+    assert.equal(ask.status, 409);
+    assert.equal(ask.body.needsTestConfirm, true);
+    const ok = await put({ confirmTestMode: true });
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+    const ep = webhookEndpoints.find((e) => e.id === db.stripe_settings[0].webhook_endpoint_id);
+    assert.equal(ep.url, "https://api.sunfood.teste/payments/stripe/webhook");
+    assert.equal(ep.api_version, "2025-10-29.clover");
+  } finally {
+    delete process.env.VERCEL_ENV;
+    if (saved.url) process.env.API_PUBLIC_URL = saved.url; else delete process.env.API_PUBLIC_URL;
+  }
+});
+
+test("R4-M5: se a gravação falhar, o webhook que funcionava continua de pé", async () => {
+  const before = db.stripe_settings[0];
+  const oldEp = before.webhook_endpoint_id;
+  db.failUpsert = true;
+  const r = await admN("PUT", "/admin/stripe", { secretKey: "sk_test_prodABCDEFGH", publishableKey: "pk_test_prodABCDEFGH" });
+  assert.equal(r.status, 500);
+  assert.equal(db.stripe_settings[0], before);
+  assert.ok(webhookEndpoints.some((e) => e.id === oldEp));
+  assert.equal(webhookEndpoints.filter((e) => e.key === "sk_test_prodABCDEFGH").length, 1);
+});
+
+test("R4-A2: depois de trocar de conta, pedido pago na conta anterior continua estornável e confirmado", async () => {
+  // Pago na conta atual (antes da troca).
+  const o = newOrder("00000000-0000-4000-8000-0000000000ec", { payment_method: "cartao" });
+  const ci = await apiN("POST", `/payments/card-intent/${o.id}`);
+  assert.equal(ci.status, 200, JSON.stringify(ci.body));
+  const piOld = o.payment_id;
+  assert.equal(intents[piOld].key, "sk_test_prodABCDEFGH");
+  const oldEp = webhookEndpoints.find((e) => e.id === db.stripe_settings[0].webhook_endpoint_id);
+  Object.assign(intents[piOld], { status: "succeeded", amount_received: 2000 });
+  assert.equal((await webhook({ id: "evt_pago", type: "payment_intent.succeeded", data: { object: { id: piOld } } }, oldEp.secret)).status, 200);
+  assert.equal(o.payment_status, "approved");
+
+  const sw = await admN("PUT", "/admin/stripe", { secretKey: "sk_live_novaContaWXYZ", publishableKey: "pk_live_novaContaWXYZ" });
+  assert.equal(sw.status, 200, JSON.stringify(sw.body));
+  const row = db.stripe_settings[0];
+  assert.equal(row.account_id, "acct_WXYZ");
+  assert.equal(row.previous_accounts.length, 1);
+  assert.equal(row.previous_accounts[0].account_id, "acct_EFGH");
+  // O webhook da conta anterior fica ligado.
+  assert.ok(webhookEndpoints.some((e) => e.id === oldEp.id));
+
+  // Evento da conta anterior continua aceito e é rebuscado nela (com a
+  // chave nova, o Stripe responderia resource_missing e o evento daria 500).
+  const r = await webhook({ id: "evt_old", type: "payment_intent.succeeded", data: { object: { id: piOld } } }, oldEp.secret);
+  assert.equal(r.status, 200);
+  assert.equal(o.payment_status, "approved");
+
+  // O estorno vai para a conta onde o pagamento foi feito.
+  const c = await admN("POST", `/orders/${o.id}/refund`, { cancel: true, reason: "Teste de troca" });
+  assert.equal(c.status, 200, JSON.stringify(c.body));
+  assert.equal(refundKeys.at(-1), "sk_test_prodABCDEFGH");
+  assert.equal(o.payment_status, "refunded");
+
+  // Cobrança nova sai na conta nova.
+  const n = newOrder("00000000-0000-4000-8000-0000000000ed", { payment_method: "cartao" });
+  assert.equal((await apiN("POST", `/payments/card-intent/${n.id}`)).status, 200);
+  assert.equal(intents[n.payment_id].key, "sk_live_novaContaWXYZ");
+  db.stripe_settings = [];
+  forgetStripeSettings();
+});
+
+test("R4-A2: sem o SQL da troca (coluna previous_accounts), não troca de conta", async () => {
+  db.stripe_settings = [{ id: 1, secret_key_enc: encryptSecret("sk_test_prodABCDEFGH"), publishable_key: "pk_test_prodABCDEFGH",
+    account_id: "acct_EFGH", livemode: false }];
+  forgetStripeSettings();
+  const r = await admN("PUT", "/admin/stripe", { secretKey: "sk_test_outraABCDWXYZ", publishableKey: "pk_test_outraABCDWXYZ" });
+  assert.equal(r.status, 409);
+  assert.match(r.body.error, /SQL/);
+  db.stripe_settings = [];
+  forgetStripeSettings();
+});
+
+test("R3-M12: o SDK do Stripe sai com a versão da API fixada", () => {
+  assert.ok(stripeOpts.length);
+  assert.ok(stripeOpts.every((o) => o?.apiVersion === "2025-10-29.clover"));
 });

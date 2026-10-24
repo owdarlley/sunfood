@@ -315,7 +315,7 @@ ordersRouter.post("/:id/refund", requireAuth, requireRole("admin"), validate(ord
   });
   if (!result.ok) return res.status(result.httpStatus).json({ error: result.error });
   const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();
-  res.json({ ...toApi(updated), refundedNow: result.refunded });
+  res.json({ ...toApi(updated), refundedNow: result.refunded, refundPending: !!result.refundPending });
 });
 
 // Admin: histórico de estornos do pedido (valor, motivo, quem e quando).
@@ -378,7 +378,11 @@ ordersRouter.post("/:id/cancel", requireAuth, requireRole("cliente"), async (req
     });
   }
   const cancelWindow = await loadCancelWindow();
-  if (!withinCancelWindow(row.created_at, cancelWindow)) {
+  // PIX ou cartão ainda não pago não tem prazo (auditoria R3-M7): o cliente
+  // que demorou no QR e mudou o carrinho precisa conseguir cancelar o pedido
+  // antigo, senão ele fica pagável junto com o novo.
+  const unpaidOnline = ["pix", "cartao"].includes(row.payment_method) && ["pending", "rejected"].includes(row.payment_status);
+  if (!unpaidOnline && !withinCancelWindow(row.created_at, cancelWindow)) {
     return res.status(409).json({
       error: `O prazo para cancelar pelo app (${cancelWindow} min depois do pedido) já passou. Fale com um atendente.`,
     });
@@ -389,7 +393,8 @@ ordersRouter.post("/:id/cancel", requireAuth, requireRole("cliente"), async (req
 
   const { data: updated } = await supabaseAdmin.from("orders").select(ORDER_SELECT).eq("id", row.id).single();
   const refunds = hasRefund(updated) ? (await customerRefunds([row.id])).get(row.id) || [] : [];
-  res.json(toApi({ ...updated, refunds }, cancelWindow));
+  // refundPending: cancelado, mas o estorno falhou e vai ser refeito (auditoria R3-B3).
+  res.json({ ...toApi({ ...updated, refunds }, cancelWindow), refundPending: !!result.refundPending });
 });
 
 // Admin ou o próprio garçom: anota que o garçom recebeu um pedido "pagar na
