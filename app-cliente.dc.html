@@ -535,6 +535,21 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 @media (min-width:1025px){.prof-grid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}}
 .menurow{display:flex;justify-content:space-between;align-items:center;min-height:calc(48px / var(--z));padding:12px 4px;border-top:1px solid var(--divider);font:600 var(--fs-body) 'Manrope',system-ui,sans-serif;cursor:pointer}
 .menurow:hover{color:var(--brand)}
+a.menurow{color:var(--ink);text-decoration:none}
+.sec-h{font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2);padding:0 4px;margin:0 0 8px}
+.live-order{margin-bottom:24px}
+.live-row{border-color:var(--brand)}
+.acc-me{display:flex;align-items:center;gap:12px;padding:var(--cpad);cursor:pointer}
+.acc-me:hover{border-color:var(--line-dash)}
+.acc-edit{font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--brand)}
+.acc-sec{display:flex;flex-direction:column}
+.acc-list{padding:0 var(--cpad)}
+.acc-list > .menurow:first-child,.acc-list > .pref-row:first-child{border-top:0}
+.acc-list > .pref-row{padding:12px 0}
+.acc-list > .pref-row + .pref-row{border-top:1px solid var(--divider)}
+.acc-danger{color:var(--danger)}
+.acc-danger:hover{color:var(--danger)}
+@media (max-width:600px){.acc-me{flex-wrap:wrap}.acc-edit{flex-basis:100%;padding-left:calc(48px / var(--z) + 12px)}}
 .footer{border-top:1px solid var(--line-2)}
 .footer-in{max-width:var(--maxw);margin:0 auto;padding:var(--gap) var(--px);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;justify-content:space-between;font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2)}
 
@@ -1944,6 +1959,9 @@ select{caret-color:auto}
                     <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ false }}">
                       <div onClick="{{ askCancel }}" class="btn btn-danger-ghost">Cancelar pedido</div>
                     </sc-if>
+                    <sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ false }}">
+                      <div onClick="{{ goHistory }}" class="link" role="link" style="text-align:center;font-weight:700;padding:12px 0">Ver pedidos anteriores</div>
+                    </sc-if>
                   </div>
                 </div>
               </sc-if>
@@ -1984,6 +2002,21 @@ select{caret-color:auto}
               </sc-if>
 
               <sc-if value="{{ is_history }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ hasLiveOrder }}" hint-placeholder-val="{{ false }}">
+                  <section class="live-order rise" aria-label="Pedido em andamento">
+                    <div class="sec-h">Em andamento</div>
+                    <div onClick="{{ goStatus }}" class="card orow live-row" role="link">
+                      <div style="flex:1;min-width:0">
+                        <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">{{ orderId }} · Mesa {{ orderTable }}</div>
+                        <div class="muted" style="font-size:var(--fs-sm);margin-top:2px">Estimativa: {{ etaStr }}</div>
+                      </div>
+                      <span style="{{ liveStStyle }}">{{ orderStatusLbl }}</span>
+                      <svg class="orow-go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+                    </div>
+                  </section>
+                </sc-if>
+                <sc-if value="{{ showPrevHead }}" hint-placeholder-val="{{ false }}"><div class="sec-h">Anteriores</div></sc-if>
+                <sc-if value="{{ hasPrevRows }}" hint-placeholder-val="{{ true }}">
                 <div class="card rise" style="overflow:hidden">
                   <sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="3">
                     <div onClick="{{ h.open }}" class="orow">
@@ -1998,6 +2031,7 @@ select{caret-color:auto}
                     </div>
                   </sc-for>
                 </div>
+                </sc-if>
                 <sc-if value="{{ histHasMore }}" hint-placeholder-val="{{ false }}">
                   <div onClick="{{ histMore }}" class="btn btn-ghost" role="button" style="margin-top:var(--gap)">{{ histMoreLabel }}</div>
                 </sc-if>
@@ -2046,40 +2080,48 @@ select{caret-color:auto}
 
               <sc-if value="{{ is_profile }}" hint-placeholder-val="{{ false }}">
                 <div class="rise prof">
-                  <h1 class="tt" style="margin:0 0 24px;font-size:var(--fs-h1)">Olá, {{ firstName }}</h1>
+                  <h1 class="tt" style="margin:0 0 24px;font-size:var(--fs-h1)">Conta</h1>
                   <div class="prof-grid">
                     <div class="prof-col">
-                      <div class="card" style="padding:var(--cpad)">
-                        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
-                          <span style="{{ meAvatarStyle }}">{{ meAvatarText }}</span>
-                          <div style="min-width:0"><div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif">{{ profileName }}</div><div class="muted" style="font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis">{{ profileEmail }}</div></div>
-                        </div>
-                        <div onClick="{{ goEditProfile }}" class="menurow">Editar perfil e foto<span style="color:var(--ink-2)">›</span></div>
-                        <sc-if value="{{ showChangePassword }}" hint-placeholder-val="{{ true }}">
-                          <div onClick="{{ goChangePassword }}" class="menurow">Trocar senha<span style="color:var(--ink-2)">›</span></div>
-                        </sc-if>
-                        <div onClick="{{ goLocation }}" class="menurow">Localização do quiosque<span style="color:var(--ink-2)">›</span></div>
-                        <div onClick="{{ goHistory }}" class="menurow">Meus pedidos<span style="color:var(--ink-2)">›</span></div>
-                        <div onClick="{{ goLogin }}" class="btn btn-ghost btn-sm" style="margin-top:12px">Sair da conta</div>
+                      <div onClick="{{ goEditProfile }}" class="card acc-me" role="link" aria-label="Editar perfil e foto">
+                        <span style="{{ meAvatarStyle }}">{{ meAvatarText }}</span>
+                        <div style="flex:1;min-width:0"><div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif">Olá, {{ firstName }}</div><div class="muted" style="font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis">{{ profileName }} · {{ profileEmail }}</div></div>
+                        <span class="acc-edit">Editar perfil e foto</span>
                       </div>
+                      <sc-if value="{{ showChangePassword }}" hint-placeholder-val="{{ true }}">
+                        <section class="acc-sec" aria-label="Segurança">
+                          <div class="sec-h">Segurança</div>
+                          <div class="card acc-list">
+                            <div onClick="{{ goChangePassword }}" class="menurow" role="link">Trocar senha<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--ink-2)"><path d="M9 6l6 6-6 6"></path></svg></div>
+                          </div>
+                        </section>
+                      </sc-if>
+                      <section class="acc-sec" aria-label="Avisos do pedido">
+                        <div class="sec-h">Avisos do pedido</div>
+                        <div class="card acc-list">
+                          <div class="pref-row">
+                            <div style="min-width:0"><div style="font:600 var(--fs-body) 'Manrope',system-ui,sans-serif">Avisar quando ficar pronto</div><div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:4px">{{ notifySub }}</div></div>
+                            <div onClick="{{ toggleNotifyReady }}" class="toggle" role="switch" aria-checked="{{ notifyOn }}" aria-label="Avisar quando ficar pronto" style="{{ notifySwitchStyle }}"><span style="{{ notifyKnobStyle }}"></span></div>
+                          </div>
+                          <div class="pref-row">
+                            <div style="min-width:0"><div style="font:600 var(--fs-body) 'Manrope',system-ui,sans-serif">Tocar som</div><div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:4px">Um toque curto quando o pedido fica pronto.</div></div>
+                            <div onClick="{{ toggleSoundPref }}" class="toggle" role="switch" aria-checked="{{ soundPrefOn }}" aria-label="Tocar som" style="{{ soundPrefSwitchStyle }}"><span style="{{ soundPrefKnobStyle }}"></span></div>
+                          </div>
+                        </div>
+                      </section>
                     </div>
                     <div class="prof-col">
-                      <div class="card" style="padding:var(--cpad);display:flex;flex-direction:column;gap:16px">
-                        <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Avisos do pedido</div>
-                        <div class="pref-row">
-                          <div style="min-width:0"><div style="font:600 var(--fs-body) 'Manrope',system-ui,sans-serif">Avisar quando ficar pronto</div><div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:4px">{{ notifySub }}</div></div>
-                          <div onClick="{{ toggleNotifyReady }}" class="toggle" role="switch" aria-checked="{{ notifyOn }}" aria-label="Avisar quando ficar pronto" style="{{ notifySwitchStyle }}"><span style="{{ notifyKnobStyle }}"></span></div>
+                      <section class="acc-sec" aria-label="Quiosque e privacidade">
+                        <div class="sec-h">Quiosque e privacidade</div>
+                        <div class="card acc-list">
+                          <div onClick="{{ goLocation }}" class="menurow" role="link">Onde estamos<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--ink-2)"><path d="M9 6l6 6-6 6"></path></svg></div>
+                          <a href="./#fale-conosco" class="menurow">Fale conosco<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--ink-2)"><path d="M9 6l6 6-6 6"></path></svg></a>
+                          <a href="./#termos" class="menurow">Termos de uso<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--ink-2)"><path d="M9 6l6 6-6 6"></path></svg></a>
+                          <a href="./#privacidade" class="menurow">Privacidade<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--ink-2)"><path d="M9 6l6 6-6 6"></path></svg></a>
+                          <div onClick="{{ goDelete }}" class="menurow acc-danger" role="link">Excluir minha conta<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--ink-2)"><path d="M9 6l6 6-6 6"></path></svg></div>
                         </div>
-                        <div class="pref-row">
-                          <div style="min-width:0"><div style="font:600 var(--fs-body) 'Manrope',system-ui,sans-serif">Tocar som</div><div class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin-top:4px">Um toque curto quando o pedido fica pronto.</div></div>
-                          <div onClick="{{ toggleSoundPref }}" class="toggle" role="switch" aria-checked="{{ soundPrefOn }}" aria-label="Tocar som" style="{{ soundPrefSwitchStyle }}"><span style="{{ soundPrefKnobStyle }}"></span></div>
-                        </div>
-                      </div>
-                      <div class="card" style="padding:var(--cpad);border-color:#F0C2BC">
-                        <div style="font:700 var(--fs-body) 'Manrope',system-ui,sans-serif">Excluir conta</div>
-                        <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:8px 0 12px">Seus dados pessoais são apagados (LGPD).</p>
-                        <div onClick="{{ goDelete }}" class="btn btn-danger-ghost btn-sm" style="align-self:flex-start;display:inline-flex">Excluir minha conta</div>
-                      </div>
+                      </section>
+                      <div onClick="{{ goLogin }}" class="btn btn-ghost">Sair da conta</div>
                     </div>
                   </div>
                 </div>
@@ -4195,18 +4237,18 @@ const META = {
   card:{t:'Pagamento com cartão',back:'payment',w:'narrow'},
   confirm:{t:'',back:null,w:'narrow'},
   payFail:{t:'',back:null,w:'narrow'},
-  status:{t:'Meu pedido',sub:'Atualiza sozinho enquanto a cozinha prepara',back:null,nav:'status',w:'mid'},
+  status:{t:'Pedido em andamento',sub:'Atualiza sozinho enquanto a cozinha prepara',back:null,nav:'status',w:'mid'},
   cancelAsk:{t:'Cancelar pedido',back:'status',w:'narrow'},
   cancelDone:{t:'',back:null,w:'narrow'},
   cancelBlocked:{t:'',back:'status',w:'narrow'},
-  history:{t:'Meus pedidos',back:null,nav:'history',w:'mid'},
-  historyEmpty:{t:'Meus pedidos',back:null,nav:'history',w:'narrow'},
+  history:{t:'Pedidos',back:null,nav:'history',w:'mid'},
+  historyEmpty:{t:'Pedidos',back:null,nav:'history',w:'narrow'},
   orderDetail:{t:'Pedido',back:'history',w:'narrow'},
   profile:{t:'',back:null,nav:'profile',w:'mid'},
   editProfile:{t:'Editar perfil',back:'profile',nav:'profile',w:'mid'},
   changePassword:{t:'Trocar senha',back:'profile',nav:'profile',w:'narrow'},
   deleteAccount:{t:'',back:null,nav:'profile',w:'mid'},
-  location:{t:'Onde estamos',back:'profile',w:'mid'},
+  location:{t:'Onde estamos',back:'profile',nav:'profile',w:'mid'},
   offline:{t:'',back:null,w:'narrow'}
 };
 
@@ -6732,21 +6774,19 @@ class Component extends DCLogic {
     v.hdrBack = !!meta.back; v.onBack = () => meta.back && this.go(meta.back);
     v.wrapClass = 'wrap-' + (meta.w || 'mid') + (['cartEmpty','historyEmpty','confirm','payFail','cancelDone','cancelBlocked','offline'].indexOf(s.screen) >= 0 ? ' wrap-estado' : '');
     v.showNav = !!meta.nav;
-    // Mesma lista e mesmos nomes no celular e no computador; "Meu pedido" só
-    // aparece com um pedido em andamento.
-    v.navItems = [['menu','Cardápio','menu'],['status','Meu pedido','clock'],['history','Meus pedidos','receipt'],['profile','Perfil','user']].filter(([k]) => k !== 'status' || !!s.order).map(([k, label, ic]) => ({
+    // Mesma lista e mesmos nomes no celular e no computador: Cardápio, Pedidos
+    // (o pedido em andamento, quando há um, ou o histórico) e Conta.
+    const navOn = meta.nav === 'status' || meta.nav === 'history' ? 'orders' : meta.nav;
+    const goNav = k => k === 'orders' ? this.go(s.order ? 'status' : s.history.length ? 'history' : 'historyEmpty') : this.go(k);
+    const NAV = [['menu','Cardápio','menu'],['orders','Pedidos','receipt'],['profile','Conta','user']];
+    v.navItems = NAV.map(([k, label, ic]) => ({
       key:k, label,
       icPath:UI[ic],
-      go:() => {
-        if(k === 'status' && !s.order){ this.go(s.history.length ? 'history' : 'historyEmpty'); this.flash('Você não tem pedido em andamento.'); return; }
-        this.go(k === 'history' && !s.history.length ? 'historyEmpty' : k);
-      },
+      go:() => goNav(k),
       style:"display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;min-width:64px;color:" +
-        (meta.nav === k ? 'var(--brand)' : 'var(--ink-2)')
+        (navOn === k ? 'var(--brand)' : 'var(--ink-2)')
     }));
-    v.topLinks = [['menu','Cardápio'],['status','Meu pedido'],['history','Meus pedidos'],['profile','Perfil']]
-      .filter(([k]) => k !== 'status' || !!s.order)
-      .map(([k, label]) => ({label, cls:meta.nav === k ? 'on' : '', go:() => this.go(k === 'history' && !s.history.length ? 'historyEmpty' : k)}));
+    v.topLinks = NAV.map(([k, label]) => ({label, cls:navOn === k ? 'on' : '', go:() => goNav(k)}));
     v.hasTable = !!s.table;
 
     // menu
@@ -7021,13 +7061,17 @@ class Component extends DCLogic {
     v.histHasMore = s.history.length > histShown;
     v.histMoreLabel = 'Ver mais pedidos (' + Math.min(20, s.history.length - histShown) + ')';
     v.histMore = () => this.setState({histShown:histShown + 20});
+    v.hasLiveOrder = !!s.order;
+    v.liveStStyle = v.statusPillStyle.replace(';font-size:14px;padding:7px 14px', '');
     v.historyRows = s.history.slice(0, histShown).map((h, i) => { const hr = refundCard(h.refunds, h.total); return {
       id:h.id, table:h.table, when:h.when + ' · ' + h.items.length + (h.items.length === 1 ? ' item' : ' itens'), totalStr:f(h.total), status:h.status, stLbl:statusLabel(h.status),
       refundStr:hr.has ? 'Estornado ' + hr.total : '',
       refStyle:hr.has ? 'font:700 var(--fs-sm)/1.4 \'Manrope\',system-ui,sans-serif;color:#1F5A63;margin-top:2px' : 'display:none',
       stStyle:pillStyle(statusTone(h.status)),
       open:() => { this.setState({histSel:i}); this.go('orderDetail'); }
-    }; });
+    }; }).filter(r => !s.order || r.id !== s.order.id);
+    v.hasPrevRows = v.historyRows.length > 0;
+    v.showPrevHead = v.hasLiveOrder && v.hasPrevRows;
     v.hasHistory = s.history.length > 0;
     v.historyCountStr = s.history.length + (s.history.length === 1 ? ' pedido' : ' pedidos');
     const hd = s.history[s.histSel] || s.history[0] || null;

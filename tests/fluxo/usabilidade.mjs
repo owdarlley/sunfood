@@ -144,15 +144,15 @@ await step('detalhe do produto', async () => {
 
 // ===== Itens médios =====
 
-// 14. Mesmos nomes no menu do celular e do computador; "Meu pedido" só com pedido
+// 14. Mesmos nomes no menu do celular e do computador: Cardápio, Pedidos e Conta
 await step('navegação', async () => {
   const cel = await open('app-cliente.dc.html?module=cliente&screen=menu');
   const tc = await cel.locator('.bottomnav').innerText().catch(() => '');
-  check('navegação celular: Cardápio, Meus pedidos e Perfil, sem Meu pedido sem pedido', tc.includes('Cardápio') && tc.includes('Meus pedidos') && tc.includes('Perfil') && !tc.includes('Meu pedido\n') && !/Meu pedido$/m.test(tc), tc);
+  check('navegação celular: Cardápio, Pedidos e Conta (3 abas)', tc.split('\n').filter(Boolean).join('|') === 'Cardápio|Pedidos|Conta', tc);
   await cel.context().close();
   const pc = await open('app-cliente.dc.html?module=cliente&screen=menu', { width: 1280, height: 800 });
   const tp = await pc.locator('.toplinks').innerText();
-  check('navegação computador: mesma lista (Cardápio, Meus pedidos, Perfil)', tp.includes('Cardápio') && tp.includes('Meus pedidos') && tp.includes('Perfil') && !tp.includes('Minha conta'), tp);
+  check('navegação computador: mesma lista (Cardápio, Pedidos, Conta)', tp.includes('Cardápio') && tp.includes('Pedidos') && tp.includes('Conta') && !tp.includes('Perfil'), tp);
   await pc.context().close();
   const adm = await open('app-cliente.dc.html?module=admin&screen=reports', { role: 'admin', seed: true, width: 1280, height: 800 });
   const side = await adm.locator('.adm-side').first().innerText();
@@ -318,7 +318,7 @@ await step('observações', async () => {
 await step('títulos h1', async () => {
   const page = await open('app-cliente.dc.html?module=cliente&screen=history', { seed: true });
   const h = await page.locator('h1:visible').allInnerTexts();
-  check('histórico: o título é um <h1>', h.includes('Meus pedidos'), JSON.stringify(h));
+  check('histórico: o título é um <h1>', h.includes('Pedidos'), JSON.stringify(h));
   await page.context().close();
 });
 

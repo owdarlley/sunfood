@@ -96,7 +96,8 @@ await step('telas sem pedido', async () => {
   for (const sc of ['status', 'confirm', 'pix']) {
     const page = await open('app-cliente.dc.html?module=cliente&screen=' + sc);
     const t = await text(page);
-    check(`sem pedido: ${sc} mostra Meus pedidos`, t.includes('Meus pedidos') && !t.includes('Pagamento aprovado') && !t.includes('R$ 0,00'), t.slice(0, 160));
+    const h1 = await page.locator('h1:visible').allInnerTexts();
+    check(`sem pedido: ${sc} mostra Pedidos`, h1.includes('Pedidos') && !t.includes('Pagamento aprovado') && !t.includes('R$ 0,00'), t.slice(0, 160));
     await page.context().close();
   }
   for (const sc of ['cart', 'table', 'payment']) {

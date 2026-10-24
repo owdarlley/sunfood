@@ -180,7 +180,7 @@ await step('dia encerrado', async () => {
 await step('excluir conta', async () => {
   const page = await open('app-cliente.dc.html');
   await login(page);
-  await page.getByText('Perfil', { exact: true }).filter({ visible: true }).first().click(); await page.waitForTimeout(500);
+  await page.getByText('Conta', { exact: true }).filter({ visible: true }).first().click(); await page.waitForTimeout(500);
   await click(page, 'Excluir minha conta');
   check('excluir: pede confirmação', (await text(page)).includes('Excluir sua conta?'));
   await click(page, 'Sim, excluir conta');

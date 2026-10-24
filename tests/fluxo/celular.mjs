@@ -50,11 +50,13 @@ const semRolagemLateral = p => p.evaluate(() => document.documentElement.scrollW
 await step('aba Pedido', async () => {
   // Pedido em andamento + página recarregada (o celular faz isso sozinho): a aba volta a mostrar o pedido.
   const p = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente');
-  await p.getByText('Meu pedido', { exact: true }).filter({ visible: true }).first().tap(); await p.waitForTimeout(500);
-  check('aba Pedido: mostra o pedido em andamento depois de recarregar', p.url().includes('screen=status') || (await text(p)).includes('#o9'), p.url());
+  await p.locator('.bottomnav > div', { hasText: 'Pedidos' }).tap(); await p.waitForTimeout(500);
+  check('aba Pedidos: mostra o pedido em andamento depois de recarregar', p.url().includes('screen=status') || (await text(p)).includes('#o9'), p.url());
   await p.context().close();
   const sem = await open('app-cliente.dc.html?module=cliente&screen=menu', 'cliente', { seed: false });
-  check('aba Pedido: sem pedido, a aba Meu pedido não aparece', !(await sem.locator('.bottomnav').innerText()).includes('Meu pedido'));
+  check('aba Pedidos: sempre 3 abas (Cardápio, Pedidos, Conta)', (await sem.locator('.bottomnav > div').allInnerTexts()).join('|') === 'Cardápio|Pedidos|Conta');
+  await sem.locator('.bottomnav > div', { hasText: 'Pedidos' }).tap(); await sem.waitForTimeout(500);
+  check('aba Pedidos: sem pedido em andamento, abre o histórico', /screen=history/.test(sem.url()), sem.url());
   await sem.context().close();
 });
 
