@@ -505,29 +505,6 @@ select{caret-color:auto}
    mínimo 12 px reais. Campos e títulos continuam na escala, para login e
    cadastro seguirem cabendo na altura da tela sem rolar. */
 .lp{--lg-fs-sub:max(14px, calc(12px / var(--fit,1)));--lg-fs-label:max(14px, calc(12px / var(--fit,1)));--lg-fs-link:max(14px, calc(12px / var(--fit,1)));--lg-fs-err:max(13px, calc(12px / var(--fit,1)));--lg-fs-foot:calc(12px / var(--fit,1));--lp-fs-cat-sub:calc(12px / var(--fit,1))}
-/* ---- Login lapidado (2026-10-24, pedido do Dárlley) ----
-   Os mesmos tamanhos finais do cadastro (app-cliente.dc.html), já
-   descontada a escala normal da tela (83%, --au-k; numa janela baixa o
-   caber.js ainda diminui tudo junto, para caber sem rolar): chamada 26 / 30 / 34 px, título
-   do cartão 24 / 26 / 28, rótulos, apoio e links 14, campos e botões com 16
-   de texto e 48 px de altura no celular e no tablet (44 no computador),
-   cartão com 24 px de respiro e links do rodapé com 13. Título e "Entre para
-   continuar" alinhados à esquerda, como no cadastro. */
-.lp{--au-k:.83;--lp-fs-hero:calc(26px / var(--au-k));--lg-fs-title:calc(24px / var(--au-k));--lg-fs-sub:calc(14px / var(--au-k));--lg-fs-label:calc(14px / var(--au-k));--lg-fs-link:calc(14px / var(--au-k));--lg-fs-btn:calc(16px / var(--au-k));--lg-fs-input:calc(16px / var(--au-k));--lg-fs-err:calc(13px / var(--au-k));--lg-fs-foot:calc(13px / var(--au-k))}
-@media (min-width:768px){
-  .lp{--lp-fs-hero:calc(30px / var(--au-k));--lg-fs-title:calc(26px / var(--au-k));--lg-h:calc(48px / var(--au-k));--lg-h2:calc(48px / var(--au-k))}
-  .login{padding:calc(24px / var(--au-k))}
-}
-@media (min-width:1024px){.lp{--lp-fs-hero:calc(34px / var(--au-k));--lg-fs-title:calc(28px / var(--au-k));--lg-h:calc(44px / var(--au-k));--lg-h2:calc(44px / var(--au-k))}}
-/* Janela baixa do tablet para cima (menos de 800 px): medidas compactas de
-   antes, que o caber.js encolhe junto, para caber sem rolar. */
-@media (min-width:768px) and (max-height:799px){.lp{--au-k:1}}
-.login-head{text-align:left}
-.login-sub{margin-top:calc(4px / var(--au-k))}
-.login .inp,.login .btn,.login .gbtn{border-radius:calc(8px / var(--au-k))}
-.login .gbtn svg{width:calc(20px / var(--au-k));height:calc(20px / var(--au-k))}
-.pw-toggle{top:50%;right:calc(4px / var(--au-k));width:calc(40px / var(--au-k));height:calc(40px / var(--au-k));transform:translateY(-50%)}
-.pw-toggle svg{width:calc(20px / var(--au-k));height:calc(20px / var(--au-k))}
 </style>
 </head>
 <body>

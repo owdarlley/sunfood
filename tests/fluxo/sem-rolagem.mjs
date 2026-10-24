@@ -83,9 +83,7 @@ for (const [nome, vw] of TELAS) {
     check(`login (${nome}): "Conheça o SunFood" na tela`, await naTela(p, '.foot a[href="#conheca"]'));
     check(`login (${nome}): escala entre 75% e 83% (83% no celular)`, await escalaOk(p, '.lp', cel), await escala(p, '.lp'));
     escalas[nome] = { login: await escala(p, '.lp'), loginInicial: await escalaInicial(p) };
-    // Tablet com 800 px ou mais de altura: o cadastro é a tela mais alta (confere no passo dele).
-    if (vw.width >= 768 && vw.width < 1024 && vw.height < 800) { const a = await alturaNatural(p, '.lp'); check(`login (${nome}): altura de referência certa no tablet (${a} de 940 px)`, a <= 940 && 940 - a <= 12, `${a} px`); }
-    if (vw.width >= 768 && vw.width < 1024 && vw.height >= 800) { const a = await alturaNatural(p, '.lp'); check(`login (${nome}): cabe na altura de referência do tablet (${a} de 1170 px)`, a <= 1170, `${a} px`); }
+    if (vw.width >= 768 && vw.width < 1024) { const a = await alturaNatural(p, '.lp'); check(`login (${nome}): altura de referência certa no tablet (${a} de 940 px)`, a <= 940 && 940 - a <= 12, `${a} px`); }
     check(`login (${nome}): já abre na escala certa`, escalas[nome].loginInicial === escalas[nome].login, `${escalas[nome].loginInicial} -> ${escalas[nome].login}`);
     check(`login (${nome}): cartões do cardápio sem achatar`, await p.locator('.lp-cat').first().evaluate((e, cel) => e.getBoundingClientRect().height / e.currentCSSZoom >= (cel ? 140 : 150), cel));
     if (cel) {
@@ -113,8 +111,7 @@ for (const [nome, vw] of TELAS) {
     check(`cadastro (${nome}): mesma escala do login`, zc === escalas[nome]?.login, `cadastro ${zc}, login ${escalas[nome]?.login}`);
     check(`cadastro (${nome}): já abre na escala certa`, await escalaInicial(p) === zc, `${await escalaInicial(p)} -> ${zc}`);
     // A altura de referência de caber.js continua certa: a do cadastro (computador) cabe nela, com folga de até 12 px.
-    if (vw.width >= 768 && vw.width < 1024 && vw.height >= 800) { const a = await alturaNatural(p, '.auth'); check(`cadastro (${nome}): altura de referência certa no tablet (${a} de 1170 px)`, a <= 1170 && 1170 - a <= 12, `${a} px`); }
-    if (vw.width >= 1040 && vw.height < 800) { const a = await alturaNatural(p, '.auth'), ref = 758; check(`cadastro (${nome}): altura de referência certa (${a} de ${ref} px)`, a <= ref && ref - a <= 12, `${a} px`); }
+    if (vw.width >= 1040 && vw.height < 820) { const a = await alturaNatural(p, '.auth'), ref = 758; check(`cadastro (${nome}): altura de referência certa (${a} de ${ref} px)`, a <= ref && ref - a <= 12, `${a} px`); }
     if (cel) {
       const alturas = await p.locator('.su .inp').evaluateAll(l => l.map(e => Math.round(e.getBoundingClientRect().height)));
       check(`cadastro (${nome}): campos com 48 px no celular`, alturas.length === 7 && alturas.every(h => h >= 48), alturas.join(','));
