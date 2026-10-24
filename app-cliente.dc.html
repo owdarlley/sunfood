@@ -1156,6 +1156,53 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
 @media (hover:hover){.tblwrap .tr:not(.th):hover{background:var(--row-hover)}}
 .tblwrap .tr + .tr:not(.th){border-top:1px solid var(--divider)}
 
+/* ===== Admin em grupos (2026-10-24, refatoração SaaS aprovada pelo Dárlley) =====
+   Menu lateral com grupos (Operação, Catálogo e análise) e Configurações
+   no rodapé; faixa de status (aberto/pausado) no topo de todas as telas;
+   abas dentro de Pedidos e de Configurações; no celular, barra inferior. */
+.adm-grp{padding:clamp(4px,calc(1.2vh / var(--z)),12px) 12px 4px;font:600 calc(12px / var(--z))/1.4 'Manrope',system-ui,sans-serif;color:var(--ink-2)}
+.adm-item .adm-lbl{flex:1;min-width:0}
+.adm-badge{display:inline-flex;align-items:center;justify-content:center;min-width:calc(20px / var(--z));height:calc(20px / var(--z));padding:0 calc(6px / var(--z));border-radius:999px;background:var(--brand);color:#fff;font:800 calc(12px / var(--z))/1 'Manrope',system-ui,sans-serif}
+.adm-badge.warn{background:var(--sun-tint);color:#7A4B00}
+.adm-settings{margin-top:auto}
+.adm-side > .adm-settings + .adm-foot{margin-top:0;border-top:1px solid var(--divider)}
+.adm-status{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:calc(-1 * var(--sec) + 12px) 0 var(--gap)}
+.adm-st{display:inline-flex;align-items:center;gap:8px;min-height:calc(32px / var(--z));padding:0 12px;border-radius:999px;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif}
+.adm-st-dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.adm-st.on{background:#E5F7EA;color:#1E6B36}
+.adm-st.off{background:var(--danger-tint);color:var(--danger)}
+.adm-tabs{display:flex;gap:24px;box-shadow:inset 0 -1px 0 var(--line);margin:calc(-1 * var(--sec) + var(--gap)) 0 var(--sec);overflow-x:auto;scrollbar-width:none}
+.adm-tabs::-webkit-scrollbar{display:none}
+.adm-tab{display:inline-flex;align-items:center;min-height:var(--tap);padding:0 2px;border-bottom:2px solid transparent;font:600 var(--fs-body) 'Manrope',system-ui,sans-serif;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.adm-tab:hover{color:var(--ink)}
+.adm-tab.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:700}
+.adm-tab:focus-visible{outline:none;box-shadow:var(--focus);border-radius:4px}
+.ops-now{display:flex;flex-direction:column;gap:16px}
+.ops-now h2{margin:0}
+.ops-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(170px,100%),1fr));gap:16px}
+.ops-cell{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ops-cell .k{font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--ink-2)}
+.ops-cell .v{font:800 var(--fs-h3) 'Manrope',system-ui,sans-serif;overflow-wrap:anywhere}
+.ops-cell .s{font:500 var(--fs-cap) 'Manrope',system-ui,sans-serif;color:var(--ink-2)}
+.adm-bnav{display:none}
+/* Gráfico no celular: os valores em cima das barras se sobrepunham; o pico já
+   aparece no título do painel. */
+@media (max-width:767px){.bars .bv{visibility:hidden}}
+@media (max-width:900px){
+  .adm-admin .adm-menubtn{display:none !important}
+  .adm-side:not(.open) .adm-grp{display:none}
+  .adm-side.open > .adm-grp{order:2;flex-basis:100%;padding:8px 4px 0}
+  .adm-side.open > .adm-settings{margin-top:0}
+  .adm-admin .adm-main{padding-bottom:calc(var(--sec) + 64px / var(--z) + env(safe-area-inset-bottom))}
+  .adm-status{margin-top:0}
+  .adm-bnav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .adm-bn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:calc(64px / var(--z));font:600 calc(12px / var(--z)) 'Manrope',system-ui,sans-serif;color:var(--ink-2);cursor:pointer}
+  .adm-bn svg{width:calc(24px / var(--z));height:calc(24px / var(--z))}
+  .adm-bn.on{color:var(--brand);font-weight:700}
+  .adm-bn-ic{position:relative;display:inline-flex}
+  .adm-bn-ic .adm-badge{position:absolute;top:calc(-6px / var(--z));left:calc(14px / var(--z))}
+  .adm-bn:focus-visible{outline:none;box-shadow:inset var(--focus)}
+}
 /* Estados: hover, toque, foco (teclado) e desabilitado iguais aos do login. */
 .btn,.addbtn,.kz-act,.kz-btn,.toplink,.cartpill,.backbtn,.mesachip{transition:background .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease),box-shadow .15s var(--ease),transform .1s var(--ease)}
 .btn:focus-visible,.addbtn:focus-visible,.kz-act:focus-visible,.kz-btn:focus-visible,.toplink:focus-visible,.cartpill:focus-visible,.backbtn:focus-visible,.adm-item:focus-visible,.pcard:focus-visible,.link:focus-visible,.adm-menubtn:focus-visible{outline:none;box-shadow:var(--focus)}
@@ -2155,21 +2202,29 @@ select{caret-color:auto}
       </sc-if>
 
       <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
-      <div class="adm">
+      <div class="adm adm-admin">
         <div class="adm-side {{ admMenuCls }}">
           <div onClick="{{ goHome }}" class="adm-brand" style="cursor:pointer"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>SunFood</b><small>admin</small></div>
           <div onClick="{{ toggleAdmMenu }}" class="adm-menubtn" role="button" aria-label="Abrir ou fechar o menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path sc-camel-d="{{ admMenuIc }}"></path></svg>{{ admMenuLabel }}</div>
-          <sc-for list="{{ adminSide }}" as="it" hint-placeholder-count="7">
-            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg>{{ it.label }}</div>
+          <div class="adm-grp">Operação</div>
+          <sc-for list="{{ adminSideOps }}" as="it" hint-placeholder-count="3">
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg><span class="adm-lbl">{{ it.label }}</span><sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}"><span class="adm-badge {{ it.badgeCls }}">{{ it.badge }}</span></sc-if></div>
           </sc-for>
-          <div class="adm-sep"></div>
-          <div onClick="{{ goKanban }}" class="adm-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M10 7h4"></path></svg>Tela da cozinha</div>
+          <div class="adm-grp">Catálogo e análise</div>
+          <sc-for list="{{ adminSideCat }}" as="it" hint-placeholder-count="3">
+            <div onClick="{{ it.go }}" class="adm-item {{ it.cls }}" aria-current="{{ it.cur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg><span class="adm-lbl">{{ it.label }}</span><sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}"><span class="adm-badge {{ it.badgeCls }}">{{ it.badge }}</span></sc-if></div>
+          </sc-for>
+          <div onClick="{{ goSettings }}" class="adm-item adm-settings {{ settingsCls }}" aria-current="{{ settingsCur }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10 M18 7h2 M4 17h4 M12 17h8 M16 5v4 M10 15v4"></path></svg><span class="adm-lbl">Configurações</span></div>
           <div class="adm-foot">
             <div class="em" style="font:500 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:#C3D8DB;padding:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ email }}</div>
             <div onClick="{{ goLogin }}" class="kz-btn" style="justify-content:center">Sair</div>
           </div>
         </div>
         <div class="adm-main">
+          <div class="adm-status">
+            <span class="adm-st {{ stCls }}" role="status"><span class="adm-st-dot"></span>{{ stLabel }}</span>
+            <div onClick="{{ togglePause }}" class="btn btn-ghost btn-sm adm-st-btn" role="button">{{ pauseBtnLabel }}</div>
+          </div>
           <div class="adm-head">
             <div>
               <div class="muted" style="font-size:var(--fs-body)">{{ admEyebrow }}</div>
@@ -2177,7 +2232,6 @@ select{caret-color:auto}
             </div>
             <sc-if value="{{ is_dashboard }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:12px;flex-wrap:wrap">
-                <div onClick="{{ togglePause }}" class="btn btn-ghost btn-sm" style="min-height:var(--ctl)"><span style="{{ pauseDotStyle }}"></span>{{ pauseBtnLabel }}</div>
                 <div onClick="{{ goCloseDay }}" class="btn btn-danger-ghost btn-sm" style="min-height:var(--ctl)">Encerrar o dia</div>
               </div>
             </sc-if>
@@ -2210,6 +2264,14 @@ select{caret-color:auto}
               <div onClick="{{ goKanban }}" class="btn btn-dark btn-sm" style="min-height:var(--ctl)">Abrir tela da cozinha</div>
             </sc-if>
           </div>
+
+          <sc-if value="{{ hasAdmTabs }}" hint-placeholder-val="{{ false }}">
+            <div class="adm-tabs" role="tablist" aria-label="{{ admTabsLabel }}">
+              <sc-for list="{{ admTabs }}" as="t" hint-placeholder-count="3">
+                <div onClick="{{ t.go }}" class="adm-tab {{ t.cls }}" role="tab" aria-selected="{{ t.sel }}">{{ t.label }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
 
           <sc-if value="{{ is_dashboard }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:16px" class="rise">
@@ -2252,12 +2314,23 @@ select{caret-color:auto}
                   </sc-if>
                 </div>
               </div>
-              <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;margin-top:4px">Operação agora</div>
-              <div class="mini">
-                <sc-for list="{{ opsMini }}" as="m" hint-placeholder-count="5">
-                  <div class="kpi" style="padding:16px 16px"><div class="k" style="font-size:var(--fs-sm)">{{ m.k }}</div><div class="v" style="{{ m.style }}">{{ m.v }}</div></div>
-                </sc-for>
-              </div>
+              <section class="panel ops-now" aria-labelledby="ops-now-h">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 id="ops-now-h">Operação agora</h2><span class="muted" style="font-size:var(--fs-sm)">Atualiza sozinho</span></div>
+                <sc-if value="{{ hasOpsRows }}" hint-placeholder-val="{{ true }}">
+                  <div class="ops-grid">
+                    <sc-for list="{{ opsRows }}" as="r" hint-placeholder-count="5">
+                      <div class="ops-cell"><div class="k">{{ r.k }}</div><div class="v" style="{{ r.cellStyle }}">{{ r.val }}</div><div class="s">{{ r.sub }}</div></div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ noOpsRows }}" hint-placeholder-val="{{ false }}">
+                  <div class="ops-grid">
+                    <sc-for list="{{ opsMini }}" as="m" hint-placeholder-count="4">
+                      <div class="ops-cell"><div class="k">{{ m.k }}</div><div class="v" style="{{ m.style }}">{{ m.v }}</div></div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </section>
             </div>
           </sc-if>
 
@@ -3033,6 +3106,12 @@ select{caret-color:auto}
           </sc-if>
 
         </div>
+        <nav class="adm-bnav" aria-label="Menu principal">
+          <sc-for list="{{ adminBnav }}" as="it" hint-placeholder-count="4">
+            <div onClick="{{ it.go }}" class="adm-bn {{ it.cls }}" aria-current="{{ it.cur }}"><span class="adm-bn-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path sc-camel-d="{{ it.ic }}"></path></svg><sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}"><span class="adm-badge {{ it.badgeCls }}">{{ it.badge }}</span></sc-if></span>{{ it.label }}</div>
+          </sc-for>
+          <div onClick="{{ toggleAdmMenu }}" class="adm-bn {{ admMoreCls }}" aria-expanded="{{ admMoreExpanded }}"><span class="adm-bn-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span>Mais</div>
+        </nav>
       </div>
       </sc-if>
 
@@ -4014,7 +4093,8 @@ const ADM_IC = {
   perfOps:'M12 13V9 M9 2h6 M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16z',
   waiters:'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M2 21c0-4 3-7 7-7s7 3 7 7 M16 3.5a4 4 0 0 1 0 7 M18 14c2.5.8 4 3.5 4 7',
   tables:'M3 11l9-7 9 7 M5 10v10h14V10',
-  stripe:'M9 15l6-6 M10 6l1-1a4 4 0 0 1 6 6l-1 1 M14 18l-1 1a4 4 0 0 1-6-6l1-1'
+  stripe:'M9 15l6-6 M10 6l1-1a4 4 0 0 1 6 6l-1 1 M14 18l-1 1a4 4 0 0 1-6-6l1-1',
+  kitchen:'M4 18h16 M6 18a6 6 0 0 1 12 0 M12 9V7 M10 7h4'
 };
 
 const UI = {
@@ -7017,9 +7097,31 @@ class Component extends DCLogic {
     // admin — tudo abaixo lê s.dashboard/s.opsMetrics/s.adminOrders, carregados
     // de verdade por loadAdminData() (nada é mock; adminLogin/adminForgot saíram
     // do menu porque a autenticação agora é só pelo modal do index.html).
-    const sideOn = s.screen === 'pause' ? 'tables' : s.screen === 'closeDay' ? 'dashboard' : s.screen;
-    v.adminSide = [['dashboard','Painel'],['orders','Pedidos'],['payments','Pagamentos'],['messages','Mensagens'],['productForm','Cardápio e estoque'],['reports','Relatórios'],['perfOps','Desempenho'],['tables','Quiosque e mesas'],['waiters','Garçons'],['stripe','Stripe']]
-      .map(([k, label]) => ({label, ic:ADM_IC[k], cls:sideOn === k ? 'on' : '', cur:sideOn === k ? 'page' : 'false', go:() => this.go(k, 'admin')}));
+    // Menu do admin em grupos (2026-10-24, refatoração aprovada pelo Dárlley):
+    // Pagamentos virou aba de Pedidos, Desempenho entrou no Painel e Quiosque e
+    // mesas, Garçons e Stripe ficaram em Configurações.
+    const ADM_GROUP = {payments:'orders', perfOps:'dashboard', closeDay:'dashboard', pause:'settings', tables:'settings', waiters:'settings', stripe:'settings'};
+    const sideOn = ADM_GROUP[s.screen] || s.screen;
+    const activeN = (s.adminOrders || []).filter(o => o.status === 'Na Fila' || o.status === 'Em Preparo' || o.status === 'Pronto').length;
+    const newMsgN = (s.contactMsgs || []).filter(m => m.status === 'novo').length;
+    const sideItem = ([k, label, badge, badgeCls, go]) => ({label, ic:ADM_IC[k], cls:sideOn === k ? 'on' : '', cur:sideOn === k ? 'page' : 'false',
+      hasBadge:!!badge, badge:String(badge || ''), badgeCls:badgeCls || '', go:go || (() => this.go(k, 'admin'))});
+    v.adminSideOps = [['dashboard','Painel'],['orders','Pedidos',activeN,'warn'],['kitchen','Cozinha',0,'',() => v.goKanban()]].map(sideItem);
+    v.adminSideCat = [['productForm','Cardápio e estoque'],['reports','Relatórios'],['messages','Mensagens',newMsgN,'']].map(sideItem);
+    v.goSettings = () => this.go('tables', 'admin');
+    v.settingsCls = sideOn === 'settings' ? 'on' : ''; v.settingsCur = sideOn === 'settings' ? 'page' : 'false';
+    // Barra inferior no celular: as quatro telas mais usadas e "Mais" (abre o menu).
+    v.adminBnav = [['dashboard','Painel'],['orders','Pedidos',activeN,'warn'],['productForm','Cardápio'],['messages','Mensagens',newMsgN,'']].map(sideItem);
+    v.admMoreCls = s.admMenu ? 'on' : '';
+    v.admMoreExpanded = s.admMenu ? 'true' : 'false';
+    // Abas dentro de Pedidos e de Configurações.
+    const tabsOf = {orders:[['orders','Pedidos'],['payments','Pagamentos']], settings:[['tables','Quiosque e mesas'],['waiters','Garçons'],['stripe','Stripe']]}[sideOn];
+    const tabOn = s.screen === 'pause' ? 'tables' : s.screen;
+    v.hasAdmTabs = !!tabsOf;
+    v.admTabsLabel = sideOn === 'settings' ? 'Seções das configurações' : 'Pedidos ou pagamentos';
+    v.admTabs = (tabsOf || []).map(([k, label]) => ({label, cls:tabOn === k ? 'on' : '', sel:tabOn === k ? 'true' : 'false', go:() => this.go(k, 'admin')}));
+    v.stCls = s.paused ? 'off' : 'on';
+    v.stLabel = s.paused ? 'Pausado · clientes não fecham pedido' : 'Aberto · recebendo pedidos';
     v.admMenuCls = s.admMenu ? 'open' : '';
     v.admMenuLabel = s.admMenu ? 'Fechar' : 'Menu';
     v.admMenuIc = s.admMenu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16';
@@ -7034,11 +7136,11 @@ class Component extends DCLogic {
       payments:'O que entrou e o que falta receber',
       messages:'Recebidas pelo Fale conosco do site',
       productForm:s.products.length + ' produtos · ' + (n => n + (n === 1 ? ' esgotado' : ' esgotados'))(s.products.filter(p => p.soldOut).length),
-      tables:'Regras que valem para todos os pedidos',
-      pause:'Regras que valem para todos os pedidos',
+      tables:'Quiosque, mesas e regras dos pedidos',
+      pause:'Quiosque, mesas e regras dos pedidos',
       reports:'Vendas, mais vendidos e horários de pico',
       perfOps:'Hoje, atualizado sozinho',
-      waiters:'Contas da equipe que entrega os pedidos',
+      waiters:'Contas dos garçons que entregam os pedidos',
       stripe:'Conta que recebe os pagamentos por PIX e cartão',
       closeDay:'Fechamento do caixa'
     }[s.screen] || '';
@@ -7138,6 +7240,9 @@ class Component extends DCLogic {
       {lbl:'Online aguardando', val:sum(onlineWaiting), sub:plural(onlineWaiting.length, 'pedido', 'pedidos')},
       {lbl:'Estornado', val:refundedSum, sub:plural(refunded.length, 'pedido', 'pedidos')}
     ];
+    // Painel: o tempo de preparo já aparece em "Operação agora"; o 4º número
+    // passa a ser o que falta receber na entrega.
+    v.kpis[3] = dash ? {lbl:'A receber na entrega', val:sum(toReceive), delta:plural(toReceive.length, 'pedido', 'pedidos')} : {lbl:'A receber na entrega', val:'—', delta:'carregando…'};
     if(s.pixProvider === 'provisorio' || s.cardProvider === 'provisorio') v.payKpis.splice(1, 0, {lbl:'Provisório hoje (PIX/cartão)', val:sum(provisional), sub:plural(provisional.length, 'pedido', 'pedidos') + ', sem cobrança'});
     // Aviso no topo de Pagamentos: PIX ou cartão provisório (aprovado sem cobrança).
     const provisorios = [s.pixProvider === 'provisorio' ? 'PIX' : null, s.cardProvider === 'provisorio' ? 'cartão' : null].filter(Boolean);
@@ -7347,7 +7452,7 @@ class Component extends DCLogic {
       ['Pedidos atrasados', String(lateOrdersOf(s.adminOrders).length), lateOrdersOf(s.adminOrders).length > 0],
       ['Cancelamentos hoje', opsM ? String(opsM.cancelledToday) : '—', false],
       ['Itens esgotados', opsM ? String(opsM.soldOutProducts.length) : '—', opsM && opsM.soldOutProducts.length > 0]
-    ].map(([k, val, bad]) => ({k, v:val, style:'font-size:var(--fs-h2);color:' + (bad ? '#B42318' : '#14232A')}));
+    ].map(([k, val, bad]) => ({k, v:val, style:'color:' + (bad ? 'var(--danger)' : 'var(--ink)')}));
 
     // Relatórios: vendas, mais vendidos e horários de pico no período.
     const rep = s.report && s.report.period === s.reportPeriod ? s.report : null;
@@ -7415,8 +7520,10 @@ class Component extends DCLogic {
       ['Itens indisponíveis', ops.soldOutProducts.length ? (ops.soldOutProducts.length + ' (' + ops.soldOutProducts.join(', ') + ')') : 'Nenhum', 'Sinalizado pela cozinha', ops.soldOutProducts.length ? 'warn' : 'ok'],
       ['Cancelamentos', String(ops.cancelledToday), 'Hoje', ops.cancelledToday > 0 ? 'warn' : 'ok']
     ].map(([k, val, sub, kind]) => ({
-      k, val, sub, valStyle:'font-size:var(--fs-h2);color:' + (kind === 'ok' ? '#14232A' : '#B42318')
+      k, val, sub, valStyle:'font-size:var(--fs-h2);color:' + (kind === 'ok' ? '#14232A' : '#B42318'),
+      cellStyle:'color:' + (kind === 'ok' ? 'var(--ink)' : 'var(--danger)')
     })) : [];
+    v.hasOpsRows = v.opsRows.length > 0; v.noOpsRows = !v.hasOpsRows;
 
     v.pfCategoryOptions = catNames.map(cat => ({
       cat, pick:() => this.setState(x => ({pf:Object.assign({}, x.pf, {cat})})), cls:s.pf.cat === cat ? 'on' : ''
@@ -7830,6 +7937,8 @@ class Component extends DCLogic {
     v.toastOk = TOAST_OK.test(s.toast || ''); v.toastWarn = !!s.toast && !v.toastOk;
 
     v.screenLabel = (SCREENS[s.module].find(x => x[0] === s.screen) || ['', ''])[1];
+    if(s.module === 'admin' && ['tables','pause','waiters','stripe'].indexOf(s.screen) >= 0) v.screenLabel = 'Configurações';
+    if(s.module === 'admin' && s.screen === 'payments') v.screenLabel = 'Pedidos';
     v.url = s.module === 'cliente' ? 'app.sunfood.com.br' : s.module === 'admin' ? 'painel.sunfood.com.br' : 'cozinha.sunfood.com.br';
     v.stateChips = [
       {k:'Login', v:'ana@email.com'},

@@ -171,7 +171,7 @@ await step('voltar sem trocar de perfil', async () => {
   // que abre a tela da cozinha volta para o painel com o voltar.
   const adm = await open('app-cliente.dc.html?module=cliente&screen=profile', { role: 'admin', seed: true, width: 1280, height: 800 });
   check('perfil: endereço de cliente com conta de admin abre o painel', screen(adm) === 'dashboard' && new URL(adm.url()).searchParams.get('module') === 'admin', adm.url());
-  await adm.getByText('Tela da cozinha').click(); await adm.waitForTimeout(500);
+  await adm.locator('.adm-item', { hasText: 'Cozinha' }).click(); await adm.waitForTimeout(500);
   check('perfil: admin abre a tela da cozinha', new URL(adm.url()).searchParams.get('module') === 'cozinha', adm.url());
   await adm.goBack(); await adm.waitForTimeout(800);
   check('perfil: voltar da cozinha leva ao painel do admin', new URL(adm.url()).searchParams.get('module') === 'admin' && (await adm.locator('.adm-brand small').first().innerText()) === 'admin', adm.url());
