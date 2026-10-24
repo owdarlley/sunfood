@@ -111,7 +111,8 @@ html.sf-espera #dc-root{opacity:0}
    vh por --z, porque o zoom também encolhe o vh. No celular e no tablet com
    toque os campos ficam com 16 px reais (abaixo disso o iOS dá zoom ao tocar). */
 :root{--z:.83}
-.sf-z{zoom:var(--z)}
+.sf-z{zoom:var(--z);min-height:calc(100vh / var(--z))}
+.sf-z .sf-app{min-height:calc(100vh / var(--z))}
 .sf-z .auth{zoom:calc(var(--fit,1) / var(--z))}
 /* Cadastro na mesma escala do login (caber.js, no máximo 83%, também no
    celular): no celular botões e campos ficam com 48 px reais de toque e, no
@@ -131,6 +132,14 @@ html.sf-espera #dc-root{opacity:0}
 @supports (height:1dvh){@media (max-width:767px){.sf-z .auth{--au-h:calc(1dvh / var(--fit,1))}}}
 /* Com a altura medida pelo caber.js (--janela), ela vale no lugar do dvh. */
 .sf-z .auth{min-height:calc(var(--janela,100dvh) / var(--fit,1))}
+/* Espaço em branco no fim do cadastro e do login no celular (2026-10-24,
+   pedido do Dárlley): quem dá a altura dessas telas é a janela medida
+   (--janela). As caixas de fora (.sf-z e .sfc) tinham no mínimo 100vh, que
+   no celular pode passar da janela (barra do navegador, Samsung ao
+   recarregar) e, no app com "Site para computador", não era corrigido pelo
+   celular.js (estava no style da <div>): sobrava uma faixa vazia embaixo do
+   botão. Nessas telas elas só acompanham a tela de dentro. */
+.sf-z:has(.auth),.sf-z .sfc:has(> .auth){min-height:0}
 @media (max-width:767px){.sf-z .auth{--au-h:calc(var(--janela,100dvh) / 100 / var(--fit,1))}}
 @media (max-width:767px),(pointer:coarse){.sf-z .auth :is(input,select,textarea){font-size:calc(16px / var(--fit,1)) !important}}
 /* Botões e campos mantêm a altura de toque real (48 px no tablet e 44 no
@@ -1203,7 +1212,7 @@ select{caret-color:auto}
 </style>
 </helmet>
 
-<div class="sf-z" style="min-height:calc(100vh / var(--z));position:relative;background:var(--bg)">
+<div class="sf-z" style="position:relative;background:var(--bg)">
       <sc-if value="{{ netDown }}" hint-placeholder-val="{{ false }}">
         <div class="netbar" role="alert">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.3a10 10 0 0 1 4.3-2.3M15.6 10.6A10 10 0 0 1 19 12.3M8.5 15.8a5 5 0 0 1 7 0M12 19.5h.01M3 3l18 18"></path></svg>
@@ -1380,7 +1389,7 @@ select{caret-color:auto}
         </sc-if>
 
         <sc-if value="{{ showApp }}" hint-placeholder-val="{{ true }}">
-          <div class="sf-app" style="flex:1;display:flex;flex-direction:column;min-height:calc(100vh / var(--z))">
+          <div class="sf-app" style="flex:1;display:flex;flex-direction:column">
             <div class="topbar">
               <div class="topbar-in">
                 <div onClick="{{ goHome }}" class="brand"><svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b>SunFood</b></div>
