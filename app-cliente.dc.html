@@ -84,6 +84,10 @@ html.sf-espera #dc-root{opacity:0}
   --danger:#B42318;--danger-hover:#8A1C12;--danger-tint:#FDECEA;
   --shadow-card:0 1px 2px rgba(20,35,42,.04),0 8px 24px -16px rgba(20,35,42,.16)
 }
+/* Visual SaaS (2026-10-24, aprovado pelo Dárlley): cartões só com borda fina,
+   sem sombra; sombra fica para o que abre por cima (menus, janelas). Cantos:
+   cartões 12, botões e campos 8, pílulas 999. */
+:root{--shadow-card:none;--shadow-pop:0 12px 32px -12px rgba(20,35,42,.28)}
 @media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:20px;--fs-h1:30px;--fs-h2:22px}}
 @media (min-width:1440px){:root{--maxw:1440px}}
 @media (min-width:1025px){:root{--px:32px;--gap:24px;--sec:48px;--cpad:24px;--fs-h1:36px;--fs-h2:24px;--fs-h3:20px;--fs-body:16px}}
@@ -95,7 +99,7 @@ html.sf-espera #dc-root{opacity:0}
    celular e no tablet e 44 px no computador, cantos de 8 px, H1 de 24/28/32 px,
    corpo de 16 px no computador e 14 px como menor texto de leitura (13 px e
    menos só em legendas, com --fs-cap). */
-:root{--px:16px;--gap:12px;--sec:24px;--cpad:16px;--ctl:48px;--fs-h1:24px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;--r-card:14px;--r-btn:8px;--r-ctl:8px}
+:root{--px:16px;--gap:12px;--sec:24px;--cpad:16px;--ctl:48px;--fs-h1:24px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:14px;--fs-cap:12px;--r-card:12px;--r-btn:8px;--r-ctl:8px}
 @media (min-width:768px){:root{--px:24px;--gap:16px;--sec:32px;--cpad:16px;--fs-h1:28px;--fs-h2:22px;--fs-h3:20px}}
 @media (min-width:1025px){:root{--px:32px;--gap:20px;--sec:40px;--cpad:20px;--ctl:44px;--fs-h1:32px;--fs-h2:24px;--fs-h3:22px;--fs-body:16px;--fs-sm:14px}}
 /* Auditoria do design system (2026-10-19): padding de cartão em 16 px no
@@ -210,12 +214,12 @@ a:hover{color:var(--brand-hover)}
 .btn:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--brand)}
 .btn-sun,.btn-dark,.btn-teal{background:var(--brand);color:#fff}
 .btn-sun:hover,.btn-dark:hover,.btn-teal:hover{background:var(--brand-hover)}
-.btn-ghost{background:#fff;color:var(--brand);border:1px solid var(--brand);font-weight:700}
-.btn-ghost:hover{background:var(--brand-tint)}
+.btn-ghost{background:#fff;color:var(--brand);border:1px solid var(--line-dash);font-weight:700}
+.btn-ghost:hover{background:var(--brand-tint);border-color:var(--brand)}
 .btn-danger{background:var(--danger);color:#fff}
 .btn-danger:hover{background:var(--danger-hover)}
-.btn-danger-ghost{background:#fff;color:var(--danger);border:1px solid var(--danger);font-weight:700}
-.btn-danger-ghost:hover{background:var(--danger-tint)}
+.btn-danger-ghost{background:#fff;color:var(--danger);border:1px solid var(--line-dash);font-weight:700}
+.btn-danger-ghost:hover{background:var(--danger-tint);border-color:var(--danger)}
 .prod-del{width:var(--ctl);padding:0;color:var(--danger)}
 .prod-del:hover{background:var(--danger-tint);border-color:var(--danger)}
 /* botão menor (ações dentro de cartões e tabelas): 44 px, o mínimo de toque */
@@ -243,7 +247,7 @@ select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:ima
    Fundo branco como os cartões, borda e ícone na cor do tipo, texto escuro. */
 .inp::placeholder{color:var(--ink-2);opacity:1}
 .mesafield input::placeholder{color:var(--ink-2);font-weight:600}
-.alert{--al:var(--brand);--al-line:var(--brand-line);--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E");position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 16px 12px 44px;border-radius:12px;background:#fff;border:1px solid var(--al-line);box-shadow:0 1px 2px rgba(20,35,42,.04);color:var(--ink);font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;text-align:left}
+.alert{--al:var(--brand);--al-line:var(--brand-line);--al-ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' view%42ox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 11v5.5M12 7.5v.01'/%3E%3C/svg%3E");position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 16px 12px 44px;border-radius:12px;background:#fff;border:1px solid var(--al-line);color:var(--ink);font:500 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif;text-align:left}
 .alert::before{content:"";position:absolute;left:16px;top:13px;width:18px;height:18px;background:var(--al);-webkit-mask:var(--al-ico) center/contain no-repeat;mask:var(--al-ico) center/contain no-repeat}
 .alert:has(> svg){padding-left:16px}
 .alert:has(> svg)::before{content:none}
@@ -356,7 +360,7 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 @media (min-width:1200px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (min-width:1500px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .pcard{background:#fff;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-card);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .25s,box-shadow .25s}
-.pcard:hover{transform:translateY(-4px);box-shadow:0 18px 36px -18px rgba(20,35,42,.35)}
+.pcard:hover{border-color:var(--line-dash)}
 .pcard .pbody{padding:16px !important}
 @media (min-width:1025px){.pcard .pbody{padding:20px !important}}
 /* Cartões "vazios" enquanto o cardápio chega na primeira visita (em vez de
@@ -364,7 +368,7 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 .pcard.sk{cursor:default;pointer-events:none}
 .sk-box{background:#ECE7DC;animation:sfpulse 1.2s ease-in-out infinite}
 .pimg{position:relative;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.addbtn{height:44px;padding:0 16px;border-radius:999px;background:var(--brand);color:#fff;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;display:inline-flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;transition:background .2s,transform .15s}
+.addbtn{height:44px;padding:0 16px;border-radius:var(--r-btn);background:var(--brand);color:#fff;font:700 var(--fs-sm) 'Manrope',system-ui,sans-serif;display:inline-flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;transition:background .2s,transform .15s}
 .addbtn:hover{background:var(--brand-hover)}
 .addbtn:active{transform:scale(.94)}
 .addbtn .plus{font-size:20px;line-height:1;font-weight:800}
@@ -773,7 +777,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .pgrid.adm-pgrid{grid-template-columns:repeat(auto-fill,minmax(min(calc(272px / var(--z)),100%),1fr))}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
 .tile{border-radius:var(--r-card);padding:16px 8px;text-align:center;cursor:pointer;transition:transform .15s}
-.tile:hover{transform:translateY(-2px)}
+.tile:hover{filter:brightness(.97)}
 .mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 @media (max-width:1100px){ .grid2{grid-template-columns:minmax(0,1fr)} }
 /* Seletor (Hoje / 7 dias / 30 dias) no celular: ocupa a largura e as opções
@@ -934,7 +938,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 @media (min-width:1025px){.grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}}
 @media (min-width:1200px){.grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important}}
 @media (min-width:1500px){.grid{grid-template-columns:repeat(5,minmax(0,1fr)) !important}}
-.pcard:hover{transform:translateY(-2px)}
+.pcard:hover{transform:none}
 .pcard .pimg{aspect-ratio:3/2}
 .pcard .pimg span[style*="left:12px"]{left:8px !important;top:8px !important;padding:2px 8px !important}
 .pcard .pbody{padding:12px !important;gap:4px !important}
@@ -1158,6 +1162,12 @@ body{padding-left:var(--sal);padding-right:var(--sar)}
 [data-sf-click]:where(:focus-visible){outline:2px solid var(--brand);outline-offset:2px}
 .kz-act:active,.kz-btn:active,.backbtn:active,.cartpill:active,.toplink:active{transform:scale(.98)}
 .btn[aria-disabled="true"],.btn.is-disabled,.kz-act[aria-disabled="true"]{opacity:.5;cursor:not-allowed;pointer-events:none}
+/* Desabilitado: fundo neutro em vez de botão "apagado"; carregando: girador
+   antes do texto e clique bloqueado (aria-busy="true"). */
+.btn:is(.btn-sun,.btn-dark,.btn-teal,.btn-danger)[aria-disabled="true"]{opacity:1;background:var(--line);color:#6B7479}
+.btn:is(.btn-ghost,.btn-danger-ghost)[aria-disabled="true"]{opacity:1;border-color:var(--divider);color:#6B7479}
+.btn[aria-busy="true"]{pointer-events:none;opacity:1 !important}
+.btn[aria-busy="true"]::before{content:"";flex:none;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sfspin .7s linear infinite}
 .card{transition:box-shadow .2s var(--ease),border-color .2s var(--ease)}
 
 /* Status com cores de significado: verde = ok, vermelho = erro/atrasado,
@@ -1371,7 +1381,7 @@ select{caret-color:auto}
                     </div>
                     <sc-if value="{{ suHasFeTerms }}" hint-placeholder-val="{{ false }}"><span class="ferr" style="margin-top:-8px">{{ suFeTerms }}</span></sc-if>
                     <sc-if value="{{ hasSuErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ suErr }}</div></sc-if>
-                    <div onClick="{{ doCompleteProfile }}" class="btn btn-sun" style="opacity:{{ completeBusyOpacity }}">{{ completeBtnLabel }}</div>
+                    <div onClick="{{ doCompleteProfile }}" class="btn btn-sun" aria-busy="{{ completeBusyAria }}">{{ completeBtnLabel }}</div>
                     <div onClick="{{ goLogin }}" class="link" style="text-align:center;color:var(--ink-2)">Sair</div>
                   </div>
                 </sc-if>
@@ -2062,7 +2072,7 @@ select{caret-color:auto}
                     </div>
                     <p class="muted" style="font-size:var(--fs-sm);line-height:1.5;margin:0">E-mail e CPF não mudam por aqui. Se precisar trocar, fale com o quiosque pelo Fale conosco.</p>
                     <sc-if value="{{ hasMeErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ meErr }}</div></sc-if>
-                    <div onClick="{{ saveProfile }}" class="btn btn-sun" style="opacity:{{ meBusyOpacity }}">{{ meSaveLabel }}</div>
+                    <div onClick="{{ saveProfile }}" class="btn btn-sun" aria-busy="{{ meBusyAria }}">{{ meSaveLabel }}</div>
                   </div>
                 </div>
               </sc-if>
@@ -2410,7 +2420,7 @@ select{caret-color:auto}
                   </sc-if>
                   <div class="pf-btns">
                     <div onClick="{{ closeRefund }}" class="btn btn-ghost">Voltar</div>
-                    <div onClick="{{ confirmRefund }}" class="btn btn-danger" style="{{ rfConfirmStyle }}">{{ rfConfirmLabel }}</div>
+                    <div onClick="{{ confirmRefund }}" class="btn btn-danger" aria-busy="{{ rfBusyAria }}">{{ rfConfirmLabel }}</div>
                   </div>
                 </div>
               </div>
@@ -2886,7 +2896,7 @@ select{caret-color:auto}
                   <div><label for="sxPkInp" class="lbl">Chave publicável</label><input placeholder="pk_test_… ou pk_live_…" id="sxPkInp" class="inp" value="{{ sxPk }}" onChange="{{ setSxPk }}" autocomplete="off" spellcheck="false" /></div>
                   <div><label for="sxSkInp" class="lbl">Chave secreta</label><input placeholder="sk_test_… ou sk_live_…" id="sxSkInp" class="inp" type="password" value="{{ sxSk }}" onChange="{{ setSxSk }}" autocomplete="off" spellcheck="false" /></div>
                   <sc-if value="{{ sxLiveWarn }}" hint-placeholder-val="{{ false }}"><div class="alert alert-warn">Chaves de produção: depois de salvar, os clientes pagam de verdade.</div></sc-if>
-                  <div onClick="{{ sxSave }}" class="btn btn-dark" role="button" aria-disabled="{{ sxBusyAria }}">{{ sxSaveLabel }}</div>
+                  <div onClick="{{ sxSave }}" class="btn btn-dark" role="button" aria-busy="{{ sxBusyAria }}">{{ sxSaveLabel }}</div>
                   <sc-if value="{{ hasSxMsg }}" hint-placeholder-val="{{ false }}"><div class="alert {{ sxMsgCls }}" role="status">{{ sxMsg }}</div></sc-if>
                   <div class="muted" style="font-size:var(--fs-cap);line-height:1.5">A chave secreta é conferida no Stripe e guardada criptografada no servidor: ela não aparece de novo aqui nem vai para o app dos clientes. O aviso que confirma PIX, cartão e estornos (webhook) é criado sozinho na sua conta.</div>
                 </div>
@@ -3315,7 +3325,7 @@ select{caret-color:auto}
                   <sc-if value="{{ hasGErr }}" hint-placeholder-val="{{ false }}">
                     <div class="alert alert-err">{{ gErr }}</div>
                   </sc-if>
-                  <div onClick="{{ sendManualOrder }}" class="btn btn-sun" style="{{ gSendStyle }}">{{ gSendLabel }}</div>
+                  <div onClick="{{ sendManualOrder }}" class="btn btn-sun" aria-busy="{{ gBusyAria }}" style="{{ gSendStyle }}">{{ gSendLabel }}</div>
                   <sc-if value="{{ gHasCart }}" hint-placeholder-val="{{ false }}">
                     <div onClick="{{ clearManualOrder }}" class="btn btn-ghost btn-sm">Limpar pedido</div>
                   </sc-if>
@@ -6986,7 +6996,7 @@ class Component extends DCLogic {
     v.doSignup = () => this.submitSignup();
     v.doCompleteProfile = () => this.submitCompleteProfile();
     v.completeBtnLabel = s.busy === 'complete' ? 'Salvando...' : 'Salvar e continuar';
-    v.completeBusyOpacity = s.busy === 'complete' ? '.6' : '1';
+    v.completeBusyAria = s.busy === 'complete' ? 'true' : 'false';
     v.fpEmail = s.fpEmail; v.fpSent = s.fpSent; v.fpNotSent = !s.fpSent;
     v.fpSentTo = s.fpSentTo; v.fpSentByCpf = s.fpSentByCpf; v.fpSentByEmail = !s.fpSentByCpf;
     v.fpModeEmail = s.fpMode !== 'cpf'; v.fpModeCpf = s.fpMode === 'cpf';
@@ -7206,7 +7216,7 @@ class Component extends DCLogic {
       v.rfErr = rf.err; v.hasRfErr = !!rf.err;
       const amt = parseMoney(rf.amount);
       v.rfConfirmLabel = rf.busy ? 'Processando…' : partial ? 'Estornar ' + (amt > 0 ? f(amt) : 'valor') : max > 0 ? 'Cancelar e estornar ' + f(max) : 'Cancelar pedido';
-      v.rfConfirmStyle = rf.busy ? 'opacity:.6' : '';
+      v.rfBusyAria = rf.busy ? 'true' : 'false';
       v.confirmRefund = () => this.confirmRefund();
       v.closeRefund = () => this.setState({rf:null});
       const hist = rf.history || [];
@@ -7241,7 +7251,7 @@ class Component extends DCLogic {
       : 'Desligado: o cliente fecha o pedido com qualquer valor. O valor salvo (' + v.minOrderStr + ') volta quando você ligar.';
     v.toggleMinOrder = () => this.toggleMinOrderEnabled();
     v.minOrderOnAria = minOn ? 'true' : 'false';
-    v.minOrderSwitchStyle = 'background:' + (minOn ? '#2E9C6A' : '#8C949A');
+    v.minOrderSwitchStyle = 'background:' + (minOn ? 'var(--brand)' : '#8C949A');
     v.minOrderKnobStyle = 'left:' + (minOn ? '23px' : '3px');
     // Localização: o mapa e o link saem do endereço (Google Maps, sem chave de API).
     const mapsQ = a => encodeURIComponent(a);
@@ -7263,7 +7273,7 @@ class Component extends DCLogic {
     v.pauseLabel = s.paused ? 'Quiosque pausado' : 'Quiosque aberto';
     v.pauseSub = s.paused ? 'O cardápio do cliente exibe aviso e o checkout está bloqueado.' : 'Novos pedidos estão sendo aceitos normalmente.';
     // Interruptor "Recebendo pedidos": ligado = aberto (o contrário de pausado).
-    v.pauseSwitchStyle = 'background:' + (s.paused ? '#8C949A' : '#2E9C6A');
+    v.pauseSwitchStyle = 'background:' + (s.paused ? '#8C949A' : 'var(--brand)');
     v.pauseKnobStyle = 'left:' + (s.paused ? '3px' : '23px');
     v.pauseLabel = s.paused ? 'Pausado' : 'Aberto';
     v.pauseDotStyle = 'width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;background:' + (s.paused ? '#B42318' : '#2E9C6A');
@@ -7515,7 +7525,7 @@ class Component extends DCLogic {
       pillStyle:pillStyle(noStock(p) ? 'err' : p.stock != null && p.stock <= 5 ? 'warn' : 'muted'),
       cardStyle:s.pf.id === p.id ? 'border-color:#1F5A63;box-shadow:0 0 0 2px #1F5A63' : '',
       availLabel:p.soldOut ? 'Esgotado' : 'Disponível',
-      swStyle:'background:' + (p.soldOut ? '#8C949A' : '#2E9C6A'),
+      swStyle:'background:' + (p.soldOut ? '#8C949A' : 'var(--brand)'),
       knobStyle:'left:' + (p.soldOut ? '3px' : '23px'),
       askDelete:() => this.setState({pfDeleting:p.id}),
       toggle:() => noStock(p) ? this.flash('Esgotado. Edite o produto e reponha o estoque para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
@@ -7683,7 +7693,8 @@ class Component extends DCLogic {
     v.gClosedText = s.dayClosed ? 'O quiosque encerrou o dia: não dá para lançar pedidos agora.' : 'Quiosque pausado: não dá para lançar pedidos agora.';
     v.gErr = s.gErr; v.hasGErr = !!s.gErr;
     v.gSendLabel = s.gBusy ? 'Enviando...' : 'Enviar para a cozinha';
-    v.gSendStyle = s.gBusy || !s.gTable || !gItems.length ? 'opacity:.6' : '';
+    v.gBusyAria = s.gBusy ? 'true' : 'false';
+    v.gSendStyle = !s.gBusy && (!s.gTable || !gItems.length) ? 'opacity:.6' : '';
     v.sendManualOrder = () => this.sendManualOrder();
     v.clearManualOrder = () => this.setState({gCart:{}, gNote:'', gErr:''});
 
@@ -7777,7 +7788,7 @@ class Component extends DCLogic {
       // mexe no sinal manual): avisa onde repor em vez de não fazer nada.
       toggle:() => noStock(p) ? this.flash('Esgotado. Reponha o estoque em Cardápio e estoque para liberar.') : this.toggleProductSoldOut(p.id, !p.soldOut),
       nameStyle:"font:600 16px 'Manrope',system-ui,sans-serif;" + (p.soldOut ? 'color:#5F686E;text-decoration:line-through' : 'color:#14232A'),
-      swStyle:'background:' + (p.soldOut ? '#8C949A' : '#2E9C6A'),
+      swStyle:'background:' + (p.soldOut ? '#8C949A' : 'var(--brand)'),
       knobStyle:'left:' + (p.soldOut ? '3px' : '23px')
     }));
     const nSold = s.products.filter(p => p.soldOut).length;
@@ -7869,8 +7880,8 @@ class Component extends DCLogic {
     v.meErr = s.meErr; v.hasMeErr = !!s.meErr;
     v.saveProfile = () => this.saveProfile();
     v.meSaveLabel = s.busy === 'profile' ? 'Salvando…' : 'Salvar';
-    v.meBusyOpacity = s.busy === 'profile' ? 0.6 : 1;
-    const sw = on => ['background:' + (on ? '#2E9C6A' : '#8C949A'), 'left:' + (on ? '23px' : '3px')];
+    v.meBusyAria = s.busy === 'profile' ? 'true' : 'false';
+    const sw = on => ['background:' + (on ? 'var(--brand)' : '#8C949A'), 'left:' + (on ? '23px' : '3px')];
     v.notifyOn = me.notifyReady !== false; v.soundPrefOn = me.soundOn !== false;
     [v.notifySwitchStyle, v.notifyKnobStyle] = sw(v.notifyOn);
     [v.soundPrefSwitchStyle, v.soundPrefKnobStyle] = sw(v.soundPrefOn);
