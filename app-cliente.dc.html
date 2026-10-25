@@ -1328,7 +1328,6 @@ select{caret-color:auto}
                             <span class="lbl">CPF</span>
                             <input placeholder="Digite o CPF da conta" class="inp" value="{{ fpCpf }}" onChange="{{ setFpCpf }}" inputmode="numeric" maxlength="14" aria-label="CPF" style="border-color:{{ fpCpfBorder }}">
                             <sc-if value="{{ fpCpfBad }}" hint-placeholder-val="{{ false }}"><span style="display:block;font:600 var(--fs-sm) 'Manrope',system-ui,sans-serif;color:var(--danger);margin-top:4px">CPF inválido. Confira os números.</span></sc-if>
-                            <span class="muted" style="display:block;font-size:var(--fs-sm);line-height:1.5;margin-top:8px">Não lembra o e-mail do cadastro? Mandamos o link para o e-mail ligado a este CPF.</span>
                           </div>
                         </sc-if>
                         <sc-if value="{{ hasFpErr }}" hint-placeholder-val="{{ false }}"><div class="alert alert-err">{{ fpErr }}</div></sc-if>
