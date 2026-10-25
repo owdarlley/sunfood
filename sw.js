@@ -15,7 +15,7 @@
 //
 // Ao mudar a lista abaixo ou a lógica deste arquivo, aumente a VERSAO para
 // o navegador trocar o cache antigo.
-const VERSAO = 'v17';
+const VERSAO = 'v18';
 const CACHE = 'sunfood-' + VERSAO;
 
 const PRECACHE = [
@@ -23,11 +23,11 @@ const PRECACHE = [
   './index.html',
   './app-cliente.dc.html',
   './redefinir-senha.html',
-  './support.js',
-  './pwa.js',
-  './abertura.js',
-  './caber.js',
-  './celular.js',
+  './js/support.js',
+  './js/pwa.js',
+  './js/abertura.js',
+  './js/caber.js',
+  './js/celular.js',
   './offline.html',
   './manifest.json',
   './icons/icon-192.png',
