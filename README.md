@@ -100,7 +100,6 @@ tests/                     → testes de tela (Playwright)
 
 O GitHub Pages publica só as páginas: `server/`, `tests/`, `android/` e este README ficam fora do site (veja `_config.yml`).
 
-O repositório `owdarlley/sunfood-backend` é uma cópia antiga da API, parada desde 07/10/2026 (ainda com Mercado Pago). A API publicada é a pasta `server/` deste repositório, com Stripe.
 
 Os ícones ficam com o mesmo endereço de sempre porque os e-mails e o registro BIMI do domínio apontam para eles; as páginas antigas continuam na raiz pelo mesmo motivo (links salvos).
 
