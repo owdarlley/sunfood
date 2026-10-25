@@ -7,8 +7,8 @@
      liberados porque o runtime das telas (support.js) precisa deles. -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script src="./celular.js"></script>
-<script src="./caber.js"></script>
+<script src="./js/celular.js"></script>
+<script src="./js/caber.js"></script>
 <title>SunFood</title>
 <script>
 // Sem isto o support.js baixa esta página (1 MB) de novo logo depois de abrir
@@ -39,7 +39,7 @@ html.sf-espera #dc-root{opacity:0}
   } catch(e){ pronto(); }
 })();
 </script>
-<script src="./support.js"></script>
+<script src="./js/support.js"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1F5A63">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
@@ -49,10 +49,10 @@ html.sf-espera #dc-root{opacity:0}
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SunFood">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<script src="./pwa.js" defer></script>
+<script src="./js/pwa.js" defer></script>
 </head>
 <body>
-<script src="./abertura.js"></script>
+<script src="./js/abertura.js"></script>
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">

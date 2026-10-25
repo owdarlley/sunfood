@@ -7,8 +7,8 @@
      liberados porque o runtime das telas (support.js) precisa deles. -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://js.stripe.com https://*.js.stripe.com; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script src="./celular.js"></script>
-<script src="./caber.js"></script>
+<script src="./js/celular.js"></script>
+<script src="./js/caber.js"></script>
 <title>SunFood · Entrar</title>
 <meta name="description" content="Entre no SunFood para pedir do seu guarda-sol. Cliente, cozinha e administração usam o mesmo login.">
 <link rel="manifest" href="manifest.json">
@@ -54,7 +54,7 @@ try {
   } catch (e) {}
 })();
 </script>
-<script src="./pwa.js" defer></script>
+<script src="./js/pwa.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -508,7 +508,7 @@ select{caret-color:auto}
 </style>
 </head>
 <body>
-<script src="./abertura.js"></script>
+<script src="./js/abertura.js"></script>
 <div class="lp rise" id="lp" data-step="inicio">
   <header class="lp-top">
     <a class="lp-logo" href="./" aria-label="SunFood: ir para o início"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#F5B83D"/><g stroke="#F5B83D" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg><b>SunFood</b></a>

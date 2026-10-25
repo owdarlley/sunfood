@@ -6,6 +6,14 @@ O site resolve a dor de quiosques com alta rotatividade de clientes e atendiment
 
 > **Tudo do SunFood fica neste repositório.** Na raiz está o **site** (as páginas e o app que o cliente, a cozinha e o admin usam, publicado pelo GitHub Pages). A **API e o banco** (servidor, Supabase, migrações, modelos de e-mail) ficam na pasta [`server/`](server/README.md), publicada pela Vercel.
 
+## Tecnologias
+
+- **Site e app**: HTML, CSS e React 18 sem build (carregado do unpkg), instalável como PWA e empacotado como app Android (TWA). Endereço: https://sunfood.app.br/
+- **API**: Node.js 22 + Express, publicada na Vercel (pasta [`server/`](server/README.md)).
+- **Banco e login**: Supabase (Postgres + Auth), com as regras de negócio em funções do banco.
+- **Pagamentos**: Stripe (PIX e cartão, hoje em modo de teste); e-mails pelo Resend.
+- **Testes**: Playwright nas telas, `node --test` na API e um Postgres de verdade no CI para as funções do banco.
+
 ## 🔗 Acesse pelo GitHub Pages
 
 **https://owdarlley.github.io/sunfood/**
@@ -69,24 +77,34 @@ O `sw.js` guarda as páginas e arquivos do site para abrirem mais rápido e most
 ## Estrutura de pastas
 
 ```
-server/                                      → a API (Node/Express) e o banco (Supabase), publicada pela Vercel
-index.html                                   → login + painéis Conheça, Fale conosco, Termos e Privacidade
-inicio.html, sobre.html, termos.html, ...    → endereços antigos, redirecionam para o painel certo
-prototipo.html                               → endereço antigo do protótipo, redireciona para /#conheca
-redefinir-senha.html                         → segunda etapa da recuperação de senha
-app-cliente.dc.html                          → o app (cliente, cozinha, garçom e administração), fala com a API
-abertura.js                                  → animação de abertura do app
-support.js                                   → script de apoio às páginas (gerado, não editar)
-manifest.json, sw.js, pwa.js, offline.html   → app instalável (PWA): manifesto, service worker, registro e aviso sem internet
-icons/                                       → ícones do app instalado (192, 512, maskable, iPhone, favicon)
-android/                                     → app Android (TWA) que abre o site; o APK sai pelo GitHub Actions
-.well-known/assetlinks.json                  → liga o app Android ao domínio sunfood.app.br
-tests/                                       → testes de tela (Playwright)
+index.html                 → login + painéis Conheça, Fale conosco, Termos, Privacidade e Baixe o app
+app-cliente.dc.html        → o app (cliente, cozinha, garçom e administração), fala com a API
+redefinir-senha.html       → segunda etapa da recuperação de senha
+offline.html               → aviso de sem internet (PWA)
+inicio.html, sobre.html, … → endereços antigos (inclui prototipo.html), só redirecionam para o painel certo
+manifest.json, sw.js       → app instalável (PWA); o sw.js fica na raiz para controlar o site inteiro
+js/                        → scripts do site
+  abertura.js              →   animação de abertura do app
+  caber.js                 →   escala da tela de login/cadastro para caber sem rolagem
+  celular.js               →   app Android/instalado: sem zoom de pinça, corrige "site para computador"
+  pwa.js                   →   registra o service worker e esconde "Baixe o app" dentro do app
+  support.js               →   runtime das páginas (gerado, não editar)
+icons/                     → ícones e imagens (favicon, app instalado, QR Code, logo dos e-mails)
+download/sunfood.apk       → APK assinado do app Android (link "Baixe o app")
+android/                   → app Android (TWA) que abre o site; o APK sai pelo GitHub Actions
+.well-known/assetlinks.json→ liga o app Android ao domínio sunfood.app.br
+server/                    → a API (Node/Express) e o banco (Supabase), publicada pela Vercel
+tests/                     → testes de tela (Playwright)
+.github/                   → testes automáticos (CI), build do APK e Dependabot
 ```
 
 O GitHub Pages publica só as páginas: `server/`, `tests/`, `android/` e este README ficam fora do site (veja `_config.yml`).
 
-O repositório `owdarlley/sunfood-backend` é uma cópia antiga da API, parada desde 07/10/2026. A API publicada é a pasta `server/` deste repositório.
+Os ícones ficam com o mesmo endereço de sempre porque os e-mails e o registro BIMI do domínio apontam para eles; as páginas antigas continuam na raiz pelo mesmo motivo (links salvos).
+
+## Como contribuir
+
+Cada mudança entra por pull request, com os testes do CI verdes, e o merge é feito com **squash**: o PR vira um único commit na `main`, com mensagem que diz o que mudou.
 
 ## Grupo
 
