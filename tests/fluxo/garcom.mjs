@@ -193,8 +193,8 @@ await step('garçom desempenho', async () => {
 // 6. Admin: tela Garçons cadastra, lista e desativa
 await step('admin garçons', async () => {
   let page = await open('app-cliente.dc.html?module=admin&screen=dashboard', { role: 'admin', viewport: { width: 1280, height: 860 } });
-  await click(page, 'Configurações', true); await click(page, 'Garçons', true);
-  check('admin: "Garçons" em Configurações abre a tela', page.url().includes('module=admin') && (await text(page)).includes('Cadastrar garçom'));
+  await click(page, 'Garçons', true);
+  check('admin: "Garçons" no menu abre a tela', page.url().includes('module=admin') && (await text(page)).includes('Cadastrar garçom'));
   await page.close();
   page = await open('app-cliente.dc.html?module=admin&screen=waiters', { role: 'admin' });
   const cadastrar = page.locator('.btn', { hasText: 'Cadastrar garçom' });

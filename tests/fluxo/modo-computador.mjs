@@ -66,8 +66,8 @@ const TELAS = [
   ['carrinho', 'app-cliente.dc.html?module=cliente&screen=cart', 'cliente', ['h1', '.brand']],
   ['pedido', 'app-cliente.dc.html?module=cliente&screen=status', 'cliente', ['h1', '.bottomnav']],
   ['perfil', 'app-cliente.dc.html?module=cliente&screen=profile', 'cliente', ['h1', '.bottomnav']],
-  ['admin', 'app-cliente.dc.html?module=admin&screen=dashboard', 'admin', ['h1', '.adm-bnav']],
-  ['pedidos do admin', 'app-cliente.dc.html?module=admin&screen=orders', 'admin', ['h1', '.adm-bnav']],
+  ['admin', 'app-cliente.dc.html?module=admin&screen=dashboard', 'admin', ['h1', '.adm-menubtn']],
+  ['pedidos do admin', 'app-cliente.dc.html?module=admin&screen=orders', 'admin', ['h1', '.adm-menubtn']],
   ['cozinha', 'app-cliente.dc.html?module=cozinha&screen=kanban', 'cozinha', ['.adm-brand', '.adm-menubtn']],
 ];
 
