@@ -158,6 +158,25 @@ html.sf-espera #dc-root{opacity:0}
 .sf-z .auth{--fs-h1:24px;--fs-h2:20px;--fs-h3:18px;--fs-body:15px;--fs-sm:max(14px, calc(12px / var(--fit,1)));--fs-cap:calc(12px / var(--fit,1))}
 @media (min-width:768px){.sf-z .auth{--fs-h1:28px;--fs-h2:22px;--fs-h3:20px}}
 @media (min-width:1025px){.sf-z .auth{--fs-h1:32px;--fs-h2:24px;--fs-h3:22px;--fs-body:16px}}
+/* Espaços e cantos no tamanho do design system na tela (2026-10-25, pedido
+   do Dárlley: "lapidar e padronizar"): os textos já eram divididos pelo zoom
+   de 83%, mas margens, espaços, padding de cartão e cantos não, e ficavam
+   fora da grade de 8 pt (margem lateral de 13 px no celular, cartões com 17
+   px de padding no computador, botões com cantos de 7 px). Divididos pelo
+   zoom, o que aparece na tela é: margem 16 / 24 / 32, espaço entre cartões
+   12 / 16 / 20, entre seções 24 / 32 / 40, padding de cartão 16 / 16 / 20,
+   cantos de cartão 14 e de botões e campos 8. Login e cadastro continuam com
+   a escala própria (caber.js). */
+/* Texto dos botões: 15 px no celular e no tablet e 16 no computador (era
+   16 x 83% = 13,3 px, entre legenda e corpo). */
+.sf-z{--fs-btn:calc(15px / var(--z))}
+@media (min-width:1025px){.sf-z{--fs-btn:calc(16px / var(--z))}}
+.sf-z{--px:calc(16px / var(--z));--gap:calc(12px / var(--z));--sec:calc(24px / var(--z));--cpad:calc(16px / var(--z));--r-card:calc(14px / var(--z));--r-btn:calc(8px / var(--z));--r-ctl:calc(8px / var(--z))}
+@media (min-width:768px){.sf-z{--px:calc(24px / var(--z));--gap:calc(16px / var(--z));--sec:calc(32px / var(--z))}}
+@media (min-width:1025px){.sf-z{--px:calc(32px / var(--z));--gap:calc(20px / var(--z));--sec:calc(40px / var(--z));--cpad:calc(20px / var(--z))}}
+.sf-z .auth{--px:16px;--gap:12px;--sec:24px;--cpad:16px;--r-card:14px;--r-btn:8px;--r-ctl:8px;--fs-btn:16px}
+@media (min-width:768px){.sf-z .auth{--px:24px;--gap:16px;--sec:32px}}
+@media (min-width:1025px){.sf-z .auth{--px:32px;--gap:20px;--sec:40px;--cpad:20px}}
 .paycell{min-width:0}.paycell>span{white-space:normal!important;max-width:100%;line-height:1.3;border-radius:12px!important}
 :root{--tap:calc(44px / var(--z))}
 .sf-app,.adm{--ctl:calc(48px / var(--z))}
@@ -205,7 +224,7 @@ a:hover{color:var(--brand-hover)}
 /* botões: 52 px de altura e cantos de 14 px. O principal é preenchido na
    cor da marca; o secundário é branco com borda. .btn-sun, .btn-dark e
    .btn-teal são o mesmo botão principal (nomes antigos mantidos). */
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-btn);font:700 16px/1.2 'Manrope',system-ui,sans-serif;letter-spacing:.005em;cursor:pointer;text-align:center;border:0;user-select:none;transition:background-color .15s ease-out,border-color .15s ease-out,box-shadow .15s ease-out,transform .15s ease-out}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:var(--ctl);padding:0 20px;border-radius:var(--r-btn);font:700 var(--fs-btn,16px)/1.2 'Manrope',system-ui,sans-serif;letter-spacing:.005em;cursor:pointer;text-align:center;border:0;user-select:none;transition:background-color .15s ease-out,border-color .15s ease-out,box-shadow .15s ease-out,transform .15s ease-out}
 .btn:active{transform:scale(.98)}
 .btn:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--brand)}
 .btn-sun,.btn-dark,.btn-teal{background:var(--brand);color:#fff}
@@ -825,7 +844,11 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 .kz-obs{background:var(--sun-tint);color:#7A4B00;border-radius:var(--r-ctl);padding:8px 12px;font:600 var(--fs-sm)/1.5 'Manrope',system-ui,sans-serif}
 /* ação do cartão da cozinha: o mesmo botão principal do app (a cor do
    status fica na bolinha do título da coluna) */
-.kz-act{min-height:var(--ctl);border-radius:var(--r-btn);display:flex;align-items:center;justify-content:center;font:700 16px/1.2 'Manrope',system-ui,sans-serif;cursor:pointer;text-align:center;padding:0 20px;background:var(--brand);color:#fff;transition:background-color .15s ease-out}
+.kz-act{min-height:var(--ctl);border-radius:var(--r-btn);display:flex;align-items:center;justify-content:center;font:700 var(--fs-btn,16px)/1.2 'Manrope',system-ui,sans-serif;cursor:pointer;text-align:center;padding:0 20px;background:var(--brand);color:#fff;transition:background-color .15s ease-out}
+/* Dinheiro / Cartão / PIX: três botões iguais que cabem na coluna do tablet
+   (o PIX saía para fora do cartão). */
+.kz-paygrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kz-paygrid .kz-act{padding:0 8px;min-width:0}
 .kz-act:hover{background:var(--brand-hover)}
 .kz-empty{color:var(--ink-2);font:500 var(--fs-body)/1.5 'Manrope',system-ui,sans-serif;text-align:center;padding:24px 8px}
 .kz-avail{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:calc(48px / var(--z));padding:8px 4px;border-top:1px solid var(--divider);font:500 var(--fs-body) 'Manrope',system-ui,sans-serif}
@@ -866,7 +889,7 @@ input[type=checkbox]{accent-color:var(--brand);width:20px;height:20px}
 /* Tablet: as 3 colunas de pedidos lado a lado. */
 @media (max-width:1024px){
   .kz-board{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .kz-board .kz-col{padding:12px}
+  .kz-board .kz-col{padding:calc(12px / var(--z))}
 }
 /* Celular: abas Na fila / Em preparo / Prontos, uma coluna por vez (arrastar
    para o lado também troca), em vez das colunas empilhadas. */
@@ -2201,7 +2224,7 @@ select{caret-color:auto}
           </div>
 
           <sc-if value="{{ is_dashboard }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:16px" class="rise">
+            <div style="display:flex;flex-direction:column;gap:var(--gap)" class="rise">
               <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
                 <div class="alert alert-warn">Pedidos pausados: os clientes veem o cardápio, mas não conseguem fechar pedido.</div>
               </sc-if>
@@ -2241,17 +2264,17 @@ select{caret-color:auto}
                   </sc-if>
                 </div>
               </div>
-              <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;margin-top:4px">Operação agora</div>
+              <div style="font:700 var(--fs-h3) 'Manrope',system-ui,sans-serif;margin-top:calc(8px / var(--z))">Operação agora</div>
               <div class="mini">
                 <sc-for list="{{ opsMini }}" as="m" hint-placeholder-count="5">
-                  <div class="kpi" style="padding:16px 16px"><div class="k" style="font-size:var(--fs-sm)">{{ m.k }}</div><div class="v" style="{{ m.style }}">{{ m.v }}</div></div>
+                  <div class="kpi"><div class="k" style="font-size:var(--fs-sm)">{{ m.k }}</div><div class="v" style="{{ m.style }}">{{ m.v }}</div></div>
                 </sc-for>
               </div>
             </div>
           </sc-if>
 
           <sc-if value="{{ is_orders }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:16px" class="rise">
+            <div style="display:flex;flex-direction:column;gap:var(--gap)" class="rise">
               <div class="pills">
                 <sc-for list="{{ orderFilters }}" as="of" hint-placeholder-count="6">
                   <div onClick="{{ of.pick }}" class="fpill {{ of.cls }}">{{ of.label }}<span class="n">{{ of.n }}</span></div>
@@ -2287,7 +2310,7 @@ select{caret-color:auto}
           </sc-if>
 
           <sc-if value="{{ is_payments }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:16px" class="rise">
+            <div style="display:flex;flex-direction:column;gap:var(--gap)" class="rise">
               <div class="kpis">
                 <sc-for list="{{ payKpis }}" as="k" hint-placeholder-count="4">
                   <div class="kpi"><div class="k">{{ k.lbl }}</div><div class="v" style="font-size:var(--fs-h2)">{{ k.val }}</div><div class="s" style="color:var(--ink-2)">{{ k.sub }}</div></div>
@@ -2417,7 +2440,7 @@ select{caret-color:auto}
           </sc-if>
 
           <sc-if value="{{ is_messages }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:16px" class="rise">
+            <div style="display:flex;flex-direction:column;gap:var(--gap)" class="rise">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                 <sc-for list="{{ msgFilters }}" as="mf" hint-placeholder-count="3">
                   <div onClick="{{ mf.pick }}" class="fpill {{ mf.cls }}">{{ mf.label }}</div>
@@ -2785,7 +2808,7 @@ select{caret-color:auto}
           </sc-if>
 
           <sc-if value="{{ is_kioskPage }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:16px" class="rise">
+            <div style="display:flex;flex-direction:column;gap:var(--gap)" class="rise">
               <div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr))">
                 <div class="panel" style="{{ pausePanelStyle }}">
                   <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
@@ -2905,7 +2928,7 @@ select{caret-color:auto}
           </sc-if>
 
           <sc-if value="{{ is_reports }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:16px" class="rise">
+            <div style="display:flex;flex-direction:column;gap:var(--gap)" class="rise">
               <div class="muted" style="font-size:var(--fs-sm)">{{ reportRange }} · Conta só pedidos pagos (PIX/cartão aprovados) ou de pagar na entrega. Cancelados e estornados não entram.</div>
               <sc-if value="{{ hasReportExportMsg }}" hint-placeholder-val="{{ false }}">
                 <div class="alert alert-warn">{{ reportExportMsg }}</div>
@@ -2977,7 +3000,7 @@ select{caret-color:auto}
           </sc-if>
 
           <sc-if value="{{ is_closeDay }}" hint-placeholder-val="{{ false }}">
-            <div style="max-width:560px;display:flex;flex-direction:column;gap:16px" class="rise">
+            <div style="max-width:560px;display:flex;flex-direction:column;gap:var(--gap)" class="rise">
               <sc-if value="{{ dayOpen }}" hint-placeholder-val="{{ true }}">
                 <div class="panel" style="display:flex;flex-direction:column;gap:12px">
                   <h2 style="margin:0">Encerrar o dia</h2>
@@ -3110,7 +3133,7 @@ select{caret-color:auto}
                         <sc-if value="{{ k.askPay }}" hint-placeholder-val="{{ false }}">
                           <div style="width:100%">
                             <div class="muted" style="font-size:var(--fs-sm);margin-bottom:8px">Entregue e recebido em:</div>
-                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                            <div class="kz-paygrid">
                               <div onClick="{{ k.payCash }}" class="kz-act" role="button">Dinheiro</div>
                               <div onClick="{{ k.payCard }}" class="kz-act" role="button">Cartão</div>
                               <div onClick="{{ k.payPix }}" class="kz-act" role="button">PIX</div>
@@ -7348,7 +7371,7 @@ class Component extends DCLogic {
     v.reportErr = s.reportErr; v.hasReportErr = !!s.reportErr;
     v.exportReportCsv = () => this.exportReportCsv();
     v.exportReportPdf = () => this.exportReportPdf();
-    v.reportExportStyle = 'min-height:46px' + (rep ? '' : ';opacity:.5');
+    v.reportExportStyle = 'min-height:var(--ctl)' + (rep ? '' : ';opacity:.5');
     v.reportExportMsg = s.reportExportMsg; v.hasReportExportMsg = !!s.reportExportMsg;
     v.reportKpis = [
       {lbl:'Faturamento', val:rep ? f(rep.revenue) : '—', sub:rep ? plural(rep.orders, 'pedido', 'pedidos') : 'carregando…'},
