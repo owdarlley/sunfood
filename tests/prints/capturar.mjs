@@ -1,11 +1,12 @@
+import { pathToFileURL } from 'node:url';
 // Tira print de todas as telas do SunFood (celular e computador) com a API falsa.
 const ROOT = process.env.SUNFOOD_DIR || '/home/user/sunfood';
-const { chromium } = await import('file://' + ROOT.replace(/\\/g, '/') + '/tests/node_modules/playwright/index.mjs');
+const { chromium } = await import(pathToFileURL(ROOT + '/tests/node_modules/playwright/index.mjs').href);
 import { createServer } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import QRCode from 'qrcode';
-const { fakeApi } = await import('file://' + ROOT.replace(/\\/g, '/') + '/tests/fluxo/fake-api.mjs');
+const { fakeApi } = await import(pathToFileURL(ROOT + '/tests/fluxo/fake-api.mjs').href);
 import * as D from './dados.mjs';
 
 const CDN = process.env.CDN_DIR; // só quando o unpkg.com estiver bloqueado

@@ -1,6 +1,6 @@
-const ROOT = process.env.SUNFOOD_DIR || '/home/user/sunfood';
-const { chromium } = await import('file://' + ROOT.replace(/\\/g, '/') + '/tests/node_modules/playwright/index.mjs');
 import { pathToFileURL } from 'node:url';
+const ROOT = process.env.SUNFOOD_DIR || '/home/user/sunfood';
+const { chromium } = await import(pathToFileURL(ROOT + '/tests/node_modules/playwright/index.mjs').href);
 import { resolve } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
 const m = JSON.parse(readFileSync('png/manifest.json'));
