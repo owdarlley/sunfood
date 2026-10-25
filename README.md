@@ -14,9 +14,14 @@ O site resolve a dor de quiosques com alta rotatividade de clientes e atendiment
 - **Pagamentos**: Stripe (PIX e cartão, hoje em modo de teste); e-mails pelo Resend.
 - **Testes**: Playwright nas telas, `node --test` na API e um Postgres de verdade no CI para as funções do banco.
 
-## 🔗 Acesse pelo GitHub Pages
+## 🔗 Acesse
 
-**https://owdarlley.github.io/sunfood/**
+**https://sunfood.app.br/**
+
+- **Ambiente**: produção, usada como demonstração acadêmica. O banco e os e-mails são reais; os pagamentos (Stripe) estão em modo de teste, então nada é cobrado.
+- **Domínio**: `sunfood.app.br`, registrado no registro.br. O DNS aponta para o GitHub Pages (registros A/AAAA na raiz e `www` como CNAME para `owdarlley.github.io`), com HTTPS obrigatório. O endereço antigo https://owdarlley.github.io/sunfood/ redireciona para o domínio.
+- **API**: https://sunfood-api-nine.vercel.app (teste rápido: `/health` responde `{"ok":true}`).
+- **Limitações**: o Supabase gratuito pausa o projeto depois de cerca de 7 dias sem uso (reativar no painel); a Vercel gratuita tem limites mensais e a primeira chamada depois de um tempo parada pode levar alguns segundos; o domínio precisa ser renovado todo ano no registro.br.
 
 O site é publicado direto da branch `main` deste repositório — qualquer alteração enviada para `main` atualiza automaticamente o endereço acima em poucos minutos.
 
