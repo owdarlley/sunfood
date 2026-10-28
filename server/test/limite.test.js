@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 
 // Contador do limite de tentativas no banco (auditoria M-03). O cliente do
 // Supabase é falso: guarda os contadores num Map, como a função do banco.
-mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: {}, supabaseAuth: {} } });
-const { PostgresStore } = await import("../src/rate-limit.js");
+mock.module("../src/lib/supabase.js", { namedExports: { supabaseAdmin: {}, supabaseAuth: {} } });
+const { PostgresStore } = await import("../src/middleware/rate-limit.js");
 
 function fakeClient() {
   const rows = new Map();

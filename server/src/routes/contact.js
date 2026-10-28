@@ -1,8 +1,8 @@
 import { randomInt } from "node:crypto";
-import { supabaseAdmin } from "../supabase.js";
-import { asyncRouter } from "../async-router.js";
+import { supabaseAdmin } from "../lib/supabase.js";
+import { asyncRouter } from "../lib/async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { sendEmail, emailConfigured } from "../email.js";
+import { sendEmail, emailConfigured } from "../emails/email.js";
 import { contactReplyEmail } from "../emails/resposta-contato.js";
 import {
   contactMessageSchema,
@@ -11,7 +11,7 @@ import {
   isEmailContact,
   validate,
 } from "../validation/schemas.js";
-import { limiter } from "../rate-limit.js";
+import { limiter } from "../middleware/rate-limit.js";
 
 export const contactRouter = asyncRouter();
 

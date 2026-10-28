@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_CANCEL_WINDOW_MINUTES, MAX_TABLE_COUNT, PAYMENT_METHODS, RECEIVED_WITH } from "../business-rules.js";
+import { MAX_CANCEL_WINDOW_MINUTES, MAX_TABLE_COUNT, PAYMENT_METHODS, RECEIVED_WITH } from "./business-rules.js";
 import { isValidCpf, onlyDigits } from "./cpf.js";
 
 export const loginSchema = z.object({

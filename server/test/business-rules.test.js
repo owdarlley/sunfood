@@ -21,7 +21,7 @@ import {
   awaitingOnlinePayment,
   needsRefund,
   paymentCoversOrder,
-} from "../src/business-rules.js";
+} from "../src/validation/business-rules.js";
 
 test("RN01: pedido abaixo de R$10 é rejeitado", () => {
   assert.equal(meetsMinimumOrder(999), false);

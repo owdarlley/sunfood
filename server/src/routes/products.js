@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import express from "express";
-import { supabaseAdmin } from "../supabase.js";
-import { asyncRouter } from "../async-router.js";
-import { expireUnpaidOrdersSoon } from "../order-payments.js";
+import { supabaseAdmin } from "../lib/supabase.js";
+import { asyncRouter } from "../lib/async-router.js";
+import { expireUnpaidOrdersSoon } from "../payments/order-payments.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { MAX_IMAGE_BYTES, imageType, publicBucketPrefix } from "../images.js";
+import { MAX_IMAGE_BYTES, imageType, publicBucketPrefix } from "../lib/images.js";
 import { productSchema, soldOutToggleSchema, validate } from "../validation/schemas.js";
 
 export const productsRouter = asyncRouter();

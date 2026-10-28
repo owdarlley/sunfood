@@ -1,5 +1,5 @@
-import { supabaseAdmin } from "../supabase.js";
-import { asyncRouter } from "../async-router.js";
+import { supabaseAdmin } from "../lib/supabase.js";
+import { asyncRouter } from "../lib/async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import {
   PAYMENT_WINDOW_MINUTES,
@@ -14,12 +14,12 @@ import {
   setCardHolder,
   isStripePaymentId,
 } from "../payments/stripe.js";
-import { syncStripeRefunds } from "../order-refunds.js";
-import { refundDuplicatePayment, refundLatePayment, approveOrderPayment } from "../order-payments.js";
+import { syncStripeRefunds } from "../payments/order-refunds.js";
+import { refundDuplicatePayment, refundLatePayment, approveOrderPayment } from "../payments/order-payments.js";
 import { isValidCpf, onlyDigits } from "../validation/cpf.js";
 import { cardCheckoutSchema, validate } from "../validation/schemas.js";
-import { paymentCoversOrder } from "../business-rules.js";
-import { limiter } from "../rate-limit.js";
+import { paymentCoversOrder } from "../validation/business-rules.js";
+import { limiter } from "../middleware/rate-limit.js";
 
 export const paymentsRouter = asyncRouter();
 

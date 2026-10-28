@@ -1,4 +1,4 @@
-import { supabaseAuth, supabaseAdmin } from "../supabase.js";
+import { supabaseAuth, supabaseAdmin } from "../lib/supabase.js";
 
 // O token que chega aqui é o access_token emitido pelo próprio Supabase Auth
 // no login (não é mais assinado por nós) — validá-lo é perguntar ao GoTrue

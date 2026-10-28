@@ -12,7 +12,7 @@ import { paymentsRouter } from "./routes/payments.js";
 import { contactRouter } from "./routes/contact.js";
 import { waitersRouter } from "./routes/waiters.js";
 import { stripeAdminRouter } from "./routes/stripe-admin.js";
-import { runMaintenance } from "./order-payments.js";
+import { runMaintenance } from "./payments/order-payments.js";
 import { purgeOldContactMessages } from "./routes/contact.js";
 
 // Aceita uma lista separada por vírgula (ex.: GitHub Pages + localhost ao
