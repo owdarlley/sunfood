@@ -1,8 +1,8 @@
 import Stripe from "stripe";
-import { supabaseAdmin } from "../supabase.js";
-import { asyncRouter } from "../async-router.js";
+import { supabaseAdmin } from "../lib/supabase.js";
+import { asyncRouter } from "../lib/async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { limiter } from "../rate-limit.js";
+import { limiter } from "../middleware/rate-limit.js";
 import {
   encryptSecret,
   decryptSecret,

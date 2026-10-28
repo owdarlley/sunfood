@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { supabaseAdmin } from "../supabase.js";
+import { supabaseAdmin } from "../lib/supabase.js";
 
 // Conta do quiosque no Stripe. O admin cola as chaves na aba Stripe do painel
 // e o servidor guarda tudo na tabela stripe_settings, com as chaves secretas

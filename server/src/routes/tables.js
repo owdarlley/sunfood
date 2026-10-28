@@ -1,8 +1,8 @@
-import { supabaseAdmin } from "../supabase.js";
-import { asyncRouter } from "../async-router.js";
+import { supabaseAdmin } from "../lib/supabase.js";
+import { asyncRouter } from "../lib/async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { tableToggleSchema, validate } from "../validation/schemas.js";
-import { tableCountFrom } from "../business-rules.js";
+import { tableCountFrom } from "../validation/business-rules.js";
 
 export const tablesRouter = asyncRouter();
 

@@ -252,11 +252,11 @@ const storage = {
 };
 
 const fake = { from: (t) => query(t), rpc, auth, storage };
-mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: fake, supabaseAuth: fake } });
+mock.module("../src/lib/supabase.js", { namedExports: { supabaseAdmin: fake, supabaseAuth: fake } });
 // E-mail falso: guarda o que a API mandaria pela Resend.
 const sentEmails = [];
 let emailOn = true, emailFails = false;
-mock.module("../src/email.js", {
+mock.module("../src/emails/email.js", {
   namedExports: {
     emailConfigured: () => emailOn,
     sendEmail: async (m) => {

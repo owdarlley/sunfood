@@ -83,7 +83,7 @@ const fake = {
     : t === "tok-adm" ? { data: { user: { id: "adm", email: "bia@teste.com" } }, error: null }
     : t === "tok-coz" ? { data: { user: { id: "coz", email: "coz@teste.com" } }, error: null } : { data: null, error: {} }) },
 };
-mock.module("../src/supabase.js", { namedExports: { supabaseAdmin: fake, supabaseAuth: fake } });
+mock.module("../src/lib/supabase.js", { namedExports: { supabaseAdmin: fake, supabaseAuth: fake } });
 
 // Stripe falso: guarda as sessões criadas e devolve o que a API devolveria.
 const sessions = {};
@@ -585,7 +585,7 @@ test("cancelar: o pedido sai da fila antes do estorno; estorno que falha é refe
   assert.equal(o.payment_status, "approved", "continua pago até o estorno passar");
   assert.equal(refunds.length, n);
 
-  const { retryPendingRefunds } = await import("../src/order-payments.js");
+  const { retryPendingRefunds } = await import("../src/payments/order-payments.js");
   await retryPendingRefunds();
   assert.equal(refunds.length, n + 1);
   assert.equal(refunds[n].payment_intent, o.payment_id);
@@ -639,7 +639,7 @@ test("cozinha não cancela pedido já pago (o estorno é decisão do admin)", as
 // Auditoria A1: o pagamento aprovado e o cancelamento do pedido ao mesmo tempo
 // nunca deixam o cliente cobrado, com o pedido cancelado e sem estorno.
 test("A1: webhook aprova depois de o cancelamento ganhar: o pagamento é estornado", async () => {
-  const { approveOrderPayment } = await import("../src/order-payments.js");
+  const { approveOrderPayment } = await import("../src/payments/order-payments.js");
   const id = "00000000-0000-4000-8000-0000000000a1";
   // O cancelamento já gravou; o webhook ainda tem a leitura de antes (pendente, Na Fila).
   db.orders.push({ id, customer_id: "ana", total: 30, refunded_amount: 0, status: "Cancelado", payment_method: "pix",
@@ -654,7 +654,7 @@ test("A1: webhook aprova depois de o cancelamento ganhar: o pagamento é estorna
 });
 
 test("A1: o webhook aprova entre a leitura e o cancelamento: o cancelamento estorna em vez de apagar o aprovado", async () => {
-  const { cancelOrderWithRefund } = await import("../src/order-payments.js");
+  const { cancelOrderWithRefund } = await import("../src/payments/order-payments.js");
   const id = "00000000-0000-4000-8000-0000000000a2";
   db.orders.push({ id, customer_id: "ana", total: 20, refunded_amount: 0, status: "Na Fila", payment_method: "pix",
     payment_status: "approved", payment_provider: "stripe", payment_id: "pi_a2", table_number: 1, created_at: new Date().toISOString() });
@@ -668,7 +668,7 @@ test("A1: o webhook aprova entre a leitura e o cancelamento: o cancelamento esto
 });
 
 test("B4: cancelar pedido não pago fecha o PaymentIntent no Stripe", async () => {
-  const { cancelOrderWithRefund } = await import("../src/order-payments.js");
+  const { cancelOrderWithRefund } = await import("../src/payments/order-payments.js");
   const id = "00000000-0000-4000-8000-0000000000b4";
   db.orders.push({ id, customer_id: "ana", total: 20, refunded_amount: 0, status: "Na Fila", payment_method: "cartao",
     payment_status: "pending", payment_provider: "stripe", payment_id: "pi_b4", table_number: 1, created_at: new Date().toISOString() });

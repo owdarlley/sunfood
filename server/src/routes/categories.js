@@ -1,5 +1,5 @@
-import { supabaseAdmin } from "../supabase.js";
-import { asyncRouter } from "../async-router.js";
+import { supabaseAdmin } from "../lib/supabase.js";
+import { asyncRouter } from "../lib/async-router.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { categorySchema, categoryOrderSchema, validate } from "../validation/schemas.js";
 

@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import express from "express";
-import { supabaseAuth, supabaseAdmin } from "../supabase.js";
-import { asyncRouter } from "../async-router.js";
+import { supabaseAuth, supabaseAdmin } from "../lib/supabase.js";
+import { asyncRouter } from "../lib/async-router.js";
 import { requireAuth, isProfileComplete } from "../middleware/auth.js";
-import { MAX_IMAGE_BYTES, imageType, publicBucketPrefix } from "../images.js";
+import { MAX_IMAGE_BYTES, imageType, publicBucketPrefix } from "../lib/images.js";
 import {
   loginSchema,
   signupSchema,
@@ -17,7 +17,7 @@ import {
   deleteAccountSchema,
   validate,
 } from "../validation/schemas.js";
-import { limiter } from "../rate-limit.js";
+import { limiter } from "../middleware/rate-limit.js";
 import { deleteContactMessagesOf } from "./contact.js";
 import { stripeStatus, deleteStripeCustomer } from "../payments/stripe.js";
 

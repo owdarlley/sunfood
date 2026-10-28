@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "../supabase.js";
+import { supabaseAdmin } from "../lib/supabase.js";
 import { requireAuth, requireRole, requireCompleteProfile } from "../middleware/auth.js";
 import { createOrderSchema, manualOrderSchema, orderStatusUpdateSchema, paymentReceivedSchema, orderRefundSchema, validate } from "../validation/schemas.js";
 import {
@@ -16,11 +16,11 @@ import {
   canRecordReceipt,
   needsRefund,
   VALID_TRANSITIONS,
-} from "../business-rules.js";
-import { cancelOrderWithRefund, expireUnpaidOrdersSoon, runMaintenanceSoon } from "../order-payments.js";
-import { refundOrderByAdmin, customerRefunds } from "../order-refunds.js";
-import { limiter } from "../rate-limit.js";
-import { asyncRouter } from "../async-router.js";
+} from "../validation/business-rules.js";
+import { cancelOrderWithRefund, expireUnpaidOrdersSoon, runMaintenanceSoon } from "../payments/order-payments.js";
+import { refundOrderByAdmin, customerRefunds } from "../payments/order-refunds.js";
+import { limiter } from "../middleware/rate-limit.js";
+import { asyncRouter } from "../lib/async-router.js";
 
 export const ordersRouter = asyncRouter();
 
