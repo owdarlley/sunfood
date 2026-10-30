@@ -1116,10 +1116,11 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(function (
     if (g.j === j) return;
     esconderVizinha();
     var v = secao(j); if (!v) return;
-    var r = g.el.getBoundingClientRect(), base = corpo.getBoundingClientRect();
     v.hidden = false;
     // Entra pelo topo da vizinha, mesmo com a atual já rolada para baixo (ao trocar, a rolagem volta ao topo).
-    v.style.cssText = 'position:absolute;margin:0;animation:none;transition:none;top:' + (corpo.scrollTop + parseFloat(getComputedStyle(corpo).paddingTop)) + 'px;left:' + (r.left - base.left) + 'px;width:' + r.width + 'px';
+    // Largura e posição lateral vêm do CSS (mesmas margens da seção no fluxo): medir em JS
+    // dava outra unidade por causa do zoom do painel, e a seção entrava mais larga.
+    v.style.cssText = 'position:absolute;margin:0 auto;transition:none;left:var(--px);right:var(--px);top:' + (corpo.scrollTop + parseFloat(getComputedStyle(corpo).paddingTop)) + 'px';
     g.viz = v; g.j = j;
   }
   function posicionar(dx, W) {
