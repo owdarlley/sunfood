@@ -43,12 +43,11 @@ O endereço principal (`index.html`, ou seja, https://sunfood.app.br/) é a **te
 | Privacidade | `/#privacidade` | Política de privacidade, conforme a LGPD |
 | Baixe o app | `/#baixar-app` | Download do app Android (APK assinado em `download/sunfood.apk`), passo a passo da instalação e QR Code para abrir no celular. Some dentro do próprio app |
 
-Os endereços antigos (`inicio.html`, `sobre.html`, `funcionalidades.html`, `como-funciona.html`, `perfis.html`, `mapa.html`, `contato.html`, `termos.html`, `privacidade.html`) continuam funcionando e redirecionam para o painel certo. Outras páginas:
+Os endereços antigos (`inicio.html`, `contato.html`, `termos.html`, `privacidade.html`) continuam funcionando e redirecionam para o painel certo. Outras páginas:
 
 | Página | Arquivo | Conteúdo |
 | --- | --- | --- |
 | Redefinir senha | `redefinir-senha.html` | Segunda etapa do "esqueci minha senha" (o link do e-mail cai aqui) |
-| Protótipo (antigo) | `prototipo.html` | Endereço antigo do protótipo; só redireciona para `/#conheca`. O protótipo navegável foi retirado do sistema |
 
 Quem já entrou naquele aparelho vai direto para o seu módulo (exceto quando abre um dos painéis acima). Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração, cozinha ou garçom).
 
@@ -86,7 +85,7 @@ index.html                 → login + painéis Conheça, Fale conosco, Termos, 
 app-cliente.dc.html        → o app (cliente, cozinha, garçom e administração), fala com a API
 redefinir-senha.html       → segunda etapa da recuperação de senha
 offline.html               → aviso de sem internet (PWA)
-inicio.html, sobre.html, … → endereços antigos (inclui prototipo.html), só redirecionam para o painel certo
+inicio.html, contato.html, termos.html, privacidade.html → endereços antigos, só redirecionam para o painel certo
 manifest.json, sw.js       → app instalável (PWA); o sw.js fica na raiz para controlar o site inteiro
 js/                        → scripts do site
   abertura.js              →   animação de abertura do app

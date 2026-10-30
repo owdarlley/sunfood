@@ -105,7 +105,7 @@ for (const [tela, width, height] of TELAS) {
   });
 
   await step(`${tela}: endereços antigos com a conta aberta`, async () => {
-    for (const [pagina, hash] of [['mapa.html', '#conheca'], ['termos.html', '#termos'], ['privacidade.html', '#privacidade']]) {
+    for (const [pagina, hash] of [['inicio.html', '#conheca'], ['termos.html', '#termos'], ['privacidade.html', '#privacidade']]) {
       const p = await open(pagina, vp, 'cliente');
       check(`${tela}: ${pagina} abre o painel sem o login`, p.url() === BASE + hash && await p.locator('#info').isVisible() && await semLogin(p), p.url());
       if (hash === '#conheca') check(`${tela}: Conheça troca Entrar/Criar conta por Voltar ao cardápio`, await p.locator('[data-sec="conheca"] .cta').innerText() === 'Voltar ao cardápio');

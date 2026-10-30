@@ -55,7 +55,7 @@ const click = async (page, t, exact = false) => { await page.getByText(t, { exac
 async function step(name, fn) { try { await fn(); } catch (e) { check(name, false, e.message.split('\n')[0]); } }
 
 // 1. Páginas do site abrem sem erro de JavaScript
-for (const p of ['index.html', 'inicio.html', 'sobre.html', 'funcionalidades.html', 'como-funciona.html', 'perfis.html', 'mapa.html', 'contato.html', 'termos.html', 'privacidade.html', 'redefinir-senha.html']) {
+for (const p of ['index.html', 'inicio.html', 'contato.html', 'termos.html', 'privacidade.html', 'redefinir-senha.html']) {
   const page = await open(p);
   check(`página ${p} abre sem erro`, page.jsErrors.length === 0, page.jsErrors.join(' | '));
   await page.close();
