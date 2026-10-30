@@ -123,8 +123,8 @@ a{color:#1F5A63}
 /* Painel "Conheça o SunFood / Fale conosco / Termos / Privacidade": abre por
    cima do login (gaveta à direita no computador, tela cheia no celular). */
 .info{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end}
-.info-bg{position:absolute;inset:0;background:rgba(20,35,42,.45);animation:sffade .2s ease both}
-.info-sheet{position:relative;width:min(760px,100%);height:100%;background:#F7F5F0;display:flex;flex-direction:column;box-shadow:-24px 0 60px -20px rgba(20,35,42,.35);animation:sfslide .28s cubic-bezier(.2,.8,.2,1) both}
+.info-bg{position:absolute;inset:0;background:rgba(20,35,42,.45)}
+.info-sheet{position:relative;width:min(760px,100%);height:100%;background:#F7F5F0;display:flex;flex-direction:column;box-shadow:-24px 0 60px -20px rgba(20,35,42,.35)}
 /* Quem já entrou: o painel ocupa a tela toda, sem o login por trás. */
 .sf-logado #lp,.sf-logado .info-bg{display:none}
 .sf-logado .info-sheet{width:100%;box-shadow:none}
@@ -133,7 +133,6 @@ a{color:#1F5A63}
 html.sf-embed,html.sf-embed body{background:transparent}
 .sf-embed #lp{display:none}
 @keyframes sffade{from{opacity:0}}
-@keyframes sfslide{from{transform:translateX(40px);opacity:0}}
 /* Cabeçalho claro, no mesmo visual da tela de login: fundo areia, marca em
    verde-petróleo e abas sublinhadas. */
 .info-head{flex:none;background:#F7F5F0;color:#1F5A63;padding:16px var(--px) 0;border-bottom:1px solid #E5E0D5}
@@ -152,19 +151,12 @@ body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inse
 .tab[aria-current="page"]{color:#1F5A63}
 /* Barrinha amarela da aba ativa: um elemento só, que desliza de uma aba para
    a outra (e acompanha o dedo quando se arrasta o conteúdo no celular). */
-.tab-ind{position:absolute;left:0;bottom:0;height:3px;width:0;border-radius:3px 3px 0 0;background:#F5B83D;pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1),width .3s cubic-bezier(.2,.8,.2,1)}
-.tab-ind.arrastando{transition:none}
+.tab-ind{position:absolute;left:0;bottom:0;height:3px;width:0;border-radius:3px 3px 0 0;background:#F5B83D;pointer-events:none}
 /* Rolagem lateral (abas do painel, cards do celular): esmaece a borda que
    ainda tem conteúdo escondido, para mostrar que dá para arrastar. */
 .fx-r{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent)}
 .fx-l{-webkit-mask-image:linear-gradient(to left,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to left,#000 calc(100% - 40px),transparent)}
 .fx-l.fx-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
-.info-body section{animation:sfsec .25s cubic-bezier(.2,.8,.2,1) both}
-.info-body[data-dir="prev"] section{animation-name:sfsecprev}
-.info-body[data-dir="none"] section{animation:none}
-@keyframes sfsec{from{transform:translateX(32%);opacity:0}}
-@keyframes sfsecprev{from{transform:translateX(-32%);opacity:0}}
-@media (prefers-reduced-motion:reduce){.info-body section{animation:none}.tab-ind{transition:none}}
 .info-body{position:relative;flex:1;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;padding:var(--sec) var(--px);outline:none}
 .info-body section{max-width:640px;margin:0 auto}
 .info-body .eyebrow{font:800 var(--fs-cap) 'Manrope',system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#1F5A63;margin:0 0 8px}
@@ -1091,6 +1083,7 @@ function moverBarrinha(sec, vizinha, p) {
   ind.style.transform = 'translateX(' + x + 'px)';
 }
 window.addEventListener('resize', function () { if (!info.hidden) moverBarrinha(location.hash.slice(1)); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (!info.hidden) moverBarrinha(location.hash.slice(1)); });
 
 // Esmaecido nas bordas das listas que rolam de lado (abas do painel e cards do celular).
 (function () {
