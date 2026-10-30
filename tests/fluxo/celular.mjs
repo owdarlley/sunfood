@@ -162,12 +162,15 @@ await step('arrastar entre as abas do rodapé', async () => {
     const T = x => new Touch({ identifier: 1, target: el, clientX: x, clientY: 500 });
     el.dispatchEvent(new TouchEvent('touchstart', { touches: [T(xs[0])], changedTouches: [T(xs[0])], bubbles: true }));
     for (const x of xs.slice(1)) { await new Promise(r => setTimeout(r, pausa)); el.dispatchEvent(new TouchEvent('touchmove', { touches: [T(x)], changedTouches: [T(x)], bubbles: true })); }
-    const meio = [...el.querySelectorAll('[data-sec]')].filter(s => !s.hidden).map(s => s.dataset.sec);
+    const visiveis = [...el.querySelectorAll('[data-sec]')].filter(s => !s.hidden);
+    const meio = visiveis.map(s => s.dataset.sec), larg = visiveis.map(s => Math.round(s.getBoundingClientRect().width));
     if (soltar) el.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [T(xs[xs.length - 1])], bubbles: true }));
-    return meio;
+    return { meio, larg };
   }, [xs, pausa, soltar]);
-  const meio = await arrastar([320, 280, 220, 160, 120]);
+  const { meio, larg } = await arrastar([320, 280, 220, 160, 120]);
   check('abas: durante o arrasto a aba vizinha aparece junto', meio.join() === 'conheca,fale-conosco', meio.join());
+  // O zoom do painel já enganou a largura medida em JS: a vizinha entrava mais larga (ou mais estreita) e depois saltava.
+  check('abas: durante o arrasto a vizinha tem a mesma largura da atual', larg.length === 2 && Math.abs(larg[0] - larg[1]) <= 1, larg.join(' x '));
   await p.waitForTimeout(450);
   check('abas: arrastar para a esquerda abre a próxima', p.url().endsWith('#fale-conosco'), p.url());
   await arrastar([300, 280, 260, 240, 230], 40); await p.waitForTimeout(450);
