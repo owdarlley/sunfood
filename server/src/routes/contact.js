@@ -18,7 +18,7 @@ export const contactRouter = asyncRouter();
 // Formulário público: segura spam sem travar quem manda uma ou duas mensagens.
 const contactLimiter = limiter("contact", {
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 20,
   message: { error: "Muitas mensagens em pouco tempo. Tente novamente mais tarde." },
 });
 

@@ -23,15 +23,22 @@ import { limiter } from "../rate-limit.js";
 
 export const paymentsRouter = asyncRouter();
 
+// Contados por conta, não por IP: numa sala de aula ou num quiosque com Wi-Fi
+// todo mundo sai pelo mesmo IP, e 15 tentativas por IP travavam a turma inteira
+// depois do 15º pagamento. As rotas já exigem login, então a conta está aqui.
+const porConta = (req) => "user:" + req.user.sub;
+
 const sessionLimiter = limiter("card-session", {
   windowMs: 10 * 60 * 1000,
   max: 30,
+  keyGenerator: porConta,
   message: { error: "Muitas tentativas de pagamento. Tente novamente em alguns minutos." },
 });
 
 const pixLimiter = limiter("pix", {
   windowMs: 10 * 60 * 1000,
   max: 15,
+  keyGenerator: porConta,
   message: { error: "Muitas tentativas de pagamento. Tente novamente em alguns minutos." },
 });
 

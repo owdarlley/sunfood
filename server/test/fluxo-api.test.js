@@ -390,7 +390,7 @@ test("esqueci minha senha pelo CPF: manda pro e-mail da conta sem revelar se ela
 
 test("esqueci minha senha: limite de pedidos por IP vale pro CPF também", async () => {
   let last;
-  for (let i = 0; i < 6; i++) last = await api("POST", "/auth/forgot-password", { cpf: "111.444.777-35" }, null, "10.0.0.10");
+  for (let i = 0; i < 21; i++) last = await api("POST", "/auth/forgot-password", { cpf: "111.444.777-35" }, null, "10.0.0.10");
   assert.equal(last.status, 429);
 });
 
@@ -1148,4 +1148,24 @@ test("admin cria, renomeia, reordena e exclui categorias; o cardápio acompanha"
   db.categories = todas;
   assert.equal(ultima.status, 409);
   assert.match(ultima.body.error, /pelo menos uma categoria/);
+});
+
+test("sala de aula no mesmo Wi-Fi: o limite do PIX conta por conta, não por IP", async () => {
+  const pedidoQueNaoExiste = "00000000-0000-4000-8000-0000000000ff";
+  const turma = Array.from({ length: 20 }, (_, i) => {
+    const id = "aluno-" + i;
+    db.profiles.push({ id, email: id + "@teste.com", name: "Aluno " + i, role: "cliente" });
+    db.users["tok-" + id] = { id, email: id + "@teste.com" };
+    return "tok-" + id;
+  });
+  // 20 pessoas no mesmo IP: nenhuma é barrada pelo limite (o pedido não existe, então 404).
+  for (const tok of turma) {
+    const r = await api("POST", `/payments/pix/${pedidoQueNaoExiste}`, {}, tok, "10.9.9.9");
+    assert.notEqual(r.status, 429, "aluno barrado pelo limite de outra pessoa");
+  }
+  // A mesma conta insistindo continua parando no 16º.
+  let last;
+  for (let i = 0; i < 15; i++) last = await api("POST", `/payments/pix/${pedidoQueNaoExiste}`, {}, turma[0], "10.9.9.9");
+  assert.equal(last.status, 429);
+  db.profiles.splice(db.profiles.findIndex((p) => p.id === "aluno-0"), 20);
 });
