@@ -26,9 +26,12 @@ export const authRouter = asyncRouter();
 // Trava força bruta (auditoria M10): só os logins que falharam contam, por
 // IP (30 a cada 15 minutos: no Wi-Fi do quiosque muitos clientes dividem o
 // mesmo IP) e por e-mail (10 a cada 15 minutos, venha de onde vier).
+// Os limites por IP abaixo valem para a rede inteira de uma sala ou de um
+// quiosque (todo mundo sai pelo mesmo IP no Wi-Fi). Ficam folgados para uma
+// turma de ~40 pessoas; a proteção de cada conta é o limite por e-mail.
 const loginLimiter = limiter("login", {
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 100,
   skipSuccessfulRequests: true,
   message: { error: "Muitas tentativas de login. Tente novamente mais tarde." },
 });
@@ -43,13 +46,13 @@ const loginEmailLimiter = limiter("login-email", {
 
 const signupLimiter = limiter("signup", {
   windowMs: 60 * 60 * 1000,
-  max: 20,
+  max: 80,
   message: { error: "Muitas tentativas de cadastro. Tente novamente mais tarde." },
 });
 
 const forgotLimiter = limiter("forgot", {
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 20,
   message: { error: "Muitas solicitações. Tente novamente mais tarde." },
 });
 
