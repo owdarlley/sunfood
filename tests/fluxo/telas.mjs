@@ -65,13 +65,9 @@ for (const p of ['index.html', 'inicio.html', 'contato.html', 'termos.html', 'pr
 await step('login no endereço principal', async () => {
   const page = await open('');
   check('raiz: abre a tela de entrada', (await text(page)).includes('Fome na praia?') && (await text(page)).includes('Entrar com e-mail'));
-  await click(page, 'Ver cardápio', true);
-  check('raiz: Ver cardápio pede login em vez de abrir o app sem conta', page.url() === BASE && await page.locator('#email').isVisible()
-    && await page.evaluate(() => localStorage.getItem('sunfood_session')) === null, page.url());
-  await page.locator('#voltar').click(); await page.waitForTimeout(300);
-  await page.locator('.lp-cat').first().click(); await page.waitForTimeout(500);
-  check('raiz: cartão do cardápio também pede login', page.url() === BASE && await page.locator('#email').isVisible(), page.url());
-  await page.locator('#voltar').click(); await page.waitForTimeout(300);
+  // Ver cardápio e os cartões abrem o cardápio sem conta (fluxo completo em visitante.mjs).
+  check('raiz: Ver cardápio abre o cardápio sem pedir conta', /module=cliente&screen=menu/.test(await page.locator('.lp-menu').getAttribute('href'))
+    && (await page.locator('.lp-cat').evaluateAll(as => as.every(a => /screen=menu/.test(a.getAttribute('href'))))));
   await click(page, 'Entrar com e-mail', true);
   check('raiz: Entrar com e-mail mostra o formulário', (await text(page)).includes('Bem-vindo de volta') && await page.locator('#email').isVisible());
   await click(page, 'Entrar', true);

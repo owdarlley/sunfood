@@ -49,6 +49,8 @@ Os endereços antigos (`inicio.html`, `contato.html`, `termos.html`, `privacidad
 | --- | --- | --- |
 | Redefinir senha | `redefinir-senha.html` | Segunda etapa do "esqueci minha senha" (o link do e-mail cai aqui) |
 
+**Cardápio sem conta**: "Ver cardápio" (e os cartões do cardápio) na tela de entrada abre o cardápio (`app-cliente.dc.html?module=cliente&screen=menu`) sem login. O visitante vê os produtos e monta o carrinho, que fica guardado no aparelho; a conta só é pedida ao tocar em **Entrar e finalizar** no carrinho. Depois de entrar ou criar a conta (e-mail ou Google), o app volta para a etapa da mesa com o mesmo carrinho.
+
 Quem já entrou naquele aparelho vai direto para o seu módulo (exceto quando abre um dos painéis acima). Login correto identifica o perfil e leva ao módulo certo de `app-cliente.dc.html` (cliente, administração, cozinha ou garçom).
 
 ## Rodando localmente

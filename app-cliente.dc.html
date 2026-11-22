@@ -388,6 +388,7 @@ h1.tt,h2.tt,.adm-head h1{letter-spacing:-.02em}
 .addbtn:active{transform:scale(.94)}
 .addbtn .plus{font-size:20px;line-height:1;font-weight:800}
 .cartpanel{position:sticky;top:85px}
+.cart-conta{margin:0;font-size:var(--fs-sm);line-height:1.5;text-align:center}
 .mobilebar{display:none}
 .bottomnav{display:none}
 /* Telas de conta (cadastro, esqueci a senha, completar cadastro).
@@ -1250,7 +1251,7 @@ select{caret-color:auto}
           <div class="auth">
             <div class="auth-top">
               <a class="auth-logo" href="./" aria-label="SunFood: ir para o início"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="#F5B83D"></circle><g stroke="#F5B83D" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path></g></svg><b>SunFood</b></a>
-              <a class="auth-menu" href="./">Ver cardápio</a>
+              <a class="auth-menu" href="?module=cliente&amp;screen=menu">Ver cardápio</a>
             </div>
             <div class="auth-mobile" style="background:var(--brand);color:#fff;padding:var(--cpad);flex-direction:column;gap:12px;position:relative;overflow:hidden">
               <div onClick="{{ goHome }}" class="brand" style="color:#fff"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><g class="sun" fill="none" stroke="#F5B83D" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="18" r="7" fill="#F5B83D"></circle><path d="M18 2v5M18 29v5M2 18h5M29 18h5M6.7 6.7l3.5 3.5M25.8 25.8l3.5 3.5M6.7 29.3l3.5-3.5M25.8 10.2l3.5-3.5"></path></g></svg><b style="font-size:var(--fs-h3)">SunFood</b></div>
@@ -1661,7 +1662,10 @@ select{caret-color:auto}
                     <sc-if value="{{ minWarn }}" hint-placeholder-val="{{ false }}">
                       <div class="alert alert-warn">{{ minWarnText }}</div>
                     </sc-if>
-                    <div onClick="{{ goTable }}" class="btn btn-sun">Escolher a mesa</div>
+                    <div onClick="{{ goTable }}" class="btn btn-sun">{{ goTableLabel }}</div>
+                    <sc-if value="{{ visitante }}" hint-placeholder-val="{{ false }}">
+                      <p class="muted cart-conta">Para finalizar, entre ou crie sua conta. Seus itens ficam guardados.</p>
+                    </sc-if>
                   </div>
                 </div>
                 <sc-if value="{{ clearCartOpen }}" hint-placeholder-val="{{ false }}">
@@ -4090,6 +4094,12 @@ const NEEDS_CART = ['cart','table','payment'];
 // Carrinho guardado no aparelho (recarregar ou voltar não perde o pedido).
 const CART_KEY = 'sunfood_cart';
 const CART_TTL = 3 * 60 * 60 * 1000;
+// Visitante (sem conta) vê o cardápio, o produto e monta o carrinho; a conta
+// só é pedida ao finalizar. As outras telas do cliente levam ao cardápio.
+const VISITOR_SCREENS = ['login','signup','forgot','menu','product','cart','cartEmpty','location','offline'];
+// Visitante que tocou em finalizar e foi entrar: depois do login (e-mail,
+// Google ou cadastro) o app volta para a etapa da mesa com o mesmo carrinho.
+const CHECKOUT_KEY = 'sunfood_finalizar';
 // QR do PIX em aberto, para voltar igual se a página for recarregada.
 const PIX_KEY = 'sunfood_pix';
 // Quanto tempo a cobrança PIX vale quando o servidor não manda o expiresAt
@@ -4246,6 +4256,7 @@ class Component extends DCLogic {
   // link, o voltar ou a recarga nunca mostram "Pagamento aprovado" ou "R$ 0,00".
   guardScreen(s){
     if(s.module !== 'cliente') return s.screen;
+    if(!s.token && VISITOR_SCREENS.indexOf(s.screen) < 0) return 'menu';
     const semPedido = s.history && s.history.length ? 'history' : 'historyEmpty';
     // Cartão no app: os campos aparecem enquanto o pedido ainda está sendo criado.
     const cardPending = s.screen === 'card' && s.cardOrderPending;
@@ -4280,23 +4291,48 @@ class Component extends DCLogic {
   // Carrinho, mesa e observação guardados no aparelho, por conta.
   saveCart(){
     const s = this.state;
-    if(s.module !== 'cliente' || !s.token || !s.authUser) return;
-    if(s.cart === this._savedCart && s.table === this._savedTable && s.orderNote === this._savedNote) return;
-    this._savedCart = s.cart; this._savedTable = s.table; this._savedNote = s.orderNote;
+    // Sem conta, o carrinho fica guardado como de visitante (user null) e
+    // passa para a conta que entrar neste aparelho.
+    if(s.module !== 'cliente' || (s.token && !s.authUser)) return;
+    const uid = s.authUser ? s.authUser.id : null;
+    if(s.cart === this._savedCart && s.table === this._savedTable && s.orderNote === this._savedNote && uid === this._savedUser) return;
+    this._savedCart = s.cart; this._savedTable = s.table; this._savedNote = s.orderNote; this._savedUser = uid;
     try {
       if(!s.cart.length) localStorage.removeItem(CART_KEY);
-      else localStorage.setItem(CART_KEY, JSON.stringify({user:s.authUser.id, at:Date.now(), cart:s.cart, table:s.table, orderNote:s.orderNote || '', pending:this.pendingOnline || null}));
+      else localStorage.setItem(CART_KEY, JSON.stringify({user:uid, at:Date.now(), cart:s.cart, table:s.table, orderNote:s.orderNote || '', pending:uid && this.pendingOnline || null}));
     } catch(e){}
   }
 
+  // user null: visitante. O carrinho de visitante é adotado pela conta que
+  // entrar; o de outra conta nunca aparece. Devolve quantos itens voltaram.
   restoreCart(user){
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(CART_KEY) || 'null'); } catch(e){}
-    if(!saved || !Array.isArray(saved.cart) || !saved.cart.length) return;
-    if(saved.user !== user.id || Date.now() - saved.at > CART_TTL){ try { localStorage.removeItem(CART_KEY); } catch(e){} return; }
+    if(!saved || !Array.isArray(saved.cart) || !saved.cart.length) return 0;
+    const dono = saved.user || null, eu = user ? user.id : null;
+    if((dono !== eu && !(eu && !dono)) || Date.now() - saved.at > CART_TTL){
+      if(eu || Date.now() - saved.at > CART_TTL) try { localStorage.removeItem(CART_KEY); } catch(e){}
+      return 0;
+    }
     // Pedido de PIX/cartão ainda não pago: tentar de novo reaproveita ou cancela esse pedido.
-    if(saved.pending && saved.pending.id) this.pendingOnline = saved.pending;
+    if(eu && saved.pending && saved.pending.id) this.pendingOnline = saved.pending;
     this.setState({cart:saved.cart, table:saved.table || null, orderNote:saved.orderNote || ''}, () => this.dropUnavailableFromCart());
+    return saved.cart.length;
+  }
+
+  // Visitante tocou em finalizar: guarda que a compra continua depois do
+  // login e manda para a tela de entrada (o carrinho já está salvo).
+  pedirContaParaFinalizar(){
+    try { localStorage.setItem(CHECKOUT_KEY, String(Date.now())); } catch(e){}
+    this.irParaLogin('Entre ou crie sua conta para finalizar o pedido. Seus itens continuam no carrinho.', true, '', true);
+  }
+
+  // Depois de entrar: se o visitante estava finalizando, consome o aviso e
+  // diz se deve voltar para a etapa da mesa.
+  retomarCompra(){
+    let at = 0;
+    try { at = Number(localStorage.getItem(CHECKOUT_KEY)) || 0; localStorage.removeItem(CHECKOUT_KEY); } catch(e){}
+    return at > 0 && Date.now() - at < CART_TTL;
   }
 
   componentDidUpdate(){
@@ -4374,7 +4410,9 @@ class Component extends DCLogic {
     this._onPop = () => {
       const q = new URLSearchParams(window.location.search);
       const mod = q.get('module'), scr = q.get('screen');
-      if(!this.state.token || !mod || !SCREENS[mod] || !SCREENS[mod].some(x => x[0] === scr)) return;
+      if(!mod || !SCREENS[mod] || !SCREENS[mod].some(x => x[0] === scr)) return;
+      // Visitante navega só pelas telas do cliente (cardápio, produto, carrinho).
+      if(!this.state.token && mod !== 'cliente') return;
       // Entrada do histórico de outro perfil (ex.: o cardápio de quem usou o
       // aparelho antes): fica na tela atual, sem virar outro perfil.
       const role = this.state.authUser && this.state.authUser.role;
@@ -4522,6 +4560,8 @@ class Component extends DCLogic {
     this.aplicarRota();
     const voltouDoGoogle = this.handleGoogleCallback();
     if(!voltouDoGoogle) this.restoreSession();
+    // Visitante (ou voltando do Google): o carrinho montado sem conta volta.
+    if(!this.temSessaoSalva()) this.restoreCart(null);
     // A tela de login é uma só: a do endereço principal (index.html). Quem
     // abre o app sem sessão (e sem estar no meio do login com Google) vai pra lá.
     if(!voltouDoGoogle && !this.temSessaoSalva() && this.rotaEhLogin() && new URLSearchParams(window.location.search).get('google') !== '1'){
@@ -4682,11 +4722,14 @@ class Component extends DCLogic {
       this.setState({module:'cliente', screen:'menu'});
     }
     if(saved.user.role === 'cliente'){
-      this.restoreCart(saved.user);
+      const itens = this.restoreCart(saved.user);
       this.loadHistory(saved.token);
       // Abriu direto na tela Perfil (ex.: recarregou a página nela).
       if(mod === 'cliente' && ['profile','editProfile'].indexOf(rota.get('screen')) >= 0) setTimeout(() => this.loadProfile(rota.get('screen') === 'editProfile'), 0);
+      const finalizar = this.retomarCompra() && itens > 0;
       if(saved.user.profileComplete === false) this.askCompleteProfile(saved.user);
+      // Entrou para finalizar o pedido: volta para a etapa da mesa.
+      else if(finalizar) setTimeout(() => this.go('table', 'cliente'), 0);
     }
     else {
       this.loadAdminData();
@@ -4796,8 +4839,9 @@ class Component extends DCLogic {
       return;
     }
     this.loadHistory(token);
+    const finalizar = this.retomarCompra() && this.state.cart.length > 0;
     if(user.profileComplete === false) this.askCompleteProfile(user);
-    else this.go('menu');
+    else this.go(finalizar ? 'table' : 'menu');
   }
 
   askCompleteProfile(user){
@@ -6015,7 +6059,7 @@ class Component extends DCLogic {
   // Sair (de qualquer perfil) volta para a tela de login do endereço principal
   // (index.html), a mesma que aparece ao abrir o site.
   logout(aviso){
-    try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(CART_KEY); } catch(e){}
+    try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(CART_KEY); localStorage.removeItem(CHECKOUT_KEY); } catch(e){}
     // Admin/cozinha/garçom não têm uma tela de login própria dentro do app:
     // sair manda de volta para a tela de login do endereço principal (index.html).
     if(STAFF_MODULES.indexOf(this.state.module) >= 0){
@@ -6028,11 +6072,13 @@ class Component extends DCLogic {
 
   // Leva para a tela de login principal. O aviso (e o e-mail, se houver) vai
   // junto pelo sessionStorage e aparece lá, já que esta página é trocada.
-  irParaLogin(aviso, ok, email){
+  // escolha: visitante vindo do cardápio; a tela principal mostra o aviso junto
+  // das opções de entrar (e-mail, Google) e de criar conta.
+  irParaLogin(aviso, ok, email, escolha){
     if(this._indoProLogin) return;
     this._indoProLogin = true;
     // Sempre marca que veio do app, para a tela principal já abrir com o formulário à mostra.
-    try { sessionStorage.setItem('sunfood_login_aviso', JSON.stringify({texto:aviso || '', ok:!!ok, email:email || ''})); } catch(e){}
+    try { sessionStorage.setItem('sunfood_login_aviso', JSON.stringify({texto:aviso || '', ok:!!ok, email:email || '', escolha:!!escolha})); } catch(e){}
     window.location.replace('index.html');
   }
 
@@ -6666,19 +6712,23 @@ class Component extends DCLogic {
     v.showNav = !!meta.nav;
     // Mesma lista e mesmos nomes no celular e no computador; "Meu pedido" só
     // aparece com um pedido em andamento.
-    v.navItems = [['menu','Cardápio','menu'],['status','Meu pedido','clock'],['history','Meus pedidos','receipt'],['profile','Perfil','user']].filter(([k]) => k !== 'status' || !!s.order).map(([k, label, ic]) => ({
+    // Visitante: "Meus pedidos" e "Entrar" levam à tela de entrada.
+    const visitante = !s.token;
+    const entrar = k => k === 'history' ? this.irParaLogin('Entre ou crie sua conta para ver seus pedidos.', true, '', true) : this.irParaLogin('', true);
+    v.navItems = [['menu','Cardápio','menu'],['status','Meu pedido','clock'],['history','Meus pedidos','receipt'],['profile',visitante ? 'Entrar' : 'Perfil','user']].filter(([k]) => k !== 'status' || !!s.order).map(([k, label, ic]) => ({
       key:k, label,
       icPath:UI[ic],
       go:() => {
+        if(visitante && k !== 'menu') return entrar(k);
         if(k === 'status' && !s.order){ this.go(s.history.length ? 'history' : 'historyEmpty'); this.flash('Você não tem pedido em andamento.'); return; }
         this.go(k === 'history' && !s.history.length ? 'historyEmpty' : k);
       },
       style:"display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font:700 var(--fs-cap) 'Manrope',system-ui,sans-serif;min-width:64px;color:" +
         (meta.nav === k ? 'var(--brand)' : 'var(--ink-2)')
     }));
-    v.topLinks = [['menu','Cardápio'],['status','Meu pedido'],['history','Meus pedidos'],['profile','Perfil']]
+    v.topLinks = [['menu','Cardápio'],['status','Meu pedido'],['history','Meus pedidos'],['profile',visitante ? 'Entrar' : 'Perfil']]
       .filter(([k]) => k !== 'status' || !!s.order)
-      .map(([k, label]) => ({label, cls:meta.nav === k ? 'on' : '', go:() => this.go(k === 'history' && !s.history.length ? 'historyEmpty' : k)}));
+      .map(([k, label]) => ({label, cls:meta.nav === k ? 'on' : '', go:() => visitante && k !== 'menu' ? entrar(k) : this.go(k === 'history' && !s.history.length ? 'historyEmpty' : k)}));
     v.hasTable = !!s.table;
 
     // menu
@@ -6782,7 +6832,9 @@ class Component extends DCLogic {
     v.minOk = this.subtotal() >= minEff;
     v.minWarnText = 'Pedido mínimo de ' + f(minEff) + '.';
     v.minWarn = !v.minOk && v.hasCart;
-    v.goTable = () => { if(s.paused) return this.flash('O quiosque não está recebendo pedidos agora.'); if(s.dayClosed) return this.flash('O quiosque já encerrou o dia — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); this.go('table'); };
+    v.goTable = () => { if(s.paused) return this.flash('O quiosque não está recebendo pedidos agora.'); if(s.dayClosed) return this.flash('O quiosque já encerrou o dia — não é possível fechar o pedido.'); if(!v.minOk) return this.flash(v.minWarnText); if(!s.token) return this.pedirContaParaFinalizar(); this.go('table'); };
+    v.goTableLabel = s.token ? 'Escolher a mesa' : 'Entrar e finalizar';
+    v.visitante = !s.token;
 
     // table
     v.tableInput = s.tableInput; v.tableErr = s.tableErr; v.hasTableErr = !!s.tableErr; v.tableErrCls = s.tableErr ? 'bad' : ''; v.tableInv = s.tableErr ? 'true' : 'false';
@@ -7854,9 +7906,9 @@ class Component extends DCLogic {
     v.goSignup = () => this.go('signup');
     v.goForgot = () => this.go('forgot');
     v.goMenu = () => this.go('menu');
-    // Logo do SunFood: cliente logado volta ao cardápio; os demais vão para o
+    // Logo do SunFood: no app do cliente (logado ou visitante) volta ao cardápio; os demais vão para o
     // endereço principal, que mostra o login ou leva admin/cozinha ao seu início.
-    v.goHome = () => (s.token && s.module === 'cliente' && !v.showAuth) ? this.go('menu') : (window.location.href = './');
+    v.goHome = () => (s.module === 'cliente' && !v.showAuth) ? this.go('menu') : (window.location.href = './');
     v.goStatus = () => this.go('status');
     v.goHistory = () => this.go(v.hasHistory ? 'history' : 'historyEmpty');
     v.goProfile = () => this.go('profile');
